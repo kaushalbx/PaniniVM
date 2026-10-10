@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -17,12 +20,16 @@ object LotolangvatSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340085,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val replacements = mapOf("तस्" to "ताम्", "थस्" to "तम्", "थ" to "त")
+    private val replacements: Map<String, List<Varna>> = mapOf(
+        "तस्" to listOf(Vyanjana.TA, Svara.AA, Vyanjana.MA),
+        "थस्" to listOf(Vyanjana.TA, Svara.A, Vyanjana.MA),
+        "थ" to listOf(Vyanjana.TA, Svara.A),
+    )
 
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         val replacement = replacements[affix.upadesha] ?: return false
-        return context.effectiveContext.rupa.lakara == Lakara.LOT && ((context.stage == DerivationStage.PADA_FORMED && affix.surface != replacement) || (context.stage == DerivationStage.IT_PROCESSED && affix.surface == replacement))
+        return context.effectiveContext.rupa.lakara == Lakara.LOT && ((context.stage == DerivationStage.PADA_FORMED && affix.varnas != replacement) || (context.stage == DerivationStage.IT_PROCESSED && affix.varnas == replacement))
     }
 
     override fun apply(context: DerivationState): DerivationChange {

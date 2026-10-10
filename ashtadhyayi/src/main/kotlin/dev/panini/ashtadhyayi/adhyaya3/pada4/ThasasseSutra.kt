@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
@@ -30,13 +32,13 @@ object ThasasseSutra : Sutra<DerivationState, DerivationChange>(
             "3.4.96" !in context.appliedSutras &&
             "3.4.91" !in context.appliedSutras &&
             ending.matchesUpadesha("थास्") &&
-            ending.surface != "से"
+            ending.varnas != listOf(Vyanjana.SA, Svara.E)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, "से", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(ending.id, listOf(Vyanjana.SA, Svara.E), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.80 replaces the Ātmanepada थास् ending with से.",
         )
     }

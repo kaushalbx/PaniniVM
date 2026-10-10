@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -29,29 +28,35 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
         val presentStemEstablished = context.terms.any { it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna", "nic") } ||
             context.droppedTerms.any { it.id == "shap" || it.upadesha in setOf("श्नम्", "श्लु") }
         if (context.effectiveContext.rupa.lakara != Lakara.LOT || !presentStemEstablished) return false
-        val activeJhi = affix.upadesha == "झि" && affix.surface !in setOf("न्तु", "अन्तु", "अतु")
+        val activeJhi = affix.upadesha == "झि" && affix.varnas !in completedJhiEndings
         val middleE = middleESuffixes.any { suffix -> affix.varnas.endsWith(suffix) } &&
             "3.4.90" !in context.appliedSutras
         return activeJhi || middleE
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val replacement = if (affix.upadesha == "झि") {
+        val replacement: List<Varna> = if (affix.upadesha == "झि") {
             when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
-                DhatuGana.JUHOTYADI -> "अतु"
-                DhatuGana.ADADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI -> "अन्तु"
-                else -> "न्तु"
+                DhatuGana.JUHOTYADI -> listOf(Svara.A, Vyanjana.TA, Svara.U)
+                DhatuGana.ADADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI -> listOf(Svara.A, Vyanjana.NA, Vyanjana.TA, Svara.U)
+                else -> listOf(Vyanjana.NA, Vyanjana.TA, Svara.U)
             }
         } else if (affix.upadesha == "झ" && context.terms.any { it.id == "shna" }) {
-            "अताम्"
+            listOf(Svara.A, Vyanjana.TA, Svara.AA, Vyanjana.MA)
         } else {
-            (affix.varnas.dropLast(1) + listOf(Svara.AA, Vyanjana.MA)).toDevanagari()
+            affix.varnas.dropLast(1) + listOf(Svara.AA, Vyanjana.MA)
         }
         return DerivationChange(
             context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED),
             "3.4.90 replaces the LOT ending's ए with आम्.",
         )
     }
+
+    private val completedJhiEndings: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.NA, Vyanjana.TA, Svara.U),
+        listOf(Svara.A, Vyanjana.NA, Vyanjana.TA, Svara.U),
+        listOf(Svara.A, Vyanjana.TA, Svara.U),
+    )
 
     private val middleESuffixes: List<List<Varna>> = listOf(
         listOf(Vyanjana.TA, Svara.E),

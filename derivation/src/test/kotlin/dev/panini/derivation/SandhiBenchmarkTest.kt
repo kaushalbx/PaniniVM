@@ -25,7 +25,7 @@ class SandhiBenchmarkTest {
             } else sandhiEngine.join(case.left, case.right, config)
             val appliedSutras = result.applications.mapTo(mutableSetOf()) { it.sutra }
 
-            assertEquals(case.expected, sandhiEngine.render(result), "rendered final surface")
+            assertEquals(case.expected, sandhiEngine.render(result), "rendered final surface; applied: $appliedSutras")
             assertTrue(
                 appliedSutras.containsAll(case.requiredSutras),
                 "required rules missing: ${case.requiredSutras - appliedSutras}; applied: $appliedSutras",

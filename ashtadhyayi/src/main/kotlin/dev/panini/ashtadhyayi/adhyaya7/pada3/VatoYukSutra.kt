@@ -9,6 +9,9 @@ import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.NonOperativeUpadeshaFunction
 import dev.panini.derivation.NonOperativeUpadeshaSegment
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,10 +28,16 @@ object VatoYukSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val root = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val suffix = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        return (root.surface == "वा" || root.surface == "पा" || root.surface == "म") &&
-            suffix.surface == "उ" &&
+        return root.varnas in supportedRoots &&
+            suffix.varnas == listOf(Svara.U) &&
             context.allEffectiveTerms.none { it.id == "yuk-agama" }
     }
+
+    private val supportedRoots: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.VA, Svara.AA),
+        listOf(Vyanjana.PA, Svara.AA),
+        listOf(Vyanjana.MA, Svara.A),
+    )
 
     override fun apply(context: DerivationState): DerivationChange {
         val rootIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }

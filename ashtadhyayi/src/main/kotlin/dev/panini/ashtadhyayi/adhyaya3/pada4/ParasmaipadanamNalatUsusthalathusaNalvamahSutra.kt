@@ -1,12 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
-import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.SthaniProperties
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -20,22 +23,35 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340082,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val replacements = mapOf("तिप्" to "णल्", "तस्" to "अतुस्", "झि" to "उस्", "सिप्" to "थल्", "थस्" to "अथुस्", "थ" to "अ", "मिप्" to "अ", "वस्" to "व", "मस्" to "म")
+    private data class Replacement(
+        val upadesha: String,
+        val varnas: List<Varna>,
+        val policy: WholeAffixDesignationPolicy = WholeAffixDesignationPolicy.Consume,
+    )
+
+    private val replacements = mapOf(
+        TingAffix.TIP to Replacement("णल्", listOf(Vyanjana.NNA, Svara.A, Vyanjana.LA), WholeAffixDesignationPolicy.FreshUpadesha),
+        TingAffix.TAS to Replacement("अतुस्", listOf(Svara.A, Vyanjana.TA, Svara.U, Vyanjana.SA)),
+        TingAffix.JHI to Replacement("उस्", listOf(Svara.U, Vyanjana.SA)),
+        TingAffix.SIP to Replacement("थल्", listOf(Vyanjana.THA, Svara.A, Vyanjana.LA), WholeAffixDesignationPolicy.FreshUpadesha),
+        TingAffix.THAS to Replacement("अथुस्", listOf(Svara.A, Vyanjana.THA, Svara.U, Vyanjana.SA)),
+        TingAffix.THA to Replacement("अ", listOf(Svara.A)),
+        TingAffix.MIP to Replacement("अ", listOf(Svara.A)),
+        TingAffix.VAS to Replacement("व", listOf(Vyanjana.VA, Svara.A)),
+        TingAffix.MAS to Replacement("म", listOf(Vyanjana.MA, Svara.A)),
+    )
 
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
-        val replacement = replacements[ending.upadesha] ?: return false
+        val replacement = replacements.entries.singleOrNull { ending.hasCurrentAffix(it.key) }?.value ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            ending.surface != replacement
+            ending.varnas != replacement.varnas
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val replacement = requireNotNull(replacements[ending.upadesha])
-        val policy = if (replacement in setOf("णल्", "थल्"))
-            dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha
-        else dev.panini.derivation.WholeAffixDesignationPolicy.Consume
-        return DerivationChange(context.replaceWholeAffix(ending.id, replacement, sutra, policy, upadesha = replacement),
-            "3.4.82 replaces the Parasmaipada ${ending.upadesha} ending with $replacement in लिट्.")
+        val replacement = replacements.entries.single { ending.hasCurrentAffix(it.key) }.value
+        return DerivationChange(context.replaceWholeAffix(ending.id, replacement.varnas, sutra, replacement.policy, upadesha = replacement.upadesha),
+            "3.4.82 replaces the Parasmaipada ${ending.upadesha} ending with ${replacement.upadesha} in लिट्.")
     }
 }

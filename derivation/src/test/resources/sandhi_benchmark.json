@@ -99,7 +99,7 @@
   },
   {
     "id": "SANDHI_018", "name": "nara plus indra", "left": "नर", "right": "इन्द्रः",
-    "expected": "नरेंद्रः", "requiredSutras": "6.1.87,8.3.24", "forbiddenSutras": "6.1.101"
+    "expected": "नरेन्द्रः", "requiredSutras": "6.1.87,8.3.24,8.4.58", "forbiddenSutras": "6.1.101"
   },
   {
     "id": "SANDHI_019", "name": "deva plus isha", "left": "देव", "right": "ईशः",
@@ -243,7 +243,7 @@
   },
   {
     "id": "SANDHI_054", "name": "daya plus ananda", "left": "दया", "right": "आनन्दः",
-    "expected": "दयानंदः", "requiredSutras": "6.1.101,8.3.24", "forbiddenSutras": "6.1.87"
+    "expected": "दयानन्दः", "requiredSutras": "6.1.101,8.3.24,8.4.58", "forbiddenSutras": "6.1.87"
   },
   {
     "id": "SANDHI_055", "name": "vidya plus arthi", "left": "विद्या", "right": "अर्थी",
@@ -527,7 +527,7 @@
   { "id": "SANDHI_196", "name": "yatha plus ekam", "left": "यथा", "right": "एकम्", "expected": "यथैकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_197", "name": "dharma plus aishvarya", "left": "धर्म", "right": "ऐश्वर्यम्", "expected": "धर्मैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_198", "name": "rajya plus aishvarya", "left": "राज्य", "right": "ऐश्वर्यम्", "expected": "राज्यैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
-  { "id": "SANDHI_199", "name": "maha plus aikantika", "left": "महा", "right": "ऐकान्तिकम्", "expected": "महैकांतिकम्", "requiredSutras": "6.1.88,8.3.24", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_199", "name": "maha plus aikantika", "left": "महा", "right": "ऐकान्तिकम्", "expected": "महैकान्तिकम्", "requiredSutras": "6.1.88,8.3.24,8.4.58", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_200", "name": "jana plus aikya", "left": "जन", "right": "ऐक्यम्", "expected": "जनैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_201", "name": "shabda plus aikya", "left": "शब्द", "right": "ऐक्यम्", "expected": "शब्दैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_202", "name": "maha plus ojasvi", "left": "महा", "right": "ओजस्वी", "expected": "महौजस्वी", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
@@ -579,7 +579,7 @@
   { "id": "SANDHI_248", "name": "sadho plus asti", "left": "साधो", "right": "अस्ति", "expected": "साधोऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
   { "id": "SANDHI_249", "name": "aho plus atra", "left": "अहो", "right": "अत्र", "expected": "अहोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
   { "id": "SANDHI_250", "name": "aho plus api", "left": "अहो", "right": "अपि", "expected": "अहोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
-  { "id": "SANDHI_251", "name": "go plus Indra compulsory avang then guna", "left": "गो", "right": "इन्द्रः", "expected": "गवेंद्रः", "requiredSutras": "6.1.124,6.1.87", "forbiddenSutras": "6.1.78,6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/124", "note": "गवेन्द्रः after guna; existing nasal rules render गवेंद्रः." },
+  { "id": "SANDHI_251", "name": "go plus Indra compulsory avang then guna", "left": "गो", "right": "इन्द्रः", "expected": "गवेन्द्रः", "requiredSutras": "6.1.124,6.1.87,8.4.58", "forbiddenSutras": "6.1.78,6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/124", "note": "Internal न् is restored by mandatory parasavarna after 8.3.24." },
   { "id": "SANDHI_252", "name": "go agra with optional avang", "left": "गो", "right": "अग्रम्", "expected": "गवाग्रम्", "requiredSutras": "6.1.123,6.1.101", "forbiddenSutras": "6.1.78,6.1.109,6.1.124", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
   { "id": "SANDHI_253", "name": "go agra without avang or prakrtibhava", "left": "गो", "right": "अग्रम्", "expected": "गोऽग्रम्", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.122,6.1.123,6.1.124", "skippedSutras": "6.1.122,6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
   { "id": "SANDHI_254", "name": "go odana with optional avang and vrddhi", "left": "गो", "right": "ओदनम्", "expected": "गवौदनम्", "requiredSutras": "6.1.123,6.1.88", "forbiddenSutras": "6.1.78,6.1.124", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
@@ -606,4 +606,8 @@
   ,{ "id": "SANDHI_275", "name": "dadhi atra y after i is not sakalya target", "left": "दधि", "right": "अत्र", "expected": "दध्यत्र", "requiredSutras": "6.1.77", "forbiddenSutras": "8.3.19", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.19.htm" }
   ,{ "id": "SANDHI_276", "name": "madhu atra v after u is not sakalya target", "left": "मधु", "right": "अत्र", "expected": "मध्वत्र", "requiredSutras": "6.1.77", "forbiddenSutras": "8.3.19", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.19.htm" }
   ,{ "id": "SANDHI_277", "name": "vak isha left pada jash", "left": "वाक्", "right": "ईशः", "expected": "वागीशः", "requiredSutras": "8.2.39", "forbiddenSutras": "8.4.55,8.4.63", "source": "https://sanskrit.uohyd.ac.in/IOE-2024/Halsandhi.pdf" }
+  ,{ "id": "SANDHI_278", "name": "san shambhu tuk and cha retained", "left": "सन्", "right": "शम्भुः", "expected": "सञ्च्छम्भुः", "requiredSutras": "8.3.31,8.4.40,8.4.63", "forbiddenSutras": "8.4.65", "skippedSutras": "8.4.65", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.31.htm", "note": "Laghu Siddhanta Kaumudi and Balamanorama list the four optional branches; repository numbering uses 8.4.40, 8.4.63 and 8.4.65." }
+  ,{ "id": "SANDHI_279", "name": "san shambhu tuk with optional c lopa", "left": "सन्", "right": "शम्भुः", "expected": "सञ्छम्भुः", "requiredSutras": "8.3.31,8.4.40,8.4.63,8.4.65", "forbiddenSutras": "", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.31.htm" }
+  ,{ "id": "SANDHI_280", "name": "san shambhu tuk without cha", "left": "सन्", "right": "शम्भुः", "expected": "सञ्च्शम्भुः", "requiredSutras": "8.3.31,8.4.40", "forbiddenSutras": "8.4.63,8.4.65", "skippedSutras": "8.4.63", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.31.htm" }
+  ,{ "id": "SANDHI_281", "name": "san shambhu without tuk", "left": "सन्", "right": "शम्भुः", "expected": "सञ्शम्भुः", "requiredSutras": "8.4.40", "forbiddenSutras": "8.3.31,8.4.63,8.4.65", "skippedSutras": "8.3.31", "source": "https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/8/8.3.31.htm" }
 ]

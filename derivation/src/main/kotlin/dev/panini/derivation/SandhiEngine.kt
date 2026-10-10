@@ -5,7 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya6.pada1.SavarnaDirghaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada4.AnusvarasyaYayiParasavarnahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.VaPadantasyaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.KhariCaSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
@@ -70,8 +70,8 @@ class SandhiEngine(
         // anusvāra before semivowels; the general rule's fallback is not a
         // representation of their nasalized phonetic variants.
         if (initialRight is Vyanjana && initialRight.abhyantaraPrayatna == AbhyantaraPrayatna.SPRSTA &&
-            AnusvarasyaYayiParasavarnahSutra.matches(state)) {
-            state = AnusvarasyaYayiParasavarnahSutra.apply(state).state
+            VaPadantasyaSutra.matches(state)) {
+            state = VaPadantasyaSutra.apply(state).state
         }
         if (JhayoHonyatarasyamSutra.matches(state)) {
             state = JhayoHonyatarasyamSutra.apply(state).state

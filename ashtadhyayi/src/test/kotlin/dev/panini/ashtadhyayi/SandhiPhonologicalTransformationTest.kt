@@ -210,9 +210,11 @@ class SandhiPhonologicalTransformationTest {
                 DerivationTerm("t2", "तन्वा", TermKind.PRATIPADIKA, upadesha = "तन्वा")
             )
         )
-        assertTrue(JharoJhariSavarneSutra.matches(state))
-        val change = JharoJhariSavarneSutra.apply(state)
-        assertEquals("त", change.state.terms[0].surface)
+        assertTrue(!JharoJhariSavarneSutra.matches(state))
+        val precededByConsonant = state.replaceTerm("t1", state.terms[0].copy(surface = "अन्त्"))
+        assertTrue(JharoJhariSavarneSutra.matches(precededByConsonant))
+        val change = JharoJhariSavarneSutra.apply(precededByConsonant)
+        assertEquals("अन्", change.state.terms[0].surface)
     }
 
     @Test

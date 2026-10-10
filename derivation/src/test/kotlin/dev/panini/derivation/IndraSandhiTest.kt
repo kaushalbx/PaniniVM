@@ -22,7 +22,7 @@ class IndraSandhiTest {
     @Test
     fun `go before Indra receives compulsory avang followed by guna`() {
         val result = SandhiEngine().join("गो", "इन्द्रः")
-        assertEquals("गवेंद्रः", result.final.surface)
+        assertEquals("गवेन्द्रः", result.final.surface)
         val rules = result.applications.map { it.sutra }
         assertTrue("6.1.124" in rules)
         assertTrue("6.1.87" in rules)
@@ -33,7 +33,7 @@ class IndraSandhiTest {
     fun `other o endings retain ordinary ec sandhi`() {
         val engine = SandhiEngine()
         val results = engine.joinAll("नो", "इन्द्रः")
-        assertEquals(setOf("नविंद्रः", "न इंद्रः"), results.map(engine::render).toSet())
+        assertEquals(setOf("नविन्द्रः", "न इन्द्रः"), results.map(engine::render).toSet())
         assertTrue(results.all { it.applications.any { a -> a.sutra == "6.1.78" } })
         assertTrue(results.none { it.applications.any { a -> a.sutra == "6.1.124" } })
     }

@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
+import dev.panini.core.PadaType
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -42,15 +44,18 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.id == "sip-aorist" }
         ) return false
         if (ending.kind != TermKind.PRATYAYA || sutra in ending.establishedBySutras) return false
-        if (ending.matchesUpadesha("तिप्") && ending.surface == "तिप्") return false
-        if (ending.matchesUpadesha("सिप्") && ending.surface == "सिप्") return false
+        if (ending.matchesUpadesha("तिप्") && ending.varnas == listOf(Vyanjana.TA, Svara.I, Vyanjana.PA)) return false
+        if (ending.matchesUpadesha("सिप्") && ending.varnas == listOf(Vyanjana.SA, Svara.I, Vyanjana.PA)) return false
         if (ending.matchesUpadesha("झि") && ending.varnas.firstOrNull() == Vyanjana.JHA) return false
-        if (ending.matchesUpadesha("मिप्") && ending.surface != "नि") return false
-        val atmanepadaUpadeshas = setOf("त", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्")
-        if (ending.upadesha in atmanepadaUpadeshas && ending.surface == ending.upadesha) return false
-        if (ending.upadesha in setOf("आताम्", "आथाम्") && ending.surface !in setOf("ऐते", "ऐथे")) return false
+        if (ending.matchesUpadesha("मिप्") && ending.varnas != listOf(Vyanjana.NA, Svara.I)) return false
+        val isAtmanepadaEnding = TingAffix.entries.any { it.pada == PadaType.ATMANEPADA && it.upadesha == ending.upadesha }
+        if (isAtmanepadaEnding && ending.varnas == ending.upadeshaVarnas) return false
+        if (ending.upadesha in setOf(TingAffix.ATAM.upadesha, TingAffix.ATHAM.upadesha) && ending.varnas !in setOf(
+                listOf(Svara.AI, Vyanjana.TA, Svara.E),
+                listOf(Svara.AI, Vyanjana.THA, Svara.E),
+            )) return false
         if (context.effectiveContext.letEOption == LetEOption.AI &&
-            ending.upadesha in atmanepadaUpadeshas && ending.varnas.lastOrNull() == Svara.E) return false
+            isAtmanepadaEnding && ending.varnas.lastOrNull() == Svara.E) return false
         return ending.sourceTingAffix != null
     }
 

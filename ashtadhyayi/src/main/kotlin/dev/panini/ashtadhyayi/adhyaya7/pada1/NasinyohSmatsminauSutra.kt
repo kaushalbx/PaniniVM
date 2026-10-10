@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
+import dev.panini.core.SupAffix
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -45,22 +48,25 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
         val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
 
-        if (affix.surface in setOf("स्मात्", "स्मिन्")) return false
+        if (affix.varnas in targets) return false
 
-        return isSarvanama && endsInA && (affix.upadesha in sources || affix.id in setOf("sup-ngasi", "sup-ngi"))
+        return isSarvanama && endsInA && source(affix) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val lookupKey = if (affix.id == "sup-ngasi") "ङसि" else if (affix.id == "sup-ngi") "ङि" else affix.upadesha
+        val lookupKey = source(affix)
         val replacement = requireNotNull(YathasamkhyamSutra.map(lookupKey, sources, targets))
 
         return DerivationChange(
             state = context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
-            explanation = "7.1.15: Substituted $replacement for ${affix.upadesha} after pronoun stem."
+            explanation = "7.1.15: Substituted ${if (lookupKey == SupAffix.NGASI) "स्मात्" else "स्मिन्"} for ${affix.upadesha} after pronoun stem."
         )
     }
 
-    private val sources = listOf("ङसि", "ङि")
-    private val targets = listOf("स्मात्", "स्मिन्")
+    private val sources = listOf(SupAffix.NGASI, SupAffix.NGI)
+    private val targets = listOf(SupSubstitutionVarnas.smat, SupSubstitutionVarnas.smin)
+
+    private fun source(affix: DerivationTerm): SupAffix? =
+        affix.sourceSupAffix?.takeIf { it in sources } ?: sources.singleOrNull { affix.hasCurrentAffix(it) }
 }

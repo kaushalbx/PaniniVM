@@ -1,5 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
+import dev.panini.core.TingAffix
+import dev.panini.core.PadaType
+import dev.panini.shiksha.Vyanjana
+
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -20,16 +24,20 @@ object LingsicorAtmanepadesuSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.VIBHASHA, chapter = 7, pada = 2, optional = true, kramaValue = 720042,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
+    private fun sicIndex(context: DerivationState): Int = context.terms.indexOfFirst {
+        it.upadesha == "सिँच्" && it.varnas == listOf(Vyanjana.SA)
+    }
+
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
-        val isAtmanepada = ending.upadesha in setOf("त", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्")
+        val isAtmanepada = TingAffix.entries.any { it.pada == PadaType.ATMANEPADA && it.upadesha == ending.upadesha }
         if (!isAtmanepada) return false
-        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.surface == "स्" }
+        val sicIndex = sicIndex(context)
         return sicIndex > 0 && context.allEffectiveTerms.none { it.id == "it-agama" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" }
+        val sicIndex = sicIndex(context)
         val sic = context.terms[sicIndex]
         val itAgama = DerivationTerm(
             "it-agama", "इट्", TermKind.AGAMA,

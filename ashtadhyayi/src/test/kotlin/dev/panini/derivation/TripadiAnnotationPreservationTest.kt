@@ -34,7 +34,7 @@ class TripadiAnnotationPreservationTest {
             Triple(MonusvarahSutra, state("अँम्ऽ", "क"), listOf(Svara.A, Ayogavaha.ANUSVARA)),
             Triple(NashcapadantasyaSutra, state("अँन्त्ऽ"), listOf(Svara.A, Ayogavaha.ANUSVARA, Vyanjana.TA)),
             Triple(AdesapratyayayohSutra, state("इँसऽति", affix = true), listOf(Svara.I, Vyanjana.SSA, Svara.A, Vyanjana.TA, Svara.I)),
-            Triple(AnusvarasyaYayiParasavarnahSutra, state("अँंऽ", "क"), listOf(Svara.A, Vyanjana.NGA)),
+            Triple(AnusvarasyaYayiParasavarnahSutra, state("अँंऽ", "क").copy(samjnas = emptySet()), listOf(Svara.A, Vyanjana.NGA)),
             Triple(VaPadantasyaSutra, state("अँंऽ", "क"), listOf(Svara.A, Vyanjana.NGA)),
             Triple(JhalamJashJhashiSutra, state("अँत्ऽ", "द"), listOf(Svara.A, Vyanjana.DA)),
             Triple(KhariCaSutra, state("अँद्ऽ", "क"), listOf(Svara.A, Vyanjana.TA)),

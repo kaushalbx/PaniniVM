@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -42,13 +43,13 @@ object AtoYeyahSutra : Sutra<DerivationState, DerivationChange>(
         val precedingAnga = context.terms[yasutIndex - 1]
         val yasut = context.terms[yasutIndex]
         val endsInA = precedingAnga.varnas.lastOrNull() == Svara.A || precedingAnga.id in setOf("shyan", "sha")
-        return endsInA && yasut.surface == "यास्"
+        return endsInA && yasut.varnas == listOf(Vyanjana.YA, Svara.AA, Vyanjana.SA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val yasut = context.terms.first { it.id == "yasut" }
         return DerivationChange(
-            context.replaceWholeAffix(yasut.id, "इय्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(yasut.id, listOf(Svara.I, Vyanjana.YA), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "7.2.80 replaces यास् with इय् after the a-final aṅga.",
         )
     }

@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
@@ -20,14 +23,15 @@ object LitasTajhayorEshirecSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            ((ending.matchesUpadesha("त") && ending.surface != "ए") ||
-                (ending.matchesUpadesha("झ") && ending.surface != "इरे"))
+            ((ending.matchesUpadesha("त") && ending.varnas != listOf(Svara.E)) ||
+                (ending.matchesUpadesha("झ") && ending.varnas != listOf(Svara.I, Vyanjana.RA, Svara.E)))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val replacement = if (ending.matchesUpadesha("त")) "ए" else "इरे"
+        val replacement: List<Varna> = if (ending.matchesUpadesha("त")) listOf(Svara.E) else listOf(Svara.I, Vyanjana.RA, Svara.E)
+        val replacementLabel = if (ending.matchesUpadesha("त")) "ए" else "इरे"
         return DerivationChange(context.replaceWholeAffix(ending.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
-            "3.4.81 replaces ${ending.upadesha} with $replacement in लिट्.")
+            "3.4.81 replaces ${ending.upadesha} with $replacementLabel in लिट्.")
     }
 }

@@ -1,5 +1,7 @@
 package dev.panini.derivation
 
+import dev.panini.shiksha.OrthographicSign
+
 import dev.panini.core.DhatuGana
 import dev.panini.core.ItMarker
 import dev.panini.core.LopaType
@@ -896,7 +898,37 @@ data class DerivationTerm(
         consumedDesignations: Set<ItDesignation>,
         sutra: String,
     ): DerivationTerm {
-        val replacementSurface = replacementVarnas.toDevanagari()
+        val originalTokens = phonologicalText.effectiveVarnas
+        require(survivingPositions.keys.all { it in originalTokens.indices } &&
+            survivingPositions.values.all { it in replacementVarnas.indices }) {
+            "$sutra has an out-of-range surviving varṇa mapping on $id."
+        }
+        require(survivingPositions.values.distinct().size == survivingPositions.size) {
+            "$sutra must map surviving varṇas to distinct replacement positions on $id."
+        }
+        val orderedPositions = survivingPositions.toSortedMap().values.toList()
+        require(orderedPositions == orderedPositions.sorted()) {
+            "$sutra must preserve the order of surviving varṇas on $id."
+        }
+        val sourceForTarget = survivingPositions.entries.associate { (source, target) -> target to source }
+        val annotatedReplacement = replacementVarnas.mapIndexed { index, varna ->
+            sourceForTarget[index]?.let { originalTokens[it].copy(varna = varna) }
+                ?: dev.panini.shiksha.VarnaToken(dev.panini.shiksha.VarnaTokenId("replacement:$id:$sutra:$index"), varna)
+        }
+        val signs = (orthographicSigns + phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { placement ->
+            val oldBoundary = placement.afterVarnaCount
+            val boundary = when {
+                placement.sign == OrthographicSign.CHANDRABINDU ->
+                    survivingPositions[oldBoundary - 1]?.plus(1) ?: return@mapNotNull null
+                oldBoundary == 0 -> 0
+                oldBoundary == originalTokens.size -> replacementVarnas.size
+                survivingPositions.containsKey(oldBoundary - 1) -> survivingPositions.getValue(oldBoundary - 1) + 1
+                else -> survivingPositions.toSortedMap().entries.firstOrNull { it.key >= oldBoundary }?.value
+                    ?: replacementVarnas.size
+            }
+            placement.copy(afterVarnaCount = boundary)
+        }
+        val replacementSurface = SanskritText(annotatedReplacement).renderWithOrthographicSigns(signs)
         val replacementTokens = replacementSurface.toSanskritText().effectiveVarnas
         val all = itDesignations + deferredItDesignations
         require(consumedDesignations.all { it in all }) { "$sutra cannot consume an unknown designation on $id." }
@@ -910,7 +942,7 @@ data class DerivationTerm(
         }
         return replaceWholeAffix(replacementSurface, upadesha, sutra,
             WholeAffixDesignationPolicy.PreserveAndRemap(remaps,
-                consumedDesignations.map { ItDesignationConsumption(it.start, it.endExclusive) }))
+                consumedDesignations.map { ItDesignationConsumption(it.start, it.endExclusive) })).copy(orthographicSigns = signs)
     }
 
     /** Inserts an annotated term at a phonological boundary and reprojects both इत् ledgers.

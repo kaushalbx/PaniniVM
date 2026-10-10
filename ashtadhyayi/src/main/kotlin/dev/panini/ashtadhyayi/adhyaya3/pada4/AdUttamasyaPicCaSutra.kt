@@ -11,7 +11,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.SthaniProperties
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -41,7 +41,11 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
             ending.upadesha in setOf("इट्", "वहि", "महिङ्") &&
             context.allEffectiveTerms.none { it.id == "lot-at-agama" } &&
             context.allEffectiveTerms.none { sutra in it.establishedBySutras } &&
-            ending.surface in setOf("ए", "वहे", "महे")
+            ending.varnas in setOf(
+                listOf(Svara.E),
+                listOf(Vyanjana.VA, Svara.A, Vyanjana.HA, Svara.E),
+                listOf(Vyanjana.MA, Svara.A, Vyanjana.HA, Svara.E),
+            )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
