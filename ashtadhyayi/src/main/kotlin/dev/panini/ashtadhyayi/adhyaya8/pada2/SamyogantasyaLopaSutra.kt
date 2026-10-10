@@ -39,7 +39,9 @@ object SamyogantasyaLopaSutra : Sutra<DerivationState, DerivationChange>(
         if (!isPada) return false
 
         // 2. Must end in a consonant cluster (saṃyoga, per 1.1.7)
-        return lastTerm.varnas.size >= 2 && lastTerm.varnas.takeLast(2).all { it is Vyanjana }
+        // 8.2.24 restricts cluster-final deletion after r to s alone, handled there.
+        return lastTerm.varnas.size >= 2 && lastTerm.varnas.takeLast(2).all { it is Vyanjana } &&
+            lastTerm.varnas[lastTerm.varnas.lastIndex - 1] != Vyanjana.RA
     }
 
     override fun apply(context: DerivationState): DerivationChange {

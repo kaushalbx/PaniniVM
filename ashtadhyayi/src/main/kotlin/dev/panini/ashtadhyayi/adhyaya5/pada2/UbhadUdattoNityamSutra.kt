@@ -39,8 +39,8 @@ object UbhadUdattoNityamSutra : Sutra<DerivationState, DerivationChange>(
         val hasAvayavaRequest = context.samjnas.any { it.samjna == Samjna.AVAYAVA || it.samjna == Samjna.TADDHITA }
         if (!hasAvayavaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "आयच्" || it.surface == "अय" }
-        return !isAlreadyApplied && (lastTerm.upadesha == "उभ" || lastTerm.surface == "उभ")
+        val isAlreadyApplied = context.terms.any { it.upadesha == "आयच्" || it.varnas == PortionAffixVarnas.aya }
+        return !isAlreadyApplied && (lastTerm.upadesha == "उभ" || lastTerm.varnas == PortionAffixVarnas.ubha)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

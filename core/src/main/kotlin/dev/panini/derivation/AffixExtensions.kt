@@ -3,6 +3,25 @@ package dev.panini.derivation
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.core.TypedAffix
+import dev.panini.core.FrequencyAffix
+import dev.panini.shiksha.SanskritText
+import dev.panini.shiksha.toSanskritText
+
+/** Projects pronunciation-only upadesha occurrences once, at the term boundary, not in a rule. */
+fun FrequencyAffix.rawTerm(id: String, createdBySutra: String): DerivationTerm {
+    val tokens = upadesha.toSanskritText().effectiveVarnas
+    require(pronunciationOnlyVarnaIndices.all { it in tokens.indices })
+    val segments = pronunciationOnlyVarnaIndices.sorted().map { index ->
+        val span = requireNotNull(tokens[index].sourceSpan)
+        require(span.start < span.endExclusive)
+        NonOperativeUpadeshaSegment(span.start, span.endExclusive,
+            upadesha.substring(span.start, span.endExclusive), NonOperativeUpadeshaFunction.UCCARANARTHA)
+    }
+    return DerivationTerm(id,
+        SanskritText(tokens.filterIndexed { index, _ -> index !in pronunciationOnlyVarnaIndices }).render(),
+        TermKind.PRATYAYA, upadesha = upadesha, createdBySutra = createdBySutra,
+        nonOperativeUpadeshaSegments = segments, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
+}
 
 fun SupAffix.term(): DerivationTerm = DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha,
     sourceSupAffix = this)

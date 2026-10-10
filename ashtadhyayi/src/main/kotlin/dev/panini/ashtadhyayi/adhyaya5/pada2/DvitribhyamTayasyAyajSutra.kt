@@ -41,7 +41,7 @@ object DvitribhyamTayasyAyajSutra : Sutra<DerivationState, DerivationChange>(
         val hasAvayavaRequest = context.samjnas.any { it.samjna == Samjna.AVAYAVA || it.samjna == Samjna.TADDHITA }
         if (!hasAvayavaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "आयच्" || it.surface == "अय" }
+        val isAlreadyApplied = context.terms.any { it.upadesha == "आयच्" || it.varnas == PortionAffixVarnas.aya }
         return !isAlreadyApplied && lastTerm.upadesha in supportedStems
     }
 

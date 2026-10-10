@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,11 +32,8 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val lastTerm = context.terms.lastOrNull() ?: return false
         val hasPuranaRequest = context.samjnas.any { it.samjna == Samjna.PURANA }
-        val isAlreadyApplied = context.terms.any { it.surface == "अ" || it.upadesha == "डट्" }
-        val supportedBase = lastTerm.surface in setOf(
-            "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश",
-            "सप्तदश", "अष्टादश", "नवदश",
-        ) || lastTerm.compoundHeadUpadesha in
+        val isAlreadyApplied = context.terms.any { it.varnas == listOf(Svara.A) || it.upadesha == "डट्" }
+        val supportedBase = lastTerm.varnas in PuranaNumeralVarnas.elevenToNineteen || lastTerm.compoundHeadUpadesha in
             (PuranaNumeralClasses.vimshatyadiHeads + PuranaNumeralClasses.shatadiHeads)
         return hasPuranaRequest && !isAlreadyApplied && supportedBase
     }

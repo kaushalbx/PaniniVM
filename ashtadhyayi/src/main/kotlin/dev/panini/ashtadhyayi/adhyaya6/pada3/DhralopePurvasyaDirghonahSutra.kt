@@ -32,26 +32,27 @@ object DhralopePurvasyaDirghonahSutra : Sutra<DerivationState, DerivationChange>
 ), DerivationSutra {
 
     override fun matches(context: DerivationState): Boolean {
-        // Triggers after 8.3.14 ḍho ḍhe lopaḥ or 8.3.14 ro ri
-        val hasLopa = context.substitutions.any { it.sutra == "8.3.14" || it.sutra == "8.3.15" }
-        if (!hasLopa) return false
-
-        return context.terms.any { it.varnas.lastOrNull() in anVowels }
+        return target(context) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val targetIndex = context.terms.indexOfFirst { it.varnas.lastOrNull() in anVowels }
-
-        val targetTerm = context.terms[targetIndex]
-        val source = targetTerm.varnas.last() as Svara
+        val (targetTerm, index) = requireNotNull(target(context))
+        val source = targetTerm.varnas[index] as Svara
         val replacement = source.toDirgha()
-        val result = targetTerm.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
+            state = context.replaceTermVarna(targetTerm.id, index, listOf(replacement), sutra),
             explanation = "6.3.111: Lengthened preceding aṇ vowel after ḍh/r lopa."
         )
     }
 
     private val anVowels = setOf(Svara.A, Svara.I, Svara.U)
+
+    private fun target(context: DerivationState) = context.substitutions.asReversed()
+        .filter { it.sutra in setOf("8.3.13", "8.3.14") && it.replacement.isEmpty() }
+        .firstNotNullOfOrNull { deletion ->
+            val index = deletion.sourceVarnaIndex?.minus(1) ?: return@firstNotNullOfOrNull null
+            context.terms.firstOrNull { it.id == deletion.targetId && it.varnas.getOrNull(index) in anVowels }
+                ?.let { it to index }
+        }
 }

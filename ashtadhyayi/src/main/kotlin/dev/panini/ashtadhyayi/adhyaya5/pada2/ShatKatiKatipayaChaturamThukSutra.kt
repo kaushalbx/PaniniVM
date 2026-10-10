@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -22,7 +25,12 @@ object ShatKatiKatipayaChaturamThukSutra : Sutra<DerivationState, DerivationChan
     blocks = setOf("5.2.48", "5.2.49"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&
-        context.terms.singleOrNull()?.surface in setOf("चतुर्", "षष्")
+        context.terms.singleOrNull()?.varnas in supportedBases
+
+    private val supportedBases: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Vyanjana.RA),
+        listOf(Vyanjana.SSA, Svara.A, Vyanjana.SSA),
+    )
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.single()

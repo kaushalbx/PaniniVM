@@ -503,6 +503,9 @@ class DerivationEngine(
                     maxTripadiKrama == 0 ||
                         (it.stage == SutraStage.IT_PROCESSING && state.terms.any { term -> term.itProcessingPending }) ||
                         (it.sutra in setOf("6.1.113", "6.1.114") && "8.2.66" in state.appliedSutras) ||
+                        (it.sutra == "6.3.111" && state.substitutions.any { deletion ->
+                            deletion.sutra in setOf("8.3.13", "8.3.14") && deletion.replacement.isEmpty()
+                        }) ||
                         (it.sutra == "6.1.87" && state.substitutions.lastOrNull()?.sutra == "6.1.114")
                 }
             }

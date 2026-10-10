@@ -40,13 +40,15 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() && isLaShaKu(term.varnas.first()) &&
+                state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA } &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
-            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
+            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
+                state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA }) {
                 val firstVarna = term.varnas.first()
                 if (isLaShaKu(firstVarna)) {
                     val marker = when (firstVarna) {

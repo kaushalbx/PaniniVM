@@ -13,6 +13,10 @@ import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Ayogavaha
 
 /**
  * 5.4.18: द्वित्रिचतुर्भ्यः सुच्.
@@ -35,6 +39,12 @@ object DvitrichaturbhyahSucSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
 
     private val supportedStems = setOf("एक", "द्वि", "त्रि", "चतुर्")
+    private val completedForms: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.DA, Vyanjana.VA, Svara.I, Ayogavaha.VISARGA),
+        listOf(Vyanjana.TA, Vyanjana.RA, Svara.I, Ayogavaha.VISARGA),
+        listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Ayogavaha.VISARGA),
+        listOf(Vyanjana.SA, Svara.A, Vyanjana.KA, Svara.R, Vyanjana.TA),
+    )
 
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.any { it.samjna == Samjna.PURANA || it.samjna == Samjna.DHATU }) return false
@@ -44,7 +54,7 @@ object DvitrichaturbhyahSucSutra : Sutra<DerivationState, DerivationChange>(
             (Samjna.TADDHITA in requested && requested.none { it in specializedSankhyaTaddhitas })
         if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "सुच्" || it.surface in setOf("द्विः", "त्रिः", "चतुः", "सकृत्") }
+        val isAlreadyApplied = context.terms.any { it.upadesha == "सुच्" || it.varnas in completedForms }
         return !isAlreadyApplied && lastTerm.upadesha in supportedStems
     }
 

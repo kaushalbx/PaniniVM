@@ -45,6 +45,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         // 1. Left term ends in repha (from ru) preceded by 'a'
         if (left.varnas.takeLast(2) != listOf(Svara.A, Vyanjana.RA)) return false
+        if (context.substitutions.none { it.targetId == left.id && it.sutra == "8.2.66" }) return false
 
         // 2. Followed by a voiced consonant (haś)
         val first = right.varnas.firstOrNull() as? Vyanjana ?: return false
@@ -65,6 +66,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
         index < context.terms.lastIndex && context.terms[index].varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA) &&
+            context.substitutions.any { it.targetId == context.terms[index].id && it.sutra == "8.2.66" } &&
             context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
             (context.terms[index + 1].varnas.firstOrNull() as? Vyanjana)?.let {

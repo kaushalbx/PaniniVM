@@ -8,6 +8,18 @@ sealed interface TypedAffix {
     val alternateUpadeshas: Set<String> get() = emptySet()
 }
 
+/** Frequency affixes; their pronunciation-only vowels are excluded at term construction. */
+enum class FrequencyAffix(
+    override val upadesha: String,
+    val pronunciationOnlyVarnaIndices: Set<Int>,
+) : TypedAffix {
+    KRTVASUC("कृत्वसुच्", setOf(6)),
+    SUC("सुच्", setOf(1));
+
+    override val initialSurface: String get() = upadesha
+    override val itMarkers: Set<ItMarker> get() = emptySet()
+}
+
 enum class SanadiAffix(
     override val upadesha: String,
     override val initialSurface: String = upadesha,

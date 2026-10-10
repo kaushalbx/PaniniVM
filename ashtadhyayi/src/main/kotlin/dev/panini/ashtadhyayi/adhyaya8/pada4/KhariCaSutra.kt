@@ -30,6 +30,7 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = findTarget(context) != null
 

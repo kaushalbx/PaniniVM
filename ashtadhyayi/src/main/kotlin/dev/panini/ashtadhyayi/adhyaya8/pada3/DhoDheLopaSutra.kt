@@ -12,18 +12,18 @@ import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**
- * 8.3.14: ḍho ḍhe lopaḥ.
+ * 8.3.13: ḍho ḍhe lopaḥ.
  * The sound 'ḍh' is elided when immediately followed by another 'ḍh'.
  */
 object DhoDheLopaSutra : Sutra<DerivationState, DerivationChange>(
-    number = "8.3.14",
+    number = "8.3.13",
     text = "ढो ढे लोपः",
     hindiExplanation = "ढ-कार का ढ-कार परे रहते लोप होता है।",
     type = SutraType.NITYA,
     chapter = 8,
     pada = 3,
     optional = false,
-    kramaValue = 830014,
+    kramaValue = 830013,
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.PADA_BOUNDARY,
@@ -47,7 +47,7 @@ object DhoDheLopaSutra : Sutra<DerivationState, DerivationChange>(
         val targetTerm = context.terms[targetIndex]
         return DerivationChange(
             state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, emptyList(), sutra),
-            explanation = "8.3.14: Elided 'ḍh' before another 'ḍh'."
+            explanation = "8.3.13: Elided 'ḍh' before another 'ḍh'."
         )
     }
 }

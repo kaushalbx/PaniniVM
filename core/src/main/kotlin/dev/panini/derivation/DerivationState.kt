@@ -167,6 +167,7 @@ class DerivationState(
         source: Char,
         replacement: String,
         sutra: String,
+        sourceVarnaIndex: Int? = null,
     ): DerivationState {
         val term = terms.singleOrNull { it.id == id }
             ?: error("Varṇa substitution $sutra requires exactly one term named $id.")
@@ -202,6 +203,7 @@ class DerivationState(
                     sutra = sutra,
                     originalSurface = term.surface,
                     originalOrthographicSigns = term.orthographicSigns,
+                    sourceVarnaIndex = sourceVarnaIndex,
                 ),
             )
     }
@@ -213,12 +215,14 @@ class DerivationState(
         source: Varna,
         replacement: List<Varna>,
         sutra: String,
+        sourceVarnaIndex: Int? = null,
     ): DerivationState = substituteTermSurface(
         id = id,
         surface = surface,
         source = source.devanagari.single(),
         replacement = replacement.toDevanagari(),
         sutra = sutra,
+        sourceVarnaIndex = sourceVarnaIndex,
     )
 
     /** Applies a phonological substitution and renders explicit non-phonological signs at the term boundary. */
@@ -284,7 +288,7 @@ class DerivationState(
             })
         }
         val rendered = SanskritText(result).renderWithOrthographicSigns(signs)
-        val substituted = substituteTermSurface(id, rendered, source.varna, replacement, sutra)
+        val substituted = substituteTermSurface(id, rendered, source.varna, replacement, sutra, sourceVarnaIndex = index)
         val term = substituted.terms.single { it.id == id }
         return substituted.replaceTerm(id, term.copy(orthographicSigns = signs))
     }
@@ -778,6 +782,8 @@ data class VarnaComparison(
 data class VarnaSubstitution(
     val targetId: String, val source: Char,
     val replacement: String, val sutra: String,
+    /** Exact occurrence for positional operations; null for legacy summary-only traces. */
+    val sourceVarnaIndex: Int? = null,
 ) {
     /** Exact pre-operation term boundary used by asiddhavat visibility rollback. */
     var originalSurface: String? = null
@@ -792,7 +798,8 @@ data class VarnaSubstitution(
         sutra: String,
         originalSurface: String?,
         originalOrthographicSigns: List<OrthographicSignPlacement>?,
-    ) : this(targetId, source, replacement, sutra) {
+        sourceVarnaIndex: Int? = null,
+    ) : this(targetId, source, replacement, sutra, sourceVarnaIndex) {
         this.originalSurface = originalSurface
         this.originalOrthographicSigns = originalOrthographicSigns
     }

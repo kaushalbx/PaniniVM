@@ -43,6 +43,7 @@ object AtoRorAplutadSutra : Sutra<DerivationState, DerivationChange>(
         // 1. Left term must end in repha produced from ru by इत्-processing.
         // 2. Preceded by short 'a'
         if (left.varnas.takeLast(2) != listOf(Svara.A, Vyanjana.RA)) return false
+        if (context.substitutions.none { it.targetId == left.id && it.sutra == "8.2.66" }) return false
 
         // 3. Followed by short 'a'
         return right.varnas.firstOrNull() == Svara.A

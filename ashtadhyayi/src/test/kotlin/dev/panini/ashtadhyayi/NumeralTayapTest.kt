@@ -9,12 +9,40 @@ import dev.panini.derivation.TermKind
 import dev.panini.derivation.ItProcessingPhase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
 
 class NumeralTayapTest {
+
+    @Test
+    fun `portion guards recognize pronounced varnas independently of annotations`() {
+        fun state(base: String, surface: String = base, prior: String? = null) = DerivationState(
+            terms = listOfNotNull(prior?.let { DerivationTerm("prior", it, TermKind.PRATYAYA, upadesha = "fixture") },
+                DerivationTerm("base", surface, TermKind.PRATIPADIKA, upadesha = base)),
+            samjnas = setOf(SamjnaAssignment("base", Samjna.AVAYAVA)),
+        )
+        for (aya in listOf("अय", "अयँ", "अयऽ")) {
+            assertFalse(DvitribhyamTayasyAyajSutra.matches(state("द्वि", prior = aya)))
+            assertFalse(UbhadUdattoNityamSutra.matches(state("उभ", prior = aya)))
+        }
+        for (taya in listOf("तय", "तयँ", "तयऽ"))
+            assertFalse(SankhyayaAvayaveTayapSutra.matches(state("पञ्चन्", "पञ्च", taya)))
+        // Preserve the original exact-form guard; longer or long-vowel forms are not completed अय.
+        assertTrue(DvitribhyamTayasyAyajSutra.matches(state("द्वि", prior = "अया")))
+        assertTrue(SankhyayaAvayaveTayapSutra.matches(state("पञ्चन्", "पञ्च", "तया")))
+        val annotatedUbha = state("fixture", "उभँऽ")
+        assertTrue(UbhadUdattoNityamSutra.matches(annotatedUbha))
+        val result = UbhadUdattoNityamSutra.apply(annotatedUbha).state
+        assertEquals(annotatedUbha.terms.first(), result.terms.first())
+        assertEquals(annotatedUbha.samjnas, result.samjnas)
+        assertEquals("5.2.44", result.terms.last().createdBySutra)
+        assertFalse(UbhadUdattoNityamSutra.matches(result))
+        assertFalse(UbhadUdattoNityamSutra.matches(state("fixture", "उभा")))
+        assertFalse(UbhadUdattoNityamSutra.matches(annotatedUbha.copy(samjnas = emptySet())))
+    }
 
     @Test
     fun `test SankhyayaAvayaveTayapSutra derives pancatayam and dvitayam`() {
