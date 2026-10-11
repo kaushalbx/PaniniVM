@@ -47,9 +47,14 @@ internal enum class CompilerValueKind {
 }
 
 internal fun PrakriyaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
+    PrakriyaValueType.UNCONSTRAINED -> CompilerValueKind.UNKNOWN
     PrakriyaValueType.SANKHYA -> CompilerValueKind.NUMBER
     PrakriyaValueType.SHABDA -> CompilerValueKind.TEXT
     PrakriyaValueType.SUCHI -> CompilerValueKind.LIST
+    PrakriyaValueType.SIMA -> CompilerValueKind.RANGE
+    PrakriyaValueType.RUPA -> CompilerValueKind.RECORD
+    PrakriyaValueType.SATYA -> CompilerValueKind.BOOLEAN
+    PrakriyaValueType.LOPA -> CompilerValueKind.VALUE
 }
 
 private typealias ValueKind = CompilerValueKind
@@ -122,13 +127,19 @@ internal object CompilerProgramVerifier {
     }
 
     private fun verifyFrames(instructions: List<CompilerInstruction>) {
+        val frames = java.util.ArrayDeque<Boolean>()
+        val frameScopes = mutableMapOf<Int, List<Int>>()
+        val scopeEntries = java.util.ArrayDeque<Int>()
         instructions.forEachIndexed { index, instruction ->
+            frameScopes[index] = scopeEntries.toList()
             when (instruction) {
                 is CompilerInstruction.EnterFrame -> {
+                    frames.addLast(instruction.scopedBinding)
+                    scopeEntries.addLast(index)
                     require(instruction.parameterNames.distinct().size == instruction.parameterNames.size) {
                         "IR frame parameter names must be unique at instruction $index"
                     }
-                    require(instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure ||
+                    require(instruction.scopedBinding || instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure ||
                         instructions.getOrNull(index + 1) is CompilerInstruction.InvokeDependencyProcedure) {
                         "IR EnterFrame must be followed by InvokeProcedure at instruction $index"
                     }
@@ -149,13 +160,28 @@ internal object CompilerProgramVerifier {
                     require(frame.parameterNames.size == instruction.argumentCount)
                     require(instructions.getOrNull(index + 1) == CompilerInstruction.ExitFrame)
                 }
-                CompilerInstruction.ExitFrame -> require(
-                    instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure ||
+                CompilerInstruction.ExitFrame -> {
+                    require(frames.isNotEmpty()) { "IR ExitFrame has no active frame at instruction $index" }
+                    scopeEntries.removeLast()
+                    require(frames.removeLast() || instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure ||
                         instructions.getOrNull(index - 1) is CompilerInstruction.InvokeDependencyProcedure,
-                ) {
-                    "IR ExitFrame requires InvokeProcedure at instruction $index"
+                    ) { "IR ExitFrame requires InvokeProcedure at instruction $index" }
                 }
                 else -> Unit
+            }
+        }
+        require(frames.isEmpty()) { "IR frame is not closed" }
+        val labels = instructions.mapIndexedNotNull { index, instruction ->
+            (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
+        }.toMap()
+        instructions.forEachIndexed { index, instruction ->
+            val target = when (instruction) {
+                is CompilerInstruction.Branch -> instruction.target
+                is CompilerInstruction.Jump -> instruction.target
+                else -> null
+            }
+            if (target != null && target in labels) require(frameScopes[index] == frameScopes[labels.getValue(target)]) {
+                "IR branch crosses a lexical frame boundary at instruction $index"
             }
         }
     }
@@ -190,12 +216,14 @@ internal sealed interface CompilerInstruction {
 
     data class LoadActionParticipants(
         val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val occurrenceFromLatest: Int = 1,
+        val asGroup: Boolean = false,
     ) : CompilerInstruction {
         init { require(dhatuUpadesha.isNotBlank() && occurrenceFromLatest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
     }
 
     data class LoadOrdinalActionParticipants(
         val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val ordinalFromOldest: Long,
+        val asGroup: Boolean = false,
     ) : CompilerInstruction {
         init { require(dhatuUpadesha.isNotBlank() && ordinalFromOldest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
     }
@@ -212,7 +240,13 @@ internal sealed interface CompilerInstruction {
     /** Reject numeric equality without coercing words or structured values. */
     data object CheckNumericProhibition : CompilerInstruction
 
+    /** Normal-return contract for a procedure's declared structured result. */
+    data class CheckProcedureResultSchema(val schema: String, val fields: List<String>) : CompilerInstruction
+
     data class BuildList(val size: Int, val memberType: dev.panini.execution.ListMemberType? = null) : CompilerInstruction
+
+    /** Expand only marked grammatical participant groups, not collection values. */
+    data class PackOperands(val expandGroups: List<Boolean>) : CompilerInstruction
 
     data class BuildRecord(val schema: String, val fields: List<String>) : CompilerInstruction
 
@@ -220,6 +254,9 @@ internal sealed interface CompilerInstruction {
 
     /** Loads a record field, producing Pāṇinian Lopa when the field is absent. */
     data class LoadFieldOrLopa(val name: String) : CompilerInstruction
+
+    /** Resolves a nominal record reference in the current runtime environment. */
+    data object ResolveRecordReference : CompilerInstruction
 
     data class RenderText(val size: Int) : CompilerInstruction
 
@@ -246,6 +283,7 @@ internal sealed interface CompilerInstruction {
     data class EnterFrame(
         val parameterNames: List<String>,
         val parameterKinds: List<CompilerValueKind> = emptyList(),
+        val scopedBinding: Boolean = false,
     ) : CompilerInstruction
 
     data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction
@@ -285,6 +323,8 @@ internal sealed interface CompilerInstruction {
     data object ConsumeBreak : CompilerInstruction
 
     data object EnterConditionIteration : CompilerInstruction
+    /** Consumes the one-based iteration number; budget is local to this loop. */
+    data object CheckCollectionIteration : CompilerInstruction
 
     data class InitializeLoopCondition(val name: String) : CompilerInstruction
 
@@ -327,6 +367,7 @@ internal enum class NumericUnaryOperator {
 }
 
 internal enum class CollectionOperator {
+    SNAPSHOT,
     SUM,
     SUM_NUMBER_MEMBERS,
     LENGTH,
@@ -400,11 +441,11 @@ internal object CompilerIrLowering {
             add(numberConstant(1))
             add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
             add(CompilerInstruction.StoreLocal(counter))
+            add(CompilerInstruction.ConsumeBreak)
+            add(CompilerInstruction.Branch(victory, whenTrue = true))
             if (usesReportedCondition) {
                 add(CompilerInstruction.CaptureReportedCondition(reportedCondition))
             }
-            add(CompilerInstruction.ConsumeBreak)
-            add(CompilerInstruction.Branch(victory, whenTrue = true))
             add(CompilerInstruction.Jump(conditionLabel))
             add(CompilerInstruction.Label(victory))
             addAll(loopOutcome("विजय", counter))
@@ -774,12 +815,19 @@ internal object CompilerIrLowering {
             }
             collection == CollectionOperator.POP -> {
                 val frame = naturalOperation as? NaturalOperation.CollectionExtraction
-                if (frame != null && (frame.member as? ExecutionExpression.Pada)?.memberSelection !=
-                    dev.panini.execution.CollectionMemberSelection.FINAL) return null
-                val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
-                    ?.let(::lowerSingleCollectionValue)
-                    ?: return null
-                list + CompilerInstruction.Collection(CollectionOperator.POP)
+                val member = frame?.member as? ExecutionExpression.Pada
+                if (member?.memberSelection == dev.panini.execution.CollectionMemberSelection.ORDINAL) {
+                    val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                    val position = member.value as? SanskritValue.Sankhya ?: return null
+                    list + CompilerInstruction.Constant(position) + CompilerInstruction.Collection(CollectionOperator.INDEX)
+                } else {
+                    if (frame != null && member?.memberSelection !=
+                        dev.panini.execution.CollectionMemberSelection.FINAL) return null
+                    val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
+                        ?.let(::lowerSingleCollectionValue)
+                        ?: return null
+                    list + CompilerInstruction.Collection(CollectionOperator.POP)
+                }
             }
             collection == CollectionOperator.SLICE -> {
                 val naturalFrame = naturalOperation as? NaturalOperation.CollectionSlice
@@ -1046,7 +1094,8 @@ internal object CompilerIrVerifier {
         }
         return when (instruction) {
             is CompilerInstruction.Constant -> before + when (instruction.value) {
-                is SanskritValue.Sankhya -> ValueKind.NUMBER
+                is SanskritValue.Sankhya, is SanskritValue.Rational -> ValueKind.NUMBER
+                is SanskritValue.Satya -> ValueKind.BOOLEAN
                 is SanskritValue.Shabda -> ValueKind.TEXT
                 is SanskritValue.Suchi, is SanskritValue.Gana -> ValueKind.LIST
                 is SanskritValue.Rupa -> ValueKind.RECORD
@@ -1066,9 +1115,29 @@ internal object CompilerIrVerifier {
                 before + value
             }
             CompilerInstruction.Pop -> pop().first
+            CompilerInstruction.CheckCollectionIteration -> {
+                val (remaining, kind) = pop()
+                require(kind in setOf(ValueKind.NUMBER, ValueKind.UNKNOWN, ValueKind.VALUE)) {
+                    "IR collection iteration requires a number at instruction $index"
+                }
+                remaining
+            }
             CompilerInstruction.CheckNumericProhibition -> {
                 require(before.size >= 2) { "IR numeric prohibition stack underflow at instruction $index" }
                 before.dropLast(2)
+            }
+            is CompilerInstruction.CheckProcedureResultSchema -> {
+                require(instruction.schema.isNotBlank()) { "IR result schema must not be blank" }
+                require(instruction.fields.all { it.isNotBlank() } &&
+                    instruction.fields.distinct().size == instruction.fields.size) {
+                    "IR result schema fields must be nonblank and unique"
+                }
+                before
+            }
+            is CompilerInstruction.PackOperands -> {
+                val size = instruction.expandGroups.size
+                require(size > 0 && before.size >= size) { "IR operand packing stack underflow at instruction $index" }
+                before.dropLast(size) + ValueKind.UNKNOWN
             }
             is CompilerInstruction.BuildList -> {
                 require(instruction.size >= 0) { "IR list size must not be negative at instruction $index" }
@@ -1089,6 +1158,7 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.LoadField,
             is CompilerInstruction.LoadFieldOrLopa,
             -> pop().first + ValueKind.UNKNOWN
+            CompilerInstruction.ResolveRecordReference -> pop().first + ValueKind.RECORD
             is CompilerInstruction.RenderText -> {
                 require(instruction.size >= 0) { "IR text operand count must not be negative at instruction $index" }
                 require(before.size >= instruction.size) {
@@ -1096,7 +1166,7 @@ internal object CompilerIrVerifier {
                 }
                 before.dropLast(instruction.size) + ValueKind.TEXT
             }
-            CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
+            CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.BOOLEAN
             is CompilerInstruction.RandomRange -> {
                 require(instruction.minimum <= instruction.maximum) {
                     "IR random range minimum exceeds maximum at instruction $index"
@@ -1125,6 +1195,7 @@ internal object CompilerIrVerifier {
                     -> 2
                     CollectionOperator.SLICE -> 3
                     CollectionOperator.LENGTH,
+                    CollectionOperator.SNAPSHOT,
                     CollectionOperator.SUM,
                     CollectionOperator.SUM_NUMBER_MEMBERS,
                     CollectionOperator.REVERSE,
@@ -1155,7 +1226,10 @@ internal object CompilerIrVerifier {
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
                     CollectionOperator.LENGTH, CollectionOperator.SUM, CollectionOperator.SUM_NUMBER_MEMBERS -> ValueKind.NUMBER
-                    CollectionOperator.INDEX, CollectionOperator.CONTAINS, CollectionOperator.POP -> ValueKind.VALUE
+                    CollectionOperator.CONTAINS -> ValueKind.BOOLEAN
+                    // Member type is determined by the collection's runtime
+                    // payload, not an opaque scalar type or an integer guess.
+                    CollectionOperator.INDEX, CollectionOperator.POP -> ValueKind.UNKNOWN
                     else -> ValueKind.LIST
                 }
             }

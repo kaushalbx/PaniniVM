@@ -45,6 +45,21 @@ data class OperationTrigger(
 
 enum class ExpressionShape { LITERAL, COORDINATION, REFERENCE }
 
+/** Runtime payload eligibility, independent of inherited grammatical saṃjñās. */
+enum class OperationValueType {
+    NUMBER, INTEGER, TEXT, BOOLEAN, COLLECTION, RECORD, RANGE;
+
+    fun accepts(value: SanskritValue): Boolean = when (this) {
+        NUMBER -> value is SanskritValue.Sankhya || value is SanskritValue.Rational
+        INTEGER -> value is SanskritValue.Sankhya
+        TEXT -> value is SanskritValue.Shabda
+        BOOLEAN -> value is SanskritValue.Satya
+        COLLECTION -> value is SanskritValue.Suchi || value is SanskritValue.Gana
+        RECORD -> value is SanskritValue.Rupa
+        RANGE -> value is SanskritValue.Range
+    }
+}
+
 /** Declarative requirement for one kāraka in an operation signature. */
 data class KarakaRequirement(
     val karaka: Karaka,
@@ -52,6 +67,7 @@ data class KarakaRequirement(
     val maximumMembers: Int? = null,
     val shape: ExpressionShape? = null,
     val memberSamjnas: Set<Samjna> = emptySet(),
+    val valueType: OperationValueType? = null,
 ) {
     init {
         require(minimumMembers >= 1) { "Minimum member count must be positive." }
@@ -62,7 +78,8 @@ data class KarakaRequirement(
 
     internal val specificity: Int
         get() = 1 + (if (shape == null) 0 else 1) + memberSamjnas.size +
-            (if (minimumMembers == 1 && maximumMembers == null) 0 else 1)
+            (if (minimumMembers == 1 && maximumMembers == null) 0 else 1) +
+            (if (valueType == null) 0 else 1)
 }
 
 data class OperationSignature(

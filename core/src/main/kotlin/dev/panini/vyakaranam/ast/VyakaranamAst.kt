@@ -51,7 +51,7 @@ sealed interface ProgramNode : VyakaranamNode
 
 data class Invocation(
     val vakya: Vakya,
-    /** Source-level nominal result whose understood return verb was lowered into [vakya]. */
+    /** Source-level nominal result; [vakya] retains the zero-copula nominal sentence. */
     val implicitValue: String? = null,
     /** Parsed source nominal retained so renderers need not reconstruct it from text. */
     val implicitValuePada: Pada? = null,
@@ -111,7 +111,7 @@ data class Repeat(
     val body: ProgramNode,
 ) : ProgramNode {
     init {
-        require(count > 0) { "A repetition count must be positive." }
+        require(count >= 0) { "A repetition count must be nonnegative." }
     }
 }
 
@@ -124,6 +124,14 @@ data class WhileLoop(
     val maximumBoundaryPadas: List<Pada> = emptyList(),
     val exhausted: ProgramNode? = null,
     val resultTarget: ProgramNode? = null,
+) : ProgramNode
+
+/** A distributive प्रति clause; the member referent is scoped to its body. */
+data class ForEach(
+    override val sourceText: String,
+    val collection: SubantaPada,
+    val member: SubantaPada,
+    val body: ProgramNode,
 ) : ProgramNode
 
 data class PipelineStage(

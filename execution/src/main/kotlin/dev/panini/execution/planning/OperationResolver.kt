@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 object OperationResolver {
+    private const val MAX_ROLE_ASSIGNMENTS = 4096
     fun resolve(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
@@ -36,9 +37,29 @@ object OperationResolver {
             )
         }
 
-        val evaluations = named.map { operation ->
-            val context = contextFor(invocation, operation, variables)
-            Triple(operation, context, evaluate(operation, context))
+        val evaluations = mutableListOf<Triple<DhatuOperation, ExecutionContext, SignatureEvaluation>>()
+        var examined = 0
+        for (operation in named) {
+            val accepted = operation.signature.requirements.mapTo(mutableSetOf()) { it.karaka } +
+                operation.signature.optionalKarakas
+            if (invocation.ambiguousBindings.any { it.candidates.intersect(accepted).isEmpty() }) {
+                evaluations += Triple(operation, invocation.executionContext(variables),
+                    SignatureEvaluation.Incompatible(
+                        "An ambiguous participant has no grammatical role accepted by operation ${operation.name}.",
+                    ))
+                continue
+            }
+            var compatibleAssignments = 0
+            for (context in contextsFor(invocation, operation, variables)) {
+                if (++examined > MAX_ROLE_ASSIGNMENTS) return OperationResolution.Invalid(
+                    ExecutionError.INVALID_VALUE,
+                    "Grammatical role analysis exceeded its assignment budget; no assignment was selected.",
+                )
+                val evaluation = evaluate(operation, context)
+                evaluations += Triple(operation, context, evaluation)
+                // Two valid assignments already prove ambiguity for this signature.
+                if (evaluation == SignatureEvaluation.Compatible && ++compatibleAssignments == 2) break
+            }
         }
         val compatible = evaluations.filter { it.third == SignatureEvaluation.Compatible }
         if (compatible.isEmpty()) {
@@ -66,8 +87,8 @@ object OperationResolver {
             maximal.single()
         } else {
             return OperationResolution.Ambiguous(
-                maximal.map { it.first.name },
-                "More than one incomparable operation signature matches dhātu ${dhatu.upadesha}.",
+                maximal.map { it.first.name }.distinct(),
+                "More than one operation or grammatical role assignment matches dhātu ${dhatu.upadesha}.",
             )
         }
         val operation = selected.first
@@ -83,24 +104,28 @@ object OperationResolver {
         )
     }
 
-    private fun contextFor(
+    private fun contextsFor(
         invocation: DhatuInvocation,
         operation: DhatuOperation,
         variables: Map<String, SanskritValue>,
-    ): ExecutionContext {
+    ): Sequence<ExecutionContext> {
         val acceptedKarakas = operation.signature.requirements.mapTo(mutableSetOf()) { it.karaka } +
             operation.signature.optionalKarakas
-        val bindings = invocation.bindings.toMutableMap()
-        invocation.ambiguousBindings.forEach { ambiguous ->
+        fun assignments(index: Int, bindings: Map<Karaka, ExecutionExpression>): Sequence<ExecutionContext> = sequence {
+            if (index == invocation.ambiguousBindings.size) {
+                yield(invocation.executionContext(variables).copy(bindings = bindings))
+                return@sequence
+            }
+            val ambiguous = invocation.ambiguousBindings[index]
             val matches = ambiguous.candidates intersect acceptedKarakas
-            if (matches.size == 1) {
-                val karaka = matches.single()
-                bindings[karaka] = bindings[karaka]?.let { existing ->
+            for (karaka in matches) {
+                val expression = bindings[karaka]?.let { existing ->
                     ExecutionExpression.Coordination(listOf(existing, ambiguous.expression))
                 } ?: ambiguous.expression
+                yieldAll(assignments(index + 1, bindings + (karaka to expression)))
             }
         }
-        return invocation.executionContext(variables).copy(bindings = bindings)
+        return assignments(0, invocation.bindings)
     }
 
     private fun moreSpecific(left: OperationSignature, right: OperationSignature): Boolean {
@@ -118,6 +143,7 @@ object OperationResolver {
             if (leftMax > rightMax) return false
             if (rightRequirement.shape != null && leftRequirement.shape != rightRequirement.shape) return false
             if (!leftRequirement.memberSamjnas.containsAll(rightRequirement.memberSamjnas)) return false
+            if (rightRequirement.valueType != null && leftRequirement.valueType != rightRequirement.valueType) return false
             if (leftRequirement != rightRequirement) strictlyStronger = true
         }
         if (right.requirements.any { requirement -> left.requirements.none { it.karaka == requirement.karaka } }) return false
@@ -142,7 +168,8 @@ object OperationResolver {
                 is ExecutionExpression.Pada -> ExpressionShape.LITERAL
                 is ExecutionExpression.Coordination -> ExpressionShape.COORDINATION
                 is ExecutionExpression.Reference -> ExpressionShape.REFERENCE
-                is ExecutionExpression.TypedOperand -> ExpressionShape.LITERAL
+                is ExecutionExpression.TypedOperand ->
+                    if (expression.referenceName != null) ExpressionShape.REFERENCE else ExpressionShape.LITERAL
             }
             val expectedShape = requirement.shape
             if (expectedShape != null && expectedShape != shape) {
@@ -174,6 +201,11 @@ object OperationResolver {
                 return SignatureEvaluation.Incompatible(
                     "कारकसंज्ञादोषः: ${requirement.karaka.sanskritName} कारकस्य प्रत्येकं पदं " +
                         "${requirement.memberSamjnas} संज्ञाः अपेक्षते।",
+                )
+            }
+            if (requirement.valueType?.let { type -> typedValues.any { !type.accepts(it) } } == true) {
+                return SignatureEvaluation.Incompatible(
+                    "कारकमूल्यदोषः: ${requirement.karaka.sanskritName} कारके ${requirement.valueType} मूल्यम् अपेक्षितम्।",
                 )
             }
         }

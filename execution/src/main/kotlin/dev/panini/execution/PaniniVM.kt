@@ -99,9 +99,21 @@ class PaniniVM(
         evaluateCondition: Boolean = false,
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
         persistSession: Boolean = true,
-    ): ExecutionResult = sessionRuntime.eval(
-        ukti, sessionKey, scope, speaker, listener, evaluateCondition, injectedBindings, persistSession,
-    )
+    ): ExecutionResult {
+        fun structured(node: dev.panini.vyakaranam.ast.ProgramNode): Boolean = when (node) {
+            is dev.panini.vyakaranam.ast.Conditional, is dev.panini.vyakaranam.ast.WhileLoop,
+            is dev.panini.vyakaranam.ast.ForEach -> true
+            is dev.panini.vyakaranam.ast.Scope -> true
+            is dev.panini.vyakaranam.ast.Sequence -> node.statements.any(::structured)
+            else -> false
+        }
+        if (!evaluateCondition && injectedBindings.isEmpty() && structured(ukti.body)) {
+            return scriptExecutor.evalProgram(ukti.body, sessionKey, scope, speaker, listener, persistSession)
+                .lastOrNull() ?: ExecutionResult.Success("संसिद्धम्", "panini.evalParsed")
+        }
+        return sessionRuntime.eval(ukti, sessionKey, scope, speaker, listener,
+            evaluateCondition, injectedBindings, persistSession)
+    }
 
     /** Executes an utterance in a script's shared discourse without forcing disk persistence. */
     internal fun evalScriptUtterance(
@@ -214,6 +226,9 @@ class PaniniVM(
 
     internal fun runtimeValue(sessionKey: String, name: String): SanskritValue? =
         sessionRuntime.value(sessionKey, name)
+
+    internal fun <T> withRestoredBinding(sessionKey: String, name: String, persistSession: Boolean, body: () -> T): T =
+        sessionRuntime.withRestoredBinding(sessionKey, name, persistSession, body)
 
     internal fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String,
         listener: String, persistSession: Boolean) =

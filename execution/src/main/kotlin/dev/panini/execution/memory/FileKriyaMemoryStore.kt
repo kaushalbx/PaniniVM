@@ -11,7 +11,7 @@ import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-/** Compact persistent form for Kriyā memory using binary V2 encoding. */
+/** Binary V3 memory retains participant snapshots; V2 remains readable. */
 @OptIn(ExperimentalEncodingApi::class)
 internal class FileKriyaMemoryStore(private val storageDir: File) {
     private val analysisCache = java.util.concurrent.ConcurrentHashMap<String, List<KriyaFrame>>()
@@ -19,7 +19,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     fun save(key: String, memory: KriyaMemory) {
         val bytesStream = ByteArrayOutputStream()
         DataOutputStream(bytesStream).use { out ->
-            out.writeUTF(HEADER_V2)
+            out.writeUTF(HEADER_V3)
             out.writeInt(memory.entries.size)
             for (entry in memory.entries) {
                 val sourceText = entry.frame.vakya.padas.joinToString(" ") { it.sourceText }
@@ -30,6 +30,12 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
                 out.writeUTF(sourceText)
                 out.writeBoolean(entry.phala != null)
                 entry.phala?.let { PersistedSanskritValueCodec.write(out, it) }
+                out.writeInt(entry.participants.size)
+                entry.participants.forEach { (role, values) ->
+                    out.writeUTF(role.name)
+                    out.writeInt(values.size)
+                    values.forEach { PersistedSanskritValueCodec.write(out, it) }
+                }
             }
         }
         fileFor(key).writeBytes(bytesStream.toByteArray())
@@ -43,15 +49,29 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
 
         val dis = DataInputStream(ByteArrayInputStream(bytes))
         val header = try { dis.readUTF() } catch (e: Exception) { return null }
-        if (header != HEADER_V2) return null
+        if (header != HEADER_V2 && header != HEADER_V3) return null
 
         val count = dis.readInt()
+        require(count in 0..dis.available()) { "Invalid persisted action count." }
+        val identities = mutableSetOf<String>()
         val entries = List(count) {
             val turn = dis.readInt()
             val idValue = dis.readUTF()
+            require(idValue.isNotBlank() && identities.add(idValue)) { "Duplicate or empty persisted action identity '$idValue'." }
             val sourceText = dis.readUTF()
             val hasPhala = dis.readBoolean()
             val phala = if (hasPhala) PersistedSanskritValueCodec.read(dis) else null
+            val participants = if (header == HEADER_V3) buildMap {
+                val roleCount = dis.readInt()
+                require(roleCount in 0..dev.panini.core.Karaka.entries.size) { "Invalid persisted participant-role count." }
+                repeat(roleCount) {
+                    val role = dev.panini.core.Karaka.valueOf(dis.readUTF())
+                    require(role !in this) { "Duplicate persisted participant role '$role'." }
+                    val valueCount = dis.readInt()
+                    require(valueCount in 0..dis.available()) { "Invalid persisted participant count." }
+                    put(role, List(valueCount) { PersistedSanskritValueCodec.read(dis) })
+                }
+            } else emptyMap()
 
             val source = KriyaMemorySource.normalize(sourceText)
             val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
@@ -61,6 +81,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
                 turn = turn,
                 frame = frame.withMemoryId(KriyaId(idValue)),
                 phala = phala,
+                participants = participants,
             )
         }
         return KriyaMemory(entries)
@@ -75,6 +96,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
 
     private companion object {
         const val HEADER_V2 = "PANINI_KRIYA_MEMORY_V2"
+        const val HEADER_V3 = "PANINI_KRIYA_MEMORY_V3"
         const val EXTENSION = ".kriya-memory"
         val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
     }

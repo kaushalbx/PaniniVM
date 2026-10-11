@@ -57,7 +57,8 @@ internal class CompilerIrJvmEmitter(
                     mv.visitLdcInsn(instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.occurrenceFromLatest)
                     mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
-                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionParticipantValue",
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME,
+                        if (instruction.asGroup) "loadActionParticipantGroup" else "loadActionParticipantValue",
                         "(Ljava/lang/String;ILdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.LoadOrdinalActionParticipants -> {
@@ -65,7 +66,8 @@ internal class CompilerIrJvmEmitter(
                     mv.visitLdcInsn(instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.ordinalFromOldest)
                     mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
-                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionParticipantValue",
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME,
+                        if (instruction.asGroup) "loadOrdinalActionParticipantGroup" else "loadOrdinalActionParticipantValue",
                         "(Ljava/lang/String;JLdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.LoadLocal -> mv.visitVarInsn(
@@ -82,10 +84,24 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.CheckNumericProhibition -> mv.visitMethodInsn(INVOKESTATIC,
                     "dev/panini/compiler/CompilerValueOperations", "checkNumericProhibition",
                     "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)V", false)
+                is CompilerInstruction.CheckProcedureResultSchema -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.schema)
+                    emitStringArray(instruction.fields)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "requireProcedureResultSchema",
+                        "(Ljava/lang/String;[Ljava/lang/String;)V", false)
+                }
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size, instruction.memberType)
+                is CompilerInstruction.PackOperands -> emitBuildList(instruction.expandGroups.size, groups = instruction.expandGroups)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
                 is CompilerInstruction.LoadFieldOrLopa -> emitLoadFieldOrLopa(instruction.name)
+                CompilerInstruction.ResolveRecordReference -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitInsn(SWAP)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "resolveRecordReference",
+                        "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 is CompilerInstruction.ResolveArgument -> emitResolveArgument(instruction)
                 is CompilerInstruction.RenderText -> emitRenderText(instruction.size)
                 CompilerInstruction.IsEven -> mv.visitMethodInsn(
@@ -145,6 +161,7 @@ internal class CompilerIrJvmEmitter(
                         "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
                         false,
                     )
+                    emitProcedureResultCheck(instruction.resultKind)
                 }
                 is CompilerInstruction.InvokeDependencyProcedure -> {
                     mv.visitVarInsn(ALOAD, 0)
@@ -155,6 +172,7 @@ internal class CompilerIrJvmEmitter(
                         "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
                         false,
                     )
+                    emitProcedureResultCheck(instruction.resultKind)
                 }
                 CompilerInstruction.ExitFrame -> emitRuntimeVoid("exitFrame")
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
@@ -168,6 +186,12 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
                 CompilerInstruction.ConsumeBreak -> emitRuntimeBoolean("consumeBreak")
                 CompilerInstruction.EnterConditionIteration -> emitRuntimeVoid("enterConditionIteration")
+                CompilerInstruction.CheckCollectionIteration -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitInsn(SWAP)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "checkCollectionIteration",
+                        "(Ldev/panini/execution/SanskritValue;)V", false)
+                }
                 is CompilerInstruction.InitializeLoopCondition -> {
                     mv.visitInsn(ICONST_0)
                     mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
@@ -210,7 +234,8 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitBuildList(size: Int, memberType: dev.panini.execution.ListMemberType? = null) {
+    private fun emitBuildList(size: Int, memberType: dev.panini.execution.ListMemberType? = null,
+        groups: List<Boolean>? = null) {
         val values = List(size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
         mv.visitLdcInsn(size)
@@ -222,11 +247,12 @@ internal class CompilerIrJvmEmitter(
             mv.visitInsn(AASTORE)
         }
         memberType?.let { mv.visitLdcInsn(it.name) }
+        groups?.let { mv.visitLdcInsn(it.joinToString("") { if (it) "1" else "0" }) }
         mv.visitMethodInsn(
             INVOKESTATIC,
-            "dev/panini/compiler/PaniniRuntime",
-            if (memberType == null) "suchi" else "typedSuchi",
-            if (memberType == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+            if (groups == null) "dev/panini/compiler/PaniniRuntime" else "dev/panini/compiler/CompilerValueOperations",
+            if (groups != null) "packOperands" else if (memberType == null) "suchi" else "typedSuchi",
+            if (memberType == null && groups == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
             else "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
             false,
         )
@@ -298,6 +324,7 @@ internal class CompilerIrJvmEmitter(
 
     private fun emitCollection(operator: CollectionOperator) {
         val method = when (operator) {
+            CollectionOperator.SNAPSHOT -> "listSnapshot"
             CollectionOperator.SUM -> "listSum"
             CollectionOperator.SUM_NUMBER_MEMBERS -> "listNumberMemberSum"
             CollectionOperator.LENGTH -> "listLength"
@@ -319,6 +346,7 @@ internal class CompilerIrJvmEmitter(
             -> "($value$value)$value"
             CollectionOperator.SLICE -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
+            CollectionOperator.SNAPSHOT,
             CollectionOperator.SUM,
             CollectionOperator.SUM_NUMBER_MEMBERS,
             CollectionOperator.REVERSE,
@@ -422,6 +450,14 @@ internal class CompilerIrJvmEmitter(
         mv.visitLabel(continueExecution)
     }
 
+    private fun emitProcedureResultCheck(kind: CompilerValueKind?) {
+        if (kind == null) return
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(kind.name)
+        mv.visitMethodInsn(INVOKEVIRTUAL, "dev/panini/compiler/CompiledProgramRuntime",
+            "requireProcedureResult", "(Ljava/lang/String;)V", false)
+    }
+
     private fun emitRuntimeVoid(method: String) {
         mv.visitVarInsn(ALOAD, 0)
         mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, method, "()V", false)
@@ -518,7 +554,7 @@ internal class CompilerIrJvmEmitter(
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
-            "enterFrame",
+            if (call.scopedBinding) "enterBindingFrame" else "enterFrame",
             "([Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
             false,
         )

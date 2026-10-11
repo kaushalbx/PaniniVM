@@ -44,9 +44,12 @@ internal object KarakaExtractor {
      * numeric pada decoding is delegated to [NumeralPadaBinder].
      */
     internal fun extractKarakas(
-        padas: List<Pada>,
+        sourcePadas: List<Pada>,
         ctx: BindingContext,
     ): ExtractedBindings {
+        // Coordination does not hide its members from modifier/history analysis.
+        // Keep source order and original identities for the frame's relations.
+        val padas = sourcePadas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
@@ -142,6 +145,15 @@ internal object KarakaExtractor {
             if (pada in phalaResolution.resolvedQualifiers) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedGenitives) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedQualifiers) return@forEachIndexed
+            if (ctx.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.HR &&
+                padas.filterIsInstance<TingantaPada>().any { "उद्" in it.upasargas } &&
+                subantas.any { it.sup.text == SupAffix.NGAS.upadesha } &&
+                (pada !is SubantaPada || pada.sup.text != SupAffix.NGAS.upadesha) &&
+                dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) {
+                addBinding(requireNotNull(dev.panini.execution.CollectionMemberMorphology.ordinalExpression(pada)),
+                    setOf(Karaka.KARMAN))
+                return@forEachIndexed
+            }
             when (pada) {
                 is ParyantaRangePada -> {
                     fun boundaryValue(boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada): Long =

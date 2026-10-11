@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.ProgramNode
@@ -47,10 +46,6 @@ internal class PvmLoopExecutor {
                     nominalTruthValue(it.pratipadika)?.boolean == false
         })
         val truthStateName = (normalizedCondition as? NaturalSemanticNormalizer.Operation.TruthTest)?.stateName
-            ?: loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
-            .singleOrNull()
-            ?.pratipadika
-            ?.referenceKey()
         var latestConditionValue = false
         var iterationCount = 0L
 
@@ -112,23 +107,45 @@ internal class PvmLoopExecutor {
                 if (truthState != null) {
                     if (hasExplicitNegation) !truthState.boolean else truthState.boolean
                 } else {
-                    val resolved = request.resolveCondition(loop.condition) ?: return results + ExecutionResult.Failure(
+                    val resolved = try { request.resolveCondition(loop.condition) }
+                    catch (failure: IllegalArgumentException) {
+                        return results + ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                            failure.message ?: "Invalid loop predicate.")
+                    } ?: return results + ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
                         "A structured attribute used by the loop condition could not be resolved.",
                     )
-                    val conditionResult = request.evaluateCondition(
-                        resolved.invocation,
-                        request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
-                    )
-                    val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
-                    (success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean) == true
+                    val fieldTest = NaturalSemanticNormalizer.normalize(resolved.invocation)
+                        as? NaturalSemanticNormalizer.Operation.TruthTest
+                    if (fieldTest != null && resolved.environment.values.containsKey(fieldTest.stateName)) {
+                        val fieldTruth = resolved.environment.values[fieldTest.stateName] as? SanskritValue.Satya
+                            ?: return results + ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                                "A field truth predicate requires सत्य/असत्य.")
+                        if (fieldTest.negated) !fieldTruth.boolean else fieldTruth.boolean
+                    } else {
+                        val conditionResult = request.evaluateCondition(
+                            resolved.invocation,
+                            request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
+                        )
+                        val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
+                        success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
+                            ?: return results + ExecutionResult.Failure(
+                                ExecutionError.INVALID_VALUE,
+                                "A loop condition must produce a truth value.",
+                            )
+                    }
                 }
             }
             if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)
 
             val iterationResults = request.executeNode(loop.body, request.scope, usesLatestResult)
-            results += iterationResults
+            results += iterationResults.map(ExecutionResult::consumeLoopBreak)
+            if (iterationResults.any { it !is ExecutionResult.Success }) return results
             iterationCount++
+            if (iterationResults.any { it is ExecutionResult.Success &&
+                    it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) {
+                return complete(ExecutionResult.LoopOutcome.VIJAYA)
+            }
             if (usesLatestResult) {
                 latestConditionValue = iterationResults.asSequence()
                     .filterIsInstance<ExecutionResult.Success>().mapNotNull { it.conditionValue }.firstOrNull()
@@ -137,10 +154,8 @@ internal class PvmLoopExecutor {
                         "A फल-controlled loop body must produce a truth value.",
                     )
             }
-            if (iterationResults.any {
-                    it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
-                } || usesLatestResult && (if (isNegated) latestConditionValue else !latestConditionValue)
-            ) return complete(ExecutionResult.LoopOutcome.VIJAYA)
+            if (usesLatestResult && (if (isNegated) latestConditionValue else !latestConditionValue))
+                return complete(ExecutionResult.LoopOutcome.VIJAYA)
         }
         loop.exhausted?.let { results += request.executeNode(it, request.scope, false) }
         return complete(ExecutionResult.LoopOutcome.SAMAPTI)

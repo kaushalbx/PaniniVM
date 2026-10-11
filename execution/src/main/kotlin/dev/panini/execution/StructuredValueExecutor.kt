@@ -1,13 +1,8 @@
 package dev.panini.execution
 
-import dev.panini.vyakaranam.ast.AkhyataVakya
-import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
-import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Sequence
-import dev.panini.vyakaranam.ast.SubantaPada
-import dev.panini.vyakaranam.ast.SupPratyaya
 
 /** Owns structured-value attribute lookup, conditional lowering, and attribute pipelines. */
 internal class StructuredValueExecutor {
@@ -15,26 +10,14 @@ internal class StructuredValueExecutor {
         val invocation: Invocation,
         val environment: ValueEnvironment,
     )
-    fun executeConditional(
-        conditional: Conditional,
-        structStore: Map<String, TaddhitaStruct>,
-        evaluate: (Conditional, ValueEnvironment) -> ExecutionResult,
-    ): ExecutionResult {
-        val operands = linkedMapOf<String, SanskritValue>()
-        val resolved = resolveAttributeConditions(conditional, structStore, operands)
-            ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "A structured attribute used by the condition could not be resolved.",
-            )
-        return evaluate(resolved, ValueEnvironment(operands))
-    }
 
     fun resolveInvocation(
         invocation: Invocation,
         structStore: Map<String, TaddhitaStruct>,
+        knownOperationStems: Set<String> = emptySet(),
     ): ResolvedInvocation? {
         val operands = linkedMapOf<String, SanskritValue>()
-        val resolved = replaceAttributeReferences(invocation, structStore, operands) ?: return null
+        val resolved = replaceAttributeReferences(invocation, structStore, operands, knownOperationStems) ?: return null
         return ResolvedInvocation(resolved, ValueEnvironment(operands))
     }
 
@@ -111,46 +94,20 @@ internal class StructuredValueExecutor {
         return results
     }
 
-    private fun resolveAttributeConditions(
-        conditional: Conditional,
-        structStore: Map<String, TaddhitaStruct>,
-        operands: MutableMap<String, SanskritValue>,
-    ): Conditional? {
-        val invocation = conditional.condition as? Invocation ?: return null
-        val condition = replaceAttributeReferences(invocation, structStore, operands) ?: return null
-        val alternate = conditional.alternate?.let {
-            if (it is Conditional) resolveAttributeConditions(it, structStore, operands) ?: return null else it
-        }
-        return conditional.copy(condition = condition, alternate = alternate)
-    }
 
     private fun replaceAttributeReferences(
         invocation: Invocation,
         structStore: Map<String, TaddhitaStruct>,
         operands: MutableMap<String, SanskritValue>,
+        knownOperationStems: Set<String> = emptySet(),
     ): Invocation? {
-        var current = invocation
-        while (true) {
-            val reference = TaddhitaStructEngine.detectAttributeReference(current.vakya) ?: return current
-            val resolved = resolve(reference.access, structStore) as? ExecutionResult.Success ?: return null
-            val name = typedOperandName(operands.size)
-            operands[name] = requireNotNull(resolved.typedValue)
-            val sup = reference.access.resultAffix.upadesha
-            val replacement = SubantaPada(
-                sourceText = "$name+$sup",
-                pratipadika = MulaPratipadika(name, name),
-                sup = SupPratyaya(sup, sup),
-            )
-            val padas = current.vakya.padas.toMutableList().apply {
-                subList(reference.padaRange.first, reference.padaRange.last + 1).clear()
-                add(reference.padaRange.first, replacement)
-            }
-            val vakya = current.vakya as? AkhyataVakya ?: return null
-            current = current.copy(vakya = vakya.copy(padas = padas))
+        val projection = AttributeOperandProjection.project(invocation, "__pvm_attribute_${operands.size}_", knownOperationStems)
+        projection.operands.forEach { operand ->
+            val resolved = resolve(operand.access, structStore) as? ExecutionResult.Success ?: return null
+            operands[operand.name] = requireNotNull(resolved.typedValue)
         }
+        return projection.invocation
     }
 
-    private fun typedOperandName(index: Int): String =
-        "विशेषणफल" + dev.panini.sankhya.SankhyaGenerator().cardinal(index.toLong() + 1L).final.surface
 
 }

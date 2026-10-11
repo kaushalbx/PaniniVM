@@ -70,7 +70,7 @@ The following features are implemented and form the baseline for future work.
 - अधिकार domain dispatch.
 - Typed अन्तरतम overload selection.
 - `अपवाद`, `अन्तरङ्ग`, and `नित्य` precedence.
-- `क्त`-based memoization.
+- Derived procedure names retain morphology without implying memoization.
 - Typed saṃjñā stages in pipelines.
 
 ### 2.4 Structured values and tooling
@@ -190,7 +190,8 @@ Example:
 - Add a return AST/execution node or a canonical return action.
 - Propagate the return through nested body sequences and loops.
 - Validate return types at each return site when statically known.
-- Stop memoized evaluation after the selected return.
+- Stop evaluation after the selected return; any future caching needs verified
+  effect/purity analysis, not an inference from a procedure-name affix.
 
 ### Acceptance criteria
 

@@ -11,13 +11,18 @@ object PrakriyaInvocationArgumentResolver {
             return PrakriyaArgumentResolution.Failure("The ordering qualifier and फल must agree in case and number.")
         }
         val signature = invocation.kriya.signature
+        // Attach compatibility payloads before grammatical ordering changes source positions.
+        val sourceArguments = invocation.arguments.mapIndexed { index, argument ->
+            val fallback = invocation.argumentValues.getOrNull(index)
+            if (argument.value == null && fallback != null) argument.copy(value = fallback) else argument
+        }
         val syntax = invocation.argumentSyntax.filterIsInstance<SubantaPada>()
         val hasNamedSyntax = syntax.any {
             SupAffix.fromUpadesha(it.sup.text)?.vibhakti in setOf(Vibhakti.SAPTAMI, Vibhakti.SASTHI)
         }
-        if (!hasNamedSyntax && invocation.arguments.isNotEmpty()) {
+        if (!hasNamedSyntax && sourceArguments.isNotEmpty()) {
             return PrakriyaArgumentResolution.Success(
-                invocation.arguments.mapIndexed { index, argument ->
+                sourceArguments.mapIndexed { index, argument ->
                     ResolvedPrakriyaArgument(
                         parameter = signature.parameters.getOrNull(index),
                         argument = argument,
@@ -34,7 +39,7 @@ object PrakriyaInvocationArgumentResolver {
         val resolution = NamedPrakriyaArgumentResolver.resolve(syntax, signature)
         if (resolution !is PrakriyaArgumentResolution.Success) return resolution
 
-        val remaining = invocation.arguments.toMutableList()
+        val remaining = sourceArguments.toMutableList()
         val resolved = resolution.arguments.mapIndexed { index, grammatical ->
             val term = grammatical.argument.term
             val sourceIndex = remaining.indexOfFirst { source ->

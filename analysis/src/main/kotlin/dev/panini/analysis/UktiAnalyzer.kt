@@ -119,6 +119,7 @@ class UktiAnalyzer(
 
             override fun visitRepeat(node: Repeat): Pair<KriyaId, KriyaId> = visit(node.body)
             override fun visitWhileLoop(node: WhileLoop): Pair<KriyaId, KriyaId> = visit(node.body)
+            override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): Pair<KriyaId, KriyaId> = visit(node.body)
             override fun visitPipeline(node: Pipeline): Pair<KriyaId, KriyaId> =
                 error("A semantic pipeline does not contain grammatical kriya frames.")
             override fun visitPrakriya(node: Prakriya): Pair<KriyaId, KriyaId> =

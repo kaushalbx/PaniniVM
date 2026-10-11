@@ -20,12 +20,17 @@ object NamedActionResultReferenceResolver {
     /** Consume genitive and ordering modifiers without consuming the referenced value. */
     fun operandPadas(padas: List<Pada>): List<Pada> {
         val references = resolve(padas)
+        if (references.isEmpty()) return padas
         val modifiers = references.map { it.modifier }
         val qualifiers = references.filter { it.hasOrderingQualifier }.flatMap { it.orderingQualifiers }
-        return padas.filter { pada -> modifiers.none { it === pada } && qualifiers.none { it === pada } }
+        return members(padas).filter { pada -> modifiers.none { it === pada } && qualifiers.none { it === pada } }
     }
 
-    fun resolve(padas: List<Pada>): List<NamedActionResultReference> {
+    private fun members(padas: List<Pada>): List<Pada> =
+        padas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
+
+    fun resolve(sourcePadas: List<Pada>): List<NamedActionResultReference> {
+        val padas = members(sourcePadas)
         val nominals = padas.filterIsInstance<SubantaPada>()
         return nominals.withIndex().mapNotNull { (index, result) ->
             if (!PhalaReference.isReference(result)) return@mapNotNull null

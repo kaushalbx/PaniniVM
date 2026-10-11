@@ -40,6 +40,9 @@ internal object ExpressionBuilder {
         val normalized = NumeralAstNormalizer.normalize(pada)
         val text = normalized.pratipadika.referenceKey()
         val nominal = normalized.pratipadika as? MulaPratipadika
+        if (collectionMemberFrame) {
+            dev.panini.execution.CollectionMemberMorphology.ordinalExpression(pada)?.let { return it }
+        }
         val selection = if (nominal?.vikaras?.isEmpty() == true) when {
             nominal.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
                 normalized.sup.text == SupAffix.SAS.upadesha -> dev.panini.execution.CollectionMemberSelection.NUMBERS
@@ -53,22 +56,24 @@ internal object ExpressionBuilder {
         val isPhalaReference = PhalaReference.isReference(normalized)
         if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
             val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
-            return ExecutionExpression.TypedOperand(value, sup)
+            return ExecutionExpression.TypedOperand(value, sup, referenceName = text)
         }
         var resolvedId: String? = null
 
-        if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
-            ctx.conversation?.previousResults?.containsKey(text) == true ||
-            ctx.localVariables.contains(text)
-        ) {
-            resolvedId = text
-        } else if (isPhalaReference) {
+        if (isPhalaReference) {
             resolvedId = overridePhalaId ?: (
                 if (ctx.clauseIndex > 0) KriyaInvocationId.of(ctx.clauseIndex)
+                else if (ctx.conversation?.previousTypedResults?.containsKey(PhalaReference.RUNTIME_KEY) == true)
+                    PhalaReference.RUNTIME_KEY
                 else ctx.memory.latestKriya()?.frame?.id?.value
                     ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
             )
+        } else if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
+            ctx.conversation?.previousResults?.containsKey(text) == true ||
+            ctx.localVariables.contains(text)
+        ) {
+            resolvedId = text
         }
 
         if (resolvedId != null || isPhalaReference) {

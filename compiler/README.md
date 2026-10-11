@@ -67,6 +67,19 @@ boundary instead.
 
 ## Architecture
 
+Named action-result references (`युज् + ल्युट् + ङस् फल + अम्`) lower to
+explicit history loads and per-occurrence operand slots, not substitutions of
+`LastResult`. Single and multiple references support arithmetic, procedure
+arguments, conditions, and loop predicates. Ordering qualifiers retain their
+case agreement; chronological ordinals remain fixed while latest references
+reload when a loop condition is evaluated. Unselected branches do not load
+history, and missing reached antecedents fail explicitly.
+
+Kāraka-history queries such as `युज् + ल्युट् + ङस् कर्मन् + अम्` are a
+different feature: compiled display preserves the remembered participants and
+their order, but general non-display participant-history operands still need
+dedicated IR lowering. These references are not general सर्वनाम resolution.
+
 - **`BytecodeCompiler`** is the public API for compiling single-source programs
   or source-file modules, loading generated classes, and writing `.class` files.
 - **`PaniniModuleDescriptor`** defines source membership, entry points, and
@@ -130,6 +143,10 @@ Without a descriptor, all `.pvm` files below the source directory are members;
 files named `*mukhya*` are entry points when present, otherwise non-`*_lib`
 files are entry points. Compilation emits `<Module>Program.class` and
 `<module>.pvmmeta`.
+
+Metadata format 2 preserves procedure precedence across separately compiled
+libraries. Regenerate format-1 metadata with the current compiler; it is rejected
+because it cannot represent this dispatch contract.
 
 `BytecodeCompiler.compileModule` accepts an in-memory descriptor, while
 `compileModuleDirectory` performs descriptor discovery and writes both artifact

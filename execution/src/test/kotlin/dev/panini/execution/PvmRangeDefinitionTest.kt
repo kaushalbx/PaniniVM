@@ -48,15 +48,16 @@ class PvmRangeDefinitionTest {
     }
 
     @Test
-    fun `range declaration becomes a typed discourse referent`() {
-        val statements = PvmScript.parse(
-            "एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।",
-        )
-        val discourse = PvmDiscourseContext.from(statements)
-
-        assertEquals(1L, discourse.activeRange?.minimum?.value)
-        assertEquals(10L, discourse.activeRange?.maximum?.value)
-        assertEquals(discourse.activeRange, discourse.valueEnvironment().values[ACTIVE_RANGE_NAME])
+    fun `range references follow declaration order rather than the last declaration in the script`() {
+        val results = PaniniVM().evalScript("""
+            एक + ङसिँ एक + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
+            द्वि + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
+        """.trimIndent())
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals(listOf(1L, 2L), results.filterIsInstance<ExecutionResult.Success>()
+            .mapNotNull { (it.typedValue as? SanskritValue.Sankhya)?.value })
     }
 
     @Test

@@ -11,6 +11,28 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class NaturalSemanticNormalizerTest {
+    @Test fun `copular shortcuts do not discard participants or predicate derivation`() {
+        for (subject in listOf("अवस्था", "विजय")) {
+            for (predicate in listOf(
+                "एक + अम् असँ + लट् + तिप्",
+                "पुनः असँ + लट् + तिप्",
+                "न न असँ + लट् + तिप्",
+                "भू + णिच् + लट् + तिप्",
+                "प्र + भू + लट् + तिप्",
+            )) kotlin.test.assertNull(NaturalSemanticNormalizer.normalize(
+                invocation("$subject + सुँ $predicate ।")), predicate)
+        }
+    }
+
+    @Test fun `positional arithmetic does not erase other cases or modifiers`() {
+        for (source in listOf(
+            "प्रथम + ङस् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ।",
+            "प्रथम + ङे द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ।",
+            "प्रथम + अम् द्वितीय + अम् च न युज् + णिच् + लोट् + सिप् ।",
+            "प्रथम + अम् द्वितीय + अम् च पुनः युज् + णिच् + लोट् + सिप् ।",
+        )) kotlin.test.assertNull(NaturalSemanticNormalizer.normalize(invocation(source)), source)
+    }
+
     private val parser = PaniniParser()
 
     @Test

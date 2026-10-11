@@ -8,6 +8,24 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun packOperands(values: Array<SanskritValue>, groups: String): SanskritValue {
+        require(values.size == groups.length && groups.all { it == '0' || it == '1' }) { "Invalid operand group flags." }
+        val operands = values.flatMapIndexed { index, value ->
+            if (groups[index] == '0') listOf(value) else (value as? SanskritValue.Gana)?.elements
+                ?: throw CompiledPaniniExecutionException(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                    "Participant expansion requires a grammatical group wrapper.")
+        }
+        if (operands.isEmpty()) throw CompiledPaniniExecutionException(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            "Operand packing requires at least one participant.")
+        return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
+    }
+    @JvmStatic
+    fun listSnapshot(value: SanskritValue): SanskritValue {
+        if (value !is SanskritValue.Suchi) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Distributive iteration requires a list.")
+        return value.copy(items = value.items.toList())
+    }
+    @JvmStatic
     fun checkNumericProhibition(left: SanskritValue, right: SanskritValue) {
         if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya && left.value == right.value) {
             throw CompiledPaniniExecutionException(ExecutionError.ACTION_FAILED,
@@ -17,17 +35,26 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun requireArgumentKind(value: SanskritValue, kind: String) {
+        requireValueKind(value, kind, "argument")
+    }
+
+    @JvmStatic
+    fun requireResultKind(value: SanskritValue, kind: String) {
+        requireValueKind(value, kind, "result")
+    }
+
+    private fun requireValueKind(value: SanskritValue, kind: String, role: String) {
         val valid = when (CompilerValueKind.valueOf(kind)) {
             CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
-            CompilerValueKind.NUMBER -> value is SanskritValue.Sankhya
+            CompilerValueKind.NUMBER -> dev.panini.execution.OperationValueType.NUMBER.accepts(value)
             CompilerValueKind.BOOLEAN -> value is SanskritValue.Satya
             CompilerValueKind.TEXT -> value is SanskritValue.Shabda
-            CompilerValueKind.LIST -> value is SanskritValue.Suchi
+            CompilerValueKind.LIST -> dev.panini.execution.OperationValueType.COLLECTION.accepts(value)
             CompilerValueKind.RECORD -> value is SanskritValue.Rupa
             CompilerValueKind.RANGE -> value is SanskritValue.Range
         }
         if (!valid) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
-            "Procedure argument requires $kind, not ${value::class.simpleName}.")
+            "Procedure $role requires $kind, not ${value::class.simpleName}.")
     }
 
     @JvmStatic
@@ -273,7 +300,8 @@ internal object CompilerValueOperations {
     }
 
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
-        ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
+        ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "Numeric operation requires an integer value, but received ${value::class.simpleName}.")
 
     private fun numeric(value: Long): SanskritValue.Sankhya {
         val word = dev.panini.execution.renderSankhyaResult(value) ?: throw CompiledPaniniExecutionException(

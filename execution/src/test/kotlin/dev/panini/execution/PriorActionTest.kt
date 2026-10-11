@@ -11,6 +11,18 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class PriorActionTest {
+    @Test fun `implicit display object preserves a subject following the finite verb`() {
+        val source = "राम + सुँ एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+            "मुद्र् + णिच् + लट् + तिप् राम + सुँ ।"
+        val sequence = assertIs<Sequence>(PriorActionLowering.lower(PaniniParser().parse(source).body))
+        val main = assertIs<Invocation>(sequence.statements.last())
+        assertEquals(1, main.vakya.padas.filterIsInstance<TingantaPada>().size)
+        assertEquals(1, main.vakya.padas.filterIsInstance<SubantaPada>().count {
+            it.pratipadika.semanticKey() == "राम"
+        })
+        assertTrue(main.vakya.padas.filterIsInstance<SubantaPada>().any(NaturalSemanticNormalizer::isPriorResult))
+    }
+
     @Test
     fun `objectless display resolves the preceding prior action result`() {
         val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"

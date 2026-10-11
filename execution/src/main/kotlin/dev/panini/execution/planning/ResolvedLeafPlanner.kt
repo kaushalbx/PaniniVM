@@ -14,6 +14,7 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.binding.hasAdditionalDerivation
 import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -226,10 +227,19 @@ object ResolvedLeafPlanner {
             .associateWith(placeholder)
         val symbolicInstruments = parsedSubantas.asSequence()
             .filter { it.vibhakti() == Vibhakti.TRTIYA }
+            .filterNot { it.pratipadika.hasAdditionalDerivation() || it.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika }
             .map { it.pratipadika.semanticKey() }
             .filterNot { it in environment.values || isSankhyaStem(it) }
-            .associateWith(SanskritValue::Shabda)
-        val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments)
+            .associateWith { name ->
+                placeholder(name).takeIf { it is SanskritValue.Suchi } ?: SanskritValue.Shabda(name)
+            }
+        val actionNames = parsedSubantas.asSequence()
+            .filter { it.vibhakti() == Vibhakti.TRTIYA }
+            .filter { it.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika }
+            .map { it.pratipadika.semanticKey() }
+            .filterNot { it in environment.values }
+            .associateWith { SanskritValue.Shabda(it) }
+        val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments + actionNames)
         val segmentedSource = parsedUkti.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
@@ -273,7 +283,8 @@ object ResolvedLeafPlanner {
             .filterNot { it in environment.values }
             .associateWith(placeholder)
         val planningEnvironment = ValueEnvironment(bindingEnvironment.values + symbolicReferences)
-        val symbolicNames = symbolicOperands.keys + symbolicReferences.keys
+        val symbolicNames = environment.values.keys + symbolicOperands.keys +
+            symbolicInstruments.filterValues { it !is SanskritValue.Shabda }.keys + symbolicReferences.keys
         val explicitlyDisambiguatedOperations = setOf("सूचीसंयोजनम्", "सूचीशोधनम्", "सूचीसङ्क्षेपः")
         val selectedOperation = ukti.invocations.singleOrNull()?.let { invocation ->
             invocation.selectedOperation ?: invocation.dhatu.operations
@@ -370,13 +381,8 @@ object ResolvedLeafPlanner {
             }
         }
         is ExecutionExpression.TypedOperand -> {
-            val placeholderName = when (val placeholder = value) {
-                is SanskritValue.Sankhya -> placeholder.word
-                is SanskritValue.Shabda -> placeholder.text
-                else -> null
-            }
-            if (placeholderName in symbolicNames) {
-                ExecutionExpression.Reference(requireNotNull(placeholderName))
+            if (referenceName in symbolicNames) {
+                ExecutionExpression.Reference(requireNotNull(referenceName))
             } else {
                 this
             }

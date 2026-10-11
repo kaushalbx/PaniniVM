@@ -10,5 +10,7 @@ internal object PhalaReference {
     const val RUNTIME_KEY = "LastResult"
 
     fun isReference(pada: SubantaPada): Boolean =
-        (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PHALA
+        (pada.pratipadika as? MulaPratipadika)?.let {
+            it.lexicalIdentity == MulaPratipadikaIdentity.PHALA && it.vikaras.isEmpty()
+        } == true
 }

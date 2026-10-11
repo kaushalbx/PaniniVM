@@ -130,24 +130,28 @@ object VyakaranamExecutionAdapter {
 
     /** Preserves explicit Sanskrit frequency morphology in the shared program AST. */
     internal fun normalizeFrequencyAst(ukti: Ukti): Ukti {
-        if (ukti.body is Repeat) return ukti
-        val count = ukti.grammaticalVakyas().asSequence()
-            .mapNotNull { vakya -> FrequencyExtractor.extractAbhyasaCount(vakya.padas) }
-            .maxOrNull()
-            ?.takeIf { it > 1 }
-            ?: return ukti
         val body = object : ProgramNodeTransformer() {
+            override fun visitSequence(node: Sequence): ProgramNode {
+                // A leading frequency qualifies this connected event chain, not an
+                // enclosing conditional or distributive clause.
+                val first = node.statements.firstOrNull() as? Invocation ?: return super.visitSequence(node)
+                val repeated = visitInvocation(first) as? Repeat ?: return super.visitSequence(node)
+                return Repeat(node.sourceText, repeated.count, node.copy(statements =
+                    listOf(repeated.body) + node.statements.drop(1).map(::transform)))
+            }
             override fun visitInvocation(node: Invocation): ProgramNode {
+                val count = FrequencyExtractor.extractAbhyasaCount(node.vakya.padas)
+                    ?: return node
                 val padas = node.vakya.padas.filterNot { it is SankhyaAbhyasaPada }
                 val sourceText = padas.joinToString(" ") { it.sourceText }
                 val vakya = when (val original = node.vakya) {
                     is AkhyataVakya -> original.copy(sourceText = sourceText, padas = padas)
                     is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(sourceText = sourceText, padas = padas)
                 }
-                return node.copy(vakya = vakya)
+                return Repeat(node.sourceText, count, node.copy(vakya = vakya))
             }
         }.transform(ukti.body)
-        return ukti.copy(body = Repeat(ukti.body.sourceText, count, body))
+        return ukti.copy(body = body)
     }
 
     fun bind(
@@ -219,6 +223,13 @@ object VyakaranamExecutionAdapter {
         environment: ValueEnvironment,
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
     ): AnalyzedExecutionBinding {
+        try {
+            val context = dev.panini.execution.ExecutionContext(variables = environment.values)
+            dev.panini.execution.validateAcyclicValues(environment.values.values +
+                injectedBindings.values.flatMap(context::resolveValues))
+        } catch (failure: IllegalArgumentException) {
+            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(failure.message ?: "Invalid structured value."))
+        }
         if (input.text.isBlank()) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
         }
@@ -267,25 +278,10 @@ object VyakaranamExecutionAdapter {
         val localVariables = mutableSetOf<String>()
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
-        // An explicit abhyāsa count applies to the complete utterance.
-        val abhyasaCounts = executableUkti.grammaticalVakyas().flatMap { vakya ->
-            vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
-                val numStems = FrequencyExtractor.numericStems(pada.stems)
-                val evaluated = if (numStems.isNotEmpty()) {
-                    sharedSankhyaEvaluator.evaluateStems(numStems)
-                } else {
-                    sharedSankhyaEvaluator.evaluateStems(pada.stems)
-                }
-                evaluated.value.toInt().takeIf { it > 0 }
-            }
-        }
-        val executionBody = if (executableUkti.body is Repeat) {
-            executableUkti.body
-        } else {
-            abhyasaCounts.maxOrNull()?.let { count ->
-                Repeat(executableUkti.body.sourceText, count, executableUkti.body)
-            } ?: lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
-        }
+        val normalizedFrequency = normalizeFrequencyAst(executableUkti)
+        val executionBody = if (normalizedFrequency.body != executableUkti.body || executableUkti.body is Repeat) {
+            normalizedFrequency.body
+        } else lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
         val pipelineKarmanSources = pipelineKarmanSources(executionBody)
 
@@ -387,6 +383,7 @@ object VyakaranamExecutionAdapter {
             override fun visitRepeat(node: Repeat): ExecutionNode =
                 ExecuteRepeat(List(node.count) { build(node.body) })
             override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
+            override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ExecutionNode = build(node.body)
             override fun visitPipeline(node: Pipeline): ExecutionNode =
                 error("Pipelines are executed through their semantic stage engine.")
             override fun visitPrakriya(node: Prakriya): ExecutionNode =
@@ -521,6 +518,9 @@ object VyakaranamExecutionAdapter {
                 val shapes = node.statements.map(::visit)
                 shapes.zipWithNext().forEachIndexed { boundary, (before, after) ->
                     if (node.connectorKinds.getOrNull(boundary) == SequenceConnector.ANANTARYA &&
+                        (node.statements[boundary + 1] as? Invocation)?.let {
+                            dev.panini.execution.PriorResultInjection.hasExplicitDisplayObject(it)
+                        } != true &&
                         before.exits.size == 1 && after.entries.size == 1
                     ) {
                         sources[after.entries.single()] = before.exits.single()
@@ -545,6 +545,7 @@ object VyakaranamExecutionAdapter {
                 node.resultTarget?.let(::visit)
                 body
             }
+            is dev.panini.vyakaranam.ast.ForEach -> visit(node.body)
             is Pipeline -> Shape(emptySet(), emptySet())
             is Prakriya -> Shape(emptySet(), emptySet())
             is Scope -> Shape(emptySet(), emptySet())

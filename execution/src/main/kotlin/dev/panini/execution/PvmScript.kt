@@ -17,6 +17,7 @@ import dev.panini.vyakaranam.ast.SankhyaBoundaryPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.depthFirst
 
 sealed interface PvmScriptStatement {
     val text: String
@@ -93,7 +94,15 @@ object PvmScript {
 
     fun classify(statements: List<PvmScriptStatement>): PvmSourceKind = when {
         statements.isEmpty() -> PvmSourceKind.EMPTY
-        statements.size == 1 && statements.single() is PvmScriptStatement.Sentence -> PvmSourceKind.UTTERANCE
+        statements.size == 1 && statements.single() is PvmScriptStatement.Sentence -> {
+            val sentence = statements.single() as PvmScriptStatement.Sentence
+            val requiresOrchestration = sentence.program?.depthFirst()?.any {
+                it is dev.panini.vyakaranam.ast.ForEach ||
+                    it is dev.panini.vyakaranam.ast.Repeat ||
+                    (it is dev.panini.vyakaranam.ast.Invocation && it.implicitValuePada != null)
+            } == true
+            if (requiresOrchestration) PvmSourceKind.SCRIPT else PvmSourceKind.UTTERANCE
+        }
         else -> PvmSourceKind.SCRIPT
     }
 

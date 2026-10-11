@@ -70,7 +70,7 @@ object ProgramSutraArthaCodec {
                 "expressionType" to SutraArthaValue.Symbol("typedOperand"),
                 "value" to encodeValue(expression.value),
                 "sup" to SutraArthaValue.Symbol(expression.sup.name),
-            ),
+            ) + expression.referenceName?.let { mapOf("referenceName" to SutraArthaValue.Text(it)) }.orEmpty(),
         )
     }
 
@@ -92,6 +92,7 @@ object ProgramSutraArthaCodec {
             "typedOperand" -> ExecutionExpression.TypedOperand(
                 value = decodeValue(fields.getValue("value")),
                 sup = SupAffix.valueOf(fields.symbol("sup")),
+                referenceName = (fields["referenceName"] as? SutraArthaValue.Text)?.value,
             )
             else -> throw IllegalArgumentException("Unknown execution expression type.")
         }

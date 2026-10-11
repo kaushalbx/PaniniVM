@@ -17,6 +17,7 @@ data class ProgramAvastha(
     val executionTrace: List<String> = emptyList(),
     val lastPhala: Phala? = null,
     val halted: Boolean = false,
+    val participantValues: Map<String, Map<dev.panini.core.Karaka, List<SanskritValue>>> = emptyMap(),
 ) : SutraAvastha
 
 data class InvokeDhatuEffect(

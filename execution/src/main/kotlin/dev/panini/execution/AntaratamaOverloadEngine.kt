@@ -16,14 +16,19 @@ object AntaratamaOverloadEngine {
         if (signature.parameters.isNotEmpty()) {
             if (signature.parameters.size != argumentTypes.size) return TypeMatch.MISMATCH
             return if (signature.parameters.zip(argumentTypes).all { (parameter, actual) ->
-                    actual == parameter.type
+                    parameter.type == PrakriyaValueType.UNCONSTRAINED ||
+                        actual == PrakriyaValueType.UNCONSTRAINED || actual == parameter.type
                 }
-            ) TypeMatch.EXACT else TypeMatch.MISMATCH
+            ) {
+                if (signature.parameters.any { it.type == PrakriyaValueType.UNCONSTRAINED } ||
+                    PrakriyaValueType.UNCONSTRAINED in argumentTypes)
+                    TypeMatch.UNCONSTRAINED else TypeMatch.EXACT
+            } else TypeMatch.MISMATCH
         }
         val expected = signature.argumentType ?: return TypeMatch.UNCONSTRAINED
         if (argumentTypes.isEmpty()) return TypeMatch.MISMATCH
-        return if (argumentTypes.all { it == expected }) {
-            TypeMatch.EXACT
+        return if (argumentTypes.all { it == expected || it == PrakriyaValueType.UNCONSTRAINED }) {
+            if (PrakriyaValueType.UNCONSTRAINED in argumentTypes) TypeMatch.UNCONSTRAINED else TypeMatch.EXACT
         } else {
             TypeMatch.MISMATCH
         }

@@ -5,11 +5,10 @@ internal fun Phala.toExecutionResult(operation: String): ExecutionResult = when 
         value = values.values.lastOrNull() ?: "",
         operation = operation,
         trace = trace,
-        typedValue = typedValues.values.lastOrNull(),
+        typedValue = values.keys.lastOrNull()?.let(typedValues::get),
         outputKind = outputKind,
         controlSignal = controlSignal,
-        conditionValue = typedValues.values.filterIsInstance<SanskritValue.Satya>()
-            .firstOrNull()?.boolean,
+        conditionValue = (values.keys.lastOrNull()?.let(typedValues::get) as? SanskritValue.Satya)?.boolean,
     )
     is Phala.Asiddha -> result
     is Phala.AnumatiApekshita -> pipelineContinuation?.let { resumable ->

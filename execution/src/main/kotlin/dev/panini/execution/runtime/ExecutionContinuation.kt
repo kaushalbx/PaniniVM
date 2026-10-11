@@ -7,4 +7,6 @@ data class ExecutionContinuation(
     val environment: ValueEnvironment,
     val trace: List<String>,
     val lastOutputKind: OutputKind = OutputKind.INTERNAL,
+    val localBindings: Map<String, SanskritValue> = emptyMap(),
+    val participantValues: Map<String, Map<dev.panini.core.Karaka, List<SanskritValue>>> = emptyMap(),
 )

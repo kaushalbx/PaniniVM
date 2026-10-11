@@ -3,8 +3,8 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
-import dev.panini.vyakaranam.ast.semanticKey
 import dev.panini.execution.binding.PhalaReference
+import dev.panini.execution.binding.referenceKey
 
 sealed interface PrakriyaArgumentResolution {
     data class Success(
@@ -19,7 +19,7 @@ sealed interface PrakriyaArgumentResolution {
                     ResolvedPrakriyaArgument(
                         parameter = null,
                         argument = PrakriyaArgument(
-                            term = pada.pratipadika.semanticKey(),
+                            term = pada.pratipadika.referenceKey(),
                             pada = pada,
                             origin = PrakriyaArgumentOrigin.WRITTEN,
                         ),
@@ -53,7 +53,7 @@ data class ResolvedPrakriyaArgument(
     val referenceName: String
         get() = (argument.pada as? SubantaPada)
             ?.pratipadika
-            ?.semanticKey()
+            ?.referenceKey()
             ?: PrakriyaInvocationMatcher.normalizeIdentity(argument.term)
 }
 
@@ -64,9 +64,6 @@ object NamedPrakriyaArgumentResolver {
     /** Resolves argument order from the canonical AST without rendering and reparsing it. */
     fun resolve(padas: List<SubantaPada>, signature: PrakriyaSignature): PrakriyaArgumentResolution {
         val positionalPadas = padas.filter { it.vibhakti() == Vibhakti.DVITIYA }
-        if (signature.parameters.isEmpty()) {
-            return PrakriyaArgumentResolution.Success.fromPadas(positionalPadas)
-        }
         return resolve(padas, signature, positionalPadas)
     }
 
@@ -75,9 +72,13 @@ object NamedPrakriyaArgumentResolver {
         signature: PrakriyaSignature,
         positionalPadas: List<SubantaPada>,
     ): PrakriyaArgumentResolution {
-        if (signature.parameters.isEmpty()) return PrakriyaArgumentResolution.Success.fromPadas(positionalPadas)
         val pairs = padas.mapIndexedNotNull { index, pada ->
             if (pada.vibhakti() !in setOf(Vibhakti.SAPTAMI, Vibhakti.SASTHI)) return@mapIndexedNotNull null
+            if (SupAffix.candidates(pada.sup.text).none { it.vacana == dev.panini.core.Vacana.EKAVACANA }) {
+                return PrakriyaArgumentResolution.Failure(
+                    "Parameter slot '${pada.stem()}' is singular; dual or plural slot references are unsupported.",
+                )
+            }
             val value = padas.getOrNull(index + 1)?.takeIf { it.vibhakti() == Vibhakti.DVITIYA }
                 ?: return PrakriyaArgumentResolution.Failure(
                     "कारकदोषः: '${pada.stem()}' इति मानस्थानस्य अनन्तरं द्वितीयान्तं मूल्यम् अपेक्षितम्।",
@@ -110,7 +111,7 @@ object NamedPrakriyaArgumentResolver {
                 ResolvedPrakriyaArgument(
                     parameter = parameter,
                     argument = PrakriyaArgument(
-                        term = value.pratipadika.semanticKey(),
+                        term = value.pratipadika.referenceKey(),
                         pada = value,
                         origin = PrakriyaArgumentOrigin.WRITTEN,
                     ),
@@ -124,5 +125,5 @@ object NamedPrakriyaArgumentResolver {
     private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
     private fun SubantaPada.stem(): String =
-        pratipadika.semanticKey()
+        pratipadika.referenceKey()
 }

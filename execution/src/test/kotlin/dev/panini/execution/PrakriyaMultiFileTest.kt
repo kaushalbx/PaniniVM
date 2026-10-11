@@ -78,7 +78,8 @@ class PrakriyaMultiFileTest {
         val breaks = results.filterIsInstance<ExecutionResult.Success>()
             .filter { it.controlSignal == ExecutionControlSignal.BREAK_LOOP }
 
-        assertEquals(1, breaks.size, results.toString())
+        assertEquals(0, breaks.size, results.toString())
+        assertEquals(1, results.filterIsInstance<ExecutionResult.Success>().size, results.toString())
     }
 
     @Test
@@ -492,7 +493,7 @@ class PrakriyaMultiFileTest {
     }
 
     @Test
-    fun `test krt pratyaya memoization classification and morphological adhikara`() {
+    fun `krt named procedures preserve nominal identity and morphological adhikara`() {
         val script = """
             गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
 
@@ -513,7 +514,7 @@ class PrakriyaMultiFileTest {
             nameStem = ktaDef.prakriya.nameIdentity,
             body = ktaDef.body,
         )
-        assertTrue(kriya.isMemoized, "Saṃjñā with क्त pratyaya must have isMemoized = true.")
+        assertEquals(ktaDef.nameSegmented, kriya.nameSegmented)
     }
 
     @Test

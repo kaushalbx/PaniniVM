@@ -199,7 +199,7 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
-        val body = context.quotationClause()?.let { quotation ->
+        val body = context.distributiveClause()?.let(::buildDistributiveClause) ?: context.quotationClause()?.let { quotation ->
             Quotation(
                 sourceText = quotation.text,
                 quoted = Invocation(buildVakya(requireNotNull(quotation.quoted))),
@@ -322,29 +322,80 @@ class VyakaranamAstBuilder {
             ?: context.alternate?.let(::buildConditionalArm),
     )
 
+    private fun buildDistributiveClause(clause: PaniniyaVyakaranamParser.DistributiveClauseContext): ForEach {
+        val collection = buildSubanta(requireNotNull(clause.collection))
+        val member = buildSubanta(requireNotNull(clause.member))
+        require(collection.sup.text == "ङस्") { "Distributive iteration requires a genitive singular collection." }
+        require(member.sup.text == "अम्") { "Distributive प्रति requires a singular accusative member." }
+        require(member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "The iteration member must introduce an underived nominal referent."
+        }
+        return ForEach(clause.text, collection, member, build(requireNotNull(clause.body)).body)
+    }
+
     private fun buildConditionalArm(
         context: PaniniyaVyakaranamParser.ConditionalArmContext,
-    ): ProgramNode = context.vakya()?.let {
+    ): ProgramNode = context.distributiveClause()?.let(::buildDistributiveClause) ?: context.vakya()?.let {
         val vakya = buildVakya(it)
-        val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull() as? SubantaPada
-        if (nominal != null) implicitSubantaReturn(nominal) else Invocation(vakya)
+        val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull()
+        if (nominal is SubantaPada || nominal is SankhyaBoundaryPada || nominal is KatapayadiPada ||
+            nominal is AryabhatiyaPada || nominal is BhutasamkhyaPada) {
+            implicitNominalReturn(requireNotNull(nominal))
+        } else Invocation(vakya)
     }
         ?: implicitPratipadikaReturn(buildPratipadika(requireNotNull(context.value)))
 
     /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
-    private fun implicitSubantaReturn(value: SubantaPada): ProgramNode =
-        (PaniniParser().parse("${value.pratipadika.sourceText} + अम् दा + लोट् + सिप् ।").body as Invocation)
-            .copy(implicitValue = value.sourceText, implicitValuePada = value)
+    private fun implicitNominalReturn(value: Pada): ProgramNode {
+        val sup = when (value) {
+            is SubantaPada -> value.sup
+            is SankhyaBoundaryPada -> value.sup
+            is KatapayadiPada -> value.sup
+            is AryabhatiyaPada -> value.sup
+            is BhutasamkhyaPada -> value.sup
+            else -> error("A nominal result requires an inflected nominal.")
+        }
+        require(SupAffix.candidates(sup.text).any { it.vibhakti == Vibhakti.PRATHAMA }) {
+            "A zero-copula nominal result requires nominative morphology."
+        }
+        val cardinal = when (value) {
+            is SubantaPada -> primitiveCardinalValue(value.pratipadika)
+            is SankhyaPada -> value.value ?: value.stems.singleOrNull()?.let {
+                dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(it)?.value
+            }
+            else -> null
+        }
+        cardinal?.let { number ->
+            val ending = SupAffix.candidates(sup.text).first { it.vibhakti == Vibhakti.PRATHAMA }
+            dev.panini.sankhya.SankhyaVacana.requireCompatible(number, ending.vacana)
+        }
+        return Invocation(
+            NamaVakya(value.sourceText, listOf(value)),
+            implicitValue = value.sourceText,
+            implicitValuePada = value,
+        )
+    }
 
-    /** A bare nominal branch has an understood nominative ending and return verb. */
-    private fun implicitPratipadikaReturn(value: Pratipadika): ProgramNode =
-        implicitSubantaReturn(
+    private fun primitiveCardinalValue(value: Pratipadika): Long? = when (value) {
+        is SankhyaPratipadika -> value.semanticValue.value
+        is MulaPratipadika -> if (value.vikaras.all { it is StriVikara })
+            dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(value.text)?.value else null
+        else -> null
+    }
+
+    /** A bare nominal branch has an understood nominative ending, not a fictitious action. */
+    private fun implicitPratipadikaReturn(value: Pratipadika): ProgramNode {
+        val cardinal = primitiveCardinalValue(value)
+        val vacana = cardinal?.let(dev.panini.sankhya.SankhyaVacana::requiredFor) ?: dev.panini.core.Vacana.EKAVACANA
+        val sup = SupAffix.entries.first { it.vibhakti == Vibhakti.PRATHAMA && it.vacana == vacana }.upadesha
+        return implicitNominalReturn(
             SubantaPada(
-                sourceText = "${value.sourceText} + सुँ",
+                sourceText = "${value.sourceText} + $sup",
                 pratipadika = value,
-                sup = SupPratyaya(sourceText = "सुँ", text = "सुँ"),
+                sup = SupPratyaya(sourceText = sup, text = sup),
             ),
         )
+    }
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
     private fun pipeConditionalResult(

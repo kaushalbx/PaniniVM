@@ -40,8 +40,9 @@ class OperationDefinition {
         maximum: Int? = null,
         shape: ExpressionShape? = null,
         vararg samjnas: Samjna,
+        valueType: OperationValueType? = null,
     ) {
-        requirements += KarakaRequirement(karaka, minimum, maximum, shape, samjnas.toSet())
+        requirements += KarakaRequirement(karaka, minimum, maximum, shape, samjnas.toSet(), valueType)
     }
 
     fun requiresNumbers(minimum: Int = 1, shape: ExpressionShape? = null) {

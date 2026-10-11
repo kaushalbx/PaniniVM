@@ -6,6 +6,14 @@ import kotlin.test.assertTrue
 import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
+    @Test fun `numeric loop condition is invalid rather than successful termination`() {
+        val results = PaniniVM().evalScript(
+            "यावत् एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् तावत् राम + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+        val failure = assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        assertEquals(ExecutionError.INVALID_VALUE, failure.error)
+        assertTrue(results.none { it is ExecutionResult.Success && it.loopOutcome != null })
+    }
+
     @Test
     fun `sanskrit truth literals retain typed values through assignment`() {
         val results = PaniniVM().evalScript(

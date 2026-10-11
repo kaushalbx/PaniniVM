@@ -41,7 +41,8 @@ object ExecutionRuntime {
 
     fun resume(continuation: ExecutionContinuation, scope: ExecutionScope): Phala {
         val values = scope.environment.mergedWith(continuation.environment).values.toMutableMap()
-        val localBindings = mutableMapOf<String, SanskritValue>()
+        val localBindings = continuation.localBindings.toMutableMap()
+        val participantValues = continuation.participantValues.toMutableMap()
         val trace = continuation.trace.toMutableList()
         var lastOutputKind = continuation.lastOutputKind
         var lastControlSignal: ExecutionControlSignal? = null
@@ -54,6 +55,8 @@ object ExecutionRuntime {
                 ValueEnvironment(values.toMap()),
                 trace.toList(),
                 lastOutputKind,
+                localBindings.toMap(),
+                participantValues.toMap(),
             )
             when (val authority = AuthorityPolicy.authorize(plan, scope)) {
                 AuthorityDecision.Authorized -> Unit
@@ -80,8 +83,16 @@ object ExecutionRuntime {
                 linguisticServices = scope.linguisticServices,
                 sankhyaRenderer = scope.sankhyaRenderer,
             )
+            val participants = try {
+                refreshedContext.bindings.filterKeys { it != dev.panini.core.Karaka.ANIRDHARITA }
+                    .mapValues { (_, expression) -> refreshedContext.resolveValues(expression).map { it.historySnapshot() } }
+            } catch (failure: IllegalArgumentException) {
+                return Phala.Asiddha(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    failure.message ?: "Invalid action-history participant."), trace)
+            }
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
+                    participantValues[plan.invocationId] = participants
                     val typedResult = result.typedValue ?: SanskritValue.of(
                         result.value,
                         plan.resolved.operation.resultSamjnas,
@@ -125,6 +136,7 @@ object ExecutionRuntime {
             localBindings,
             outputKind = lastOutputKind,
             controlSignal = lastControlSignal,
+            participantValues = participantValues,
         )
     }
 }

@@ -91,7 +91,7 @@ object PriorActionLowering {
             // result. This does not make every prior-action connector a pipeline.
             val omittedDisplayObject = index > 0 && head.canonicalDhatuIdentity() == CanonicalDhatuIdentity.MUDR &&
                 writtenOperands.all { it is TingantaPada || it is AvyayaPada || it in subjects(group) }
-            val operands = if (omittedDisplayObject) writtenOperands.dropLast(1) + SubantaPada(
+            val operands = if (omittedDisplayObject) writtenOperands.filterNot { it === head } + SubantaPada(
                 "", MulaPratipadika("फल", "फल"), SupPratyaya("अम्", "अम्"),
             ) + head else writtenOperands
             val boundPadas = if (subjects(group).isEmpty()) sharedSubjects + operands else operands

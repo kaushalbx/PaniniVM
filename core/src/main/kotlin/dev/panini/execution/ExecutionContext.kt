@@ -29,7 +29,7 @@ data class ExecutionContext(
         is ExecutionExpression.Coordination -> expression.members.flatMap(::resolveValues)
         is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
             ?: emptyList()
-        is ExecutionExpression.TypedOperand -> listOf(expression.value)
+        is ExecutionExpression.TypedOperand -> listOf(expression.currentValue())
     }
 
     fun resolve(expression: ExecutionExpression): List<String> =
@@ -59,8 +59,11 @@ data class ExecutionContext(
         is ExecutionExpression.Reference -> variables[expression.name]?.let { typed ->
             listOf(ExecutionExpression.Pada(typed.toDisplayText(), typed.samjnas, typed))
         }
-        is ExecutionExpression.TypedOperand -> listOf(
-            ExecutionExpression.Pada(expression.value.toDisplayText(), expression.value.samjnas, expression.value),
-        )
+        is ExecutionExpression.TypedOperand -> expression.currentValue().let { value ->
+            listOf(ExecutionExpression.Pada(value.toDisplayText(), value.samjnas, value))
+        }
     }
+
+    private fun ExecutionExpression.TypedOperand.currentValue(): SanskritValue =
+        referenceName?.let(variables::get) ?: value
 }

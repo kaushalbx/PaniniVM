@@ -33,7 +33,7 @@ class NaturalOperationResolverTest {
     }
 
     @Test
-    fun `unsupported extraction member fails rather than silently returning the last value`() {
+    fun `ordinal extraction selects the requested member rather than returning the last value`() {
         val results = PaniniVM().evalScript(
             """
             एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
@@ -41,7 +41,7 @@ class NaturalOperationResolverTest {
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
             """.trimIndent(),
         )
-        assertIs<ExecutionResult.Failure>(results.last())
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(assertIs<ExecutionResult.Success>(results.last()).typedValue).value)
     }
 
     @Test

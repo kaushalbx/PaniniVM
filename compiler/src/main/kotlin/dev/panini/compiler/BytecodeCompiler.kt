@@ -52,6 +52,7 @@ object BytecodeCompiler {
                     parameters = it.signature.parameters,
                     resultType = it.signature.resultType,
                     resultSchema = it.signature.resultSchema,
+                    precedence = it.definition.prakriya.modifiers.precedence,
                 )
             },
             inheritance = analyzed.inheritance,

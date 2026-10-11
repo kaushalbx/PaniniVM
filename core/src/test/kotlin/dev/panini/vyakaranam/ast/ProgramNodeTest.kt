@@ -16,10 +16,13 @@ class ProgramNodeTest {
     }
 
     @Test
-    fun `repeat count must be positive`() {
+    fun `repeat count must be nonnegative`() {
         assertFailsWith<IllegalArgumentException> {
-            Repeat("", 0, Invocation(vakya))
+            Repeat("", -1, Invocation(vakya))
         }
+        val zero = Repeat("", 0, Invocation(vakya))
+        assertEquals(1, zero.invocations().size)
+        assertEquals(0, zero.expandedInvocations().size)
     }
 
     @Test

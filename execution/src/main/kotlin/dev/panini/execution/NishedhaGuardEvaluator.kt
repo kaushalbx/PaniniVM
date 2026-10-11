@@ -9,7 +9,7 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.invocations
-import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.execution.binding.referenceKey
 
 /** Evaluates a निषेध sentence after binding its ordinal/named placeholders in the stored AST. */
 object NishedhaGuardEvaluator {
@@ -39,12 +39,15 @@ object NishedhaGuardEvaluator {
         val program = guard.program ?: return null
         val bound = PrakriyaAstArgumentBinder.bind(program, parameters, argumentCount)
         val padas = bound.invocations().flatMap { it.vakya.padas }
-        if (padas.filterIsInstance<AvyayaPada>().none { it.function == AvyayaFunction.NISHEDHA }) return null
-        val operands = padas.flatMap(::expand).filter(::isAccusative)
+        val expanded = padas.flatMap(::expand)
+        val prohibitions = expanded.filterIsInstance<AvyayaPada>().filter { it.function == AvyayaFunction.NISHEDHA }
+        if (prohibitions.size != 1) return null
+        if (expanded.any { it !== prohibitions.single() && !isAccusative(it) }) return null
+        val operands = expanded.filter(::isAccusative)
         if (operands.size != 2) return null
         fun operand(pada: Pada): NumericOperand? {
             if (pada is SubantaPada) {
-                val key = pada.pratipadika.semanticKey()
+                val key = pada.pratipadika.referenceKey()
                 (0 until argumentCount).firstOrNull { PrakriyaAstArgumentBinder.referenceKey(it) == key }
                     ?.let { return NumericOperand.Argument(it) }
             }
@@ -71,8 +74,8 @@ object NishedhaGuardEvaluator {
         guard,
         parameters,
         arguments.mapIndexed { index, resolved ->
-            knownValues.getOrNull(index)
-                ?: resolved.argument.value
+            resolved.argument.value
+                ?: knownValues.getOrNull(index)
                 ?: resolved.argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
                 ?: SanskritValue.Shabda(resolved.referenceName)
         },

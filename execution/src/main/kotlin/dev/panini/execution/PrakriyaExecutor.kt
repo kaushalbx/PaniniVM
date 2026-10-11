@@ -21,6 +21,9 @@ internal class PrakriyaExecutor {
 
     fun execute(request: Request): List<ExecutionResult> {
         val invocation = request.invocation
+        invocation.resolutionError?.let {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, it))
+        }
         val signature = invocation.kriya.signature
         val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
         if (argumentResolution is PrakriyaArgumentResolution.Failure) {
@@ -37,11 +40,6 @@ internal class PrakriyaExecutor {
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }
         validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }
-        if (invocation.kriya.isMemoized) {
-            request.registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)?.let {
-                return listOf(it)
-            }
-        }
 
         val results = mutableListOf<ExecutionResult>()
         val repetitionCount = (invocation.ukti?.body as? Repeat)?.count
@@ -56,20 +54,15 @@ internal class PrakriyaExecutor {
                 }
                 val boundProgram = PrakriyaAstArgumentBinder.bind(
                     program, signature.parameters, callFrame.arguments.size,
+                    request.registry.all().mapTo(mutableSetOf()) { it.nameStem },
                 )
-                results += request.executeBody(boundProgram, callFrame.localScope, sourceFile)
+                val produced = request.executeBody(boundProgram, callFrame.localScope, sourceFile)
+                results += produced
+                if (produced.any { it !is ExecutionResult.Success ||
+                        it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) return results
             }
-            if (results.any {
-                    it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
-                }
-            ) return results
         }
 
-        if (invocation.kriya.isMemoized) {
-            (results.lastOrNull() as? ExecutionResult.Success)?.let {
-                request.registry.cacheResult(invocation.kriya.nameStem, invocation.karmaText, it)
-            }
-        }
         validateResult(invocation, request.registry, results)?.let { results += it }
         return results
     }
@@ -89,7 +82,7 @@ internal class PrakriyaExecutor {
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
             val actual = frame.arguments.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
                 ?: PrakriyaValueClassifier.classifyTerm(pair.second)
-            actual != pair.first.type
+            pair.first.type != PrakriyaValueType.UNCONSTRAINED && actual != pair.first.type
         } ?: return null
         return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
@@ -133,6 +126,12 @@ internal class PrakriyaExecutor {
         results: List<ExecutionResult>,
     ): ExecutionResult.Failure? {
         val signature = invocation.kriya.signature
+        if ((signature.resultType != null || signature.resultSchema != null) && results.isEmpty()) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "प्रक्रिया-परिणामः: '${invocation.kriya.nameStem}' declared a result but produced none.",
+            )
+        }
         signature.resultType?.let { expected ->
             val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return null
             val actual = PrakriyaValueClassifier.classifyValue(

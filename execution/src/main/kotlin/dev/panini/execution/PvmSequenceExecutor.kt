@@ -25,15 +25,28 @@ internal class PvmSequenceExecutor {
             ) != null
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
+        val hasAnaphor = node.statements.filterIsInstance<Invocation>().any { invocation ->
+            invocation.vakya.padas.any { pada -> when (pada) {
+                is dev.panini.vyakaranam.ast.SubantaPada -> AnaphoricOperandProjection.agreement(pada) != null
+                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.any {
+                    AnaphoricOperandProjection.agreement(it) != null
+                }
+                else -> false
+            } }
+        }
         if (node.statements.size < 2 ||
             node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
-            (!hasNamedStage && !startsWithImplicitValue)
+            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor)
         ) return evaluateWhole()
 
         val results = mutableListOf<ExecutionResult>()
         var stageResults = executeNode(node.statements.first())
         results += stageResults
-        var pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()?.typedValue
+        fun resultValue(produced: List<ExecutionResult>): SanskritValue? =
+            produced.filterIsInstance<ExecutionResult.Success>().lastOrNull()?.let {
+                it.typedValue ?: SanskritValue.of(it.value)
+            }
+        var pipedValue = resultValue(stageResults)
         for ((index, stage) in node.statements.drop(1).withIndex()) {
             if (stageResults.any { it !is ExecutionResult.Success ||
                     it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) break
@@ -48,8 +61,7 @@ internal class PvmSequenceExecutor {
                 executePipedInvocation(invocation, stageScope, InjectedKarmanBinding(PIPE_OPERAND, pipedValue))
             } else executeNode(stage)
             results += stageResults
-            pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()
-                .lastOrNull()?.typedValue ?: pipedValue
+            pipedValue = resultValue(stageResults)
         }
         return results
     }

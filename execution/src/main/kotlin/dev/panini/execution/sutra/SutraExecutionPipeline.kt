@@ -144,6 +144,7 @@ object SutraExecutionPipeline {
                     trace = state.executionTrace + machineTrace,
                     typedValues = state.invocationValues,
                     localBindings = state.localBindings,
+                    participantValues = state.participantValues,
                     outputKind = last.outputKind,
                     controlSignal = last.controlSignal,
                 )
@@ -324,6 +325,7 @@ object SutraExecutionPipeline {
                     completedSutras = state.completedSutras + dev.panini.sutra.runtime.SutraId(invocationId),
                     invocationValues = state.invocationValues + resumedPhala.typedValues,
                     localBindings = state.localBindings + resumedPhala.localBindings,
+                    participantValues = state.participantValues + resumedPhala.participantValues,
                     executionTrace = state.executionTrace + resumedPhala.trace,
                     lastPhala = resumedPhala,
                     halted = false
@@ -385,6 +387,7 @@ object SutraExecutionPipeline {
                     trace = finalState.executionTrace + machineTrace,
                     typedValues = finalState.invocationValues,
                     localBindings = finalState.localBindings,
+                    participantValues = finalState.participantValues,
                     outputKind = last.outputKind,
                     controlSignal = last.controlSignal,
                 )

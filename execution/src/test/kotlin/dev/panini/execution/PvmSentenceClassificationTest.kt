@@ -3,6 +3,8 @@ package dev.panini.execution
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import dev.panini.vyakaranam.ast.SubantaPada
 
 class PvmSentenceClassificationTest {
@@ -76,11 +78,12 @@ class PvmSentenceClassificationTest {
 
     @Test
     fun `attribute retrieval requires an accusative object`() {
-        assertIs<PvmSentenceSemantics.Executable>(
+        val failure = assertFailsWith<IllegalArgumentException> {
             sentence(
                 "सङ्ख्या + मतुप् + ङस् मूल्य + भिस् ग्रहँ + श्ना + लोट् + सिप् ।",
-            ).semantics,
-        )
+            )
+        }
+        assertTrue(failure.message.orEmpty().contains("accusative field"))
     }
 
     private fun sentence(source: String): PvmScriptStatement.Sentence =

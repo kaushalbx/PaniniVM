@@ -12,8 +12,7 @@ object SankhyaVacana {
     }
 
     fun requireCompatible(value: Long, vacana: Vacana) {
-        // Higher cardinals are nominal quantities: plural counts of hundreds,
-        // for example, are grammatical too. Do not impose referent agreement.
+        // Higher cardinals are nominal quantities; plural hundreds are grammatical too.
         if (value >= 20L) return
         val required = requiredFor(value)
         require(vacana == required) {

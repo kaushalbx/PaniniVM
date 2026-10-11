@@ -10,6 +10,21 @@ import kotlin.test.assertEquals
 
 class MemoryOrderQualifierTest {
     @Test
+    fun `shared resolver discovers original result nodes inside coordination`() {
+        val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।"
+        ).body as dev.panini.vyakaranam.ast.Invocation
+        val group = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
+        val reference = NamedActionResultReferenceResolver.resolve(invocation.vakya.padas).single()
+        kotlin.test.assertSame(group.members.first(), reference.result)
+        assertEquals(1L, reference.ordinalFromOldest)
+        val operands = NamedActionResultReferenceResolver.operandPadas(invocation.vakya.padas)
+        assertTrue(operands.any { it === reference.result })
+        assertTrue(operands.any { it === group.members.last() })
+        assertFalse(operands.any { it === reference.modifier || it === reference.orderingQualifier })
+        assertTrue(operands.none { it is dev.panini.vyakaranam.ast.SamuccitaSubanta })
+    }
+    @Test
     fun `derived purva is retained as an invalid selector rather than previous or latest`() {
         for (affix in listOf("तरप्", "मतुप्")) {
             val source = "युज् + ल्युट् + ङस् पूर्व + $affix + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"

@@ -68,6 +68,7 @@ import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SequenceConnector
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -228,6 +229,8 @@ class PvmUktiSadhaka(
         override fun visitQuotation(node: Quotation): String =
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
+        override fun visitForEach(node: ForEach): String =
+            "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
             if (node.maximumIterationStems.isNotEmpty() && node.maximumBoundaryPadas.isEmpty()) {
                 val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value

@@ -1,6 +1,6 @@
 # मुख्य ग्रन्थ — Entry-point program demonstrating Pāṇinian morphological systems
 
-# Step 1: Call memoized भू + क्त + सुँ procedure in गणित domain: 2 + 3 = 5 (पञ्च)
+# Step 1: Call भू + क्त + सुँ procedure in गणित domain: 2 + 3 = 5 (पञ्च)
 गणित + ङस् भू + क्त + टा डुकृञ् + उ + लोट् + सिप् ।
 
 # Step 2: Call type-checked शुध् + णिच् + तव्यत् + सुँ procedure: 4 + 5 = 9 (नव)

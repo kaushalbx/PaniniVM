@@ -98,9 +98,13 @@ object PrakriyaScriptValidator {
             }
         }
 
-        statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
-            TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)
-        }.forEach(registry::registerSchema)
+        statements.filterIsInstance<PvmScriptStatement.Sentence>().forEach { sentence ->
+            try {
+                TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)?.let(registry::registerSchema)
+            } catch (failure: IllegalArgumentException) {
+                diagnostics += diagnostic(source, sentence.text, failure.message ?: "Invalid schema declaration.")
+            }
+        }
 
         statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
             val parameters = definition.body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
@@ -116,6 +120,15 @@ object PrakriyaScriptValidator {
                     diagnostics += diagnostic(source, schema, "No परिणाम schema named '$schema' is declared.")
                 }
             }
+            // Do not derive call contracts from a contradictory declaration.
+            if (parameters.map { it.nameStem }.distinct().size != parameters.size || results.size > 1) {
+                return@forEach
+            }
+            val signature = runCatching { PrakriyaSignatureCompiler.compile(definition.body) }.getOrElse { error ->
+                diagnostics += diagnostic(source, definition.nameSegmented,
+                    error.message ?: "Invalid procedure signature.")
+                return@forEach
+            }
             val kriya = Prakriya(
                 nameSegmented = definition.nameSegmented,
                 nameStem = definition.prakriya.nameIdentity,
@@ -123,6 +136,7 @@ object PrakriyaScriptValidator {
                 domainStem = definition.domainStem,
                 visibility = definition.prakriya.modifiers.visibility,
                 precedence = definition.prakriya.modifiers.precedence,
+                signatureOverride = signature,
             )
             registry.register(kriya)
         }
@@ -132,7 +146,7 @@ object PrakriyaScriptValidator {
             if (pipeline != null) {
                 validatePipeline(source, pipeline, registry, diagnostics)
             } else {
-                sentence.ukti?.let(registry::detectInvocation)?.let { invocation ->
+                sentence.ukti?.let { registry.detectInvocation(it, staticAnalysis = true) }?.let { invocation ->
                     validateCall(source, invocation, diagnostics)
                 }
             }
@@ -155,13 +169,22 @@ object PrakriyaScriptValidator {
         }
         var arguments = originalArguments
         var precedingType: PrakriyaValueType? = null
+        val originalTypes = originalArguments.map { argument ->
+            argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada) ?: PrakriyaValueType.UNCONSTRAINED
+        }
+        var argumentTypes = originalTypes
         pipeline.stages.forEach { stage ->
-            val invocation = registry.resolveStructuredInvocation(
+            val invocation = try { registry.resolveStructuredInvocation(
                 stage.operationStem,
                 stage.domainStem,
                 arguments,
                 pipeline.sourceText,
-            ) ?: return@forEach
+                analyzedArgumentTypes = argumentTypes,
+            ) } catch (failure: IllegalArgumentException) {
+                diagnostics += diagnostic(source, stage.operationStem,
+                    failure.message ?: "Invalid pipeline type evidence.")
+                return
+            } ?: return@forEach
             val signature = invocation.kriya.signature
             if (signature.parameters.isNotEmpty()) {
                 if (signature.parameters.size != arguments.size) {
@@ -170,24 +193,21 @@ object PrakriyaScriptValidator {
                         stage.operationStem,
                         PrakriyaDiagnostics.arity(stage.operationStem, signature.parameters.size, arguments.size),
                     )
-                } else if (precedingType != null && signature.parameters.first().type != precedingType) {
-                    diagnostics += diagnostic(
-                        source,
-                        stage.operationStem,
-                        "Pipeline type mismatch: ${signature.parameters.first().type} cannot consume $precedingType.",
-                    )
+                } else {
+                    signature.parameters.zip(argumentTypes).firstOrNull { (parameter, actual) ->
+                        parameter.type != PrakriyaValueType.UNCONSTRAINED &&
+                            actual != PrakriyaValueType.UNCONSTRAINED && parameter.type != actual
+                    }?.let { (parameter, actual) ->
+                        diagnostics += diagnostic(source, stage.operationStem,
+                            "Pipeline type mismatch: ${parameter.type} cannot consume $actual for '${parameter.nameStem}'.")
+                    }
                 }
             }
-            precedingType = signature.resultType ?: signature.resultSchema?.let { PrakriyaValueType.SHABDA }
-            val resultPlaceholder = when (precedingType) {
-                PrakriyaValueType.SANKHYA -> SanskritValue.Sankhya(0, "शून्य")
-                PrakriyaValueType.SUCHI -> SanskritValue.Suchi(emptyList())
-                else -> SanskritValue.Shabda("फल")
-            }
+            precedingType = signature.resultType ?: signature.resultSchema?.let { PrakriyaValueType.RUPA }
+            argumentTypes = listOf(precedingType ?: PrakriyaValueType.UNCONSTRAINED) + originalTypes.drop(1)
             arguments = listOf(
                 PrakriyaArgument(
                     term = "फल",
-                    value = resultPlaceholder,
                     origin = PrakriyaArgumentOrigin.PIPE,
                 ),
             ) + originalArguments.drop(1)
@@ -199,15 +219,19 @@ object PrakriyaScriptValidator {
         invocation: PrakriyaInvocation,
         diagnostics: MutableList<PrakriyaDiagnostic>,
     ) {
+        invocation.resolutionError?.let {
+            diagnostics += diagnostic(source, invocation.kriya.nameStem, it)
+            return
+        }
         val signature = invocation.kriya.signature
-        if (signature.parameters.isEmpty()) return
         val callName = invocation.kriya.nameStem
         val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
         if (resolution is PrakriyaArgumentResolution.Failure) {
             diagnostics += diagnostic(source, callName, resolution.message)
             return
         }
-        val arguments = (resolution as PrakriyaArgumentResolution.Success).terms
+        if (signature.parameters.isEmpty()) return
+        val arguments = (resolution as PrakriyaArgumentResolution.Success).arguments
         if (arguments.size != signature.parameters.size) {
             diagnostics += diagnostic(
                 source,
@@ -217,7 +241,11 @@ object PrakriyaScriptValidator {
             return
         }
         signature.parameters.zip(arguments).firstOrNull { (parameter, argument) ->
-            parameter.type != PrakriyaValueClassifier.classifyTerm(argument)
+            val actual = argument.argument.value?.let(PrakriyaValueClassifier::classifyValue)
+                ?: argument.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
+                ?: PrakriyaValueType.UNCONSTRAINED
+            parameter.type != PrakriyaValueType.UNCONSTRAINED &&
+                actual != PrakriyaValueType.UNCONSTRAINED && parameter.type != actual
         }?.let { (parameter, _) ->
             diagnostics += diagnostic(source, callName, PrakriyaDiagnostics.parameterType(parameter))
         }

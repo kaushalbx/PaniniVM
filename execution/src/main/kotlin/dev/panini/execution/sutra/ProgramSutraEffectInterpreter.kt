@@ -58,6 +58,7 @@ class ProgramSutraEffectInterpreter(
                             completedSutras = state.completedSutras + SutraId(invocation.id),
                             invocationValues = state.invocationValues + phala.typedValues,
                             localBindings = state.localBindings + phala.localBindings,
+                            participantValues = state.participantValues + phala.participantValues,
                             executionTrace = state.executionTrace + phala.trace,
                             lastPhala = phala,
                         )

@@ -12,7 +12,7 @@ import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
 import dev.panini.execution.op
-import dev.panini.execution.ExpressionShape
+import dev.panini.execution.OperationValueType
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -47,8 +47,8 @@ open class YuDhatu : Dhatu(
             returns(Samjna.GANA)
         },
         IsEvenAction.op {
-            requires(Karaka.KARMAN, shape = ExpressionShape.LITERAL)
-            returns(Samjna.SHABDA)
+            requires(Karaka.KARMAN, maximum = 1, valueType = OperationValueType.INTEGER)
+            returns(Samjna.SATYA, Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("युत", "युयोति", "युते", "मिश्रणम्", "संयोजनम्"),

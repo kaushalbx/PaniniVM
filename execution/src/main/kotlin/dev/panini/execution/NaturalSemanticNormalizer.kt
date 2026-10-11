@@ -55,6 +55,7 @@ object NaturalSemanticNormalizer {
 
     sealed interface ProcedureOperand {
         data class Parameter(val position: Long) : ProcedureOperand
+        data class Literal(val value: Long) : ProcedureOperand
         data object PriorResult : ProcedureOperand
     }
 
@@ -68,7 +69,7 @@ object NaturalSemanticNormalizer {
 
     /** True when this nominal is the explicit anaphor for the preceding result. */
     fun isPriorResult(pada: SubantaPada): Boolean =
-        (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PHALA
+        dev.panini.execution.binding.PhalaReference.isReference(pada)
 
     /** Numeric meaning shared by cardinal and ordinal पर्यन्त boundaries. */
     fun boundaryValue(boundary: SankhyaBoundaryPada): Long? =
@@ -81,10 +82,7 @@ object NaturalSemanticNormalizer {
 
     private fun normalizeReportedOutcomeTest(invocation: Invocation): Operation.ReportedOutcomeTest? {
         val padas = invocation.vakya.padas
-        val tinganta = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
-        if (tinganta.canonicalDhatuIdentity() !in COPULAR_DHATUS) return null
-        val subject = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
-        if (SupAffix.fromUpadesha(subject.sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
+        val subject = simpleCopularSubject(invocation) ?: return null
         val nominal = subject.pratipadika as? MulaPratipadika
         if (nominal?.lexicalIdentity != MulaPratipadikaIdentity.VIJAYA || nominal.vikaras.isNotEmpty()) {
             return null
@@ -99,13 +97,10 @@ object NaturalSemanticNormalizer {
 
     private fun normalizeTruthTest(invocation: Invocation): Operation.TruthTest? {
         val padas = invocation.vakya.padas
-        val tinganta = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         // Both अस् (exist/be) and भू (become/be) form natural existential
         // predicates in existing PVM sources. Their tense/aspect distinction does
         // not change the truth-state lookup performed by a condition.
-        if (tinganta.canonicalDhatuIdentity() !in COPULAR_DHATUS) return null
-        val subject = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
-        if (SupAffix.fromUpadesha(subject.sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
+        val subject = simpleCopularSubject(invocation) ?: return null
         return Operation.TruthTest(
             stateName = (subject.pratipadika as? MulaPratipadika)
                 ?.takeIf { it.vikaras.isNotEmpty() }?.morphologicalKey()
@@ -114,6 +109,22 @@ object NaturalSemanticNormalizer {
                 it.function == AvyayaFunction.NISHEDHA
             },
         )
+    }
+
+    /** A state lookup cannot stand in for a larger or derived predicate. */
+    private fun simpleCopularSubject(invocation: Invocation): SubantaPada? {
+        val padas = invocation.vakya.padas
+        val head = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
+        if (head.canonicalDhatuIdentity() !in COPULAR_DHATUS || head.upasargas.isNotEmpty() ||
+            head.dhatu.sanadiPratyayas.isNotEmpty() || head.priorAction != null) return null
+        val subject = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
+        if (SupAffix.fromUpadesha(subject.sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
+        val remaining = padas.filter { it !== head && it !== subject }
+        if (remaining.isNotEmpty()) {
+            val negation = remaining.singleOrNull() as? AvyayaPada ?: return null
+            if (negation.form != "न" || negation.derivation != null) return null
+        }
+        return subject
     }
 
     private fun normalizeRangeChoice(invocation: Invocation): Operation.RangeChoice? {
@@ -154,11 +165,29 @@ object NaturalSemanticNormalizer {
             CanonicalDhatuIdentity.BHAJ -> ArithmeticKind.DIVIDE
             else -> return null
         }
-        val operands = padas.mapNotNull { pada ->
+        // This compatibility construction is coordinated accusative arithmetic,
+        // not a license to erase other kārakas, negation, or nonfinite actions.
+        if (padas.filterIsInstance<AvyayaPada>().any { it.form != "च" || it.derivation != null }) return null
+        val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(padas)
+        val operands = padas.filter { it !is TingantaPada && it !is AvyayaPada }.map { pada ->
+            if (pada in protected) return null
+            val sup = when (pada) {
+                is SubantaPada -> pada.sup
+                is SankhyaPada -> pada.sup
+                is SankhyaPuranaPada -> pada.sup
+                else -> return null
+            }
+            if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.DVITIYA) return null
             PuranaPratyayaResolver.ordinalValue(pada)?.let(ProcedureOperand::Parameter)
+                ?: (pada as? SankhyaPada)?.let { cardinal ->
+                    boundaryValue(cardinal)?.let(ProcedureOperand::Literal)
+                }
                 ?: (pada as? SubantaPada)?.takeIf(::isPriorResult)?.let {
                     ProcedureOperand.PriorResult
                 }
+                // An unrecognized participant must go through ordinary binding;
+                // a partial arithmetic operation would silently lose its meaning.
+                ?: return null
         }
         if (operands.size < 2 || operands.none { it is ProcedureOperand.Parameter }) return null
         return Operation.ProcedureParameterArithmetic(kind, operands)

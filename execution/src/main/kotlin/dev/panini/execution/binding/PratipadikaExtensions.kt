@@ -47,7 +47,7 @@ internal fun Pratipadika.baseText(): String = when (this) {
  * The external sup belongs to [SubantaPada], so it deliberately cannot affect
  * this key.
  */
-internal fun Pratipadika.referenceKey(): String =
+fun Pratipadika.referenceKey(): String =
     if (hasAdditionalDerivation()) morphologicalKey() else semanticKey()
 
 /** Additional nominal suffixes cannot alias the unmodified stem's referent. */

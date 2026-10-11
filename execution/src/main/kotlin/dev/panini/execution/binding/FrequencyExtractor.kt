@@ -12,6 +12,12 @@ import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
  * Covers both per-clause frequency qualifiers and whole-utterance repetition counts.
  */
 internal object FrequencyExtractor {
+    internal fun checkedCount(value: Long): Int {
+        require(value in 0L..Int.MAX_VALUE.toLong()) {
+            "A repetition count must be nonnegative and fit the compiler IR range (0..${Int.MAX_VALUE})."
+        }
+        return value.toInt()
+    }
     internal fun isAbhyasa(stems: List<String>): Boolean = stems.any(SankhyaAbhyasaMarkers::isFrequency)
 
     internal fun numericStems(stems: List<String>): List<String> =
@@ -19,13 +25,14 @@ internal object FrequencyExtractor {
 
     internal fun extractAbhyasaCount(padas: List<Pada>): Int? {
         val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull() ?: return null
+        sankhyaAbhyasa.value?.let { return checkedCount(it) }
         val numStems = numericStems(sankhyaAbhyasa.stems)
         val evaluated = if (numStems.isNotEmpty()) {
             sharedSankhyaEvaluator.evaluateStems(numStems)
         } else {
             sharedSankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
         }
-        return evaluated.value.toInt()
+        return checkedCount(evaluated.value)
     }
 
     /**
@@ -45,7 +52,7 @@ internal object FrequencyExtractor {
             //   सकृत्, द्विः, त्रिः, चतुः (parseStandaloneFrequency)
             //   *कृत्वः / *कृत्वस् compound forms (evaluateStems suffix branch)
             val evaluated = runCatching { sharedSankhyaEvaluator.evaluateStems(listOf(text)) }.getOrNull()
-            if (evaluated != null && evaluated.value > 0) return evaluated.value.toInt()
+            if (evaluated != null) return checkedCount(evaluated.value)
             // पुनः / पुनर् are pragmatic repetition markers ("again" = do once more),
             // not purely numerical — retain as minimal policy.
             if (AvyayaFunction.fromForm(text) == AvyayaFunction.REPETITION) return 2

@@ -14,6 +14,60 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `history group loads retain a wrapper around one collection participant`() {
+        val members = listOf(SanskritValue.Sankhya(1, "एक"))
+        for (collection in listOf(SanskritValue.Suchi(members), SanskritValue.Gana(members))) {
+        val instructions = listOf(
+            CompilerInstruction.Constant(collection), CompilerInstruction.Constant(collection),
+            CompilerInstruction.RecordActionFrame("डुदाञ्", listOf(dev.panini.core.Karaka.KARMAN)),
+            CompilerInstruction.LoadActionParticipants("डुदाञ्", dev.panini.core.Karaka.KARMAN, asGroup = true),
+            CompilerInstruction.PackOperands(listOf(true)), CompilerInstruction.Store("latest"),
+            CompilerInstruction.LoadOrdinalActionParticipants("डुदाञ्", dev.panini.core.Karaka.KARMAN, 1, asGroup = true),
+            CompilerInstruction.PackOperands(listOf(true)), CompilerInstruction.Store("first"))
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("WrappedHistoryGroups", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("WrappedHistoryGroups", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(collection, values["latest"])
+        assertEquals(collection, values["first"])
+        }
+    }
+    @Test
+    fun `dynamic operand packing expands grammatical groups without flattening collections`() {
+        val one = SanskritValue.Sankhya(1, "एक")
+        val two = SanskritValue.Sankhya(2, "द्वि")
+        val nested = SanskritValue.Suchi(listOf(two))
+        val group = SanskritValue.Gana(listOf(one, nested))
+        val expected = SanskritValue.Suchi(listOf(one, nested, two))
+        assertEquals(expected, CompilerValueOperations.packOperands(arrayOf(group, two), "10"))
+        assertEquals(nested, CompilerValueOperations.packOperands(arrayOf(SanskritValue.Gana(listOf(nested))), "1"))
+        val instructions = listOf(
+            CompilerInstruction.Constant(group), CompilerInstruction.Constant(two),
+            CompilerInstruction.PackOperands(listOf(true, false)), CompilerInstruction.Store("LastResult"))
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("PackedParticipantOperands", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("PackedParticipantOperands", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(expected, values["LastResult"])
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(listOf(CompilerInstruction.PackOperands(listOf(true)))) }
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(listOf(CompilerInstruction.PackOperands(emptyList()))) }
+        assertFailsWith<CompiledPaniniExecutionException> { CompilerValueOperations.packOperands(arrayOf(nested), "1") }
+        assertFailsWith<CompiledPaniniExecutionException> { CompilerValueOperations.packOperands(arrayOf(SanskritValue.Gana(emptyList())), "1") }
+    }
+    @Test
+    fun `record reference resolution consumes one stack operand`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.ResolveRecordReference))
+        }
+        CompilerIrVerifier.verify(listOf(
+            CompilerInstruction.Constant(SanskritValue.Shabda("गुण")),
+            CompilerInstruction.ResolveRecordReference,
+            CompilerInstruction.LoadFieldOrLopa("मूल्य"),
+            CompilerInstruction.Store("LastResult"),
+        ))
+    }
+
+    @Test
     fun `numeric prohibition consumes two values without coercion`() {
         CompilerIrVerifier.verify(listOf(
             CompilerInstruction.Constant(SanskritValue.Shabda("शून्य")),

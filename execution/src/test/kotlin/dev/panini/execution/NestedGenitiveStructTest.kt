@@ -10,6 +10,20 @@ class NestedGenitiveStructTest {
     private val vm = PaniniVM()
 
     @Test
+    fun `nested references distinguish derived nominal values from base records`() {
+        val source = """
+            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+        """.trimIndent()
+        val results = vm.evalScript(source)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals(9L, assertIs<SanskritValue.Sankhya>(results
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue).value)
+    }
+
+    @Test
     fun `copular field assertion renders with possessive matup and neuter field`() {
         assertEquals(
             "गुणवतः मूल्यं दश अस्ति ।",

@@ -6,6 +6,54 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class AntaratamaOverloadTest {
+    @Test fun `equally ranked runtime overloads fail before either body executes`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सीता + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val results = PaniniVM().evalScript(source)
+        val failure = kotlin.test.assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        assertEquals(ExecutionError.INVALID_VALUE, failure.error)
+        assertTrue(failure.message.contains("Ambiguous"))
+        assertTrue(results.none { it is ExecutionResult.Success && it.outputKind == OutputKind.CONSOLE })
+    }
+
+    @Test fun `named runtime numeric argument selects numeric rather than text overload`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ शब्द + सुँ इति मान + सुँ ।
+            राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            द्वि + अम् निवेश + ङे दा + लोट् + सिप् ।
+            निवेश + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val results = PaniniVM().evalScript(source)
+        val result = kotlin.test.assertIs<ExecutionResult.Success>(results.last(), results.toString())
+        assertEquals(3L, kotlin.test.assertIs<SanskritValue.Sankhya>(result.typedValue).value)
+    }
+
+    @Test fun `unconstrained positional signature ranks below exact typed signature`() {
+        val generic = PrakriyaSignature(parameters = listOf(
+            PrakriyaParameter("प्रथम", PrakriyaValueType.UNCONSTRAINED)))
+        val numeric = PrakriyaSignature(parameters = listOf(
+            PrakriyaParameter("मान", PrakriyaValueType.SANKHYA)))
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.UNCONSTRAINED,
+            AntaratamaOverloadEngine.matchTypes(generic, listOf(PrakriyaValueType.SHABDA)))
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.UNCONSTRAINED,
+            AntaratamaOverloadEngine.matchTypes(generic, listOf(PrakriyaValueType.SANKHYA)))
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.EXACT,
+            AntaratamaOverloadEngine.matchTypes(numeric, listOf(PrakriyaValueType.SANKHYA)))
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.MISMATCH,
+            AntaratamaOverloadEngine.matchTypes(generic, emptyList()))
+    }
+
     @Test
     fun `named action result type participates in overload selection`() {
         val source = """

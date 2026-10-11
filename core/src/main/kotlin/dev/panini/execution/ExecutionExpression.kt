@@ -41,20 +41,30 @@ sealed interface ExecutionExpression {
         }
     }
 
-    /** A value already resolved by the caller, retaining the source-written sup slot. */
+    /**
+     * A resolved value retaining its source-written sup slot and, for named operands,
+     * its referent. Literal text is never evidence of reference identity.
+     */
     data class TypedOperand(
         val value: SanskritValue,
         val sup: SupAffix,
-    ) : ExecutionExpression
+        val referenceName: String? = null,
+    ) : ExecutionExpression {
+        init {
+            require(referenceName == null || referenceName.isNotBlank()) {
+                "A typed operand referent cannot be blank."
+            }
+        }
+    }
 }
 
 /** Meaning of a morphologically licensed member noun, not a reserved variable name. */
-enum class CollectionMemberSelection { NUMBERS, FINAL }
+enum class CollectionMemberSelection { NUMBERS, FINAL, ORDINAL }
 
 /** A literal name suitable for a local result binding. */
 fun ExecutionExpression.bindingName(): String? = when (this) {
     is ExecutionExpression.Pada -> prakriti.trim().takeIf { it.isNotEmpty() }
     is ExecutionExpression.Reference -> name
-    is ExecutionExpression.TypedOperand -> null
+    is ExecutionExpression.TypedOperand -> referenceName
     is ExecutionExpression.Coordination -> null
 }

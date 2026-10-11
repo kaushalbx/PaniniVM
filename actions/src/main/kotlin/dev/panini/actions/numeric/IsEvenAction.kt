@@ -18,10 +18,10 @@ object IsEvenAction : DhatuAction("युग्मत्वम्", "सङ्�
             ExecutionError.INVALID_VALUE,
             "The operand is not an annotated saṅkhyā value.",
         )
-        if (values.isEmpty()) {
+        if (values.size != 1) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "No numeric operand provided.",
+                "Evenness requires exactly one integer operand.",
             )
         }
         val num = values.first()

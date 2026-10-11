@@ -33,14 +33,18 @@ data class PrakriyaCallFrame(
             val bindings = invocation.kriya.signature.parameters
                 .zip(values)
                 .associate { (parameter, value) -> parameter.nameStem to value }
-            val referenceBindings = values.mapIndexed { index, value ->
-                PrakriyaAstArgumentBinder.referenceKey(index) to value
-            }.toMap()
+            val localBindings = ProcedureLocalBindings.create(invocation.kriya.signature.parameters, values,
+                callerScope.procedureBindings, invocation.kriya.body
+                    .filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
+                        val parameter = PrakriyaSignatureDeclarationParser.parameter(sentence) ?: return@mapNotNull null
+                        PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let { parameter.nameStem to it }
+                    }.toMap())
             return PrakriyaCallFrame(
                 parameterBindings = bindings,
                 arguments = values,
                 localScope = callerScope.copy(
-                    environment = ValueEnvironment(callerScope.environment.values + bindings + referenceBindings),
+                    environment = callerScope.environment.mergedWith(ValueEnvironment.live(localBindings.values)),
+                    procedureBindings = localBindings,
                 ),
             )
         }

@@ -1,7 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralPadaBinder
-import dev.panini.execution.binding.hasAdditionalDerivation
+import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
@@ -26,14 +26,44 @@ object PrakriyaAstArgumentBinder {
 
     fun referenceKey(index: Int): String = "$KEY_PREFIX$index"
 
-    fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int): ProgramNode {
+    /** Nominals with an established member/history/call role are not positional placeholders. */
+    fun protectedParameterPadas(padas: List<Pada>, knownOperationStems: Set<String> = emptySet()): Set<Pada> {
+        val protected = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Pada, Boolean>())
+        val referencePadas = padas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
+        protected.addAll(CollectionMemberMorphology.protectedPadas(referencePadas))
+        protected.addAll(dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(referencePadas))
+        dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(referencePadas).forEach { reference ->
+            protected.add(reference.result)
+            protected.add(reference.modifier)
+            if (reference.hasOrderingQualifier) protected.addAll(reference.orderingQualifiers)
+        }
+        val verb = padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
+        if (verb != null && knownOperationStems.isNotEmpty()) {
+            val text = padas.joinToString(" ") { it.sourceText }
+            val ukti = dev.panini.vyakaranam.ast.Ukti(sourceText = text,
+                body = Invocation(AkhyataVakya(text, padas, verb)))
+            PrakriyaInvocationMatcher.match(ukti, knownOperationStems)?.let { call ->
+                padas.filterTo(protected) { pada ->
+                    val members = (pada as? SamuccitaSubanta)?.members ?: listOf(pada)
+                    members.none { member -> call.argumentPadas.any { it === member } }
+                }
+            }
+        }
+        return protected
+    }
+
+    fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int,
+        knownOperationStems: Set<String> = emptySet(),
+        preserveInvocation: (Invocation) -> Boolean = { false }): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
+        val localNames = mutableSetOf<String>()
         fun ordinalIndex(pada: Pada): Int? =
             (PuranaPratyayaResolver.ordinalValue(pada) ?: NumeralPadaBinder.extractOrdinalValue(pada))
                 ?.takeIf { it in 1L..argumentCount.toLong() }?.let { (it - 1).toInt() }
         fun parameterIndex(pada: SubantaPada): Int? {
-            val stem = pada.pratipadika.semanticKey()
-            val named = names[stem].takeUnless { pada.pratipadika.hasAdditionalDerivation() }
+            val stem = pada.pratipadika.referenceKey()
+            if (stem in localNames) return null
+            val named = names[stem]
             return named ?: ordinalIndex(pada)
         }
         fun reference(pada: SubantaPada, index: Int): SubantaPada {
@@ -92,28 +122,27 @@ object PrakriyaAstArgumentBinder {
         fun bindPadas(originalPadas: List<Pada>): List<Pada> {
             // An ordinal modifying a named फल or kāraka selects discourse history, not
             // the corresponding procedure parameter. Preserve that whole relation.
-            val protected = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Pada, Boolean>())
-            protected.addAll(CollectionMemberMorphology.protectedPadas(originalPadas))
-            protected.addAll(dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(originalPadas))
-            dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(originalPadas).forEach { reference ->
-                protected.add(reference.result)
-                protected.add(reference.modifier)
-                if (reference.hasOrderingQualifier) {
-                    protected.addAll(reference.orderingQualifiers)
-                }
-            }
+            val protected = protectedParameterPadas(originalPadas, knownOperationStems)
             return originalPadas.map { if (it in protected) it else bindPada(it) }
         }
         fun bindInvocation(node: Invocation): Invocation {
+            if (preserveInvocation(node)) return node
             val padas = bindPadas(node.vakya.padas)
             val source = padas.joinToString(" ") { it.sourceText }
             val vakya = when (val original = node.vakya) {
                 is AkhyataVakya -> original.copy(sourceText = source, padas = padas)
                 is NamaVakya -> original.copy(sourceText = source, padas = padas)
             }
-            return node.copy(vakya = vakya)
+            return node.copy(vakya = vakya, implicitValuePada = node.implicitValuePada?.let(::bindPada))
         }
         return object : ProgramNodeTransformer() {
+            override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ProgramNode {
+                val collection = bindPada(node.collection) as SubantaPada
+                val name = node.member.pratipadika.referenceKey()
+                val added = localNames.add(name)
+                return try { node.copy(collection = collection, body = transform(node.body)) }
+                finally { if (added) localNames.remove(name) }
+            }
             override fun visitInvocation(node: Invocation): ProgramNode = bindInvocation(node)
 
             override fun visitQuotation(node: Quotation): ProgramNode = node.copy(

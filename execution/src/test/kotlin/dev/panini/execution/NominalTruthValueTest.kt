@@ -26,7 +26,8 @@ class NominalTruthValueTest {
                 "द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         assertIs<ExecutionResult.Success>(results.first())
-        assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        assertIs<ExecutionResult.NeedsInput>(results.last(), results.toString())
+        assertTrue(results.none { it is ExecutionResult.Success && it.outputKind == OutputKind.CONSOLE })
     }
 
     @Test
