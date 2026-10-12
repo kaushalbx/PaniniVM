@@ -58,9 +58,8 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first { it.kind == TermKind.DHATU && "1.1.47" in it.establishedBySutras }
         val aIndex = requireNotNull(inherentAAfterInfixN(stem.varnas))
-        val result = stem.varnas.take(aIndex) + stem.varnas.drop(aIndex + 1)
         return DerivationChange(
-            context.substituteTermVarnas(stem.id, result, Svara.A, emptyList(), sutra),
+            context.deleteTermVarnas(stem.id, aIndex, 1, sutra),
             "6.4.111 deletes the inherent अ after the surviving न of श्नम् before a k/ṅ-it sārvadhātuka ending.",
         )
     }

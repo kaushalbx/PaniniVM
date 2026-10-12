@@ -15,8 +15,8 @@ import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaBoundaryPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.depthFirst
 
 sealed interface PvmScriptStatement {
     val text: String
@@ -93,7 +93,15 @@ object PvmScript {
 
     fun classify(statements: List<PvmScriptStatement>): PvmSourceKind = when {
         statements.isEmpty() -> PvmSourceKind.EMPTY
-        statements.size == 1 && statements.single() is PvmScriptStatement.Sentence -> PvmSourceKind.UTTERANCE
+        statements.size == 1 && statements.single() is PvmScriptStatement.Sentence -> {
+            val sentence = statements.single() as PvmScriptStatement.Sentence
+            val requiresOrchestration = sentence.program?.depthFirst()?.any {
+                it is dev.panini.vyakaranam.ast.ForEach ||
+                    it is dev.panini.vyakaranam.ast.Repeat ||
+                    (it is dev.panini.vyakaranam.ast.Invocation && it.implicitValuePada != null)
+            } == true
+            if (requiresOrchestration) PvmSourceKind.SCRIPT else PvmSourceKind.UTTERANCE
+        }
         else -> PvmSourceKind.SCRIPT
     }
 
@@ -237,10 +245,7 @@ object PvmScript {
 
     private fun nativeSentence(original: dev.panini.vyakaranam.ast.Ukti): PvmScriptStatement.Sentence {
         val ukti = VyakaranamExecutionAdapter.normalizeFrequencyAst(original)
-        val isNishedha = ukti.grammaticalVakyas().any { vakya ->
-            vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
-                .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
-        }
+        val isNishedha = isProhibitionSentence(ukti)
         val sentence = PvmScriptStatement.Sentence(original.sourceText, ukti, isNishedha)
         return sentence.copy(semantics = PvmSentenceClassifier.classify(sentence))
     }
@@ -264,7 +269,7 @@ object PvmScript {
         val rangePadas = declaration.declaredPadas
         val marker = declaration.nominativeMarker ?: return null
         if ((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity != MulaPratipadikaIdentity.SIMA ||
-            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
+            !marker.sup.supports(Vibhakti.PRATHAMA)
         ) return null
         val explicitRange = rangePadas.filterIsInstance<ParyantaRangePada>().singleOrNull() ?: return null
         return runCatching { evaluateRange(explicitRange) }.getOrNull()
@@ -362,14 +367,21 @@ object PvmScript {
         val hasAccusative = ukti.grammaticalVakyas().flatMap { it.padas }
             .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
             .any {
-                dev.panini.core.SupAffix.fromUpadesha(it.sup.text)?.vibhakti ==
-                    dev.panini.core.Vibhakti.DVITIYA
+                it.sup.supports(dev.panini.core.Vibhakti.DVITIYA)
             }
         if (hasAccusative) return null
         return trimmed.trimEnd('।', '॥', ' ').trim()
     }
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
+
+    private fun isProhibitionSentence(ukti: dev.panini.vyakaranam.ast.Ukti): Boolean {
+        // Negation inside a condition or loop belongs to that clause, not to
+        // the whole procedure as a declaration-level prohibition.
+        val invocation = ukti.body as? dev.panini.vyakaranam.ast.Invocation ?: return false
+        return invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
+            .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
+    }
 
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()
@@ -378,10 +390,7 @@ object PvmScript {
             .map { text ->
                 val trimmed = text.trim()
                 val ukti = parser.parseOrNull(trimmed)?.let(VyakaranamExecutionAdapter::normalizeFrequencyAst)
-                val isNishedha = ukti?.grammaticalVakyas()?.any { vakya ->
-                    vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
-                        .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
-                } == true
+                val isNishedha = ukti?.let(::isProhibitionSentence) == true
                 val sentence = PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
                 sentence.copy(semantics = PvmSentenceClassifier.classify(sentence))
             }

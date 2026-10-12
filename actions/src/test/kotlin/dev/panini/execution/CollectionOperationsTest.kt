@@ -325,7 +325,7 @@ class CollectionOperationsTest {
                     ExecutionExpression.sankhya(3L, "त्रि"),
                     ExecutionExpression.sankhya(4L, "चतुर्")
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("यु") // exact target upadeśa; literal signature selects evenness
+                Karaka.KARANA to ExecutionExpression.Pada("यु") // exact target upadeśa; unary integer signature selects evenness
             )
         )
 

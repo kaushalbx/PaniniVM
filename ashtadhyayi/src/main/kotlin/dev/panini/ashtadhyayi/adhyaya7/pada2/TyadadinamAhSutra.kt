@@ -44,7 +44,7 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         }
         val hasConsonantEnding = stem.varnas.lastOrNull() is Vyanjana || stem.varnas in setOf(idam, dvi)
         return isTyadadi && hasConsonantEnding &&
-            (affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") })
+            (affix.sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null })
     }
 
     override fun apply(context: DerivationState): DerivationChange {

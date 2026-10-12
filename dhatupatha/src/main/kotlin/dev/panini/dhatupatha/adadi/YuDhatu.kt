@@ -8,11 +8,12 @@ import dev.panini.actions.numeric.IsEvenAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
 import dev.panini.execution.op
-import dev.panini.execution.ExpressionShape
+import dev.panini.execution.OperationValueType
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -33,22 +34,22 @@ open class YuDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         AdditionAction.numericOp {
-            triggeredBy(forbiddenUpasargas = setOf("वि", "सम्"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI, Upasarga.SAM))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         SubtractionAction.numericOp {
-            triggeredBy(requiredUpasargas = setOf("वि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         ListMapAction.op {
-            triggeredBy(requiredUpasargas = setOf("सम्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // target action name
             returns(Samjna.GANA)
         },
         IsEvenAction.op {
-            requires(Karaka.KARMAN, shape = ExpressionShape.LITERAL)
-            returns(Samjna.SHABDA)
+            requires(Karaka.KARMAN, maximum = 1, valueType = OperationValueType.INTEGER)
+            returns(Samjna.SATYA, Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("युत", "युयोति", "युते", "मिश्रणम्", "संयोजनम्"),
@@ -70,11 +71,11 @@ open class VrjDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         SubtractionAction.numericOp {
-            triggeredBy(forbiddenUpasargas = setOf("वि"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         ListFilterAction.op {
-            triggeredBy(requiredUpasargas = setOf("वि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // target predicate operation name
             returns(Samjna.GANA)

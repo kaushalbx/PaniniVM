@@ -248,6 +248,14 @@ class PvmUktiSadhakaConnectorTest {
         assertEquals("स्थापय", PvmUktiSadhaka().sadhayaLine("स्था + णिच् + लोट् + सिप् ।").removeSuffix(" ।"))
     }
     @Test
+    fun `explicit shap on causatives preserves readable derivation across root classes`() {
+        val renderer = PvmUktiSadhaka()
+        for (root in listOf("स्था", "युज्", "गण", "मुद्र्")) {
+            val implicit = renderer.sadhayaLine("$root + णिच् + लोट् + सिप् ।")
+            assertEquals(implicit, renderer.sadhayaLine("$root + णिच् + शप् + लोट् + सिप् ।"), root)
+        }
+    }
+    @Test
     fun `failed verbal derivation retains prefixes affixes and ending`() {
         val verb = dev.panini.vyakaranam.parser.PaniniParser()
             .parse("सम् + अज्ञातधातु + णिच् + लोट् + सिप् ।")

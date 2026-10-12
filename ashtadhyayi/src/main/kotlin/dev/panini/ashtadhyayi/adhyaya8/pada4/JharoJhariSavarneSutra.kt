@@ -41,10 +41,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val next = context.terms[i + 1].varnas
             val jhar1 = curr.lastOrNull() ?: return@any false
             val jhar2 = next.firstOrNull() ?: return@any false
-            val isPrecededByHal = curr.getOrNull(curr.lastIndex - 2) is Vyanjana
-
-            // 8.4.65 does not delete 'c' before 'ch' produced by 8.4.63 śaś cho'ṭi
-            if (jhar1 == Vyanjana.CA && jhar2 == Vyanjana.CHA) return@any false
+            val isPrecededByHal = curr.getOrNull(curr.lastIndex - 1) is Vyanjana
 
             val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jhar1)
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jhar2)
@@ -60,9 +57,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val next = context.terms[i + 1].varnas
             val jhar1 = curr.lastOrNull() ?: return@first false
             val jhar2 = next.firstOrNull() ?: return@first false
-            val isPrecededByHal = curr.getOrNull(curr.lastIndex - 2) is Vyanjana
-
-            if (jhar1 == Vyanjana.CA && jhar2 == Vyanjana.CHA) return@first false
+            val isPrecededByHal = curr.getOrNull(curr.lastIndex - 1) is Vyanjana
 
             val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jhar1)
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jhar2)
@@ -72,10 +67,9 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val targetTerm = context.terms[targetIndex]
-        val source = targetTerm.varnas.last()
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(1), source, emptyList(), sutra),
+            state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, emptyList(), sutra),
             explanation = "8.4.65: Elided redundant jhar consonant before savarṇa jhar."
         )
     }

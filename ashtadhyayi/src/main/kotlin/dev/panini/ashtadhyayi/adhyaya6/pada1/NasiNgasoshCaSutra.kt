@@ -8,8 +8,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.matchesAnyAffix
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.OrthographicSign
-import dev.panini.shiksha.OrthographicSignPlacement
 import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -19,7 +17,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 6.1.100: ṅasi-ṅasoś ca.
+ * 6.1.110: ṅasi-ṅasoś ca.
  * When 'e' or 'o' (Eṅ) is followed by the short 'a' of the affixes ṅasi or ṅas,
  * a single substitute of the former (pūrvarūpa) replaces both.
  * This is crucial for i/u stems (e.g., Muneḥ).
@@ -59,14 +57,10 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         val terms = context.terms
         val right = terms.last()
 
-        // Pūrvarūpa: replace the 'a' with avagraha or delete it.
-        val newVarnas = right.varnas.drop(1)
-        val signs = right.orthographicSigns.map {
-            it.copy(afterVarnaCount = (it.afterVarnaCount - 1).coerceAtLeast(0))
-        } + OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 0)
-
         return DerivationChange(
-            state = context.substituteTermVarnas(right.id, newVarnas, signs, Svara.A, emptyList(), sutra)
+            // The stem's e/o survives the ekadesha. An internal affix-vowel
+            // deletion does not itself license an avagraha sign.
+            state = context.deleteTermVarnas(right.id, 0, 1, sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.110: Pūrvarūpa substitution for final vowel + ङसि/ङस्."
         )

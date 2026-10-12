@@ -37,7 +37,7 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.substituteTermVarnas(shna.id, shna.varnas.dropLast(1), Svara.AA, emptyList(), sutra),
+            context.deleteTermVarnas(shna.id, shna.varnas.lastIndex, 1, sutra),
             "6.4.112 elides the ā of श्ना before a vowel-initial k/ṅ-it sārvadhātuka.",
         )
     }

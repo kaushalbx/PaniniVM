@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
 import dev.panini.core.ItMarker
+import dev.panini.ashtadhyayi.initialVrddhiTaddhitaIdentities
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -36,7 +38,7 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-            pratyaya.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्")
+            initialVrddhiTaddhitaIdentities.any(pratyaya::hasCurrentAffix)
         if (!isTaddhita) return false
 
         val isNgitOrNit = pratyaya.hasEffectiveMarker(ItMarker.NYIT) ||
@@ -51,14 +53,14 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.PRATIPADIKA }
         val stem = context.terms[stemIndex]
 
-        val source = stem.varnas.first { it is Svara } as Svara
+        val index = stem.varnas.indexOfFirst { it is Svara }
+        val source = stem.varnas[index] as Svara
         val replacement = requireNotNull(Varnamala.getVrddhi(source))
-        val newVarnas = stem.varnas.withInitialVrddhi()
-        val newSurface = newVarnas.toDevanagari()
+        val result = context.replaceTermVarna(stem.id, index, replacement, sutra)
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, newVarnas, source, replacement, sutra)
+            state = result
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.117 applies initial vowel Vṛddhi to '${stem.surface}' -> '$newSurface'.",
+            explanation = "7.2.117 applies initial vowel Vṛddhi to '${stem.surface}' -> '${result.terms[stemIndex].surface}'.",
         )
     }
 

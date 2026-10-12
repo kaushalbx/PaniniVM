@@ -8,6 +8,8 @@ import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,16 +33,16 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = findTarget(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = findTarget(context) ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
         val substitute = nasalFor(target.follower)
-        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = substitute }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(target.term.id, result, Ayogavaha.ANUSVARA, listOf(substitute), sutra),
+            state = context.replaceTermVarna(target.term.id, target.varnaIndex, listOf(substitute), sutra),
             explanation = "8.4.58: Replaced Anusvāra with nasal parasavarṇa '${substitute.devanagari}'."
         )
     }
@@ -50,6 +52,10 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
         for (position in 0 until positions.lastIndex) {
             val (term, index) = positions[position]
             if (term.varnas[index] != Ayogavaha.ANUSVARA) continue
+            // Pada-final parasavarṇa is optional under 8.4.59, not this mandatory operation.
+            if (index == term.varnas.lastIndex && context.samjnas.any {
+                it.targetId == term.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
+            }) continue
             val follower = positions[position + 1].first.varnas[positions[position + 1].second]
             if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.YAY, follower)) return Target(term, index, follower)
         }

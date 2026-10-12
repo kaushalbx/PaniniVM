@@ -7,6 +7,48 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 class NativePrakriyaTest {
+    @Test fun `single procedure declaration cannot erase dual or plural name and domain endings`() {
+        for (marker in listOf("नाम", "इति")) {
+            for (name in listOf("परीक्षण + औ", "परीक्षण + जस्",
+                "गणित + ओस् परीक्षण + सुँ", "गणित + आम् परीक्षण + सुँ")) {
+                assertFailsWith<IllegalArgumentException>("$name $marker") {
+                    PaniniParser().parseDocument("$name $marker प्रक्रिया + सुँ असँ + लट् + तिप् । " +
+                        "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+                }
+            }
+            val parsed = PaniniParser().parseDocument(
+                "गणित + ङस् परीक्षण + सुँ $marker प्रक्रिया + सुँ असँ + लट् + तिप् । " +
+                    "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+            val declaration = assertIs<Prakriya>(parsed.items.single())
+            assertEquals("परीक्षण", declaration.nameIdentity)
+            assertEquals("गणित", declaration.domainIdentity)
+        }
+    }
+
+    @Test fun `singular procedure header rejects plural subject and derived modifiers`() {
+        for (declaration in listOf("प्रक्रिया + जस्", "नित्य + जस् प्रक्रिया + सुँ",
+            "नित्य + मतुप् + सुँ प्रक्रिया + सुँ")) {
+            kotlin.test.assertFailsWith<IllegalArgumentException>(declaration) {
+                PaniniParser().parseDocument("परीक्षण + सुँ नाम $declaration असँ + लट् + तिप् । " +
+                    "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+            }
+        }
+    }
+    @Test fun `product header retains native result and predicate morphology`() {
+        val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् । " +
+            "एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥"
+        val procedure = assertIs<Prakriya>(PaniniParser().parseDocument(source).items.single())
+        assertEquals("सङ्ख्या", assertIs<MulaPratipadika>(procedure.declaredResult!!.pratipadika).text)
+        assertEquals("अम्", procedure.declaredResult!!.sup.text)
+        assertEquals("जन्", procedure.resultPredicate!!.dhatu.mulaDhatu)
+        assertEquals(listOf("णिच्"), procedure.resultPredicate!!.dhatu.sanadiPratyayas)
+        for (invalid in listOf(source.replace("सङ्ख्या + अम्", "सङ्ख्या + सुँ"),
+            source.replace("प्रक्रिया + सुँ", "प्रक्रिया + जस्"),
+            source.replace("लट् + तिप्", "लोट् + सिप्"))) {
+            assertFailsWith<IllegalArgumentException> { PaniniParser().parseDocument(invalid) }
+        }
+    }
+
     private val parser = PaniniParser()
     @Test
     fun `nama and iti introduce the same native procedure identity`() {

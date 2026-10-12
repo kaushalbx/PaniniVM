@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -17,7 +16,7 @@ internal data class ItiDeclaration(
 ) {
     val nominativeMarker: SubantaPada?
         get() = markerPadas.filterIsInstance<SubantaPada>().singleOrNull()?.takeIf {
-            SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.PRATHAMA
+            it.sup.supports(Vibhakti.PRATHAMA)
         }
 }
 

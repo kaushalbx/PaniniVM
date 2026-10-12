@@ -5,8 +5,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,9 +37,8 @@ object KuhohCuhSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val source = abhyasa.varnas.first() as Vyanjana
         val replacement = cuhSubstitutions.getValue(source)
-        val substituted = abhyasa.varnas.replaceVarna(0, listOf(replacement))
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted.toDevanagari(), source, listOf(replacement), sutra),
+            context.replaceTermVarna(abhyasa.id, 0, listOf(replacement), sutra),
             "7.4.62 changes initial $source of the abhyāsa to $replacement.",
         )
     }

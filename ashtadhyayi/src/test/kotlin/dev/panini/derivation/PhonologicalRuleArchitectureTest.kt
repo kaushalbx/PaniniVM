@@ -16,15 +16,16 @@ class PhonologicalRuleArchitectureTest {
             Path.of("..", "ashtadhyayi", "src", "main", "kotlin"),
             Path.of("src", "main", "kotlin"),
         ).first { it.isDirectory() }
-        val orthographicLifecycleOwners = setOf(
-            "AdyantauTakitauSutra.kt",
-            "AyaneyInIyiyahSutra.kt",
-            "HalantyamSutra.kt",
-            "MidacoAntyatParahSutra.kt",
-            "TasyaLopahSutra.kt",
-            "UpadesheAjanunasikaItSutra.kt",
-        )
         val forbidden = listOf(
+            Regex("""\.id\.startsWith\s*\(\s*"upasarga"\s*\)"""),
+            Regex("""\.id\.startsWith\s*\(\s*"sankhya_"\s*\)"""),
+            Regex("""\.id\??\.startsWith\s*\(\s*"ting-"\s*\)"""),
+            Regex("""\.id\.startsWith\s*\(\s*"sup-"\s*\)"""),
+            Regex("""Sutra\s*<\s*String\b"""),
+            Regex("""\.text\.startsWith\s*\("""),
+            Regex("""\.(?:removeSuffix|removePrefix)\s*\(\s*"[\u0900-\u097F]"""),
+            Regex("""\.devanagari\.single\s*\("""),
+            Regex("""contains\s*\(\s*Pratyahara\.\w+\s*,[^)]*\.devanagari"""),
             Regex("""\.surface\??\.(?:startsWith|endsWith|last|dropLast|substring|take|drop|contains|replace|indexOf|removeSuffix|removePrefix|trimEnd|dropWhile)\s*\("""),
             Regex("""\.surface\s*\["""),
             Regex("""\.surface\s*\+\s*["]"""),
@@ -35,7 +36,6 @@ class PhonologicalRuleArchitectureTest {
         val sutraPaths = Files.walk(sourceRoot).use { paths ->
             // Grouped canonical rules and shared transformations are also sūtra implementations.
             paths.filter { it.extension == "kt" }
-                .filter { it.fileName.toString() !in orthographicLifecycleOwners }
                 .toList()
         }
         val violations = sutraPaths.flatMap { path ->
@@ -48,7 +48,7 @@ class PhonologicalRuleArchitectureTest {
 
         assertTrue(
             violations.isEmpty(),
-            "Sūtras must reason over DerivationTerm.varnas; only explicit orthographic lifecycle owners may inspect written spans:\n" +
+            "Sūtras must reason over phonological varṇas, not written characters:\n" +
                 violations.joinToString("\n"),
         )
     }

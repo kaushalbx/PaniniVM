@@ -9,12 +9,31 @@ import dev.panini.execution.PrakriyaSignatureCompiler
 import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
-import dev.panini.vyakaranam.ast.SankhyaPuranaPada
-import dev.panini.vyakaranam.ast.SubantaPada
 import java.io.File
 import java.util.Base64
+
+private data class ImportedProcedureContract(
+    val domain: String?,
+    val symbol: String,
+    val parameters: List<PrakriyaParameter>,
+    val precedence: dev.panini.vyakaranam.ast.PrakriyaPrecedence,
+)
+
+private fun requireConsistentSchemas(declarations: List<Pair<String, List<String>>>) {
+    declarations.forEach { (name, fields) -> dev.panini.execution.TaddhitaStructSchema(name, fields) }
+    declarations.groupBy({ it.first }, { it.second }).forEach { (name, definitions) ->
+        require(definitions.distinct().size == 1) {
+            "Conflicting Panini schema '$name': ${definitions.distinct()}."
+        }
+    }
+}
+
+private fun requireConsistentInheritance(declarations: List<Pair<String, String>>) {
+    val registry = dev.panini.execution.PrakriyaRegistry()
+    declarations.forEach { (child, parent) ->
+        registry.registerInheritance(dev.panini.execution.InheritanceRelation(child, parent))
+    }
+}
 
 data class PaniniModuleSource(
     val name: String,
@@ -36,11 +55,15 @@ data class PaniniModuleDescriptor(
         require(dependencies.map(PaniniModuleMetadata::moduleName).distinct().size == dependencies.size) {
             "Panini module dependencies must have unique module names."
         }
-        dependencies.flatMap { dependency -> dependency.procedures.map { it.symbol to dependency.moduleName } }
+        requireConsistentSchemas(dependencies.flatMap { it.schemas.toList() })
+        requireConsistentInheritance(dependencies.flatMap { it.inheritance.toList() })
+        dependencies.flatMap { dependency -> dependency.procedures.map {
+            ImportedProcedureContract(it.domain, it.symbol, it.parameters, it.precedence) to dependency.moduleName
+        } }
             .groupBy { it.first }.entries.firstOrNull { entry ->
                 entry.value.map { it.second }.distinct().size > 1
             }?.let { ambiguous ->
-                error("Ambiguous imported Panini symbol '${ambiguous.key}' from ${ambiguous.value.map { it.second }.distinct()}.")
+                error("Ambiguous imported Panini symbol '${ambiguous.key.symbol}' in domain '${ambiguous.key.domain.orEmpty()}' from ${ambiguous.value.map { it.second }.distinct()}.")
             }
     }
 
@@ -88,7 +111,12 @@ data class PaniniExportedProcedure(
     val parameters: List<PrakriyaParameter>,
     val resultType: PrakriyaValueType?,
     val resultSchema: String?,
-)
+    val precedence: dev.panini.vyakaranam.ast.PrakriyaPrecedence = dev.panini.vyakaranam.ast.PrakriyaPrecedence.DEFAULT,
+) {
+    init {
+        PrakriyaSignature(parameters = parameters, resultType = resultType, resultSchema = resultSchema)
+    }
+}
 
 data class PaniniModuleMetadata(
     val formatVersion: Int = CURRENT_FORMAT_VERSION,
@@ -102,9 +130,11 @@ data class PaniniModuleMetadata(
         require(formatVersion == CURRENT_FORMAT_VERSION) {
             "Unsupported Panini module metadata version $formatVersion; expected $CURRENT_FORMAT_VERSION."
         }
+        requireConsistentSchemas(schemas.toList())
+        requireConsistentInheritance(inheritance.toList())
     }
 
-    companion object { const val CURRENT_FORMAT_VERSION = 1 }
+    companion object { const val CURRENT_FORMAT_VERSION = 2 }
 }
 
 object PaniniModuleMetadataCodec {
@@ -118,6 +148,7 @@ object PaniniModuleMetadataCodec {
                 "procedure", encoded(procedure.symbol), encoded(procedure.methodName),
                 encoded(procedure.domain.orEmpty()), parameters,
                 procedure.resultType?.name.orEmpty(), encoded(procedure.resultSchema.orEmpty()),
+                procedure.precedence.name,
             ).joinToString("|"))
         }
         metadata.inheritance.toSortedMap().forEach { (child, parent) ->
@@ -132,6 +163,9 @@ object PaniniModuleMetadataCodec {
         val lines = source.lineSequence().filter(String::isNotBlank).toList()
         val format = lines.firstOrNull { it.startsWith("format=") }?.substringAfter('=')?.toInt()
             ?: error("Panini module metadata lacks a format version.")
+        require(format == PaniniModuleMetadata.CURRENT_FORMAT_VERSION) {
+            "Unsupported Panini module metadata version $format; regenerate metadata with this compiler."
+        }
         val module = lines.firstOrNull { it.startsWith("module=") }?.substringAfter('=')?.let(::decoded)
             ?: error("Panini module metadata lacks a module name.")
         val className = lines.firstOrNull { it.startsWith("class=") }?.substringAfter('=')?.let(::decoded)
@@ -146,16 +180,20 @@ object PaniniModuleMetadataCodec {
                 decoded(parts[1]), decoded(parts[2]), decoded(parts[3]).ifBlank { null }, parameters,
                 parts[5].takeIf(String::isNotEmpty)?.let(PrakriyaValueType::valueOf),
                 decoded(parts[6]).ifBlank { null },
+                dev.panini.vyakaranam.ast.PrakriyaPrecedence.valueOf(parts[7]),
             )
         }
-        val inheritance = lines.filter { it.startsWith("inheritance|") }.associate { line ->
+        val inheritanceDeclarations = lines.filter { it.startsWith("inheritance|") }.map { line ->
             val parts = line.split('|'); decoded(parts[1]) to decoded(parts[2])
         }
-        val schemas = lines.filter { it.startsWith("schema|") }.associate { line ->
+        requireConsistentInheritance(inheritanceDeclarations)
+        val schemaDeclarations = lines.filter { it.startsWith("schema|") }.map { line ->
             val parts = line.split('|'); decoded(parts[1]) to parts[2].takeIf(String::isNotEmpty)
                 ?.split(',')?.map(::decoded).orEmpty()
         }
-        return PaniniModuleMetadata(format, module, className, procedures, inheritance, schemas)
+        requireConsistentSchemas(schemaDeclarations)
+        return PaniniModuleMetadata(format, module, className, procedures,
+            inheritanceDeclarations.toMap(), schemaDeclarations.toMap())
     }
 
     fun read(file: File): PaniniModuleMetadata = decode(file.readText())
@@ -193,6 +231,10 @@ internal object PaniniModuleAnalyzer {
     fun analyze(descriptor: PaniniModuleDescriptor,
         parseSource: (String) -> List<PvmScriptStatement> = PvmScript::parse): AnalyzedPaniniModule {
         val statements = descriptor.sources.associateWith { parseSource(it.content) }
+        val knownOperationStems = statements.values.flatten()
+            .filterIsInstance<PvmScriptStatement.PrakriyaDefinition>()
+            .mapTo(mutableSetOf()) { it.prakriya.nameIdentity }
+        descriptor.dependencies.flatMap { it.procedures }.forEach { knownOperationStems.add(it.symbol) }
         val procedures = statements.flatMap { (source, unitStatements) ->
             var activeDomain: String? = null
             unitStatements.mapNotNull { statement ->
@@ -203,7 +245,7 @@ internal object PaniniModuleAnalyzer {
                 val definition = statement as? PvmScriptStatement.PrakriyaDefinition ?: return@mapNotNull null
                 val symbol = definition.prakriya.nameIdentity
                 val domain = definition.prakriya.domainIdentity ?: activeDomain
-                val signature = inferSignature(definition)
+                val signature = inferSignature(definition, knownOperationStems)
                 AnalyzedProcedure(
                     source, definition, symbol, symbol, domain,
                     signature,
@@ -221,34 +263,41 @@ internal object PaniniModuleAnalyzer {
             .entries.firstOrNull { it.value.size > 1 }?.let { duplicate ->
                 error("Duplicate Panini procedure '${duplicate.value.first().localSymbol}' in domain '${duplicate.value.first().domain.orEmpty()}'.")
             }
-        val inheritance = statements.values.flatten().filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
+        val inheritanceDeclarations = statements.values.flatten().filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
             .mapNotNull { TaddhitaInheritanceEngine.detectInheritanceAdhikara(it.scope.domain) }
-            .associate { it.childStem to it.parentStem }
-        val schemas = statements.values.flatten().filterIsInstance<PvmScriptStatement.Sentence>()
+            .map { it.childStem to it.parentStem }
+        requireConsistentInheritance(descriptor.dependencies.flatMap { it.inheritance.toList() } + inheritanceDeclarations)
+        val inheritance = inheritanceDeclarations.toMap()
+        val schemaDeclarations = statements.values.flatten().filterIsInstance<PvmScriptStatement.Sentence>()
             .mapNotNull { TaddhitaStructEngine.detectResultSchema(it.text, it.ukti) }
-            .associate { it.nameStem to it.fields }
+            .map { it.nameStem to it.fields }
+        requireConsistentSchemas(descriptor.dependencies.flatMap { it.schemas.toList() } + schemaDeclarations)
+        val schemas = schemaDeclarations.toMap()
         return AnalyzedPaniniModule(descriptor, statements, procedures, inheritance, schemas)
     }
 
-    private fun inferSignature(definition: PvmScriptStatement.PrakriyaDefinition): PrakriyaSignature {
-        val declared = PrakriyaSignatureCompiler.compile(definition.body)
+    private fun inferSignature(definition: PvmScriptStatement.PrakriyaDefinition,
+        knownOperationStems: Set<String>): PrakriyaSignature {
+        val declared = PrakriyaSignatureCompiler.compile(definition.body, definition.prakriya.declaredResult,
+            definition.prakriya.resultPredicate)
         if (declared.parameters.isNotEmpty()) return declared
         val padas = definition.body.flatMap { sentence ->
-            sentence.ukti?.grammaticalVakyas()?.flatMap { it.padas }.orEmpty()
+            sentence.ukti?.grammaticalVakyas()?.flatMap { vakya ->
+                val protected = dev.panini.execution.PrakriyaAstArgumentBinder
+                    .protectedParameterPadas(vakya.padas, knownOperationStems)
+                vakya.padas.filter { it !in protected }
+            }.orEmpty()
         }
         val ordinalValues = padas.mapNotNull(PuranaPratyayaResolver::ordinalValue).distinct().sorted()
-        val ordinalParameters = ordinalValues.mapNotNull { value ->
-            val name = when (value) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"; else -> null }
-            name?.let { PrakriyaParameter(it, PrakriyaValueType.SANKHYA) }
+        val highestPosition = ordinalValues.maxOrNull() ?: 0L
+        // Source ordinals must not trigger an unbounded compiler allocation.
+        require(highestPosition <= 4096L) { "Positional signature inference exceeds the compiler analysis budget of 4096 slots." }
+        val ordinalParameters = (1L..highestPosition).map { value ->
+            val name = when (value) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"
+                else -> dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey((value - 1).toInt()) }
+            PrakriyaParameter(name, declared.argumentType ?: PrakriyaValueType.UNCONSTRAINED)
         }
-        val hasCollection = padas.filterIsInstance<SubantaPada>().any { pada ->
-            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
-        }
-        return declared.copy(parameters = when {
-            ordinalParameters.isNotEmpty() -> ordinalParameters
-            hasCollection -> listOf(PrakriyaParameter("समवाय", PrakriyaValueType.SUCHI))
-            else -> emptyList()
-        })
+        return declared.copy(parameters = ordinalParameters)
     }
 
     private fun signatureKey(signature: PrakriyaSignature): String = signature.parameters.joinToString { it.type.name }

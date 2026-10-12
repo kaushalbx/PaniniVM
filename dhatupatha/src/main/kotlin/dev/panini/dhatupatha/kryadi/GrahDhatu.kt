@@ -7,6 +7,7 @@ import dev.panini.actions.collection.ListSliceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
@@ -32,7 +33,7 @@ class GrahDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         ListCollectAction.op {
-            triggeredBy(requiredUpasargas = setOf("सम्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
             requires(Karaka.KARMAN)
             returns(Samjna.GANA, Samjna.SHABDA)
         },
@@ -41,19 +42,19 @@ class GrahDhatu : Dhatu(
             requires(Karaka.SAMBANDHA)   // सूच्याः — collection whose portion it is
             requires(Karaka.APADANA)     // द्वितीयात् — inclusive starting position
             requires(Karaka.ADHIKARANA)  // तृतीयपर्यन्तम् — inclusive end position
-            triggeredBy(forbiddenUpasargas = setOf("सम्"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.SAM))
             returns(Samjna.GANA)
         },
         ListIndexAction.op {
             requires(Karaka.KARMAN)      // मूल्यम् — the value to be taken
             requires(Karaka.APADANA)     // the source collection
             requires(Karaka.ADHIKARANA)  // the position in that collection
-            triggeredBy(forbiddenUpasargas = setOf("सम्"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.SAM))
             returns(Samjna.SHABDA, Samjna.SANKHYA)
         },
         ReadAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
-            triggeredBy(forbiddenUpasargas = setOf("सम्"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.SAM))
             optional(Karaka.SAMPRADANA, Karaka.KARANA, Karaka.APADANA, Karaka.ADHIKARANA)
             effects(ExecutionEffect.READ_RESOURCE)
             bindsResultTo(Karaka.KARMAN)

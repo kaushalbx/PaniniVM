@@ -52,10 +52,9 @@ object JhayoHonyatarasyamSutra : Sutra<DerivationState, DerivationChange>(
         val prevTerm = context.terms[prevIndex]
         val targetTerm = context.terms[prevIndex + 1]
         val replacement = fourthOfVarga(prevTerm.varnas.last())
-        val result = listOf(replacement) + targetTerm.varnas.drop(1)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, Vyanjana.HA, listOf(replacement), sutra),
+            state = context.replaceTermVarna(targetTerm.id, 0, listOf(replacement), sutra),
             explanation = "8.4.62: Replaced 'h' with ${replacement.devanagari} after jhay stop."
         )
     }

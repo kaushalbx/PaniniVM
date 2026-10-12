@@ -9,6 +9,7 @@ import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
 
 internal data class KarakaReferenceResolution(
     val expressions: Map<SubantaPada, ExecutionExpression>,
@@ -30,17 +31,23 @@ data class KarakaHistoryReference(
 
 /** Resolves phrases such as योजनस्य कर्म into participants of a remembered kriyā. */
 object KarakaReferenceResolver {
-    fun references(padas: List<Pada>, subantas: List<SubantaPada> = padas.filterIsInstance<SubantaPada>()): List<KarakaHistoryReference> =
-        subantas.mapIndexedNotNull { index, referent ->
+    fun references(sourcePadas: List<Pada>, subantas: List<SubantaPada> = sourcePadas.flatMap {
+        if (it is SamuccitaSubanta) it.members else listOf(it)
+    }.filterIsInstance<SubantaPada>()): List<KarakaHistoryReference> {
+        val padas = sourcePadas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
+        return subantas.mapIndexedNotNull { index, referent ->
             val karaka = Karaka.fromPratipadika(referent.pratipadika.baseText()) ?: return@mapIndexedNotNull null
             val genitive = subantas.take(index).lastOrNull {
                 it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
             } ?: return@mapIndexedNotNull null
+            val derivation = genitive.pratipadika as KridantaPratipadika
+            derivation.requireActionHistoryNominal()
             val order = MemoryOrderQualifierResolver.before(referent, padas)
             KarakaHistoryReference(referent, genitive, karaka,
-                DhatuCache.resolve((genitive.pratipadika as KridantaPratipadika).dhatu)?.upadesha,
+                DhatuCache.resolve(derivation.dhatu)?.upadesha,
                 order.pada.takeIf { order.isExplicit }, order.ordinalNumber, order.previous, order.agreesWith(referent))
         }
+    }
 
     /** History modifiers are not positional or named procedure placeholders. */
     fun protectedPadas(padas: List<Pada>): Set<Pada> {
@@ -73,6 +80,14 @@ object KarakaReferenceResolver {
             val remembered = order.select(ctx.memory, upadesha) ?: throw MissingActionResultException(
                 "No remembered action is available for this kāraka reference.",
             )
+            val captured = remembered.participants[reference.karaka]
+            if (!captured.isNullOrEmpty()) {
+                val members = captured.map { ExecutionExpression.Pada(it.toDisplayText(), it.samjnas, it) }
+                expressions[referencePada] = if (members.size == 1) members.single() else ExecutionExpression.Coordination(members)
+                consumedGenitives += reference.genitive
+                reference.qualifier?.let(consumedQualifiers::add)
+                return@forEach
+            }
             val participants = remembered.frame.relations.filter {
                 (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == reference.karaka
             }

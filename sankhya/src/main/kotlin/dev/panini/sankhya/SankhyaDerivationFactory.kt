@@ -2,6 +2,7 @@ package dev.panini.sankhya
 
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermCompositionDomain
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
@@ -16,7 +17,9 @@ class SankhyaDerivationFactory {
         create(expression, CompoundPosition.PURVAPADA)
 
     private fun create(expression: SankhyaExpression, position: CompoundPosition): DerivationState {
-        val terms = createTerms(expression, "root", position)
+        val terms = createTerms(expression, "root", position).map {
+            it.copy(compositionDomain = TermCompositionDomain.SANKHYA)
+        }
 
         val samjnas = terms.flatMap { term ->
             buildList {
@@ -28,7 +31,7 @@ class SankhyaDerivationFactory {
 
         return DerivationState(
             terms = terms,
-            samjnas = samjnas
+            samjnas = samjnas,
         )
     }
 

@@ -41,7 +41,7 @@ object AstanAaVibhaktuSutra : Sutra<DerivationState, DerivationChange>(
 
         if (stem.surface != "अष्टन्") return false
 
-        return affix.id.startsWith("sup-")
+        return affix.sourceSupAffix != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -42,7 +42,7 @@ object TisrCatasruSutra : Sutra<DerivationState, DerivationChange>(
         // upadeśa must not cause it to reapply after later ṛ-stem operations.
         if (stem.surface !in setOf("त्रि", "चतुर्")) return false
 
-        return affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") }
+        return affix.sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

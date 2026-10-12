@@ -3,8 +3,10 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.rawTerm
+import dev.panini.derivation.SamjnaAssignment
+import dev.panini.core.FrequencyAffix
 import dev.panini.sankhya.SankhyaResolver
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -14,6 +16,9 @@ import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Ayogavaha
 
 /**
  * 5.4.17: संख्यायाः क्रियाअभ्यावृत्तिगणने कृत्वसुच्.
@@ -43,23 +48,19 @@ object SankhyayahKriyaAbhyavrttiKrtvasucSutra : Sutra<DerivationState, Derivatio
             (Samjna.TADDHITA in requested && requested.none { it in specializedSankhyaTaddhitas })
         if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "कृत्वसुच्" || it.surface == "कृत्वः" }
+        val isAlreadyApplied = context.terms.any { it.upadesha == FrequencyAffix.KRTVASUC.upadesha || it.varnas == pronouncedKrtvas }
         return !isAlreadyApplied && SankhyaResolver.isSankhya(lastTerm.upadesha, context.samjnas.map { it.samjna }.toSet())
     }
 
     private val specializedSankhyaTaddhitas = setOf(Samjna.KRTVASUC, Samjna.SUC, Samjna.DHA)
+    private val pronouncedKrtvas = listOf(Vyanjana.KA, Svara.R, Vyanjana.TA, Vyanjana.VA, Svara.A, Ayogavaha.VISARGA)
 
     override fun apply(context: DerivationState): DerivationChange {
-        val krtvasTerm = DerivationTerm(
-            id = "taddhita_krtvasuc",
-            surface = "कृत्वः",
-            kind = TermKind.PRATYAYA,
-            upadesha = "कृत्वसुच्",
-            createdBySutra = sutra,
-        )
+        val krtvasTerm = FrequencyAffix.KRTVASUC.rawTerm("taddhita_krtvasuc", sutra)
         return DerivationChange(
-            state = context.copy(terms = context.terms + krtvasTerm),
-            explanation = "$text: added frequency suffix कृत्वसुच् (कृत्वः)"
+            state = context.copy(terms = context.terms + krtvasTerm,
+                samjnas = context.samjnas + SamjnaAssignment(krtvasTerm.id, Samjna.TADDHITA)),
+            explanation = "$text: added raw कृत्वसुच्; उ is pronunciation-only, च् awaits इत् processing."
         )
     }
 }

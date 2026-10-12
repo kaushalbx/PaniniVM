@@ -42,7 +42,7 @@ object SankhyayascavidhartheDhaSutra : Sutra<DerivationState, DerivationChange>(
             (Samjna.TADDHITA in requested && requested.none { it in specializedSankhyaTaddhitas })
         if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "धा" || it.surface == "धा" }
+        val isAlreadyApplied = context.terms.any { it.upadesha == "धा" || it.varnas == DivisionAffixVarnas.dha }
         return !isAlreadyApplied && SankhyaResolver.isSankhya(lastTerm.upadesha, context.samjnas.map { it.samjna }.toSet())
     }
 

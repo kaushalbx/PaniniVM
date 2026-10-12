@@ -3,6 +3,7 @@
 import dev.panini.core.Linga
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varna
 
 abstract class Gana(
     val name: String,
@@ -30,6 +31,15 @@ abstract class Gana(
     private val membersByNormalized: Map<String, GanaMember> =
         members.associateBy { it.normalized }
 
+    private val membersByVarnas: Map<List<Varna>, GanaMember> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        buildMap {
+            members.filterNot { it.isInstruction }.forEach { member ->
+                put(member.varnas, member)
+                member.upadeshaVarnas?.let { put(it, member) }
+            }
+        }
+    }
+
     val memberTexts: List<String>
         get() = members.map { it.text }
 
@@ -46,6 +56,9 @@ abstract class Gana(
 
     fun contains(text: String): Boolean =
         contains(GanaInstructionContext(text))
+
+    /** Exact lexical identity: a listed form or an explicitly annotated upadeśa, never a prefix. */
+    fun contains(varnas: List<Varna>): Boolean = membersByVarnas.containsKey(varnas)
 
     fun contains(context: GanaInstructionContext): Boolean =
         findMember(context.text) != null || matchesInstruction(context)

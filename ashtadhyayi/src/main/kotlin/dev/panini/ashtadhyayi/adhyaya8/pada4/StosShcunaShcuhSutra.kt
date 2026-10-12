@@ -38,10 +38,9 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
         val targetTerm = context.terms[match.termIndex]
         val source = targetTerm.varnas[match.varnaIndex]
         val replacement = getReplacement(source)
-        val result = targetTerm.varnas.toMutableList().also { it[match.varnaIndex] = replacement }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
+            state = context.replaceTermVarna(targetTerm.id, match.varnaIndex, listOf(replacement), sutra),
             explanation = "8.4.40: Palatalized ${source.devanagari} to ${replacement.devanagari} in contact with ${match.trigger.devanagari}."
         )
     }

@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
+import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
@@ -29,10 +29,12 @@ object PrakriyaHeaderIdentityParser {
         parseSubantas(padas.filterIsInstance<SubantaPada>())
 
     private fun parseSubantas(subantas: List<SubantaPada>): PrakriyaHeaderIdentity? {
+        if (subantas.size !in 1..2) return null
         val operation = subantas.lastOrNull()
-            ?.takeIf { it.vibhakti() == Vibhakti.PRATHAMA }
+            ?.takeIf { it.sup.supports(Vibhakti.PRATHAMA, Vacana.EKAVACANA) }
             ?: return null
-        val domain = subantas.dropLast(1).lastOrNull { it.vibhakti() == Vibhakti.SASTHI }
+        val domain = subantas.dropLast(1).singleOrNull()
+        if (domain != null && !domain.sup.supports(Vibhakti.SASTHI, Vacana.EKAVACANA)) return null
         return PrakriyaHeaderIdentity(
             operationStem = operation.pratipadika.prakriyaIdentity(),
             domainStem = domain?.pratipadika?.prakriyaDomainIdentity(),
@@ -49,8 +51,6 @@ object PrakriyaHeaderIdentityParser {
             ?.flatMap { it.padas }
             ?.filterIsInstance<SubantaPada>()
 
-    private fun SubantaPada.vibhakti(): Vibhakti? =
-        SupAffix.fromUpadesha(sup.text)?.vibhakti
 }
 
 internal fun Pratipadika.prakriyaIdentity(): String = morphologicalKey()

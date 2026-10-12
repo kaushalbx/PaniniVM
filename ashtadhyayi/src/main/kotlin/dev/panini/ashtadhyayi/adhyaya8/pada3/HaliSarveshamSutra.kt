@@ -41,7 +41,7 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@any false
             eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
         }
     }
 
@@ -50,14 +50,14 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@first false
             eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
         }
 
         val targetTerm = context.terms[targetIndex]
-        val (dropCount, source) = requireNotNull(eligibleFinal(targetTerm.varnas))
+        val dropCount = requireNotNull(eligibleFinal(targetTerm.varnas)).first
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(dropCount), source, emptyList(), sutra),
+            state = context.deleteTermVarnas(targetTerm.id, targetTerm.varnas.size - dropCount, dropCount, sutra),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         )
     }

@@ -42,8 +42,8 @@ object EdhaccaSutra : Sutra<DerivationState, DerivationChange>(
             (Samjna.TADDHITA in requested && requested.none { it in specializedSankhyaTaddhitas })
         if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "धा" || it.surface == "धा" }
-        return !isAlreadyApplied && (lastTerm.upadesha == "एक" || lastTerm.surface == "एक")
+        val isAlreadyApplied = context.terms.any { it.upadesha == "धा" || it.varnas == DivisionAffixVarnas.dha }
+        return !isAlreadyApplied && (lastTerm.upadesha == "एक" || lastTerm.varnas == DivisionAffixVarnas.eka)
     }
 
     private val specializedSankhyaTaddhitas = setOf(Samjna.KRTVASUC, Samjna.SUC, Samjna.DHA)

@@ -30,7 +30,7 @@ object ShashtyadeshCasankhyadehSutra : Sutra<DerivationState, DerivationChange>(
         if (context.samjnas.none { it.samjna == Samjna.PURANA }) return false
         if (context.hasTamat()) return false
         val datIndex = context.datIndex()
-        return datIndex > 0 && context.terms[datIndex - 1].surface in PuranaNumeralClasses.shashtyadiHeads
+        return datIndex > 0 && context.terms[datIndex - 1].varnas in PuranaNumeralVarnas.shashtyadi
     }
 
     override fun apply(context: DerivationState): DerivationChange {

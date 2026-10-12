@@ -58,12 +58,14 @@ prakriyaHeader
     ;
 
 prakriyaDeclaration
-    : qualifiers+=subantaPada* PRAKRIYA_NOUN PLUS markerSup=supPratyaya copula=tingantaPada
+    : qualifiers+=subantaPada* PRAKRIYA_NOUN PLUS markerSup=supPratyaya
+      result=subantaPada? copula=tingantaPada
     ;
 
 // Reusable clause content: document/block entry rules own their delimiters and EOF.
 utterance
-    : quotationClause
+    : distributiveClause
+    | quotationClause
     | whileClause
     | conditionalPipelineClause
     | attributePipelineClause
@@ -72,6 +74,11 @@ utterance
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
+    ;
+
+// Accusative distributive प्रति: “for each member of the genitive whole”.
+distributiveClause
+    : collection=subantaPada member=subantaPada PRATI body=utterance
     ;
 
 quotationClause
@@ -137,7 +144,8 @@ conditionalExpression
     ;
 
 conditionalArm
-    : value=pratipadika
+    : distributiveClause
+    | value=pratipadika
     | vakya
     ;
 

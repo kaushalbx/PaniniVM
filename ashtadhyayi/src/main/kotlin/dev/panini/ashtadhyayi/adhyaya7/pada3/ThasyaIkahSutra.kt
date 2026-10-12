@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -26,21 +29,19 @@ object ThasyaIkahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean = context.terms.any {
-        it.kind == TermKind.PRATYAYA &&
-            it.surface == "ठ" &&
-            it.itProcessingPhase == ItProcessingPhase.PROCESSED &&
-            it.upadesha in setOf("ठक्", "ठच्", "ष्ठन्")
-    }
+    private fun isTarget(term: DerivationTerm): Boolean = term.kind == TermKind.PRATYAYA &&
+        term.varnas == listOf(Vyanjana.TTHA, Svara.A) &&
+        term.itProcessingPhase == ItProcessingPhase.PROCESSED &&
+        term.upadesha in setOf("ठक्", "ठच्", "ष्ठन्")
+
+    override fun matches(context: DerivationState): Boolean = context.terms.any(::isTarget)
 
     override fun apply(context: DerivationState): DerivationChange {
-        val target = context.terms.first {
-            it.kind == TermKind.PRATYAYA && it.surface == "ठ" && it.upadesha in setOf("ठक्", "ठच्", "ष्ठन्")
-        }
+        val target = context.terms.first(::isTarget)
         return DerivationChange(
             state = context.replaceWholeAffix(
                 id = target.id,
-                surface = "इक",
+                varnas = listOf(Svara.I, Vyanjana.KA, Svara.A),
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.Consume,
             ),

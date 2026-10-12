@@ -30,7 +30,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
         if (sicIndex <= 0 || sicIndex == context.terms.lastIndex) return false
         val dhatu = context.terms.subList(0, sicIndex).lastOrNull { it.kind == TermKind.DHATU } ?: return false
         val ending = context.terms.last()
-        return dhatu.matchesUpadesha("भू") && ending.id.startsWith("ting-")
+        return dhatu.matchesUpadesha("भू") && ending.sourceTingAffix != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -13,8 +13,6 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 
 /**
  * 7.3.101: ato dīrgho yañi.
@@ -47,7 +45,7 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING) &&
             affix.upadesha == "मिप्" && "3.4.101" !in context.appliedSutras
         ) return false
-        if (!affix.id.startsWith("ting-")) return false
+        if (affix.sourceTingAffix == null) return false
         if (affix.upadesha == "ङि") return false
 
         val isAEnding = stem.varnas.lastOrNull() == Svara.A
@@ -61,10 +59,9 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(Svara.AA))
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newVarnas.toDevanagari(), Svara.A, listOf(Svara.AA), sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.AA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.101: Lengthened final 'a' before yañ-initial suffix."
         )

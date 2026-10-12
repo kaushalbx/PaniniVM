@@ -38,10 +38,10 @@ object BhrnamItSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val source = abhyasa.varnas.first { it in setOf(Svara.R, Svara.RR) }
-        val substituted = abhyasa.varnas.map { if (it in setOf(Svara.R, Svara.RR)) Svara.I else it }
+        val replacements = abhyasa.varnas.indices.filter { abhyasa.varnas[it] in setOf(Svara.R, Svara.RR) }
+            .associateWith { Svara.I }
         return DerivationChange(
-            context.substituteTermVarnas(abhyasa.id, substituted, source, listOf(Svara.I), sutra),
+            context.replaceTermVarnaOccurrences(abhyasa.id, replacements, sutra),
             "7.4.76 replaces ऋ with इ in the भृञ् abhyāsa ${abhyasa.surface}.",
         )
     }

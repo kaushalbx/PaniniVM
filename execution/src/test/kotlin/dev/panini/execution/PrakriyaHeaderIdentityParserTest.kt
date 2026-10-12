@@ -13,6 +13,14 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PrakriyaHeaderIdentityParserTest {
+    @kotlin.test.Test fun `compatibility header identity cannot erase unsupported names or extra domains`() {
+        for (source in listOf("गणित + औ", "गणित + जस्",
+            "गुण + ओस् गणित + सुँ", "गुण + आम् गणित + सुँ",
+            "गुण + ङस् भाषा + ङस् गणित + सुँ", "गुण + टा गणित + सुँ")) {
+            kotlin.test.assertNull(PrakriyaHeaderIdentityParser.parse(source), source)
+        }
+    }
+
 
     @Test
     fun `procedure identity is rebuilt from morphology rather than source text`() {

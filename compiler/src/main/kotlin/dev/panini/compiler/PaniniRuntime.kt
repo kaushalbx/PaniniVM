@@ -103,6 +103,13 @@ object PaniniRuntime {
     }
 
     @JvmStatic
+    fun createPadaExpression(prakriti: String, value: SanskritValue?, samjnas: Array<String>,
+        memberSelection: String?): ExecutionExpression.Pada = ExecutionExpression.Pada(prakriti,
+        samjnas.mapTo(linkedSetOf()) { encoded ->
+            if (encoded.startsWith("RUDHI:")) Samjna.Rudhi(encoded.removePrefix("RUDHI:")) else Samjna.valueOf(encoded)
+        }, value, memberSelection?.let(dev.panini.execution.CollectionMemberSelection::valueOf))
+
+    @JvmStatic
     fun createCoordinationExpression(members: Array<ExecutionExpression>): ExecutionExpression.Coordination {
         return ExecutionExpression.Coordination(members.toList())
     }
@@ -117,6 +124,10 @@ object PaniniRuntime {
         value: SanskritValue,
         sup: SupAffix,
     ): ExecutionExpression.TypedOperand = ExecutionExpression.TypedOperand(value, sup)
+
+    @JvmStatic
+    fun createTypedOperandExpression(value: SanskritValue, sup: SupAffix,
+        referenceName: String?): ExecutionExpression.TypedOperand = ExecutionExpression.TypedOperand(value, sup, referenceName)
 
     @JvmStatic
     fun resolveOperation(

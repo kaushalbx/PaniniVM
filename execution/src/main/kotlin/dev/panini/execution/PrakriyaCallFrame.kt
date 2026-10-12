@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.NumeralPadaBinder
 import dev.panini.sankhya.SankhyaEvaluator
 
 /** Runtime state owned by one reusable prakriyā call. */
@@ -23,9 +22,10 @@ data class PrakriyaCallFrame(
                 val argument = resolved.argument
                 val referenceName = resolved.referenceName
                 argument.value
+                    ?: argument.pada?.let(PrakriyaValueClassifier::literalValue)
                     ?: callerScope.environment.values[referenceName]
                     ?: resolveValue(referenceName)
-                    ?: argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
+                    ?: argument.pada?.let(NominalValueAnalysis::numericFallback)
                     ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
                         .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }
                     ?: SanskritValue.Shabda(argument.term)
@@ -33,14 +33,18 @@ data class PrakriyaCallFrame(
             val bindings = invocation.kriya.signature.parameters
                 .zip(values)
                 .associate { (parameter, value) -> parameter.nameStem to value }
-            val referenceBindings = values.mapIndexed { index, value ->
-                PrakriyaAstArgumentBinder.referenceKey(index) to value
-            }.toMap()
+            val localBindings = ProcedureLocalBindings.create(invocation.kriya.signature.parameters, values,
+                callerScope.procedureBindings, invocation.kriya.body
+                    .filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
+                        val parameter = PrakriyaSignatureDeclarationParser.parameter(sentence) ?: return@mapNotNull null
+                        PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let { parameter.nameStem to it }
+                    }.toMap())
             return PrakriyaCallFrame(
                 parameterBindings = bindings,
                 arguments = values,
                 localScope = callerScope.copy(
-                    environment = ValueEnvironment(callerScope.environment.values + bindings + referenceBindings),
+                    environment = callerScope.environment.mergedWith(ValueEnvironment.live(localBindings.values)),
+                    procedureBindings = localBindings,
                 ),
             )
         }

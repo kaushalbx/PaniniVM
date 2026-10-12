@@ -4,6 +4,18 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class TaddhitaVikaraTest {
+    @Test fun `taddhita identity distinguishes recognized affixes from their semantic families`() {
+        for (identity in dev.panini.core.TaddhitaAffix.entries) {
+            assertEquals(identity, TaddhitaVikara("display only", identity.upadesha).affix)
+        }
+        val comparative = TaddhitaVikara("display only", "तरप्")
+        assertEquals(dev.panini.core.TaddhitaAffix.TARAP, comparative.affix)
+        kotlin.test.assertNull(comparative.pratyayaClass)
+        kotlin.test.assertNull(TaddhitaVikara("display only", "unknown").affix)
+        kotlin.test.assertNull(TaddhitaVikara("display only", "unknown").pratyayaClass)
+        assertEquals(dev.panini.core.TaddhitaAffix.MATUP, TaddhitaVikara("legacy", "मत्").affix)
+    }
+
     @Test
     fun `morphological key is structural and can expose the untaddhita domain`() {
         val derived = MulaPratipadika(

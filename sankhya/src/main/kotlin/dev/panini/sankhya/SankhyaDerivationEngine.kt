@@ -9,17 +9,18 @@ import dev.panini.sutra.SutraStage
 
 /** Executes numeral-compound operations in their grammatical dependency order. */
 class SankhyaDerivationEngine {
-    private val stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.ANGAKARYA, SutraStage.PADA_FORMATION) +
+    private val stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.IT_PROCESSING, SutraStage.ANGAKARYA, SutraStage.PADA_FORMATION) +
         SutraStage.sandhiPhases
-            .filterNot { it == SutraStage.THUK_PHONOLOGY || it == SutraStage.SANDHI }
+            .filterNot { it == SutraStage.THUK_PHONOLOGY }
             .flatMap { stage ->
                 if (stage == SutraStage.RUTVA) listOf(stage, SutraStage.IT_PROCESSING) else listOf(stage)
             }
     private val pipeline = DerivationPipeline(
         stages = stages,
         prepareStage = { _, state -> state.copy(stage = DerivationStage.PADA_FORMED) },
-        isStageEnabled = { stage, initial, _ ->
-            stage == SutraStage.PRATYAYA_SELECTION || stage == SutraStage.ANGAKARYA || initial.terms.size > 1
+        isStageEnabled = { stage, initial, current ->
+            stage == SutraStage.PRATYAYA_SELECTION || stage == SutraStage.IT_PROCESSING ||
+                stage == SutraStage.ANGAKARYA || initial.terms.size > 1 || current.terms.size > 1
         },
         finalizeState = { state -> state.copy(stage = DerivationStage.FINAL) },
         sutrasForStage = Ashtadhyayi::sankhyaSutrasAt,

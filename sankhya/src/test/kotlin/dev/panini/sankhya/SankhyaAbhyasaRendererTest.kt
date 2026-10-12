@@ -15,7 +15,9 @@ class SankhyaAbhyasaRendererTest {
 
     @Test
     fun `renders krtvasuc suc and dha forms`() {
-        assertEquals("पञ्चकृत्वः", renderer.render("कृत्वः", 5))
+        assertEquals("षट्कृत्वः", renderer.render("कृत्वसुच्", 6))
+        val five = SankhyaGenerator().frequency(5)
+        assertEquals("पञ्चकृत्वः", five.final.surface, five.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" })
         assertEquals("द्विः", renderer.render("सुच्", 2))
         assertEquals("पञ्चकृत्वः", renderer.render("सुच्", 5))
         assertEquals("त्रिधा", renderer.render("धा", 3))

@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,10 +26,10 @@ object UratSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val source = abhyasa.varnas.first { it in setOf(Svara.R, Svara.RR) }
-        val substituted = abhyasa.varnas.map { if (it in setOf(Svara.R, Svara.RR)) Svara.A else it }.toDevanagari()
+        val replacements = abhyasa.varnas.indices.filter { abhyasa.varnas[it] in setOf(Svara.R, Svara.RR) }
+            .associateWith { Svara.A }
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted, source, listOf(Svara.A), sutra),
+            context.replaceTermVarnaOccurrences(abhyasa.id, replacements, sutra),
             "7.4.66 replaces ऋ in the abhyāsa ${abhyasa.surface} with अ.",
         )
     }

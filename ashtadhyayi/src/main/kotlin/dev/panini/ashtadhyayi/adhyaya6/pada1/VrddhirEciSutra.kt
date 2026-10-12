@@ -11,6 +11,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.core.SupAffix
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
@@ -178,19 +180,17 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
         context.stage == DerivationStage.PRATYAYA_SELECTED &&
             context.effectiveContext.rupa.linga != Linga.NAPUMSAKA &&
             context.terms.getOrNull(context.terms.size - 2)?.varnas?.lastOrNull() is Svara &&
-            context.terms.lastOrNull()?.id == "sup-am"
+            context.terms.lastOrNull()?.let {
+                it.hasCurrentAffix(SupAffix.AM) && it.varnas == listOf(Svara.A, Vyanjana.MA)
+            } == true
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
+        val affix = context.terms.last()
+        val composed = context.deleteTermVarnas(affix.id, 0, 1, sutra)
+            .concatenateAfterInitialVowelCoalescence(stem.id, affix, sutra)
         return DerivationChange(
-            context.mergeTermsByVarnaSubstitution(
-                stem.id,
-                context.terms.last().id,
-                (stem.varnas + Vyanjana.MA).toDevanagari(),
-                Svara.A,
-                emptyList(),
-                sutra,
-            ).copy(stage = DerivationStage.FINAL),
+            composed.copy(stage = DerivationStage.FINAL),
             "6.1.107 retains the preceding vowel before अम्."
         )
     }

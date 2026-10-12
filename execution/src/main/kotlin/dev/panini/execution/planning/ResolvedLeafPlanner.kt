@@ -1,5 +1,7 @@
 package dev.panini.execution.planning
 
+import dev.panini.execution.binding.referenceKey
+
 import dev.panini.core.Karaka
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
@@ -11,9 +13,12 @@ import dev.panini.execution.PlanningResult
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.SvamRupamEngine
+import dev.panini.execution.NominalValueAnalysis
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.binding.hasAdditionalDerivation
 import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -209,15 +214,16 @@ object ResolvedLeafPlanner {
             .filterNot { pada ->
                 val nominal = pada.pratipadika as? MulaPratipadika
                 nominal?.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
-                    nominal.vikaras.isEmpty() && pada.sup.text == SupAffix.SAS.upadesha
+                    nominal.vikaras.isEmpty() && pada.sup.affixCandidates == listOf(SupAffix.SAS)
             }
             .filter { pada ->
-                isCopularOrderParticipant(parsedUkti, pada) || pada.vibhakti() == Vibhakti.DVITIYA
+                isCopularReferenceParticipant(parsedUkti, pada) || pada.sup.supports(Vibhakti.DVITIYA)
             }
             .flatMap { pada ->
                 sequenceOf(
                     pada.pratipadika.sourceText.trim(),
-                    pada.pratipadika.semanticKey(),
+                    if (isCopularReferenceParticipant(parsedUkti, pada)) pada.pratipadika.referenceKey()
+                    else pada.pratipadika.semanticKey(),
                 ).distinct()
             }
             .filterNot { candidate ->
@@ -225,11 +231,35 @@ object ResolvedLeafPlanner {
             }
             .associateWith(placeholder)
         val symbolicInstruments = parsedSubantas.asSequence()
-            .filter { it.vibhakti() == Vibhakti.TRTIYA }
+            .filter { it.sup.supports(Vibhakti.TRTIYA) }
+            .filterNot { isCopularReferenceParticipant(parsedUkti, it) }
+            .filterNot { it.pratipadika.hasAdditionalDerivation() || it.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika }
             .map { it.pratipadika.semanticKey() }
             .filterNot { it in environment.values || isSankhyaStem(it) }
-            .associateWith(SanskritValue::Shabda)
-        val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments)
+            .associateWith { name ->
+                placeholder(name).takeIf { it is SanskritValue.Suchi } ?: SanskritValue.Shabda(name)
+            }
+        val actionNames = parsedSubantas.asSequence()
+            .filter { it.sup.supports(Vibhakti.TRTIYA) }
+            .filter { it.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika }
+            .map { it.pratipadika.semanticKey() }
+            .filterNot { it in environment.values }
+            .associateWith { SanskritValue.Shabda(it) }
+        val collectionWholes = parsedUkti.grammaticalVakyas().asSequence()
+            .filter { vakya -> vakya.padas.filterIsInstance<TingantaPada>()
+                .any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } }
+            .flatMap { it.padas.filterIsInstance<SubantaPada>().asSequence() }
+            .filter { it.sup.supports(Vibhakti.SAPTAMI) }
+            .map { it.pratipadika.referenceKey() }
+            .filterNot { it in environment.values }
+            .associateWith { SanskritValue.Suchi(emptyList()) } + parsedUkti.grammaticalVakyas().asSequence()
+            .filter { dev.panini.execution.CollectionMemberMorphology.protectedPadas(it.padas).isNotEmpty() }
+            .flatMap { it.padas.filterIsInstance<SubantaPada>().asSequence() }
+            .filter { it.sup.supports(Vibhakti.SASTHI) }
+            .map { it.pratipadika.referenceKey() }
+            .filterNot { it in environment.values }
+            .associateWith { SanskritValue.Suchi(emptyList()) }
+        val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments + actionNames + collectionWholes)
         val segmentedSource = parsedUkti.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
@@ -271,9 +301,13 @@ object ResolvedLeafPlanner {
         val symbolicReferences = ukti.invocations
             .flatMap { invocation -> invocation.bindings.values.flatMap { it.references() } }
             .filterNot { it in environment.values }
-            .associateWith(placeholder)
+            .associateWith { name -> collectionWholes[name] ?: placeholder(name) }
         val planningEnvironment = ValueEnvironment(bindingEnvironment.values + symbolicReferences)
-        val symbolicNames = symbolicOperands.keys + symbolicReferences.keys
+        val symbolicNames = environment.values.keys + symbolicOperands.keys +
+            symbolicInstruments.filterValues { it !is SanskritValue.Shabda }.keys + symbolicReferences.keys + collectionWholes.keys
+        val copularReferences = parsedSubantas.filter { isCopularReferenceParticipant(parsedUkti, it) }
+            .flatMap { pada -> listOf(pada.pratipadika.sourceText.trim(), pada.pratipadika.referenceKey()).distinct()
+                .map { name -> name to pada } }.groupBy({ it.first }, { it.second })
         val explicitlyDisambiguatedOperations = setOf("सूचीसंयोजनम्", "सूचीशोधनम्", "सूचीसङ्क्षेपः")
         val selectedOperation = ukti.invocations.singleOrNull()?.let { invocation ->
             invocation.selectedOperation ?: invocation.dhatu.operations
@@ -299,8 +333,8 @@ object ResolvedLeafPlanner {
                 plan.copy(
                     resolved = plan.resolved.copy(
                         context = plan.resolved.context.copy(
-                            bindings = plan.resolved.context.bindings.mapValues { (_, expression) ->
-                                expression.restoreSymbolicReferences(symbolicNames)
+                            bindings = plan.resolved.context.bindings.mapValues { (karaka, expression) ->
+                                expression.restoreSymbolicReferences(symbolicNames, copularReferences, karaka)
                             },
                         ),
                     ),
@@ -309,17 +343,21 @@ object ResolvedLeafPlanner {
             ?: return null
     }
 
-    private fun isCopularOrderParticipant(ukti: Ukti, pada: SubantaPada): Boolean =
-        pada.vibhakti() in setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI) &&
-            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity !in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA) &&
+    private fun isCopularReferenceParticipant(ukti: Ukti, pada: SubantaPada): Boolean =
+        (pada.sup.supports(Vibhakti.PRATHAMA) && ukti.grammaticalVakyas().any { vakya ->
+            pada in vakya.padas &&
+                vakya.padas.filterIsInstance<TingantaPada>().any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } &&
+                vakya.padas.filterIsInstance<SubantaPada>().any { it.sup.supports(Vibhakti.SAPTAMI) }
+        }) || (setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI, Vibhakti.TRTIYA).any { pada.sup.supports(it) } &&
+            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity !in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA, MulaPratipadikaIdentity.SAMA) &&
             ukti.grammaticalVakyas().any { vakya ->
                 pada in vakya.padas &&
                     vakya.padas.filterIsInstance<TingantaPada>().any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } &&
                     vakya.padas.filterIsInstance<SubantaPada>().any {
-                        it.vibhakti() == Vibhakti.PRATHAMA &&
-                            (it.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA)
+                        it.sup.supports(Vibhakti.PRATHAMA) &&
+                            (it.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA, MulaPratipadikaIdentity.SAMA)
                     }
-            }
+            })
 
     private fun isSupported(
         plan: ExecutionPlan,
@@ -332,7 +370,8 @@ object ResolvedLeafPlanner {
                 (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
                     plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
             (plan.resolved.operation.name != "विजयः" ||
-                plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
+                (plan.resolved.operation.trigger.requiredUpasargas.size == 1 &&
+                    plan.resolved.operation.trigger.requiredUpasargaIdentities == setOf(dev.panini.core.Upasarga.VI))) &&
             (plan.resolved.operation.name != "प्रदर्शनम्" ||
                 plan.resolved.context.bindings
                     .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
@@ -342,9 +381,6 @@ object ResolvedLeafPlanner {
     private fun isSankhyaStem(stem: String): Boolean = runCatching {
         dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
     }.isSuccess
-
-    private fun SubantaPada.vibhakti(): Vibhakti? =
-        SupAffix.fromUpadesha(sup.text)?.vibhakti
 
     private fun ExecutionExpression.references(): List<String> = when (this) {
         is ExecutionExpression.Reference -> listOf(name)
@@ -356,6 +392,8 @@ object ResolvedLeafPlanner {
 
     private fun ExecutionExpression.restoreSymbolicReferences(
         symbolicNames: Set<String>,
+        copularReferences: Map<String, List<SubantaPada>> = emptyMap(),
+        resolvedKaraka: Karaka,
     ): ExecutionExpression = when (this) {
         is ExecutionExpression.Pada -> {
             val placeholderName = when (val placeholder = value) {
@@ -364,27 +402,36 @@ object ResolvedLeafPlanner {
                 else -> null
             }
             if (prakriti in symbolicNames && (placeholderName == prakriti || value is SanskritValue.Suchi)) {
-                ExecutionExpression.Reference(prakriti)
+                copularOperand(prakriti, resolvedKaraka, copularReferences) ?: ExecutionExpression.Reference(prakriti)
             } else {
                 this
             }
         }
         is ExecutionExpression.TypedOperand -> {
-            val placeholderName = when (val placeholder = value) {
-                is SanskritValue.Sankhya -> placeholder.word
-                is SanskritValue.Shabda -> placeholder.text
-                else -> null
-            }
-            if (placeholderName in symbolicNames) {
-                ExecutionExpression.Reference(requireNotNull(placeholderName))
+            if (referenceName in symbolicNames) {
+                copularOperand(requireNotNull(referenceName), resolvedKaraka, copularReferences)
+                    ?: ExecutionExpression.Reference(requireNotNull(referenceName))
             } else {
                 this
             }
         }
         is ExecutionExpression.Coordination -> copy(
-            members = members.map { it.restoreSymbolicReferences(symbolicNames) },
+            members = members.map { it.restoreSymbolicReferences(symbolicNames, copularReferences, resolvedKaraka) },
         )
         is ExecutionExpression.Reference -> this
+    }
+
+    /** Restore morphology only after planning has established the participant's role. */
+    private fun copularOperand(name: String, karaka: Karaka,
+        references: Map<String, List<SubantaPada>>): ExecutionExpression.TypedOperand? {
+        val candidates = references[name].orEmpty().flatMap { pada ->
+            pada.sup.affixCandidates.filter { affix ->
+                dev.panini.analysis.KarakaInference.infer(affix.vibhakti, dev.panini.core.Prayoga.KARTARI) == karaka
+            }.map { affix -> pada to affix }
+        }.distinct()
+        val (pada, affix) = candidates.singleOrNull() ?: return null
+        val fallback = NominalValueAnalysis.numericFallback(pada) ?: SvamRupamEngine.evaluate(pada.pratipadika)
+        return ExecutionExpression.TypedOperand(fallback, affix, pada.pratipadika.referenceKey())
     }
 
     private fun isMaterializable(expression: ExecutionExpression): Boolean = when (expression) {

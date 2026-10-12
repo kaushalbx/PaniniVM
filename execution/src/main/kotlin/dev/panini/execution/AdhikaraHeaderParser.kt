@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -40,13 +39,13 @@ object AdhikaraHeaderParser {
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indexOfLast { pada ->
             pada is SubantaPada &&
-                SupAffix.fromUpadesha(pada.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&
+                pada.sup.supports(Vibhakti.PRATHAMA) &&
                 pada.isAdhikaraMarker()
         }
         if (markerIndex <= 0) return null
         if (padas.take(markerIndex).filterIsInstance<AvyayaPada>().none { it.function == AvyayaFunction.QUOTATIVE }) return null
         val domain = padas.take(markerIndex).filterIsInstance<SubantaPada>().lastOrNull()
-            ?.takeIf { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.PRATHAMA }
+            ?.takeIf { it.sup.supports(Vibhakti.PRATHAMA) }
             ?: return null
         return domain
     }

@@ -25,6 +25,56 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.io.TempDir
 
 class ExecutionLifecycleTest {
+    @Test fun `top level scripts stop before later writes on failure or suspension`() {
+        for ((index, first) in listOf("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            "वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।").withIndex()) {
+            val vm = PaniniVM(storageDir.resolve("halt-$index").toFile())
+            val results = vm.evalScript(first + "\nद्वि + अम् मान + ङे दा + लोट् + सिप् ।", sessionKey = "halt")
+            assertEquals(1, results.size, results.toString())
+            assertTrue(results.single() !is ExecutionResult.Success, results.toString())
+            kotlin.test.assertNull(vm.runtimeValue("halt", "मान"))
+        }
+    }
+
+    @Test fun `resumed pronoun aliases do not overwrite session names or escape publication`() {
+        val vm = PaniniVM(storageDir.resolve("pronoun-resume").toFile())
+        assertIs<ExecutionResult.Success>(vm.eval("नव + अम् मान + ङे दा + लोट् + सिप् ।", "pronoun"))
+        val declaration = (dev.panini.vyakaranam.parser.PaniniParser().parse("मान + सुँ ।").body
+            as dev.panini.vyakaranam.ast.Invocation).vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada
+        val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(5L, "पञ्च"), declaration)
+        val scope = vm.defaultScope.copy(procedureBindings = locals,
+            environment = vm.defaultScope.environment.mergedWith(ValueEnvironment.live(locals.values)))
+        val paused = assertIs<ExecutionResult.NeedsApproval>(vm.eval(
+            "एक + अम् तद् + ङे दा + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।",
+            "pronoun", scope))
+        val approved = scope.copy(capabilities = scope.capabilities + paused.requiredEffects)
+        val wrongSession = assertIs<ExecutionResult.Failure>(vm.resume(paused.continuation, "other", approved))
+        assertTrue(wrongSession.message.contains("different session"))
+        assertEquals(5L, assertIs<SanskritValue.Sankhya>(locals.values["मान"]).value)
+        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "pronoun", approved))
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(locals.values["मान"]).value)
+        assertEquals(9L, assertIs<SanskritValue.Sankhya>(vm.runtimeValue("pronoun", "मान")).value)
+        kotlin.test.assertNull(vm.runtimeValue("pronoun", "__pvm_anaphor_0"))
+        kotlin.test.assertNull(locals.identity("__pvm_anaphor_0"))
+        assertIs<ExecutionResult.Failure>(vm.resume(paused.continuation, "pronoun", approved))
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(locals.values["मान"]).value)
+    }
+
+    @Test fun `resumed assignments update local slots without replacing caller names`() {
+        val vm = PaniniVM(storageDir.resolve("local-resume").toFile())
+        assertIs<ExecutionResult.Success>(vm.eval("नव + अम् मान + ङे दा + लोट् + सिप् ।", "local"))
+        val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(5L, "पञ्च"))
+        val scope = vm.defaultScope.copy(procedureBindings = locals,
+            environment = vm.defaultScope.environment.mergedWith(ValueEnvironment.live(locals.values)))
+        val paused = assertIs<ExecutionResult.NeedsApproval>(vm.eval(
+            "एक + अम् मान + ङे दा + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।",
+            "local", scope,
+        ))
+        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "local",
+            scope.copy(capabilities = scope.capabilities + paused.requiredEffects)))
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(locals.values["मान"]).value)
+        assertEquals(9L, assertIs<SanskritValue.Sankhya>(vm.runtimeValue("local", "मान")).value)
+    }
 
     @Test
     fun `test PvmUktiSadhaka sadhayaSubanta evaluates SamasaPratipadika`() {
@@ -203,6 +253,29 @@ class ExecutionLifecycleTest {
         )
 
         assertEquals("network-result", completed.values["network"])
+    }
+
+    @Test
+    fun `assignment publication survives repeated approval suspension`() {
+        val planned = plannedProgram(
+            invocation("network", effects = setOf(ExecutionEffect.NETWORK)),
+            VakyaPrayojana.AJNA,
+        )
+        val value = SanskritValue.Sankhya(7L, "सप्तन्")
+        val assignments = mapOf("मान" to value)
+        val continuation = ExecutionContinuation(
+            planned, 0, ValueEnvironment(assignments), emptyList(),
+            localBindings = assignments,
+        )
+        val restricted = ExecutionScope(capabilities = setOf(ExecutionEffect.PURE))
+        val first = assertIs<Phala.AnumatiApekshita>(ExecutionRuntime.resume(continuation, restricted))
+        val second = assertIs<Phala.AnumatiApekshita>(ExecutionRuntime.resume(first.continuation, restricted))
+        assertEquals(assignments, second.continuation.localBindings)
+        val completed = assertIs<Phala.Siddha>(ExecutionRuntime.resume(
+            second.continuation,
+            restricted.copy(capabilities = restricted.capabilities + ExecutionEffect.NETWORK),
+        ))
+        assertEquals(assignments, completed.localBindings)
     }
 
     @Test

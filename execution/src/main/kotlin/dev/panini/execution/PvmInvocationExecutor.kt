@@ -31,13 +31,21 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 else -> false
             }
         }
-        val injectedKarman = request.injectedKarman.takeUnless { explicitResult }
+        val injectedKarman = request.injectedKarman.takeUnless {
+            explicitResult || PriorResultInjection.hasExplicitDisplayObject(request.node)
+        }
         val text = request.node.vakya.sourceText.trim().trimEnd('।', '॥').trim() + " ।"
         val parsedUkti = Ukti(sourceText = text, body = request.node)
         val invocation = request.registry.detectInvocation(
             parsedUkti,
             callerSourceFile = request.sourceFile,
             injectedKarman = injectedKarman,
+            resolvePriorResult = {
+                vm.runtimeValue(request.sessionKey, dev.panini.execution.binding.PhalaReference.RUNTIME_KEY)
+                    ?: vm.kriyaMemory(request.sessionKey).latestKriya()?.phala
+            },
+            resolveValue = { name -> request.scope.environment.values[name]
+                ?: vm.runtimeValue(request.sessionKey, name) },
             resolveActionResult = { reference ->
                 val memory = vm.kriyaMemory(request.sessionKey)
                 if (reference.ordinalFromOldest != null) {
@@ -52,6 +60,12 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
             )
             val memory = vm.kriyaMemory(request.sessionKey)
             val arguments = invocation.arguments.map { argument ->
+                val pada = argument.pada as? dev.panini.vyakaranam.ast.SubantaPada
+                if (argument.actionResult == null && pada != null &&
+                    NaturalSemanticNormalizer.isPriorResult(pada) && argument.value == null) {
+                    return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                        "No preceding result is available for this फल procedure argument."))
+                }
                 val reference = argument.actionResult ?: return@map argument
                 val result = if (reference.ordinalFromOldest != null) {
                     memory.ordinalKriya(reference.ordinalFromOldest, reference.dhatuUpadesha)

@@ -5,10 +5,10 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 /** Discovers project sources and registers their reusable grammatical declarations. */
-internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
+internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null,
+    private val readSource: (File) -> String = { it.readText() }) {
     private data class CachedSource(
-        val lastModified: Long,
-        val length: Long,
+        val source: String,
         val statements: List<PvmScriptStatement>,
     )
 
@@ -33,6 +33,8 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
                     nameSegmented = prakriya.name,
                     nameStem = prakriya.nameIdentity,
                     body = definition.body,
+                    headerResult = prakriya.declaredResult,
+                    headerPredicate = prakriya.resultPredicate,
                     sourceFile = sourceFile,
                     domainStem = prakriya.domainIdentity ?: activeDomain,
                     visibility = prakriya.modifiers.visibility,
@@ -52,30 +54,30 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
         val registry = PrakriyaRegistry()
         projectDir.walkTopDown()
             .filter { it.isFile && it.extension == "pvm" && it.canonicalPath != entryFile.canonicalPath }
-            .sortedBy(File::getName)
+            .sortedBy { it.relativeTo(projectDir).invariantSeparatorsPath }
             .forEach { library ->
-                val parsed = parsedLibrary(library) ?: return@forEach
+                val parsed = parsedLibrary(library)
                 registerDeclarations(
                     registry,
                     parsed,
-                    sourceFile = library.name,
+                    sourceFile = library.relativeTo(projectDir).invariantSeparatorsPath,
                     includeExecutionModifiers = false,
                 )
             }
         return registry
     }
 
-    private fun parsedLibrary(library: File): List<PvmScriptStatement>? {
+    private fun parsedLibrary(library: File): List<PvmScriptStatement> {
         val path = library.canonicalPath
-        val modified = library.lastModified()
-        val length = library.length()
-        parsedLibraries[path]?.takeIf { it.lastModified == modified && it.length == length }?.let {
+        val source = try { readSource(library) } catch (failure: java.io.IOException) {
+            throw IllegalArgumentException("Cannot read PVM library '$path'.", failure)
+        }
+        parsedLibraries[path]?.takeIf { it.source == source }?.let {
             metrics?.recordProjectCacheHit()
             return it.statements
         }
-        val source = runCatching { library.readText() }.getOrNull() ?: return null
         val parsed = PvmScript.parse(source)
-        parsedLibraries[path] = CachedSource(modified, length, parsed)
+        parsedLibraries[path] = CachedSource(source, parsed)
         metrics?.recordProjectCacheMiss()
         metrics?.recordParsedFile()
         metrics?.recordParsedSentences(parsed.sumOf { statement ->

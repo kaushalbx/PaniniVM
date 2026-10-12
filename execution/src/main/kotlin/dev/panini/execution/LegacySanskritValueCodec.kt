@@ -16,9 +16,9 @@ internal object LegacySanskritValueCodec {
         type.startsWith(SANKHYA_PREFIX) ->
             SanskritValue.Sankhya(type.removePrefix(SANKHYA_PREFIX).toLong(), display)
         type.startsWith(RATIONAL_PREFIX) -> {
-            val (numerator, denominator) = type.removePrefix(RATIONAL_PREFIX)
-                .split('/')
-                .map(String::toLong)
+            val components = type.removePrefix(RATIONAL_PREFIX).split('/')
+            require(components.size == 2) { "A persisted rational tag requires exactly two numeric components." }
+            val (numerator, denominator) = components.map(String::toLong)
             SanskritValue.Rational(numerator, denominator, display)
         }
         type.startsWith(SATYA_PREFIX) ->

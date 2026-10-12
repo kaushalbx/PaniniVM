@@ -14,6 +14,7 @@ data class RememberedKriya(
     val turn: Int,
     val frame: KriyaFrame,
     val phala: SanskritValue?,
+    val participants: Map<Karaka, List<SanskritValue>> = emptyMap(),
 )
 
 /** Chronological, kriyā-centred discourse memory for one VM session. */

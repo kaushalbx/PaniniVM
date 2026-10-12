@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AvyayaFunction
@@ -45,7 +44,7 @@ object SubantaKarakaParser {
         return ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
-            .filter { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.DVITIYA }
+            .filter { it.sup.supports(Vibhakti.DVITIYA) }
             .map { it.pratipadika.sourceText.trim() }
             .filter(String::isNotEmpty)
             .toList()
@@ -59,7 +58,7 @@ object SubantaKarakaParser {
         return ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
-            .any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.TRTIYA }
+            .any { it.sup.supports(Vibhakti.TRTIYA) }
     }
 }
 

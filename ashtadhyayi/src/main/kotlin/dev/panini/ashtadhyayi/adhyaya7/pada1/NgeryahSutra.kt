@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -42,13 +45,15 @@ object NgeryahSutra : Sutra<DerivationState, DerivationChange>(
         val endsInA = stem.varnas.lastOrNull() == Svara.A
 
         // 2. Affix must be 'ṅe' (upadesha) and not already substituted
-        return endsInA && affix.upadesha == "ङे" && affix.surface in setOf("ङे", "ए")
+        return endsInA && affix.hasCurrentAffix(SupAffix.NGE) && affix.varnas in setOf(
+            listOf(Vyanjana.NGA, Svara.E), listOf(Svara.E),
+        )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, "य", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            state = context.replaceWholeAffix(affix.id, listOf(Vyanjana.YA, Svara.A), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.13 substitutes 'ya' for the dative-singular 'ṅe' after a-stem."
         )
     }

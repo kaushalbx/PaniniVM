@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.core.Upasarga
+import dev.panini.core.SanadiAffix
 import dev.panini.shiksha.Karmatva
 import dev.panini.shiksha.Samjna
 
@@ -10,7 +12,10 @@ data class GrammaticalFeatures(
     val sanadi: Set<String> = emptySet(),
     val avyayas: Set<String> = emptySet(),
     val lakara: Lakara? = null,
-)
+) {
+    val upasargaIdentities: Set<Upasarga> get() = upasargas.mapNotNull(Upasarga::fromUpadesha).toSet()
+    val sanadiIdentities: Set<SanadiAffix> get() = sanadi.mapNotNull(SanadiAffix::fromUpadesha).toSet()
+}
 
 data class OperationTrigger(
     val requiredUpasargas: Set<String> = emptySet(),
@@ -21,29 +26,56 @@ data class OperationTrigger(
     val forbiddenAvyayas: Set<String> = emptySet(),
     val allowedLakaras: Set<Lakara> = emptySet(),
 ) {
+    val requiredUpasargaIdentities: Set<Upasarga> get() = requiredUpasargas.mapNotNull(Upasarga::fromUpadesha).toSet()
+    val forbiddenUpasargaIdentities: Set<Upasarga> get() = forbiddenUpasargas.mapNotNull(Upasarga::fromUpadesha).toSet()
+    val requiredSanadiIdentities: Set<SanadiAffix> get() = requiredSanadi.mapNotNull(SanadiAffix::fromUpadesha).toSet()
+    val forbiddenSanadiIdentities: Set<SanadiAffix> get() = forbiddenSanadi.mapNotNull(SanadiAffix::fromUpadesha).toSet()
+
     init {
-        require(requiredUpasargas.intersect(forbiddenUpasargas).isEmpty()) {
+        require(requiredUpasargas.intersect(forbiddenUpasargas).isEmpty() &&
+            requiredUpasargaIdentities.intersect(forbiddenUpasargaIdentities).isEmpty()) {
             "An operation trigger cannot require and forbid the same upasarga."
         }
         require(requiredAvyayas.intersect(forbiddenAvyayas).isEmpty()) {
             "An operation trigger cannot require and forbid the same avyaya."
         }
-        require(requiredSanadi.intersect(forbiddenSanadi).isEmpty()) {
+        require(requiredSanadi.intersect(forbiddenSanadi).isEmpty() &&
+            requiredSanadiIdentities.intersect(forbiddenSanadiIdentities).isEmpty()) {
             "An operation trigger cannot require and forbid the same sanādi affix."
         }
     }
 
     fun matches(features: GrammaticalFeatures): Boolean =
-        features.upasargas.containsAll(requiredUpasargas) &&
-            features.upasargas.none { it in forbiddenUpasargas } &&
-            features.sanadi.containsAll(requiredSanadi) &&
-            features.sanadi.none { it in forbiddenSanadi } &&
+        features.upasargaIdentities.containsAll(requiredUpasargaIdentities) &&
+            features.upasargaIdentities.none { it in forbiddenUpasargaIdentities } &&
+            requiredUpasargas.filter { Upasarga.fromUpadesha(it) == null }.all { it in features.upasargas } &&
+            forbiddenUpasargas.filter { Upasarga.fromUpadesha(it) == null }.none { it in features.upasargas } &&
+            features.sanadiIdentities.containsAll(requiredSanadiIdentities) &&
+            features.sanadiIdentities.none { it in forbiddenSanadiIdentities } &&
+            requiredSanadi.filter { SanadiAffix.fromUpadesha(it) == null }.all { it in features.sanadi } &&
+            forbiddenSanadi.filter { SanadiAffix.fromUpadesha(it) == null }.none { it in features.sanadi } &&
             features.avyayas.containsAll(requiredAvyayas) &&
             features.avyayas.none { it in forbiddenAvyayas } &&
             (allowedLakaras.isEmpty() || features.lakara in allowedLakaras)
 }
 
 enum class ExpressionShape { LITERAL, COORDINATION, REFERENCE }
+
+/** Runtime payload eligibility, independent of inherited grammatical saṃjñās. */
+enum class OperationValueType {
+    NUMBER, INTEGER, TEXT, BOOLEAN, COLLECTION, RECORD, RANGE;
+
+    fun accepts(value: SanskritValue): Boolean = when (this) {
+        NUMBER -> value is SanskritValue.Sankhya ||
+            (value is SanskritValue.Rational && value.denominator != 0L)
+        INTEGER -> value is SanskritValue.Sankhya
+        TEXT -> value is SanskritValue.Shabda
+        BOOLEAN -> value is SanskritValue.Satya
+        COLLECTION -> value is SanskritValue.Suchi || value is SanskritValue.Gana
+        RECORD -> value is SanskritValue.Rupa
+        RANGE -> value is SanskritValue.Range
+    }
+}
 
 /** Declarative requirement for one kāraka in an operation signature. */
 data class KarakaRequirement(
@@ -52,6 +84,7 @@ data class KarakaRequirement(
     val maximumMembers: Int? = null,
     val shape: ExpressionShape? = null,
     val memberSamjnas: Set<Samjna> = emptySet(),
+    val valueType: OperationValueType? = null,
 ) {
     init {
         require(minimumMembers >= 1) { "Minimum member count must be positive." }
@@ -62,14 +95,22 @@ data class KarakaRequirement(
 
     internal val specificity: Int
         get() = 1 + (if (shape == null) 0 else 1) + memberSamjnas.size +
-            (if (minimumMembers == 1 && maximumMembers == null) 0 else 1)
+            (if (minimumMembers == 1 && maximumMembers == null) 0 else 1) +
+            (if (valueType == null) 0 else 1)
 }
 
 data class OperationSignature(
     val requirements: List<KarakaRequirement>,
     val optionalKarakas: Set<Karaka> = emptySet(),
+    val forbiddenKarakas: Set<Karaka> = emptySet(),
+    /** A recognized copular predicate constrains overload selection, not host payloads. */
+    val copularPredicates: Set<CopularPredicate> = emptySet(),
 ) {
     init {
+        require(requirements.none { it.karaka in forbiddenKarakas } &&
+            optionalKarakas.intersect(forbiddenKarakas).isEmpty()) {
+            "An accepted kāraka cannot also be forbidden."
+        }
         require(requirements.map { it.karaka }.distinct().size == requirements.size) {
             "An operation signature cannot repeat a kāraka requirement."
         }
@@ -109,6 +150,8 @@ data class DhatuOperation(
     val effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE),
     val resultSamjnas: Set<Samjna> = emptySet(),
     val resultBindingKaraka: Karaka? = null,
+    /** Declared control effect; consumers must not infer this from a display name. */
+    val controlSignal: ExecutionControlSignal? = null,
 ) {
     val name: String get() = action.name
     val description: String get() = action.description

@@ -3,4 +3,6 @@
 # प्रक्रिया: समवाययोजनम् (Collection / List batch fold-addition procedure)
 # Sums all items passed in the collection (समवाय)
 समवायः इति प्रक्रिया अस्ति ।
-समवायं योजय ॥
+मानं सूची इति मानम् ।
+सङ्ख्या इति परिणामः ।
+मानस्य सङ्ख्याः योजय ॥

@@ -2,7 +2,9 @@ package dev.panini.execution.binding
 
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
-import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Upasarga
 import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
 import dev.panini.analysis.FrameKarakaResolution
@@ -23,6 +25,7 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 
 /**
  * Extracts kāraka bindings from a clause's pādas, delegating:
@@ -44,9 +47,12 @@ internal object KarakaExtractor {
      * numeric pada decoding is delegated to [NumeralPadaBinder].
      */
     internal fun extractKarakas(
-        padas: List<Pada>,
+        sourcePadas: List<Pada>,
         ctx: BindingContext,
     ): ExtractedBindings {
+        // Coordination does not hide its members from modifier/history analysis.
+        // Keep source order and original identities for the frame's relations.
+        val padas = sourcePadas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
@@ -76,7 +82,7 @@ internal object KarakaExtractor {
                     Prayoga.KARTARI
                 } else ctx.frame.prayoga
                 val candidates = KarakaInference.candidates(
-                    pada.sup.text, effectivePrayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA,
+                    pada.sup.affixCandidates, effectivePrayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA,
                 )
                 val compatible = candidates intersect requiredKarakas
                 return compatible.takeIf { it.size == 1 } ?: candidates
@@ -108,11 +114,20 @@ internal object KarakaExtractor {
             return compatibleLegacyCandidates.takeIf { it.size == 1 } ?: candidates
         }
 
-        fun addBinding(expression: ExecutionExpression, candidates: Set<Karaka>) {
+        fun addBinding(expression: ExecutionExpression, candidates: Set<Karaka>,
+            sup: dev.panini.vyakaranam.ast.SupPratyaya? = null) {
             when (candidates.size) {
                 0 -> grouped.getOrPut(Karaka.ANIRDHARITA) { mutableListOf() } += expression
                 1 -> grouped.getOrPut(candidates.single()) { mutableListOf() } += expression
-                else -> ambiguous += AmbiguousKarakaBinding(expression, candidates)
+                else -> {
+                    val prayoga = ctx.frame.prayoga.takeUnless { it == Prayoga.ANIRDHARITA } ?: Prayoga.KARTARI
+                    val slots = candidates.mapNotNull { karaka ->
+                        sup?.affixCandidates?.singleOrNull {
+                            KarakaInference.infer(it.vibhakti, prayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA) == karaka
+                        }?.let { karaka to it }
+                    }.toMap()
+                    ambiguous += AmbiguousKarakaBinding(expression, candidates, slots)
+                }
             }
         }
 
@@ -122,13 +137,15 @@ internal object KarakaExtractor {
             val collectionMemberFrame = candidates == setOf(Karaka.KARMAN) &&
                 ctx.dhatu.operations.any { it.name in setOf("सङ्ख्यायोजनम्", "सूच्युद्धरणम्") } &&
                 subantas.any {
-                    it.sup.text == SupAffix.NGAS.upadesha &&
+                    it.sup.supports(Vibhakti.SASTHI, Vacana.EKAVACANA) &&
                         it !in phalaResolution.resolvedGenitives &&
                         it !in karakaReferenceResolution.consumedGenitives
                 }
             addBinding(
-                ExpressionBuilder.build(subanta, ctx, phalaId, collectionMemberFrame),
+                ExpressionBuilder.build(subanta, ctx, phalaId, collectionMemberFrame,
+                    resolvedKaraka = candidates.singleOrNull()),
                 candidates,
+                subanta.sup,
             )
         }
 
@@ -142,6 +159,15 @@ internal object KarakaExtractor {
             if (pada in phalaResolution.resolvedQualifiers) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedGenitives) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedQualifiers) return@forEachIndexed
+            if (ctx.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.HR &&
+                padas.filterIsInstance<TingantaPada>().any { Upasarga.UD in it.upasargaIdentities } &&
+                subantas.any { it.sup.supports(Vibhakti.SASTHI, Vacana.EKAVACANA) } &&
+                (pada !is SubantaPada || !pada.sup.supports(Vibhakti.SASTHI, Vacana.EKAVACANA)) &&
+                dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) {
+                addBinding(requireNotNull(dev.panini.execution.CollectionMemberMorphology.ordinalExpression(pada)),
+                    setOf(Karaka.KARMAN))
+                return@forEachIndexed
+            }
             when (pada) {
                 is ParyantaRangePada -> {
                     fun boundaryValue(boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada): Long =
@@ -163,14 +189,18 @@ internal object KarakaExtractor {
                 is SubantaPada -> {
                     val copularPredicate =
                         (ctx.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS || isCopularClause) &&
-                        SupAffix.candidates(pada.sup.text).any { it.vibhakti == dev.panini.core.Vibhakti.PRATHAMA } &&
+                        pada.sup.supports(Vibhakti.PRATHAMA) &&
                         (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(
                             MulaPratipadikaIdentity.SAMA,
                             MulaPratipadikaIdentity.NYUNA,
                             MulaPratipadikaIdentity.ADHIKA,
                         )
                     if (copularPredicate) {
-                        addBinding(ExpressionBuilder.build(pada, ctx), setOf(Karaka.KARMAN))
+                        val nominal = pada.pratipadika as MulaPratipadika
+                        val expression = if (nominal.vikaras.all { it.isRecognizedStriAffix })
+                            ExecutionExpression.Pada(nominal.text, setOf(dev.panini.shiksha.Samjna.SHABDA))
+                        else ExpressionBuilder.build(pada, ctx)
+                        addBinding(expression, setOf(Karaka.KARMAN))
                         return@forEachIndexed
                     }
                     val rememberedParticipant = karakaReferenceResolution.expressions[pada]

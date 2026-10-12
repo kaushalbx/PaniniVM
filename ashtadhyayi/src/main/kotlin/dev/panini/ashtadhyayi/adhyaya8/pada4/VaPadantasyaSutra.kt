@@ -56,10 +56,9 @@ object VaPadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         val nextTerm = context.terms[targetIndex + 1]
         val follower = requireNotNull(nextTerm.varnas.firstOrNull())
         val replacement = requireNotNull(nasalFor(follower))
-        val result = targetTerm.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, Ayogavaha.ANUSVARA, listOf(replacement), sutra),
+            state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, listOf(replacement), sutra),
             explanation = "8.4.59: Replaced final Anusvāra with parasavarṇa '${replacement.devanagari}' before yay sound."
         )
     }

@@ -14,6 +14,60 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `history group loads retain a wrapper around one collection participant`() {
+        val members = listOf(SanskritValue.Sankhya(1, "एक"))
+        for (collection in listOf(SanskritValue.Suchi(members), SanskritValue.Gana(members))) {
+        val instructions = listOf(
+            CompilerInstruction.Constant(collection), CompilerInstruction.Constant(collection),
+            CompilerInstruction.RecordActionFrame("डुदाञ्", listOf(dev.panini.core.Karaka.KARMAN)),
+            CompilerInstruction.LoadActionParticipants("डुदाञ्", dev.panini.core.Karaka.KARMAN, asGroup = true),
+            CompilerInstruction.PackOperands(listOf(true)), CompilerInstruction.Store("latest"),
+            CompilerInstruction.LoadOrdinalActionParticipants("डुदाञ्", dev.panini.core.Karaka.KARMAN, 1, asGroup = true),
+            CompilerInstruction.PackOperands(listOf(true)), CompilerInstruction.Store("first"))
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("WrappedHistoryGroups", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("WrappedHistoryGroups", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(collection, values["latest"])
+        assertEquals(collection, values["first"])
+        }
+    }
+    @Test
+    fun `dynamic operand packing expands grammatical groups without flattening collections`() {
+        val one = SanskritValue.Sankhya(1, "एक")
+        val two = SanskritValue.Sankhya(2, "द्वि")
+        val nested = SanskritValue.Suchi(listOf(two))
+        val group = SanskritValue.Gana(listOf(one, nested))
+        val expected = SanskritValue.Suchi(listOf(one, nested, two))
+        assertEquals(expected, CompilerValueOperations.packOperands(arrayOf(group, two), "10"))
+        assertEquals(nested, CompilerValueOperations.packOperands(arrayOf(SanskritValue.Gana(listOf(nested))), "1"))
+        val instructions = listOf(
+            CompilerInstruction.Constant(group), CompilerInstruction.Constant(two),
+            CompilerInstruction.PackOperands(listOf(true, false)), CompilerInstruction.Store("LastResult"))
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("PackedParticipantOperands", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("PackedParticipantOperands", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(expected, values["LastResult"])
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(listOf(CompilerInstruction.PackOperands(listOf(true)))) }
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(listOf(CompilerInstruction.PackOperands(emptyList()))) }
+        assertFailsWith<CompiledPaniniExecutionException> { CompilerValueOperations.packOperands(arrayOf(nested), "1") }
+        assertFailsWith<CompiledPaniniExecutionException> { CompilerValueOperations.packOperands(arrayOf(SanskritValue.Gana(emptyList())), "1") }
+    }
+    @Test
+    fun `record reference resolution consumes one stack operand`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.ResolveRecordReference))
+        }
+        CompilerIrVerifier.verify(listOf(
+            CompilerInstruction.Constant(SanskritValue.Shabda("गुण")),
+            CompilerInstruction.ResolveRecordReference,
+            CompilerInstruction.LoadFieldOrLopa("मूल्य"),
+            CompilerInstruction.Store("LastResult"),
+        ))
+    }
+
+    @Test
     fun `numeric prohibition consumes two values without coercion`() {
         CompilerIrVerifier.verify(listOf(
             CompilerInstruction.Constant(SanskritValue.Shabda("शून्य")),
@@ -258,6 +312,11 @@ class CompilerIrTest {
         CompilerProgramVerifier.verify(
             program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.NUMBER),
         )
+        CompilerProgramVerifier.verify(
+            program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.UNKNOWN).copy(
+                procedures = listOf(procedure.copy(parameterKinds = listOf(CompilerValueKind.UNKNOWN))),
+            ),
+        )
         assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
                 program(SanskritValue.Shabda("राम"), CompilerValueKind.NUMBER),
@@ -372,11 +431,14 @@ class CompilerIrTest {
     }
 
     @Test
-    fun `runtime boundary report counts only generic action calls`() {
+    fun `runtime boundary report counts static and dynamically selected action calls`() {
         val call = CompilerInstruction.Call("धातुः", "विशिष्टक्रिया", "", emptyMap())
         val program = CompilerProgram(
             "GeneratedProgram",
-            listOf(call, CompilerInstruction.Store("LastResult")),
+            listOf(call, CompilerInstruction.Store("LastResult"),
+                CompilerInstruction.Constant(SanskritValue.Gana(listOf(SanskritValue.Sankhya(1L, "एक")))),
+                CompilerInstruction.CallParticipantGroup("गण", dev.panini.execution.GrammaticalFeatures()),
+                CompilerInstruction.Store("LastResult")),
             listOf(
                 CompilerProcedure(
                     "prakriya_0",
@@ -385,7 +447,7 @@ class CompilerIrTest {
             ),
         )
 
-        assertEquals(mapOf("विशिष्टक्रिया" to 2), CompilerRuntimeBoundaryReport.operations(program))
+        assertEquals(mapOf("विशिष्टक्रिया" to 2, "dynamic:गण" to 1), CompilerRuntimeBoundaryReport.operations(program))
     }
 
     @Test

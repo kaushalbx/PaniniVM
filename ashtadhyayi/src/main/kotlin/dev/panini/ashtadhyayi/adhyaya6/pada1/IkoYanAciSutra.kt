@@ -9,6 +9,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermCompositionDomain
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
@@ -50,7 +52,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val rightTerm = terms[rightIndex]
         val isPresentSystemTing = context.effectiveContext.rupa.lakara in setOf(
             Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING,
-        ) && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+        ) && TingAffix.entries.any(rightTerm::hasCurrentAffix)
         val presentStemEstablished = context.allEffectiveTerms.any {
             it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ")
         }
@@ -80,38 +82,28 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 
         val leftVowel = requireNotNull(leftTerm.varnas.lastOrNull() as? Svara)
         val replacement = listOf(requireNotNull(yan[leftVowel]))
-        val leftBase = leftTerm.varnas.dropLast(1) + replacement
-        val rightVarnas = rightTerm.varnas
         if (rightTerm.id == "siyut") {
             return DerivationChange(
-                state = context.redistributeAdjacentTermsByVarnaSubstitution(
-                    leftId = leftTerm.id,
-                    rightId = rightTerm.id,
-                    leftSurface = (leftBase + rightVarnas.first()).toDevanagari(),
-                    rightSurface = rightVarnas.drop(1).toDevanagari(),
-                    source = leftVowel,
-                    replacement = replacement,
-                    sutra = sutra,
-                ).copy(stage = DerivationStage.PADA_FORMED),
+                state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, replacement, sutra)
+                    .transferFollowingPrefix(leftTerm.id, rightTerm.id, 1, sutra)
+                    .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.77: substituted ${replacement.toDevanagari()} for $leftVowel before the vowel of सीयुट्.",
             )
         }
 
-        val mergedSurface = (leftBase + rightVarnas).toDevanagari()
-
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                leftTerm.id, rightTerm.id, mergedSurface, leftVowel, replacement, sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, replacement, sutra)
+                .concatenateFollowingTerm(leftTerm.id, rightTerm.id, sutra)
+                .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.77: substituted ${replacement.toDevanagari()} for $leftVowel before vowel and merged terms."
         )
     }
 
     private fun targetPair(context: DerivationState): Pair<Int, Int>? {
-        val siyutIndex = context.terms.indexOfFirst { it.id == "siyut" && it.surface.isNotEmpty() }
+        val siyutIndex = context.terms.indexOfFirst { it.id == "siyut" && it.varnas.isNotEmpty() }
         if (siyutIndex > 0) return (siyutIndex - 1) to siyutIndex
         if (context.terms.size < 2) return null
-        if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
+        if (context.terms.size > 2 && context.terms.all { it.compositionDomain == TermCompositionDomain.SANKHYA }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
                 context.terms[index].varnas.lastOrNull() in yan &&
                     context.terms[index + 1].varnas.firstOrNull() is Svara

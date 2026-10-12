@@ -14,6 +14,9 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
 import dev.panini.core.ItMarker
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.TMarkerPosition
+import dev.panini.shiksha.VarnaReference
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
@@ -44,8 +47,9 @@ class SamjnaSutrasTest {
 
     @Test
     fun testTaparasTatKalasyaSutra() {
-        assertTrue(TaparasTatKalasyaSutra.matches("अत्"))
-        assertTrue(TaparasTatKalasyaSutra.apply("अत्"))
+        val at = VarnaReference(Svara.A, tMarkerPosition = TMarkerPosition.AFTER)
+        assertTrue(TaparasTatKalasyaSutra.matches(at))
+        assertTrue(TaparasTatKalasyaSutra.apply(at))
     }
 
     @Test

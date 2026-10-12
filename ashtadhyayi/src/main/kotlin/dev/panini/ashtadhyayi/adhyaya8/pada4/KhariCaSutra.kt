@@ -30,6 +30,7 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = findTarget(context) != null
 
@@ -38,10 +39,9 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = context.terms[target.termIndex]
         val source = leftTerm.varnas[target.varnaIndex]
         val substitute = substituteFor(source)
-        val result = leftTerm.varnas.toMutableList().also { it[target.varnaIndex] = substitute }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(leftTerm.id, result, source, listOf(substitute), sutra),
+            state = context.replaceTermVarna(leftTerm.id, target.varnaIndex, listOf(substitute), sutra),
             explanation = "8.4.55: Devoiced ${source.devanagari} to ${substitute.devanagari} before voiceless sound."
         )
     }

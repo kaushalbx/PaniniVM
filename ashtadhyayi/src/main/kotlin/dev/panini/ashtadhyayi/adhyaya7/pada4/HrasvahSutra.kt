@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
 import dev.panini.shiksha.toHrasva
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -28,13 +27,10 @@ object HrasvahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val source = abhyasa.varnas.first { it in SHORTENABLE_ABHYASA_VOWELS } as Svara
-        val replacement = listOf(source.toHrasva())
-        val shortened = abhyasa.varnas.map {
-            if (it in SHORTENABLE_ABHYASA_VOWELS) (it as Svara).toHrasva() else it
-        }.toDevanagari()
+        val replacements = abhyasa.varnas.indices.filter { abhyasa.varnas[it] in SHORTENABLE_ABHYASA_VOWELS }
+            .associateWith { (abhyasa.varnas[it] as Svara).toHrasva() }
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, shortened, source, replacement, sutra),
+            context.replaceTermVarnaOccurrences(abhyasa.id, replacements, sutra),
             "7.4.59 shortens the vowel of the abhyāsa ${abhyasa.surface}.",
         )
     }

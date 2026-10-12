@@ -9,7 +9,6 @@ import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -52,12 +51,10 @@ object ErAnekacoAsamyogapurvasyaSutra : Sutra<DerivationState, DerivationChange>
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val dhatu = context.terms[dhatuIndex]
         val following = context.terms[dhatuIndex + 1]
-        val source = dhatu.varnas.last()
-        val mergedVarnas = dhatu.varnas.dropLast(1) + Vyanjana.YA + following.varnas
         return DerivationChange(
-            context.mergeTermsByVarnaSubstitution(
-                dhatu.id, following.id, mergedVarnas.toDevanagari(), source, listOf(Vyanjana.YA), sutra,
-            ).copy(stage = DerivationStage.ANGAKARYA),
+            context.replaceTermVarna(dhatu.id, dhatu.varnas.lastIndex, listOf(Vyanjana.YA), sutra)
+                .concatenateFollowingTerm(dhatu.id, following.id, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             "6.4.82 substitutes यण् for the non-conjunct-preceded final i-vowel of the many-vowel aṅga.",
         )
     }

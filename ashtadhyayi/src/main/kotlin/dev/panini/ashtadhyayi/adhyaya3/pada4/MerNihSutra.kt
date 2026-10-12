@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -20,11 +22,11 @@ object MerNihSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "मिप्" &&
-            ((context.stage == DerivationStage.PADA_FORMED && affix.surface != "आनि") ||
-                (context.stage == DerivationStage.IT_PROCESSED && affix.surface == "आनि"))
+            ((context.stage == DerivationStage.PADA_FORMED && affix.varnas != listOf(Svara.AA, Vyanjana.NA, Svara.I)) ||
+                (context.stage == DerivationStage.IT_PROCESSED && affix.varnas == listOf(Svara.AA, Vyanjana.NA, Svara.I)))
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        return DerivationChange(context.replaceWholeAffix(affix.id, "आनि", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.89 replaces मिप् in loṭ.")
+        return DerivationChange(context.replaceWholeAffix(affix.id, listOf(Svara.AA, Vyanjana.NA, Svara.I), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.89 replaces मिप् in loṭ.")
     }
 }

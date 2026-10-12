@@ -2,9 +2,13 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionError
+import dev.panini.execution.bindingName
 import dev.panini.execution.SanskritValue
 import dev.panini.core.Karaka
 import java.util.LinkedHashMap
+
+internal val participantGroupOperations = setOf("सङ्ख्यायोजनम्", "सङ्ख्यावियोगः", "सङ्ख्यागुणनम्",
+    "सङ्ख्याहरणम्", "सङ्ख्याशेषः", "सङ्ख्यागणनम्", "सूच्याकारः")
 
 /** Mutable execution context shared by all methods in one generated program invocation. */
 class CompiledProgramRuntime private constructor(
@@ -20,6 +24,7 @@ class CompiledProgramRuntime private constructor(
 
     private val values = LinkedHashMap<String, SanskritValue>()
     private val parameterFrames = ArrayDeque<ParameterFrame>()
+    private var resultEpoch = Any()
     // Runtime history is separate from user variables and LastResult. Records
     // must be emitted only after an action actually completes successfully.
     private data class CompletedAction(
@@ -33,11 +38,31 @@ class CompiledProgramRuntime private constructor(
 
     fun isBreakRequested(): Boolean = breakRequested
 
+    fun isProcedureReturnRequested(): Boolean =
+        parameterFrames.lastOrNull { it.savedBindings == null }?.returnRequested == true
+
+    fun isProcedureExitRequested(): Boolean = breakRequested || isProcedureReturnRequested()
+
+    fun requestProcedureReturn(value: SanskritValue) {
+        val owner = parameterFrames.lastOrNull { it.savedBindings == null }
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "A procedure return requires an active procedure frame.")
+        storeValue("LastResult", value)
+        owner.returnRequested = true
+    }
+
+    fun resolveRecordReference(value: SanskritValue): SanskritValue {
+        val name = (value as? SanskritValue.Shabda)?.text
+            ?: throw IllegalArgumentException("An intermediate genitive field must name a record.")
+        return runtimeValue(name) as? SanskritValue.Rupa
+            ?: throw IllegalArgumentException("No record named '$name' exists for the nested genitive reference.")
+    }
+
     fun consumeBreak(): Boolean = breakRequested.also { breakRequested = false }
 
     fun requestBreak(): SanskritValue = SanskritValue.Shabda("विजयः").also {
         breakRequested = true
-        values["LastResult"] = it
+        storeValue("LastResult", it)
     }
 
     fun clearReportedCondition() {
@@ -58,28 +83,69 @@ class CompiledProgramRuntime private constructor(
         conditionIterations++
     }
 
-    fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) {
+    fun checkCollectionIteration(index: SanskritValue) {
+        val iteration = (index as SanskritValue.Sankhya).value
+        val limit = maxConditionIterations
+        if (limit != null && iteration > limit) throw CompiledExecutionLimitExceededException(limit)
+    }
+
+    fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) =
+        enterFrame(names, argumentValues, positionalAliases = true)
+
+    private fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>, positionalAliases: Boolean) {
         require(names.size == argumentValues.size) {
             "Compiled saṃjñā argument values must match its parameter count."
         }
-        val parameterValues = names.indices.associate { index ->
-            names[index] to argumentValues[index]
+        val parameterValues = linkedMapOf<String, SanskritValue>()
+        val aliases = linkedMapOf<String, Set<String>>()
+        names.indices.forEach { index ->
+            val group = if (positionalAliases) setOf(names[index],
+                dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey(index)) else setOf(names[index])
+            group.forEach { name -> parameterValues[name] = argumentValues[index]; aliases[name] = group }
         }
-        parameterFrames.addLast(ParameterFrame(parameterValues))
+        parameterFrames.addLast(ParameterFrame(parameterValues, resultEpoch, aliases = aliases))
+    }
+
+    /** A caller's existing discourse result does not satisfy a callee's contract. */
+    fun requireProcedureResult(kind: String) {
+        val frame = parameterFrames.lastOrNull()
+            ?: error("No compiled procedure frame is active.")
+        if (frame.resultEpoch === resultEpoch) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Procedure declared a result but produced none.")
+        CompilerValueOperations.requireResultKind(loadValue("LastResult"), kind)
+    }
+
+    fun requireProcedureResultSchema(schema: String, fields: Array<String>) {
+        requireProcedureResult("RECORD")
+        val result = loadValue("LastResult") as SanskritValue.Rupa
+        if (result.schema != schema || result.fields.keys != fields.toSet()) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Procedure must return schema '$schema' with fields ${fields.toList()}, " +
+                    "not '${result.schema}' with fields ${result.fields.keys}.")
+        }
     }
 
     fun resolveArgument(name: String, fallback: SanskritValue?): SanskritValue = runtimeValue(name)
+        ?: fallback
         ?: runCatching {
             val evaluated = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(name))
             val word = dev.panini.sankhya.SankhyaGenerator().cardinal(evaluated.value).final.surface
             SanskritValue.Sankhya(evaluated.value, word)
         }.getOrNull()
-        ?: fallback
         ?: SanskritValue.of(name)
 
     fun exitFrame() {
         check(parameterFrames.isNotEmpty()) { "No compiled saṃjñā parameter frame is active." }
-        parameterFrames.removeLast()
+        val frame = parameterFrames.removeLast()
+        frame.savedBindings?.forEach { (name, value) ->
+            if (value == null) values.remove(name) else values[name] = value
+        }
+    }
+
+    fun enterBindingFrame(names: Array<String>, argumentValues: Array<SanskritValue>) {
+        enterFrame(names, argumentValues, positionalAliases = false)
+        val frame = parameterFrames.removeLast()
+        parameterFrames.addLast(frame.copy(savedBindings = names.associateWith { values[it] }))
     }
 
     fun executeDirectValue(
@@ -102,21 +168,60 @@ class CompiledProgramRuntime private constructor(
     }
 
     private fun ExecutionExpression.resolveCompiledReferences(): ExecutionExpression = when (this) {
-        is ExecutionExpression.Pada -> runtimeValue(prakriti)?.let { resolved ->
-            copy(samjnas = resolved.samjnas, value = resolved)
-        } ?: this
+        is ExecutionExpression.Pada -> if (dev.panini.shiksha.Samjna.REFERENCE !in samjnas) this
+            else runtimeValue("LastResult")?.let { resolved -> copy(samjnas = resolved.samjnas, value = resolved) } ?: this
         is ExecutionExpression.Coordination -> copy(
             members = members.map { it.resolveCompiledReferences() },
         )
         is ExecutionExpression.Reference -> runtimeValue(name)?.let { resolved ->
             ExecutionExpression.Pada(name, resolved.samjnas, resolved)
         } ?: this
-        is ExecutionExpression.TypedOperand -> this
+        is ExecutionExpression.TypedOperand -> referenceName?.let(::runtimeValue)?.let { copy(value = it) } ?: this
     }
 
     private fun runtimeValue(name: String): SanskritValue? =
         parameterFrames.reversed().firstNotNullOfOrNull { it.parameterValues[name] }
             ?: values[name]
+
+    fun executeParticipantGroup(group: SanskritValue, dhatuUpadesha: String, upasargas: String,
+        sanadi: String, avyayas: String, lakara: String, selectedOperation: String,
+        otherBindings: Map<Karaka, ExecutionExpression> = emptyMap()): SanskritValue {
+        require(otherBindings.keys.none { it == Karaka.KARMAN || it == Karaka.ANIRDHARITA }) {
+            "Participant-group auxiliary bindings must not replace its object group."
+        }
+        val participants = CompilerValueOperations.expandParticipant(group, true)
+        val expressions = participants.map { ExecutionExpression.Pada(it.toDisplayText(), it.samjnas, it) }
+        if (expressions.isEmpty()) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "A remembered object group requires participants.")
+        val expression = if (expressions.size == 1) expressions.single() else ExecutionExpression.Coordination(expressions)
+        fun tokens(text: String) = text.split(',').filter { it.isNotEmpty() }.toSet()
+        val dhatu = dev.panini.dhatupatha.DhatuPatha.all.singleOrNull { it.upadesha == dhatuUpadesha }
+            ?: throw CompiledPaniniExecutionException(ExecutionError.DHATU_NOT_EXECUTABLE, "Unknown canonical dhātu: $dhatuUpadesha")
+        val invocation = dev.panini.execution.DhatuInvocation("compiled_participant_group", dhatu,
+            otherBindings.mapValues { it.value.resolveCompiledReferences() } + (Karaka.KARMAN to expression),
+            selectedOperation.takeIf { it.isNotEmpty() },
+            grammaticalFeatures = dev.panini.execution.GrammaticalFeatures(tokens(upasargas), tokens(sanadi),
+                tokens(avyayas), lakara.takeIf { it.isNotEmpty() }?.let(dev.panini.core.Lakara::valueOf)))
+        val resolved = when (val resolution = dev.panini.execution.OperationResolver.resolve(invocation, emptyMap())) {
+            is dev.panini.execution.OperationResolution.Resolved -> resolution.value
+            is dev.panini.execution.OperationResolution.Invalid -> throw CompiledPaniniExecutionException(resolution.error, resolution.message)
+            is dev.panini.execution.OperationResolution.MissingInput -> throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, resolution.message)
+            is dev.panini.execution.OperationResolution.Ambiguous -> throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Ambiguous participant-group operation: ${resolution.operations}")
+        }
+        if (resolved.operation.name !in participantGroupOperations) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Unsupported dynamic participant-group operation: ${resolved.operation.name}")
+        val capturedParticipants = resolved.context.bindings.filterKeys { it != Karaka.ANIRDHARITA }
+            .mapValues { (_, expression) -> resolved.context.resolveValues(expression).map(::historySnapshot) }
+        val result = resolved.operation.action.execute(resolved.context, resolved.operation)
+        if (result !is dev.panini.execution.ExecutionResult.Success) {
+            throw CompiledPaniniExecutionException.from(result, resolved.operation.name)
+        }
+        val value = result.typedValue ?: SanskritValue.of(result.value, resolved.operation.resultSamjnas)
+        recordActionFrame(dhatuUpadesha, value, capturedParticipants)
+        resolved.operation.resultBindingKaraka?.let(otherBindings::get)?.bindingName()?.let { storeValue(it, value) }
+        return value
+    }
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
 
@@ -147,6 +252,21 @@ class CompiledProgramRuntime private constructor(
     ) {
         require(roles.size == participants.size) { "Participant values and roles must align." }
         val bindings = roles.indices.groupBy { roles[it] }.mapValues { (_, indices) -> indices.map { participants[it] } }
+        recordActionFrame(dhatuUpadesha, result, bindings)
+    }
+
+    /** Expand only explicit grammatical wrappers, preserving collection-valued participants. */
+    fun recordExpandedActionFrameValues(
+        dhatuUpadesha: String, result: SanskritValue,
+        roles: Array<Karaka>, participants: Array<SanskritValue>, groups: String,
+    ) {
+        require(roles.size == participants.size && groups.length == participants.size &&
+            groups.all { it == '0' || it == '1' }) { "Invalid participant expansion flags." }
+        val bindings = linkedMapOf<Karaka, MutableList<SanskritValue>>()
+        participants.forEachIndexed { index, value ->
+            bindings.getOrPut(roles[index], ::mutableListOf)
+                .addAll(CompilerValueOperations.expandParticipant(value, groups[index] == '1'))
+        }
         recordActionFrame(dhatuUpadesha, result, bindings)
     }
 
@@ -202,6 +322,12 @@ class CompiledProgramRuntime private constructor(
     private fun participantValue(members: List<SanskritValue>): SanskritValue =
         if (members.size == 1) members.single() else SanskritValue.Gana(members)
 
+    fun loadActionParticipantGroup(dhatuUpadesha: String, recency: Int, karaka: dev.panini.core.Karaka): SanskritValue =
+        SanskritValue.Gana(loadActionParticipants(dhatuUpadesha, recency, karaka))
+
+    fun loadOrdinalActionParticipantGroup(dhatuUpadesha: String, ordinal: Long, karaka: dev.panini.core.Karaka): SanskritValue =
+        SanskritValue.Gana(loadOrdinalActionParticipants(dhatuUpadesha, ordinal, karaka))
+
     private fun historySnapshot(value: SanskritValue): SanskritValue {
         val active = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<SanskritValue, Boolean>())
         fun copy(current: SanskritValue): SanskritValue {
@@ -221,17 +347,29 @@ class CompiledProgramRuntime private constructor(
     }
 
     fun loadValue(name: String): SanskritValue = runtimeValue(name)
-        ?: error("No compiled value is bound to '$name'.")
+        ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "No compiled value is bound to '$name'.")
 
     fun storeValue(name: String, value: SanskritValue) {
+        if (name != "LastResult") {
+            parameterFrames.reversed().firstOrNull { name in it.parameterValues }?.let { frame ->
+                frame.aliases.getValue(name).forEach { frame.parameterValues[it] = value }
+                return
+            }
+        }
         values[name] = value
+        if (name == "LastResult") resultEpoch = Any()
         if (name == "LastResult" && value is SanskritValue.Satya) {
             reportedCondition = value.boolean
         }
     }
 
     private data class ParameterFrame(
-        val parameterValues: Map<String, SanskritValue>,
+        val parameterValues: MutableMap<String, SanskritValue>,
+        val resultEpoch: Any,
+        val savedBindings: Map<String, SanskritValue?>? = null,
+        val aliases: Map<String, Set<String>>,
+        var returnRequested: Boolean = false,
     )
 }
 

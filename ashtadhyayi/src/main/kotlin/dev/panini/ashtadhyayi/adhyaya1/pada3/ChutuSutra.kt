@@ -75,9 +75,8 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
     private fun isTtu(varna: Varna): Boolean = varna in setOf(Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA, Vyanjana.NNA)
 
     private fun designateInitial(term: dev.panini.derivation.DerivationTerm, marker: ItMarker): dev.panini.derivation.DerivationTerm {
-        val vowel = (term.varnas.getOrNull(1) as? Svara)?.devanagari.orEmpty()
         val length = term.orthographicEndAfterInitialVarna()
-        val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.orthographicDesignationText(0, length))
+        val designation = ItDesignation(0, length, marker, sutra, designatedText = term.orthographicDesignationText(0, length), varnaIndices = setOf(0))
         val awaitsJhaSubstitution = term.itProcessingPending && term.upadesha in setOf("झ", "झि")
         return term.copy(
             itMarkers = term.itMarkers + marker,

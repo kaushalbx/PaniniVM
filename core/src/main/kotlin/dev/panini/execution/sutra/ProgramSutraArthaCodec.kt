@@ -16,6 +16,8 @@ object ProgramSutraArthaCodec {
                 "candidates" to SutraArthaValue.Sequence(
                     binding.candidates.map { SutraArthaValue.Symbol(it.name) },
                 ),
+                "supSlots" to SutraArthaValue.Record(binding.supSlots.mapKeys { it.key.name }
+                    .mapValues { SutraArthaValue.Symbol(it.value.name) }),
             ),
         )
 
@@ -35,6 +37,15 @@ object ProgramSutraArthaCodec {
                     ?: throw IllegalArgumentException("Ambiguous binding requires field 'expression'."),
             ),
             candidates = candidates,
+            supSlots = fields["supSlots"]?.let { encoded ->
+                val slots = (encoded as? SutraArthaValue.Record)?.fields
+                    ?: throw IllegalArgumentException("Sup slots must be a semantic record.")
+                slots.map { (role, value) ->
+                    val slot = (value as? SutraArthaValue.Symbol)?.name
+                        ?: throw IllegalArgumentException("A sup slot must be a symbol.")
+                    Karaka.valueOf(role) to SupAffix.valueOf(slot)
+                }.toMap()
+            }.orEmpty(),
         )
     }
 
@@ -70,7 +81,7 @@ object ProgramSutraArthaCodec {
                 "expressionType" to SutraArthaValue.Symbol("typedOperand"),
                 "value" to encodeValue(expression.value),
                 "sup" to SutraArthaValue.Symbol(expression.sup.name),
-            ),
+            ) + expression.referenceName?.let { mapOf("referenceName" to SutraArthaValue.Text(it)) }.orEmpty(),
         )
     }
 
@@ -92,6 +103,7 @@ object ProgramSutraArthaCodec {
             "typedOperand" -> ExecutionExpression.TypedOperand(
                 value = decodeValue(fields.getValue("value")),
                 sup = SupAffix.valueOf(fields.symbol("sup")),
+                referenceName = (fields["referenceName"] as? SutraArthaValue.Text)?.value,
             )
             else -> throw IllegalArgumentException("Unknown execution expression type.")
         }

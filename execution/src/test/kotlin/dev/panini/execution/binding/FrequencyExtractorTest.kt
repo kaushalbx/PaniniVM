@@ -12,8 +12,15 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class FrequencyExtractorTest {
+    @Test fun `counts cannot wrap or become negative`() {
+        assertEquals(0, FrequencyExtractor.checkedCount(0))
+        assertEquals(Int.MAX_VALUE, FrequencyExtractor.checkedCount(Int.MAX_VALUE.toLong()))
+        for (value in listOf(-1L, Int.MAX_VALUE.toLong() + 1, Long.MAX_VALUE))
+            assertFailsWith<IllegalArgumentException> { FrequencyExtractor.checkedCount(value) }
+    }
 
     @Test
     fun `recognizes canonical and legacy abhyasa suffix stems`() {

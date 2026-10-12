@@ -4,10 +4,12 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.hasSarvanamasthanaSupIdentity
+import dev.panini.derivation.matchesAffix
+import dev.panini.core.SupAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -46,8 +48,7 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
             eligibleCurrentForms.any { stem.varnas.takeLast(it.size) == it }
         if (!isEligibleStem) return false
 
-        val isSarvanamasthana = affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut") ||
-            affix.upadesha in setOf("सुँ", "औ", "जस्", "अम्", "औट्")
+        val isSarvanamasthana = affix.hasSarvanamasthanaSupIdentity()
         return isSarvanamasthana
     }
 
@@ -55,16 +56,20 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ"
-        val result = when {
-            stem.varnas.takeLast(mahat.size) == mahat -> stem.varnas.dropLast(mahat.size) +
-                if (isSu) mahan else mahant
-            stem.varnas.takeLast(vidvas.size) == vidvas -> stem.varnas.dropLast(vidvas.size) +
-                if (isSu) vidvan else vidvans
-            else -> stem.varnas
+        val isSu = affix.sourceSupAffix == SupAffix.SU || affix.matchesAffix(SupAffix.SU)
+        var state = when {
+            stem.varnas.takeLast(mahat.size) == mahat -> context.replaceTermVarnaRange(
+                stem.id, stem.varnas.size - 2, 2,
+                if (isSu) listOf(Svara.AA, Vyanjana.NA) else listOf(Svara.AA, Vyanjana.NA, Vyanjana.TA),
+                annotationSources = mapOf(0 to 0, (if (isSu) 1 else 2) to 1), sutra = sutra,
+            )
+            stem.varnas.takeLast(vidvas.size) == vidvas -> context.replaceTermVarnaRange(
+                stem.id, stem.varnas.size - 2, 2,
+                if (isSu) listOf(Svara.AA, Vyanjana.NA) else listOf(Svara.AA, Vyanjana.NA, Vyanjana.SA),
+                annotationSources = mapOf(0 to 0, (if (isSu) 1 else 2) to 1), sutra = sutra,
+            )
+            else -> context
         }
-
-        var state = context.replaceWholeTermSurface(stem.id, result.toDevanagari(), sutra)
         if (isSu) {
             state = state.removeTerm(affix.id, sutra = sutra)
         }

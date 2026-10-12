@@ -19,7 +19,6 @@ import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -67,14 +66,9 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val index = requireNotNull(lightUpadhaIndex(dhatu.varnas))
         val source = dhatu.varnas[index] as Svara
         val replacement = requireNotNull(Varnamala.getGuna(source))
-        val substituted = dhatu.varnas.toMutableList().apply {
-            removeAt(index)
-            addAll(index, replacement)
-        }
         return DerivationChange(
-            state = context.substituteTermSurface(
-                dhatu.id, substituted.toDevanagari(), source, replacement, sutra,
-            ).copy(stage = DerivationStage.ANGAKARYA),
+            state = context.replaceTermVarna(dhatu.id, index, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.86 applies guṇa to the light upadhā before ṇic or a strong ending.",
         )
     }

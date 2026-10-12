@@ -1,15 +1,14 @@
 package dev.panini.dhatupatha.juhotyadi
 
 import dev.panini.actions.linguistic.SandhiAction
-import dev.panini.actions.numeric.AdditionAction
 import dev.panini.actions.numeric.CircumferenceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
-import dev.panini.execution.numericOp
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -33,15 +32,11 @@ open class DhaDhatu : Dhatu(
     operations = listOf(
         SandhiAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
-            triggeredBy(requiredUpasargas = setOf("सम्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
         },
         CircumferenceAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SANKHYA)
-            triggeredBy(requiredUpasargas = setOf("परि"))
-        },
-        AdditionAction.numericOp {
-            triggeredBy(requiredUpasargas = setOf("स"))
-            returns(Samjna.SANKHYA, Samjna.SHABDA)
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.PARI))
         },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),

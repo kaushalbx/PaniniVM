@@ -7,6 +7,7 @@ import dev.panini.actions.collection.ListLengthAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
@@ -33,7 +34,7 @@ class GanDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         MultiplicationAction.numericOp {
-            triggeredBy(forbiddenUpasargas = setOf("सम्", "सम"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.SAM))
         },
         CountingAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
@@ -42,7 +43,7 @@ class GanDhatu : Dhatu(
         AverageAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             bindsResultTo(Karaka.SAMPRADANA)
-            triggeredBy(requiredUpasargas = setOf("सम्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
             returns(Samjna.SANKHYA)
         },
         ListLengthAction.op {

@@ -41,18 +41,14 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         if (index == context.terms.lastIndex) return true
 
         val next = context.terms[index + 1].varnas.firstOrNull() as? Vyanjana ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = requireNotNull(targetTerm(context))
-        val source = target.varnas.last()
-        val result = target.varnas.dropLast(1) + Ayogavaha.VISARGA
 
         return DerivationChange(
-            state = context.substituteTermVarnas(
-                target.id, result, emptyList(), source, listOf(Ayogavaha.VISARGA), number,
-            )
+            state = context.replaceTermVarna(target.id, target.varnas.lastIndex, listOf(Ayogavaha.VISARGA), number)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.15: Replaced final 'r' with visarga (Avasāna)."
         )

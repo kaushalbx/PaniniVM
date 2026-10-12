@@ -10,13 +10,15 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.NaturalOperation
 import dev.panini.execution.NaturalOperationResolver
 
-/** Pop last item from list (triggered by हृ / हरण). */
-object ListPopAction : DhatuAction("सूच्युद्धरणम्", "सूच्याः अन्तिमांशानाम् उद्धरणम्") {
+/** Non-mutating member extraction; legacy object-only calls select the last item. */
+object ListPopAction : DhatuAction("सूच्युद्धरणम्", "सूचीसदस्यस्य उद्धरणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val frame = NaturalOperationResolver.resolve(operation, context) as? NaturalOperation.CollectionExtraction
-        if (frame != null && (frame.member as? dev.panini.execution.ExecutionExpression.Pada)?.memberSelection !=
-            dev.panini.execution.CollectionMemberSelection.FINAL) {
-            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Collection extraction requires the final member (अन्तिमम्).")
+        val member = frame?.member as? dev.panini.execution.ExecutionExpression.Pada
+        if (frame != null && member?.memberSelection !in setOf(
+                dev.panini.execution.CollectionMemberSelection.FINAL,
+                dev.panini.execution.CollectionMemberSelection.ORDINAL)) {
+            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Collection extraction requires a final or ordinal member selector.")
         }
         val expression = frame?.collection ?: context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
@@ -47,13 +49,18 @@ object ListPopAction : DhatuAction("सूच्युद्धरणम्", "�
             )
         }
 
-        val popped = items.last()
+        val position = if (member?.memberSelection == dev.panini.execution.CollectionMemberSelection.ORDINAL)
+            (member.value as? SanskritValue.Sankhya)?.value else items.size.toLong()
+        if (position == null || position !in 1L..items.size.toLong()) {
+            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Collection member position is outside the one-based list bounds.")
+        }
+        val popped = items[(position - 1).toInt()]
         return ExecutionResult.Success(
             popped.toDisplayText(),
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Popped element '${popped.toDisplayText()}' from list.",
+                "Extracted member $position: '${popped.toDisplayText()}'.",
             ),
             popped
         )

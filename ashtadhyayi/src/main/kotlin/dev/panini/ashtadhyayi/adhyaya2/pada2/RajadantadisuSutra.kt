@@ -34,11 +34,9 @@ object RajadantadisuSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val stem = context.padas.joinToString("") { it.upadesha }
+        val stem = context.padas.flatMap { it.varnas }
         return context.samasaType == SamasaType.TATPURUSA &&
-            (RajadantadiGana.contains(stem) ||
-             RajadantadiGana.contains(stem + "ः") ||
-             RajadantadiGana.members.any { it.text.startsWith(stem) })
+            RajadantadiGana.contains(stem)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -615,10 +615,11 @@ class SamasaEngineTest {
 
     @Test
     fun `test Karmadharaya KtenaNanjVisistena (2 1 60)`() {
+        val krta = SamasaPada("कृत", Vibhakti.PRATHAMA, krtAffix = dev.panini.core.KrtAffix.KTA)
         val result = engine.derive(
             listOf(
-                SamasaPada("कृत", Vibhakti.PRATHAMA),
-                SamasaPada("अकृत", Vibhakti.PRATHAMA),
+                krta,
+                SamasaPada("अकृत", Vibhakti.PRATHAMA, nanjBase = krta),
             ),
             SamasaType.KARMADHARAYA,
             outputLinga = dev.panini.core.Linga.NAPUMSAKA,
@@ -864,9 +865,10 @@ class SamasaEngineTest {
         val result = engine.derive(
             listOf(
                 SamasaPada("दन्त", Vibhakti.SASTHI),
-                SamasaPada("लेखक", Vibhakti.PRATHAMA),
+                SamasaPada("लेखक", Vibhakti.PRATHAMA, krtAffix = dev.panini.core.KrtAffix.NVUL),
             ),
             SamasaType.TATPURUSA,
+            semanticRelations = setOf(dev.panini.analysis.SamasaSemanticRelation.LIVELIHOOD),
         )
         assertTrue(result.applications.any { it.sutra == "2.2.17" })
     }

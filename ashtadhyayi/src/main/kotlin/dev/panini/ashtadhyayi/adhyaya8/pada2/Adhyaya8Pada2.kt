@@ -13,6 +13,7 @@ object Adhyaya8Pada2 {
         JhasasTathorDhoAdhahSutra,
         ShadhohKahSiSutra,
         SamyogantasyaLopaSutra,
+        RatSasyaSutra,
         HaliCaSutra,
         AdoAserAsiDoMahSutra,
         VasransudhvasvanaduhamDahSutra,

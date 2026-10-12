@@ -9,7 +9,6 @@ import dev.panini.derivation.ItDesignation
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.nasalizedVowelOrthographicSpans
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,7 +31,7 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     private fun targets(state: DerivationState) = state.terms.filter { term ->
-        term.surface.nasalizedVowelOrthographicSpans().isNotEmpty() &&
+        term.phonologicalText.effectiveVarnas.any { it.varna is Svara && it.nasalized } &&
             (term.kind != dev.panini.derivation.TermKind.DHATU || term.varnas.takeLast(2) == listOf(Vyanjana.RA, Svara.U)) &&
             (term.itProcessingPending ||
                 (state.stage == DerivationStage.PRATYAYA_SELECTED && term.kind == dev.panini.derivation.TermKind.PRATYAYA)) &&
@@ -66,19 +65,14 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
     private fun nasalVowelDesignations(term: dev.panini.derivation.DerivationTerm): List<ItDesignation> =
-        term.surface.nasalizedVowelOrthographicSpans().mapNotNull { span ->
+        term.phonologicalText.effectiveVarnas.mapIndexedNotNull { index, token ->
+            if (token.varna !is Svara || !token.nasalized) return@mapIndexedNotNull null
+            val designation = term.designateVarnaIt(index, ItMarker.U, sutra)
             if ((term.itDesignations + term.deferredItDesignations)
-                    .any { it.start == span.start && it.endExclusive == span.endExclusive }) {
+                    .any { it.start == designation.start && it.endExclusive == designation.endExclusive }) {
                 null
             } else {
-                ItDesignation(
-                    start = span.start,
-                    endExclusive = span.endExclusive,
-                    replacementAfterLopa = if (span.dependentVowelSign) "्" else "",
-                    marker = ItMarker.U,
-                    sutra = sutra,
-                    designatedText = span.text,
-                )
+                designation
             }
         }
 }

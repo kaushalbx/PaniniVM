@@ -40,9 +40,10 @@ class GoPrakrtibhavaTest {
             optionalRulePolicy = OptionalRulePolicy.CUSTOM,
             optionalRuleSelector = { it != "6.1.123" },
         ))
-        assertEquals("गोअंतः", result.final.surface)
+        assertEquals("गोअन्तः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "6.1.122" })
         assertTrue(result.applications.any { it.sutra == "8.3.24" })
+        assertTrue(result.applications.any { it.sutra == "8.4.58" })
         assertFalse(result.applications.any { it.sutra == "6.1.109" || it.sutra == "6.1.78" })
     }
 }

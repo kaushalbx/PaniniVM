@@ -48,10 +48,9 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.last()
         val finalConsonant = lastTerm.varnas.last()
         val substitute = devoiced(finalConsonant)
-        val result = lastTerm.varnas.dropLast(1) + substitute
 
         return DerivationChange(
-            state = context.substituteTermVarnas(lastTerm.id, result, finalConsonant, listOf(substitute), sutra)
+            state = context.replaceTermVarna(lastTerm.id, lastTerm.varnas.lastIndex, listOf(substitute), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.4.56: Optionally devoiced ${finalConsonant.devanagari} to ${substitute.devanagari} at avasāna."
         )

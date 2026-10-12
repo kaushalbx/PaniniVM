@@ -8,6 +8,64 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun foldNumericOperands(values: Array<SanskritValue>, groups: String, operator: String,
+        minimumOperands: Int = 1): SanskritValue {
+        require(minimumOperands > 0) { "Numeric folding requires a positive operand minimum." }
+        require(values.size == groups.length && groups.all { it == '0' || it == '1' }) { "Invalid operand group flags." }
+        val operands = values.flatMapIndexed { index, value -> expandParticipant(value, groups[index] == '1') }
+        if (operands.size < minimumOperands) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "Numeric folding requires at least $minimumOperands number operands.")
+        // Validate every input, including a single remembered participant.
+        val numbers = operands.map(::number)
+        val operation = ArithmeticOperator.valueOf(operator)
+        require(operation in setOf(ArithmeticOperator.ADD, ArithmeticOperator.SUBTRACT,
+            ArithmeticOperator.MULTIPLY, ArithmeticOperator.DIVIDE, ArithmeticOperator.REMAINDER)) {
+            "Unsupported numeric-fold operator: $operation"
+        }
+        val result = try {
+            numbers.drop(1).fold(numbers.first()) { left, right ->
+                when (operation) {
+                    ArithmeticOperator.ADD -> Math.addExact(left, right)
+                    ArithmeticOperator.SUBTRACT -> Math.subtractExact(left, right)
+                    ArithmeticOperator.MULTIPLY -> Math.multiplyExact(left, right)
+                    ArithmeticOperator.DIVIDE -> left / right
+                    ArithmeticOperator.REMAINDER -> left % right
+                    else -> error("Unsupported numeric-fold operator: $operation")
+                }
+            }
+        } catch (_: ArithmeticException) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Numeric folding overflow or division by zero.")
+        }
+        return numeric(result)
+    }
+
+    @JvmStatic
+    fun packOperands(values: Array<SanskritValue>, groups: String): SanskritValue {
+        val operands = packParticipantGroup(values, groups).elements
+        return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
+    }
+
+    @JvmStatic
+    fun packParticipantGroup(values: Array<SanskritValue>, groups: String): SanskritValue.Gana {
+        require(values.size == groups.length && groups.all { it == '0' || it == '1' }) { "Invalid operand group flags." }
+        val operands = values.flatMapIndexed { index, value -> expandParticipant(value, groups[index] == '1') }
+        if (operands.isEmpty()) throw CompiledPaniniExecutionException(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            "Operand packing requires at least one participant.")
+        return SanskritValue.Gana(operands)
+    }
+
+    fun expandParticipant(value: SanskritValue, group: Boolean): List<SanskritValue> =
+        if (!group) listOf(value) else (value as? SanskritValue.Gana)?.elements
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Participant expansion requires a grammatical group wrapper.")
+    @JvmStatic
+    fun listSnapshot(value: SanskritValue): SanskritValue {
+        if (value !is SanskritValue.Suchi) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Distributive iteration requires a list.")
+        return value.copy(items = value.items.toList())
+    }
+    @JvmStatic
     fun checkNumericProhibition(left: SanskritValue, right: SanskritValue) {
         if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya && left.value == right.value) {
             throw CompiledPaniniExecutionException(ExecutionError.ACTION_FAILED,
@@ -17,17 +75,26 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun requireArgumentKind(value: SanskritValue, kind: String) {
+        requireValueKind(value, kind, "argument")
+    }
+
+    @JvmStatic
+    fun requireResultKind(value: SanskritValue, kind: String) {
+        requireValueKind(value, kind, "result")
+    }
+
+    private fun requireValueKind(value: SanskritValue, kind: String, role: String) {
         val valid = when (CompilerValueKind.valueOf(kind)) {
             CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
-            CompilerValueKind.NUMBER -> value is SanskritValue.Sankhya
+            CompilerValueKind.NUMBER -> dev.panini.execution.OperationValueType.NUMBER.accepts(value)
             CompilerValueKind.BOOLEAN -> value is SanskritValue.Satya
             CompilerValueKind.TEXT -> value is SanskritValue.Shabda
-            CompilerValueKind.LIST -> value is SanskritValue.Suchi
+            CompilerValueKind.LIST -> dev.panini.execution.OperationValueType.COLLECTION.accepts(value)
             CompilerValueKind.RECORD -> value is SanskritValue.Rupa
             CompilerValueKind.RANGE -> value is SanskritValue.Range
         }
         if (!valid) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
-            "Procedure argument requires $kind, not ${value::class.simpleName}.")
+            "Procedure $role requires $kind, not ${value::class.simpleName}.")
     }
 
     @JvmStatic
@@ -40,13 +107,9 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun listSum(value: SanskritValue): SanskritValue {
-        val members = dev.panini.execution.numericCollectionMembers(value)
+        return dev.panini.execution.sumNumericCollection(value) { dev.panini.execution.renderSankhyaResult(it) }
             ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
-                "Number-member summation requires a numeric collection.")
-        val sum = try { members.fold(0L, Math::addExact) } catch (_: ArithmeticException) {
-            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Numeric overflow during member summation.")
-        }
-        return numeric(sum)
+                "Member summation requires valid numeric members and a representable result.")
     }
 
     @JvmStatic
@@ -145,16 +208,21 @@ internal object CompilerValueOperations {
     fun notEqual(left: SanskritValue, right: SanskritValue): Boolean = !left.semanticallyEquals(right)
 
     @JvmStatic
-    fun lessThan(left: SanskritValue, right: SanskritValue): Boolean = number(left) < number(right)
+    fun lessThan(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) < 0
 
     @JvmStatic
-    fun lessThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = number(left) <= number(right)
+    fun lessThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) <= 0
 
     @JvmStatic
-    fun greaterThan(left: SanskritValue, right: SanskritValue): Boolean = number(left) > number(right)
+    fun greaterThan(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) > 0
 
     @JvmStatic
-    fun greaterThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = number(left) >= number(right)
+    fun greaterThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) >= 0
+
+    private fun numericOrder(left: SanskritValue, right: SanskritValue): Int =
+        dev.panini.execution.compareNumericValues(left, right)
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Ordering requires two defined numeric values.")
 
     @JvmStatic
     fun listLength(value: SanskritValue): SanskritValue = numeric(collectionItems(value).size.toLong())
@@ -273,7 +341,8 @@ internal object CompilerValueOperations {
     }
 
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
-        ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
+        ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "Numeric operation requires an integer value, but received ${value::class.simpleName}.")
 
     private fun numeric(value: Long): SanskritValue.Sankhya {
         val word = dev.panini.execution.renderSankhyaResult(value) ?: throw CompiledPaniniExecutionException(

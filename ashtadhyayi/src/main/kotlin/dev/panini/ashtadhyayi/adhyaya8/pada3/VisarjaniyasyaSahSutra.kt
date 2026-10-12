@@ -36,16 +36,15 @@ object VisarjaniyasyaSahSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val next = context.terms.last().varnas.firstOrNull() as? Vyanjana ?: return false
         return left.varnas.lastOrNull() == Ayogavaha.VISARGA &&
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val leftTerm = context.terms[context.terms.size - 2]
         val next = context.terms.last().varnas.first()
-        val result = leftTerm.varnas.dropLast(1) + Vyanjana.SA
 
         return DerivationChange(
-            state = context.substituteTermVarnas(leftTerm.id, result, Ayogavaha.VISARGA, listOf(Vyanjana.SA), sutra),
+            state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, listOf(Vyanjana.SA), sutra),
             explanation = "8.3.34 replaces visarga with s before khar sound $next."
         )
     }

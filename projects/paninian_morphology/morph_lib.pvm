@@ -4,7 +4,7 @@
 गणित + सुँ इति अधिकार + सुँ ।
 
 # क्त-प्रत्यय (Memoized Constant Procedure: भू + क्त + सुँ → भूतः)
-# Evaluated once and cached in registry
+# Each call executes the body; nominal morphology does not imply caching
 भू + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
 द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ॥
 

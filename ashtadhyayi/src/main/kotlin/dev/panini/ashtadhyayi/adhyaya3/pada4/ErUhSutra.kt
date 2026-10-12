@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -26,12 +29,12 @@ object ErUhSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
     private const val sourceEnding = "तिप्"
-    private const val replacement = "तु"
+    private val replacement: List<Varna> = listOf(Vyanjana.TA, Svara.U)
 
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
-        return (context.stage == DerivationStage.PADA_FORMED && affix.surface != replacement ||
-            context.stage == DerivationStage.IT_PROCESSED && affix.surface == replacement) &&
+        return (context.stage == DerivationStage.PADA_FORMED && affix.varnas != replacement ||
+            context.stage == DerivationStage.IT_PROCESSED && affix.varnas == replacement) &&
             context.effectiveContext.rupa.lakara == Lakara.LOT &&
             affix.upadesha == sourceEnding
     }

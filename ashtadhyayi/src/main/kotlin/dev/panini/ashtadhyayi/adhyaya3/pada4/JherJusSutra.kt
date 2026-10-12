@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -30,13 +32,13 @@ object JherJusSutra : Sutra<DerivationState, DerivationChange>(
         return context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.stage != DerivationStage.INITIAL &&
             ending.matchesUpadesha("झि") &&
-            ending.surface != "ुस्"
+            ending.varnas != listOf(Svara.U, Vyanjana.SA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, "ुस्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(ending.id, listOf(Svara.U, Vyanjana.SA), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.108 replaces झि with जुस्; its initial ज् is not pronounced.",
         )
     }

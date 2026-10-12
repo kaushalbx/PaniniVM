@@ -13,7 +13,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.Varna
 
 /** 3.4.79: टित आत्मनेपदानां टेरे. */
 object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
@@ -48,19 +48,10 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara == Lakara.LUT && "7.4.52" in context.appliedSutras) return false
         if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
             "3.4.95" in context.appliedSutras) return false
-        val replacement = when (ending.upadesha) {
-            "त" -> "ते"
-            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
-            "ध्वम्" -> "ध्वे"
-            "वहि" -> "वहे"
-            "महिङ्" -> "महे"
-            "इट्" -> "ए"
-            else -> null
-        }
+        val replacement = replacement(ending.upadesha, lakara, isNonAStem, atoNgitahCompleted)
         if (replacement != null) {
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
-            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
+            return ending.varnas != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
         }
         val jhaOutcome = ending.upadesha == "झ" || context.droppedTerms.any { it.upadesha == "झ" }
         return ending.varnas.takeLast(2) == listOf(Vyanjana.NA, Vyanjana.TA) && jhaOutcome &&
@@ -72,23 +63,13 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.last()
         if (ending.varnas.takeLast(2) == listOf(Vyanjana.NA, Vyanjana.TA) && "7.1.3" in context.appliedSutras) {
             return DerivationChange(
-                context.replaceWholeAffix(
-                    ending.id,
-                    ending.varnas.replaceVarna(ending.varnas.lastIndex, listOf(Vyanjana.TA, Svara.E)),
-                    sutra,
-                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
-                ),
+                context.replaceTermVarna(ending.id, ending.varnas.lastIndex, listOf(Vyanjana.TA, Svara.E), sutra),
                 "3.4.79 replaces the final टि of the झ्-अन्ति outcome with ए.",
             )
         }
         if (ending.varnas.takeLast(3) == listOf(Svara.A, Vyanjana.TA, Svara.A) && "7.1.5" in context.appliedSutras) {
             return DerivationChange(
-                context.replaceWholeAffix(
-                    ending.id,
-                    ending.varnas.replaceVarna(ending.varnas.lastIndex, listOf(Svara.E)),
-                    sutra,
-                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
-                ),
+                context.replaceTermVarna(ending.id, ending.varnas.lastIndex, listOf(Svara.E), sutra),
                 "3.4.79 replaces the टि portion of the 7.1.5 अत् outcome with ए.",
             )
         }
@@ -96,20 +77,30 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         val lakara = context.effectiveContext.rupa.lakara
         val isNonAStem = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in nonAStemGanas
-        val replacement = when (ending.upadesha) {
-            "त" -> "ते"
-            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
-            "ध्वम्" -> "ध्वे"
-            "वहि" -> "वहे"
-            "महिङ्" -> "महे"
-            "इट्" -> "ए"
-            else -> error("3.4.79 received a non-Ātmanepada ending: ${ending.upadesha}")
-        }
+        val replacement = replacement(ending.upadesha, lakara, isNonAStem, atoNgitahCompleted)
+            ?: error("3.4.79 received a non-Ātmanepada ending: ${ending.upadesha}")
         return DerivationChange(
             context.replaceWholeAffix(ending.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.79 replaces the टि portion of ${ending.upadesha} with ए.",
         )
+    }
+
+    private fun replacement(upadesha: String?, lakara: Lakara?, isNonAStem: Boolean, atoNgitahCompleted: Boolean): List<Varna>? {
+        val dualInitial: List<Varna> = when {
+            lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem -> listOf(Svara.E)
+            lakara == Lakara.LAT && atoNgitahCompleted -> emptyList()
+            else -> listOf(Svara.AA)
+        }
+        return when (upadesha) {
+            "त" -> listOf(Vyanjana.TA, Svara.E)
+            "आताम्" -> dualInitial + listOf(Vyanjana.TA, Svara.E)
+            "आथाम्" -> dualInitial + listOf(Vyanjana.THA, Svara.E)
+            "ध्वम्" -> listOf(Vyanjana.DHA, Vyanjana.VA, Svara.E)
+            "वहि" -> listOf(Vyanjana.VA, Svara.A, Vyanjana.HA, Svara.E)
+            "महिङ्" -> listOf(Vyanjana.MA, Svara.A, Vyanjana.HA, Svara.E)
+            "इट्" -> listOf(Svara.E)
+            else -> null
+        }
     }
 
     private val nonAStemGanas = setOf(

@@ -37,8 +37,8 @@ abstract class NumericFoldDhatuAction(
     source: String,
     name: String,
     description: String,
-    operator: NumericFoldOperator,
-    minimumOperands: Int,
+    val operator: NumericFoldOperator,
+    val minimumOperands: Int,
 ) : BlueprintDhatuAction(
     name = name,
     description = description,
@@ -78,6 +78,13 @@ abstract class NumericFoldDhatuAction(
         val values = if (memberFrame != null) {
             val collection = context.resolveValues(memberFrame.collection).singleOrNull() as? SanskritValue.Suchi
                 ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Member summation requires one list as its genitive whole.")
+            if (collection.items.any { it is SanskritValue.Rational }) {
+                val result = dev.panini.execution.sumNumericCollection(collection) { context.renderSankhyaResult(it) }
+                    ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                        "Member summation requires valid numeric members and a representable result.")
+                return ExecutionResult.Success(result.toDisplayText(), operation.name,
+                    listOf("Selected action sūtra ${blueprint.id}.", "Summed immediate numeric members exactly."), result)
+            }
             dev.panini.execution.numericCollectionMembers(collection)
                 ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Number-member summation requires numeric members.")
         } else context.resolveSankhyaValues(expression)

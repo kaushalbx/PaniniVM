@@ -53,7 +53,8 @@ class NumeralTaddhitaTest {
         )
         assertTrue(SankhyayahKriyaAbhyavrttiKrtvasucSutra.matches(state))
         val change = SankhyayahKriyaAbhyavrttiKrtvasucSutra.apply(state)
-        assertEquals("कृत्वः", change.state.terms.last().surface)
+        assertEquals("कृत्वस्च्", change.state.terms.last().surface)
+        assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, change.state.terms.last().itProcessingPhase)
     }
 
     @Test

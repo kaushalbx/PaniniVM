@@ -1,7 +1,9 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.ast.Pada
@@ -24,40 +26,50 @@ object PrakriyaInvocationMatcher {
         knownOperationStems: Set<String>,
     ): PrakriyaInvocationShape? {
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
-        val verbIndex = padas.indexOfFirst { it is TingantaPada }
-        if (verbIndex < 0) return null
+        val head = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
+        if (head.canonicalDhatuIdentity() != CanonicalDhatuIdentity.KRU ||
+            head.upasargas.isNotEmpty() || head.dhatu.sanadiAffixes.isNotEmpty()) return null
 
-        val instrumental = padas.withIndex().firstOrNull { (index, pada) ->
-            index < verbIndex && pada is SubantaPada &&
-                pada.vibhakti() == Vibhakti.TRTIYA &&
+        val instrumentals = padas.withIndex().filter { (_, pada) ->
+            pada is SubantaPada && pada.sup.supports(Vibhakti.TRTIYA) &&
                 pada.pratipadika.prakriyaIdentity() in knownOperationStems
-        } ?: return null
+        }
+        if (instrumentals.isEmpty()) return null
+        require(instrumentals.size == 1) { "Ambiguous procedure invocation: multiple known instrumental procedure names." }
+        val instrumental = instrumentals.single()
         val operationPada = instrumental.value as SubantaPada
+        require(operationPada.sup.supports(Vibhakti.TRTIYA, Vacana.EKAVACANA)) {
+            "A procedure invocation requires one instrumental singular procedure; dual/plural invocation is not supported."
+        }
         val resultModifiers = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(padas)
             .map { it.modifier }.toSet()
-        val domainEntry = padas.withIndex().take(instrumental.index)
-            .lastOrNull { (index, pada) ->
-                pada is SubantaPada && pada !in resultModifiers && pada.vibhakti() == Vibhakti.SASTHI &&
-                    (padas.getOrNull(index + 1) as? SubantaPada)?.vibhakti() != Vibhakti.DVITIYA
-            }
+        val domainEntries = padas.withIndex().filter { (index, pada) ->
+                pada is SubantaPada && pada !in resultModifiers && pada.sup.supports(Vibhakti.SASTHI) &&
+                    (padas.getOrNull(index + 1) as? SubantaPada)?.sup?.supports(Vibhakti.DVITIYA) != true
+        }
+        require(domainEntries.size <= 1) { "Ambiguous procedure domain: multiple unassigned genitive modifiers." }
+        val domainEntry = domainEntries.singleOrNull()
         val domainPada = domainEntry?.value as? SubantaPada
-        val boundaryIndex = domainEntry?.index ?: instrumental.index
-        val karmaText = padas.take(boundaryIndex)
+        require(domainPada == null || domainPada.sup.supports(Vibhakti.SASTHI, Vacana.EKAVACANA)) {
+            "A procedure invocation requires one genitive singular domain; dual/plural domains are not supported."
+        }
+        val operands = padas.filterIndexed { index, pada ->
+            index != instrumental.index && index != domainEntry?.index && pada !is TingantaPada
+        }
+        val karmaText = operands
             .joinToString(" ") { normalizeIdentity(it.sourceText) }
             .trim()
         return PrakriyaInvocationShape(
             operationStem = operationPada.pratipadika.prakriyaIdentity(),
             domainStem = domainPada?.pratipadika?.prakriyaDomainIdentity(),
             karmaText = karmaText,
-            argumentPadas = padas.take(boundaryIndex).flatMap(::argumentPadas),
+            argumentPadas = operands.flatMap(::argumentPadas),
             ukti = ukti,
         )
     }
 
     internal fun normalizeIdentity(value: String): String =
         value.split('+').joinToString(" + ") { it.trim() }.trim()
-
-    private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
     private fun argumentPadas(pada: Pada): List<Pada> = when (pada) {
         is SamuccitaSubanta -> pada.members

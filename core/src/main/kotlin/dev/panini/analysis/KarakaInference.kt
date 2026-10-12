@@ -9,7 +9,11 @@ import dev.panini.core.Vibhakti
 object KarakaInference {
     /** All semantic roles licensed by an annotated ending before verbal context resolves syncretism. */
     fun candidates(upadesha: String, prayoga: Prayoga, sakarmaka: Boolean = true): Set<Karaka> =
-        SupAffix.candidates(upadesha)
+        candidates(SupAffix.candidates(upadesha), prayoga, sakarmaka)
+
+    /** Typed candidates retain syncretism until clause context establishes a role. */
+    fun candidates(affixes: Collection<SupAffix>, prayoga: Prayoga, sakarmaka: Boolean = true): Set<Karaka> =
+        affixes
             .mapNotNull { infer(it.vibhakti, prayoga, sakarmaka) }
             .toSet()
 

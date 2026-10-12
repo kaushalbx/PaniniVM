@@ -6,6 +6,25 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GrammaticalRegexArchitectureTest {
+    @Test fun `migrated semantic consumers do not decode sup or ting strings again`() {
+        val workingDirectory = File(System.getProperty("user.dir"))
+        val repository = if (workingDirectory.name == "execution") workingDirectory.parentFile else workingDirectory
+        val consumers = listOf(
+            "CopularAgreement.kt", "AdhikaraHeaderParser.kt", "ItiDeclaration.kt",
+            "PaniniMorphologyEngines.kt", "TaddhitaStructEngine.kt", "AnaphoricOperandProjection.kt",
+            "ReferentAgreement.kt", "PrakriyaInvocationMatcher.kt", "PrakriyaHeaderIdentity.kt",
+            "PrakriyaRegistry.kt", "NaturalSemanticNormalizer.kt", "NishedhaGuardEvaluator.kt",
+            "PrakriyaDefinitionMarkerParser.kt", "PrakriyaScriptValidator.kt", "PvmScript.kt",
+            "binding/MemoryOrderQualifier.kt", "binding/KarakaExtractor.kt",
+            "planning/ResolvedLeafPlanner.kt",
+        )
+        val rawDecode = Regex("""(?:SupAffix|TingAffix)\s*(?:\.\s*(?:fromUpadesha|candidates)\s*\(|::\s*(?:fromUpadesha|candidates))""")
+        for (consumer in consumers) {
+            val file = File(repository, "execution/src/main/kotlin/dev/panini/execution/$consumer")
+            assertFalse(rawDecode.containsMatchIn(file.readText()), "$consumer must use the typed AST morphology")
+        }
+    }
+
     @Test
     fun `shared semantic components do not dispatch on serialized Sanskrit`() {
         val workingDirectory = File(System.getProperty("user.dir"))
@@ -76,7 +95,7 @@ class GrammaticalRegexArchitectureTest {
             "Pipeline arguments must retain parsed nominal identity.",
         )
         assertFalse("CompilerSymbols.stem" in frontend)
-        assertTrue("pratipadika.semanticKey()" in frontend)
+        assertTrue("pratipadika.referenceKey()" in frontend)
         assertFalse("source.split('+')" in frontend, "Structured values must consume parsed value padas.")
         assertTrue("TaddhitaStructEngine.assertionValue" in frontend)
         assertFalse("name == \"फल\"" in frontend)
@@ -129,7 +148,11 @@ class GrammaticalRegexArchitectureTest {
         assertFalse("pratipadika.sourceText.substringBefore" in normalizer)
         assertTrue("pratipadika.referenceKey()" in normalizer)
         assertFalse("it == \"विजय\"" in normalizer)
-        assertTrue("MulaPratipadikaIdentity.PHALA" in normalizer)
+        assertTrue("PhalaReference.isReference(pada)" in normalizer)
+        val phalaReference = File(repository,
+            "execution/src/main/kotlin/dev/panini/execution/binding/PhalaReference.kt").readText()
+        assertTrue("MulaPratipadikaIdentity.PHALA" in phalaReference)
+        assertTrue("vikaras.isEmpty()" in phalaReference)
         assertTrue("MulaPratipadikaIdentity.VIJAYA" in normalizer)
         assertFalse("tinganta.dhatu.mulaDhatu" in normalizer)
         assertTrue("canonicalDhatuIdentity()" in normalizer)
@@ -148,7 +171,7 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/PrakriyaAstArgumentBinder.kt",
         ).readText()
         assertFalse("pada.pratipadika.sourceText" in parameterBinder)
-        assertTrue("pada.pratipadika.semanticKey()" in parameterBinder)
+        assertTrue("pada.pratipadika.referenceKey()" in parameterBinder)
         assertFalse("normalizeIdentity(argument)" in parameterBinder)
 
         val headerIdentity = File(
@@ -187,7 +210,7 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/NamedPrakriyaArgumentResolver.kt",
         ).readText()
         assertFalse("normalizeIdentity(pratipadika.sourceText)" in namedArgumentResolverSource)
-        assertTrue("pratipadika.semanticKey()" in namedArgumentResolverSource)
+        assertTrue("pratipadika.referenceKey()" in namedArgumentResolverSource)
         assertTrue("Success.fromPadas(positionalPadas)" in namedArgumentResolverSource)
         assertFalse("PaniniParser" in namedArgumentResolverSource)
         assertFalse("fun resolve(karmaText:" in namedArgumentResolverSource)
@@ -237,14 +260,15 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/DirectResultAssignment.kt",
         ).readText()
         assertFalse("it.stem() == \"फल\"" in directAssignment)
-        assertTrue("MulaPratipadikaIdentity.PHALA" in directAssignment)
+        assertTrue("NamedActionResultReferenceResolver.resolve(vakya.padas)" in directAssignment)
+        assertTrue("reference.result.sup.supports(Vibhakti.DVITIYA)" in directAssignment)
 
         val expressionBuilder = File(
             repository,
             "execution/src/main/kotlin/dev/panini/execution/binding/ExpressionBuilder.kt",
         ).readText()
         assertFalse("when (baseText)" in expressionBuilder)
-        assertTrue("nominalTruthValue(normalized.pratipadika)" in expressionBuilder)
+        assertTrue("NominalValueAnalysis.literalValue(pada)" in expressionBuilder)
         val truthValue = File(repository,
             "execution/src/main/kotlin/dev/panini/execution/NominalTruthValue.kt").readText()
         assertTrue("MulaPratipadikaIdentity.SATYA" in truthValue)
@@ -315,7 +339,8 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/PrakriyaAstArgumentBinder.kt",
         ).readText()
         assertFalse("sourceText.trim() == \"समवाय\"" in argumentBinder)
-        assertTrue("MulaPratipadikaIdentity.SAMAVAYA" in argumentBinder)
+        assertFalse("MulaPratipadikaIdentity.SAMAVAYA" in argumentBinder,
+            "A collection noun must not implicitly collect procedure arguments.")
 
         val callFrame = File(
             repository,
@@ -346,7 +371,7 @@ class GrammaticalRegexArchitectureTest {
         ).readText()
         assertFalse("sourceText.substringBeforeLast" in registry)
         assertTrue("is BhutasamkhyaPada -> terms.joinToString" in registry)
-        assertTrue("is SubantaPada -> pratipadika.semanticKey()" in registry)
+        assertTrue("is SubantaPada -> pratipadika.referenceKey()" in registry)
         assertFalse("is SubantaPada -> pratipadika.sourceText" in registry)
         assertFalse("stripSupSuffix" in registry)
         assertTrue("arguments: List<PrakriyaArgument>" in registry)
@@ -450,8 +475,8 @@ class GrammaticalRegexArchitectureTest {
         assertFalse("setOf(\"सत्य\", \"असत्य\")" in leafPlanner)
         assertTrue("nominalTruthValue(pada.pratipadika)" in leafPlanner)
         assertFalse("it.sup.text in setOf" in leafPlanner)
-        assertTrue("pada.vibhakti() == Vibhakti.DVITIYA" in leafPlanner)
-        assertTrue("isCopularOrderParticipant(parsedUkti, pada)" in leafPlanner)
-        assertTrue("it.vibhakti() == Vibhakti.TRTIYA" in leafPlanner)
+        assertTrue("pada.sup.supports(Vibhakti.DVITIYA)" in leafPlanner)
+        assertTrue("isCopularReferenceParticipant(parsedUkti, pada)" in leafPlanner)
+        assertTrue("it.sup.supports(Vibhakti.TRTIYA)" in leafPlanner)
     }
 }

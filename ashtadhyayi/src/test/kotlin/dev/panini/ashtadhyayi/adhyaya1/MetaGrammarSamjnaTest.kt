@@ -8,6 +8,11 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.TarapTamapGhahSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.core.ItMarker
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.VarnaReference
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toVarnas
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -28,8 +33,8 @@ class MetaGrammarSamjnaTest {
 
     @Test
     fun testAloAntyatPurvaUpadhaSutra() {
-        assertTrue(AloAntyatPurvaUpadhaSutra.matches("राम"))
-        assertEquals('ा', AloAntyatPurvaUpadhaSutra.apply("राम"))
+        assertTrue(AloAntyatPurvaUpadhaSutra.matches("राम".toVarnas()))
+        assertEquals(Vyanjana.MA, AloAntyatPurvaUpadhaSutra.apply("राम".toVarnas()))
     }
 
     @Test
@@ -40,8 +45,9 @@ class MetaGrammarSamjnaTest {
 
     @Test
     fun testAnuditSavarnasyaCapratyayahSutra() {
-        assertTrue(AnuditSavarnasyaCapratyayahSutra.matches("कु"))
-        assertTrue(AnuditSavarnasyaCapratyayahSutra.matches("अ"))
-        assertTrue(AnuditSavarnasyaCapratyayahSutra.apply("कु"))
+        val ku = VarnaReference(Vyanjana.KA, itMarkers = setOf(ItMarker.U))
+        assertTrue(AnuditSavarnasyaCapratyayahSutra.matches(ku))
+        assertTrue(AnuditSavarnasyaCapratyayahSutra.matches(VarnaReference(Svara.A)))
+        assertTrue(AnuditSavarnasyaCapratyayahSutra.apply(ku))
     }
 }

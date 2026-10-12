@@ -43,7 +43,7 @@ object TasastyorLopahSutra : Sutra<DerivationState, DerivationChange>(
         val tasiTerm = context.terms[tasiIndex]
 
         return DerivationChange(
-            state = context.substituteTermVarnas(tasiTerm.id, tasiTerm.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra),
+            state = context.deleteTermVarnas(tasiTerm.id, tasiTerm.varnas.lastIndex, 1, sutra),
             explanation = "7.4.50 deletes the final 's' of 'tās' before an s/r-initial suffix."
         )
     }

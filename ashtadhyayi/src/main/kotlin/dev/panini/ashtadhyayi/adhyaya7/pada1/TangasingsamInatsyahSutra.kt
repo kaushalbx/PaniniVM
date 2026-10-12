@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -43,10 +45,10 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
         // 1. Stem must end in 'a'
         if (stem.varnas.lastOrNull() !in setOf(Svara.A, Svara.AA)) return false
 
-        if (affix.surface in setOf("स्मात्", "स्मिन्", "स्मै")) return false
+        if (affix.varnas in SupSubstitutionVarnas.pronounEndings) return false
 
         val replacement = YathasamkhyamSutra.map(affix.upadesha, sources, targets) ?: return false
-        return affix.surface != replacement
+        return affix.varnas != replacement
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -59,10 +61,15 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = newState,
-            explanation = "7.1.12: Substituted $replacement for ${affix.upadesha} after a-stem (Yathāsaṃkhyam)."
+            explanation = "7.1.12: Substituted ${YathasamkhyamSutra.map(affix.upadesha, sources, targetLabels)} for ${affix.upadesha} after a-stem (Yathāsaṃkhyam)."
         )
     }
 
     private val sources = listOf("टा", "ङसि", "ङस्")
-    private val targets = listOf("इन", "आत्", "स्य")
+    private val targets: List<List<Varna>> = listOf(
+        listOf(Svara.I, Vyanjana.NA, Svara.A),
+        listOf(Svara.AA, Vyanjana.TA),
+        listOf(Vyanjana.SA, Vyanjana.YA, Svara.A),
+    )
+    private val targetLabels = listOf("इन", "आत्", "स्य")
 }

@@ -40,7 +40,7 @@ object SankhyayaAvayaveTayapSutra : Sutra<DerivationState, DerivationChange>(
         val hasAvayavaRequest = context.samjnas.any { it.samjna == Samjna.AVAYAVA || it.samjna == Samjna.TADDHITA }
         if (!hasAvayavaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isAlreadyApplied = context.terms.any { it.upadesha == "तयप्" || it.surface == "तय" }
+        val isAlreadyApplied = context.terms.any { it.upadesha == "तयप्" || it.varnas == PortionAffixVarnas.taya }
         return !isAlreadyApplied && SankhyaResolver.isSankhya(lastTerm.upadesha, context.samjnas.map { it.samjna }.toSet())
     }
 

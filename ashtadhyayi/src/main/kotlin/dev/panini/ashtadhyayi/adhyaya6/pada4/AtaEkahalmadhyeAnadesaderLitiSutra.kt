@@ -24,16 +24,15 @@ object AtaEkahalmadhyeAnadesaderLitiSutra : Sutra<DerivationState, DerivationCha
         if (context.effectiveContext.rupa.lakara != Lakara.LIT) return false
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
-        return abhyasa.surface == "ल" && dhatu.upadesha == "डुलभँष्" && dhatu.surface == "लभ्"
+        return abhyasa.varnas == listOf(Vyanjana.LA, Svara.A) && dhatu.upadesha == "डुलभँष्" &&
+            dhatu.varnas == listOf(Vyanjana.LA, Svara.A, Vyanjana.BHA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         return DerivationChange(
             context.removeTerm("abhyasa", sutra = sutra)
-                .substituteTermVarnas(
-                    dhatu.id, listOf(Vyanjana.LA, Svara.E, Vyanjana.BHA), Svara.A, listOf(Svara.E), sutra,
-                ),
+                .replaceTermVarna(dhatu.id, 1, listOf(Svara.E), sutra),
             "6.4.120 deletes the abhyāsa and changes the root vowel अ to ए in the weak perfect stem लेभ्.",
         )
     }

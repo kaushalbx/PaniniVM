@@ -7,6 +7,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitQuotation(node: Quotation): R
     fun visitRepeat(node: Repeat): R
     fun visitWhileLoop(node: WhileLoop): R
+    fun visitForEach(node: ForEach): R
     fun visitPipeline(node: Pipeline): R
     fun visitPrakriya(node: Prakriya): R
     fun visitScope(node: Scope): R
@@ -19,6 +20,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Quotation -> visitor.visitQuotation(this)
     is Repeat -> visitor.visitRepeat(this)
     is WhileLoop -> visitor.visitWhileLoop(this)
+    is ForEach -> visitor.visitForEach(this)
     is Pipeline -> visitor.visitPipeline(this)
     is Prakriya -> visitor.visitPrakriya(this)
     is Scope -> visitor.visitScope(this)
@@ -33,17 +35,23 @@ fun ProgramNode.children(): List<ProgramNode> = accept(ProgramNodeChildren)
  * When [expandRepeats] is true, a repeat body is visited once per iteration.
  * Conditional alternatives remain structural alternatives; choosing a branch
  * is an execution concern rather than an AST traversal concern.
+ * [includeLoopConditions] includes tests for grammatical analysis. The default
+ * binding projection leaves tests to the loop orchestrator, as before.
  */
-fun ProgramNode.depthFirst(expandRepeats: Boolean = false): kotlin.sequences.Sequence<ProgramNode> = sequence {
+fun ProgramNode.depthFirst(
+    expandRepeats: Boolean = false,
+    includeLoopConditions: Boolean = false,
+): kotlin.sequences.Sequence<ProgramNode> = sequence {
     yield(this@depthFirst)
-    val structuralChildren = children()
+    val structuralChildren = if (includeLoopConditions && this@depthFirst is WhileLoop)
+        listOf(condition) + children() else children()
     if (expandRepeats && this@depthFirst is Repeat) {
         repeat(count) {
-            yieldAll(body.depthFirst(expandRepeats = true))
+            yieldAll(body.depthFirst(expandRepeats = true, includeLoopConditions = includeLoopConditions))
         }
     } else {
         structuralChildren.forEach { child ->
-            yieldAll(child.depthFirst(expandRepeats))
+            yieldAll(child.depthFirst(expandRepeats, includeLoopConditions))
         }
     }
 }
@@ -55,6 +63,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
         listOfNotNull(node.condition, node.consequent, node.alternate)
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
+    override fun visitForEach(node: ForEach): List<ProgramNode> = listOf(node.body)
     override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> =
         listOfNotNull(node.body, node.exhausted, node.resultTarget)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
@@ -81,6 +90,8 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
 
     override fun visitRepeat(node: Repeat): ProgramNode =
         node.copy(body = transform(node.body))
+
+    override fun visitForEach(node: ForEach): ProgramNode = node.copy(body = transform(node.body))
 
     override fun visitWhileLoop(node: WhileLoop): ProgramNode =
         node.copy(

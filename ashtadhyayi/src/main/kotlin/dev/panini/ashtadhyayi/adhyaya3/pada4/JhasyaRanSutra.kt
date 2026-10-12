@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -30,13 +32,13 @@ object JhasyaRanSutra : Sutra<DerivationState, DerivationChange>(
         return context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.stage != DerivationStage.INITIAL &&
             ending.matchesUpadesha("झ") &&
-            ending.surface != "रन्"
+            ending.varnas != listOf(Vyanjana.RA, Svara.A, Vyanjana.NA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, "रन्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(ending.id, listOf(Vyanjana.RA, Svara.A, Vyanjana.NA), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.105 replaces Ātmanepada झ with रन् in liṅ.",
         )
     }

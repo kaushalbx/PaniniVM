@@ -6,7 +6,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.pratyahara.Pratyahara
+import dev.panini.derivation.matchesAffix
+import dev.panini.core.TingAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.OrthographicSign
 import dev.panini.shiksha.OrthographicSignPlacement
@@ -48,7 +49,7 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
                 Lakara.LUNG,
                 Lakara.LING,
             ) &&
-            right.matchesUpadesha("मिप्") && "3.4.101" in context.appliedSutras
+            right.matchesAffix(TingAffix.MIP) && "3.4.101" in context.appliedSutras
         ) return false
 
         // 1. Left term must be a 'pada' (per 1.4.14)
@@ -69,14 +70,12 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val right = terms.last()
 
         // Pūrvarūpa: the first vowel stays, the second disappears (represented by avagraha in modern script)
-        val newVarnas = right.varnas.drop(1)
-        val signs = right.orthographicSigns.map {
-            it.copy(afterVarnaCount = (it.afterVarnaCount - 1).coerceAtLeast(0))
-        } + OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 0)
+        val deleted = context.deleteTermVarnas(right.id, 0, 1, sutra)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(right.id, newVarnas, signs, Svara.A, emptyList(), sutra)
-                .copy(stage = DerivationStage.FINAL),
+            state = deleted.addTermOrthographicSign(
+                right.id, OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 0),
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.109: Pūrvarūpa substitution for final ${left.varnas.last().devanagari} + अ."
         )
     }

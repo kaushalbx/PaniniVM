@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -8,6 +10,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
@@ -52,17 +56,20 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
         if (stem.varnas.lastOrNull() !in setOf(Svara.I, Svara.U)) return false
 
         // 2. Affix must be 'jas' (upadesha) and not already substituted by shi
-        return affix.upadesha == "जस्" && affix.surface in setOf("जस्", "अस्", "स")
+        return affix.hasCurrentAffix(SupAffix.JAS) && affix.varnas in setOf(
+            listOf<Varna>(Vyanjana.JA, Svara.A, Vyanjana.SA),
+            listOf<Varna>(Svara.A, Vyanjana.SA),
+            listOf<Varna>(Vyanjana.SA, Svara.A),
+        )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val source = stem.varnas.last() as Svara
         val replacement = requireNotNull(Varnamala.getGuna(source))
-        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.109: Applied guna (${replacement.toDevanagari()}) to 'ghi' stem before 'jas'."
         )

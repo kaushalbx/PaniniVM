@@ -29,6 +29,8 @@ data class SamasaPada(
     val krtAffix: KrtAffix? = null,
     /** The affixes licensed together by the prescription establishing this member as upapada. */
     val upapadaAffixPrescription: UpapadaAffixPrescription? = null,
+    /** Base explicitly qualified by nañ; not inferred from an initial अ/अन or surface spelling. */
+    val nanjBase: SamasaPada? = null,
 ) {
     val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
 }
@@ -163,6 +165,10 @@ enum class SamasaSemanticRelation {
     OBJECT_RELATION,
     /** The genitive member is construed as the agent of a derivative. */
     AGENT_RELATION,
+    /** The compound names a sport/play activity, as required by 2.2.17. */
+    SPORT_OR_PLAY,
+    /** The compound names the activity by which someone earns a livelihood (2.2.17). */
+    LIVELIHOOD,
 }
 
 /**

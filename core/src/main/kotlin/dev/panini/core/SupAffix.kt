@@ -24,7 +24,7 @@ enum class SupAffix(
     NGE(Vibhakti.CHATURTHI, Vacana.EKAVACANA, "ङे"),
     BHYAM_4(Vibhakti.CHATURTHI, Vacana.DVIVACANA, "भ्याम्"),
     BHYAS_4(Vibhakti.CHATURTHI, Vacana.BAHUVACANA, "भ्यस्"),
-    NGASI(Vibhakti.PANCHAMI, Vacana.EKAVACANA, "ङसि", itMarkers = setOf(ItMarker.U)),
+    NGASI(Vibhakti.PANCHAMI, Vacana.EKAVACANA, "ङसि", initialSurface = "ङसिँ", itMarkers = setOf(ItMarker.U)),
     BHYAM_5(Vibhakti.PANCHAMI, Vacana.DVIVACANA, "भ्याम्"),
     BHYAS_5(Vibhakti.PANCHAMI, Vacana.BAHUVACANA, "भ्यस्"),
     NGAS(Vibhakti.SASTHI, Vacana.EKAVACANA, "ङस्"),

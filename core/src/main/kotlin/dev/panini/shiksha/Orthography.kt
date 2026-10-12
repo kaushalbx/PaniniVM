@@ -6,35 +6,29 @@ enum class OrthographicSign(val devanagari: String) {
     CHANDRABINDU("ँ"),
 }
 
-/** Exact written span of a vowel followed by candrabindu in an upadeśa. */
-data class NasalizedVowelOrthographicSpan(
-    val start: Int,
-    val endExclusive: Int,
-    val dependentVowelSign: Boolean,
-    val text: String,
-)
-
-/** Parses non-phonological written boundaries needed to retain exact इत् provenance. */
-fun String.nasalizedVowelOrthographicSpans(): List<NasalizedVowelOrthographicSpan> =
-    indices.filter { this[it] == OrthographicSign.CHANDRABINDU.devanagari.single() }.mapNotNull { signIndex ->
-        val vowelIndex = signIndex - 1
-        if (vowelIndex < 0) return@mapNotNull null
-        val dependent = Svara.entries.any { it.matra == this[vowelIndex].toString() }
-        val independent = Svara.fromIndependent(this[vowelIndex]) != null
-        if (!dependent && !independent) return@mapNotNull null
-        NasalizedVowelOrthographicSpan(
-            start = vowelIndex,
-            endExclusive = signIndex + 1,
-            dependentVowelSign = dependent,
-            text = substring(vowelIndex, signIndex + 1),
-        )
-    }
-
 /** Places [sign] after [afterVarnaCount] phonological tokens. */
 data class OrthographicSignPlacement(
     val sign: OrthographicSign,
     val afterVarnaCount: Int,
 )
+
+/** Renders annotated tokens and explicit signs without duplicating token nasalization. */
+fun SanskritText.renderWithOrthographicSigns(placements: List<OrthographicSignPlacement>): String {
+    val tokens = effectiveVarnas
+    require(placements.all { it.afterVarnaCount in 0..tokens.size })
+    val signs = placements.filterNot {
+        it.sign == OrthographicSign.CHANDRABINDU && tokens.getOrNull(it.afterVarnaCount - 1)?.nasalized == true
+    }.sortedBy { it.afterVarnaCount }
+    return buildString {
+        var start = 0
+        signs.groupBy { it.afterVarnaCount }.forEach { (boundary, group) ->
+            append(SanskritText(tokens.subList(start, boundary)).render())
+            group.forEach { append(it.sign.devanagari) }
+            start = boundary
+        }
+        append(SanskritText(tokens.subList(start, tokens.size)).render())
+    }
+}
 
 fun List<Varna>.toDevanagari(placements: List<OrthographicSignPlacement>): String {
     if (placements.isEmpty()) return toDevanagari()
@@ -56,18 +50,4 @@ fun List<Varna>.toDevanagari(placements: List<OrthographicSignPlacement>): Strin
         }
         append(subList(start, size).toDevanagari())
     }
-}
-
-/**
- * Canonicalizes a written boundary exposed after exact-span इत् lopa.
- * This belongs to the orthographic renderer; grammatical rules never inspect
- * the mātrā or virāma spellings represented here.
- */
-fun String.joinDevanagariVowelBoundary(): String {
-    val vowelSigns = linkedMapOf(
-        "्अ" to "", "्आ" to "ा", "्इ" to "ि", "्ई" to "ी",
-        "्उ" to "ु", "्ऊ" to "ू", "्ऋ" to "ृ", "्ॠ" to "ॄ",
-        "्ऌ" to "ॢ", "्ए" to "े", "्ऐ" to "ै", "्ओ" to "ो", "्औ" to "ौ",
-    )
-    return vowelSigns.entries.fold(this) { value, (boundary, sign) -> value.replace(boundary, sign) }
 }

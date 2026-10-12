@@ -38,9 +38,8 @@ object TiVimshaterDitiSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val base = context.terms[context.terms.lastIndex - 1]
-        val result = base.varnas.dropLast(2)
         return DerivationChange(
-            context.substituteTermVarnas(base.id, result, Vyanjana.TA, emptyList(), sutra),
+            context.deleteTermVarnas(base.id, base.varnas.size - 2, 2, sutra),
             "$text deletes final ti from ${base.surface}.",
         )
     }

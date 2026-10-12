@@ -115,5 +115,6 @@ class AdyantauTakitauSutraTest {
         marker = ItMarker.GENERIC,
         sutra = "1.3.3",
         designatedText = text,
+        varnaIndices = setOf(if (start == 2) 2 else 1),
     )
 }

@@ -6,6 +6,7 @@ import dev.panini.core.PadaType
 import dev.panini.core.Prayoga
 import dev.panini.core.Purusha
 import dev.panini.core.Vacana
+import dev.panini.core.SanadiAffix
 import dev.panini.dhatupatha.Dhatu
 
 data class TingantaDerivationRequest(
@@ -20,6 +21,9 @@ data class TingantaDerivationRequest(
     val sanadiPratyayas: List<String> = emptyList(),
     val gana: dev.panini.core.DhatuGana? = null,
 ) {
+    /** Typed input order, retaining unknown entries until validation diagnoses them. */
+    val sanadiAffixes: List<SanadiAffix?> get() = sanadiPratyayas.map(SanadiAffix::fromUpadesha)
+
     fun initialState(): DerivationState = initialState(
         DerivationTerm("dhatu", dhatu, TermKind.DHATU),
     )
@@ -30,16 +34,17 @@ data class TingantaDerivationRequest(
     )
 
     private fun initialState(dhatuTerm: DerivationTerm): DerivationState {
-        require(sanadiPratyayas.all { SanadiAffixes.contains(it) && it in setOf("णिच्", "सन्", "यङ्") }) {
+        val affixes = sanadiAffixes
+        require(affixes.all { it in setOf(SanadiAffix.NIC, SanadiAffix.SAN, SanadiAffix.YANG) }) {
             "Unsupported sanādi pratyaya: ${sanadiPratyayas.joinToString()}"
         }
-        require(sanadiPratyayas.distinct().size == sanadiPratyayas.size) {
+        require(affixes.distinct().size == affixes.size) {
             "A sanādi affix may be introduced only once in one tiṅanta request."
         }
         return DerivationState(
         listOf(dhatuTerm),
         context = DerivationalContext(
-            requestedSanadi = sanadiPratyayas.toSet(),
+            requestedSanadi = affixes.map { requireNotNull(it).upadesha }.toSet(),
             kala = when (lakara) {
                 Lakara.LRT, Lakara.LRNG, Lakara.LUT -> Kala.BHAVISYAT
                 Lakara.LANG, Lakara.LIT, Lakara.LUNG -> Kala.BHUTA

@@ -12,7 +12,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.Vyanjana
 
 /** 3.4.95: आत ऐ. The आ of the two dual Ātmanepada endings becomes ऐ in LET. */
 object AtaAiSutra : Sutra<DerivationState, DerivationChange>(
@@ -23,18 +23,16 @@ object AtaAiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
-            ending.matchesAnyAffix(TingAffix.ATAM, TingAffix.ATHAM) && ending.surface in setOf("आते", "आथे")
+            ending.matchesAnyAffix(TingAffix.ATAM, TingAffix.ATHAM) && ending.varnas in setOf(
+                listOf(Svara.AA, Vyanjana.TA, Svara.E),
+                listOf(Svara.AA, Vyanjana.THA, Svara.E),
+            )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(
-                ending.id,
-                ending.varnas.replaceVarna(0, listOf(Svara.AI)),
-                sutra,
-                dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
-            ),
+            context.replaceTermVarna(ending.id, 0, listOf(Svara.AI), sutra),
             "3.4.95 replaces the initial आ of the dual Ātmanepada ending with ऐ.",
         )
     }

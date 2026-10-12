@@ -7,6 +7,8 @@ import dev.panini.actions.state.VariableAssignAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
+import dev.panini.core.SanadiAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
@@ -31,20 +33,21 @@ class SthaDhatu : Dhatu(
     svara = UDATTA,
     operations = listOf(
         LoopBreakAction.op {
+            signals(dev.panini.execution.ExecutionControlSignal.BREAK_LOOP)
             optional(Karaka.KARTR)
-            triggeredBy(requiredUpasargas = setOf("वि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SHABDA)
         },
         VariableAssignAction.op {
             requires(Karaka.KARMAN)
             requires(Karaka.ADHIKARANA)
-            triggeredBy(requiredSanadi = setOf("णिच्"))
+            triggeredBy(requiredSanadiIdentities = setOf(SanadiAffix.NIC))
             bindsResultTo(Karaka.ADHIKARANA)
             returns(Samjna.SHABDA, Samjna.SANKHYA)
         },
         StateWaitAction.op {
             requires(Karaka.KARMAN)
-            triggeredBy(forbiddenUpasargas = setOf("वि"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SHABDA)
         },
         ListIndexAction.op {

@@ -97,7 +97,7 @@ class PvmCompletionContributor : CompletionContributor() {
 
         private val krtAffixes = listOf(
             Triple("क्त", "कृत्-प्रत्ययः", "Past passive participle (निष्ठा)"),
-            Triple("क्तवतु", "कृत्-प्रत्ययः", "Past active participle (निष्ठा)"),
+            Triple("क्तवतुँ", "कृत्-प्रत्ययः", "Past active participle (निष्ठा)"),
             Triple("तव्यत्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
             Triple("अनीयर्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
             Triple("यत्", "कृत्-प्रत्ययः", "Potential participle (कृत्य)"),
@@ -107,7 +107,7 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("शानच्", "कृत्-प्रत्ययः", "Present active participle (आत्मनेपद)"),
             Triple("क्त्वा", "कृत्-प्रत्ययः", "Gerund / Absolutive suffix (-त्वा)"),
             Triple("ल्याप्", "कृत्-प्रत्ययः", "Prefixal gerund suffix (-य)"),
-            Triple("तुमुन्", "कृत्-प्रत्ययः", "Infinitive suffix (-तुम्)"),
+            Triple("तुमुँन्", "कृत्-प्रत्ययः", "Infinitive suffix (-तुम्)"),
             Triple("घञ्", "कृत्-प्रत्ययः", "Action / Abstract noun suffix")
         )
 

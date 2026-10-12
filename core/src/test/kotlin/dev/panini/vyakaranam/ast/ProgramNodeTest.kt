@@ -8,6 +8,19 @@ class ProgramNodeTest {
     private val vakya = NamaVakya("राम + सुँ", emptyList())
 
     @Test
+    fun `grammatical loop traversal includes test without adding it to binding projection`() {
+        val condition = Invocation(NamaVakya("condition", emptyList()))
+        val body = Invocation(NamaVakya("body", emptyList()))
+        val exhausted = Invocation(NamaVakya("exhausted", emptyList()))
+        val target = Invocation(NamaVakya("target", emptyList()))
+        val loop = WhileLoop("", condition, body, exhausted = exhausted, resultTarget = target)
+        assertEquals(listOf(condition, body, exhausted, target), loop.grammaticalInvocations())
+        assertEquals(listOf(body, exhausted, target), loop.expandedInvocations())
+        assertEquals(listOf(condition.vakya, body.vakya, exhausted.vakya, target.vakya),
+            Ukti("", body = loop).grammaticalVakyas())
+    }
+
+    @Test
     fun `repeat preserves structural leaves and expands execution order`() {
         val repeat = Repeat("त्रिः राम + सुँ", 3, Invocation(vakya))
 
@@ -16,10 +29,13 @@ class ProgramNodeTest {
     }
 
     @Test
-    fun `repeat count must be positive`() {
+    fun `repeat count must be nonnegative`() {
         assertFailsWith<IllegalArgumentException> {
-            Repeat("", 0, Invocation(vakya))
+            Repeat("", -1, Invocation(vakya))
         }
+        val zero = Repeat("", 0, Invocation(vakya))
+        assertEquals(1, zero.invocations().size)
+        assertEquals(0, zero.expandedInvocations().size)
     }
 
     @Test

@@ -3,17 +3,23 @@
 # Step 1: Scope declaration
 गणितः इति अधिकारः ।
 
-# Step 2: Define Kriyā 1 (Multiplication: 5 * 2 = 10)
+# Step 2: Declare two numeric participants and add them (5 + 2 = 7).
 गणितस्य गणनम् इति प्रक्रिया अस्ति ।
-पञ्च द्वे च योजय ॥
+वामः सङ्ख्या इति मानम् ।
+दक्षिणः सङ्ख्या इति मानम् ।
+सङ्ख्या इति परिणामः ।
+वामं दक्षिणं च योजय ॥
 
-# Step 3: Define Kriyā 2 (Subtraction: 10 - 2 = 8)
+# Step 3: Subtract the second participant from the preceding result (7 - 2 = 5).
 गणितस्य वियोजनम् इति प्रक्रिया अस्ति ।
-दश द्वे च वियोजय ॥
+वामः सङ्ख्या इति मानम् ।
+दक्षिणः सङ्ख्या इति मानम् ।
+सङ्ख्या इति परिणामः ।
+वामं दक्षिणं च वियोजय ॥
 
 # Step 4: Execute the procedures sequentially; instrumental case marks each means.
-# Stage 1: गणनम् (5 * 2 = 10)
-# Stage 2: वियोजनम् (10 - 2 = 8)
+# Stage 1: गणनम् (5 + 2 = 7)
+# Stage 2: वियोजनम् (7 - 2 = 5)
 पञ्च द्वे च गणितस्य गणनेन ततः गणितस्य वियोजनेन कुरु ।
 
 # Step 5: Print result

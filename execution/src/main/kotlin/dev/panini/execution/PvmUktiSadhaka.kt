@@ -33,6 +33,8 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sankhya.SankhyaVacana
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.lexicalGanaConstraint
+import dev.panini.vyakaranam.ast.hasContradictoryActiveCausativeVikarana
 import dev.panini.vyakaranam.ast.AvyayaKridantaDerivation
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -68,6 +70,7 @@ import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SequenceConnector
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -228,6 +231,8 @@ class PvmUktiSadhaka(
         override fun visitQuotation(node: Quotation): String =
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
+        override fun visitForEach(node: ForEach): String =
+            "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
             if (node.maximumIterationStems.isNotEmpty() && node.maximumBoundaryPadas.isEmpty()) {
                 val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value
@@ -580,13 +585,14 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
+        if (tinganta.hasContradictoryActiveCausativeVikarana()) return tinganta.sourceText
         tinganta.priorAction?.let { derivation ->
             val source = (derivation.upasargas + derivation.dhatu.sourceText + derivation.pratyaya)
                 .joinToString(" + ")
             return sadhayaPada(AvyayaPada(source, source, derivation))
         }
         val rawDhatu = tinganta.dhatu.mulaDhatu
-        val explicitGana = tinganta.vikarana?.gana
+        val explicitGana = tinganta.lexicalGanaConstraint()
         val matchingDhatus = DhatuPatha.all.filter { candidate ->
             sameDhatuSurface(candidate.upadesha, rawDhatu) ||
                 sameDhatuSurface(candidate.derivationalSurface, rawDhatu) ||

@@ -1,21 +1,51 @@
 package dev.panini.derivation
 
 import dev.panini.core.ItMarker
+import dev.panini.shiksha.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class WholeAffixReplacementTest {
+    @Test fun `varna mapped whole affix preserves survivor features signs and exact it span`() {
+        val original = DerivationTerm("affix", "फिँक्ऽ", TermKind.PRATYAYA, upadesha = "फिक्", createdBySutra = "fixture")
+        val designation = original.designateVarnaIt(2, ItMarker.KIT, "1.3.3")
+        val designated = original.copy(itDesignations = listOf(designation), itProcessingPhase = ItProcessingPhase.DESIGNATED)
+        val result = designated.replaceWholeAffixWithVarnaMapping(
+            listOf(Svara.AA, Vyanjana.YA, Svara.A, Svara.I, Vyanjana.KA),
+            mapOf(1 to 3, 2 to 4), emptySet(), "test",
+        )
+        assertEquals(listOf(Svara.AA, Vyanjana.YA, Svara.A, Svara.I, Vyanjana.KA), result.varnas)
+        assertEquals(true, result.phonologicalText.effectiveVarnas[3].nasalized)
+        assertEquals(listOf(OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 5)), result.orthographicSigns)
+        val remapped = result.itDesignations.single()
+        assertEquals(setOf(4), remapped.varnaIndices)
+        assertEquals("क्", remapped.designatedText)
+        assertEquals("क्", result.orthographicDesignationText(remapped.start, remapped.endExclusive))
+        assertEquals(original.id, result.id)
+        assertEquals(original.upadesha, result.upadesha)
+        assertEquals(original.createdBySutra, result.createdBySutra)
+    }
+
+    @Test fun `whole affix mapping rejects ambiguous and out of range survivors`() {
+        val original = DerivationTerm("affix", "अइ", TermKind.PRATYAYA)
+        for (mapping in listOf(mapOf(0 to 0, 1 to 0), mapOf(2 to 0), mapOf(0 to 2), mapOf(0 to 1, 1 to 0))) {
+            assertFailsWith<IllegalArgumentException> {
+                original.replaceWholeAffixWithVarnaMapping(listOf(Svara.A, Svara.I), mapping, emptySet(), "test")
+            }
+        }
+    }
+
     private val designated = DerivationTerm(
         id = "affix", surface = "अप्", kind = TermKind.PRATYAYA, upadesha = "अप्",
         itMarkers = setOf(ItMarker.P), itProcessingPhase = ItProcessingPhase.DESIGNATED,
-        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्")),
+        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्", varnaIndices = setOf(1))),
     )
 
     @Test fun `preserve policy remaps the exact surviving segment`() {
         val result = designated.replaceWholeAffix(
             "इप्", "इप्", "x", WholeAffixDesignationPolicy.PreserveAndRemap(
-                listOf(ItDesignationRemap(1, 3, 1, 3)),
+                listOf(ItDesignationRemap(1, 3, 1, 3, setOf(1))),
             ),
         )
         assertEquals("प्", result.itDesignations.single().designatedText)
@@ -41,8 +71,8 @@ class WholeAffixReplacementTest {
             surface = "फक्",
             upadesha = "फक्",
             itDesignations = listOf(
-                ItDesignation(0, 1, marker = ItMarker.T, sutra = "1.3.7", designatedText = "फ"),
-                ItDesignation(1, 3, marker = ItMarker.KIT, sutra = "1.3.3", designatedText = "क्"),
+                ItDesignation(0, 1, marker = ItMarker.T, sutra = "1.3.7", designatedText = "फ", varnaIndices = setOf(0)),
+                ItDesignation(1, 3, marker = ItMarker.KIT, sutra = "1.3.3", designatedText = "क्", varnaIndices = setOf(2)),
             ),
         )
         val result = term.replaceWholeAffix(
@@ -50,7 +80,7 @@ class WholeAffixReplacementTest {
             "फक्",
             "7.1.2",
             WholeAffixDesignationPolicy.PreserveAndRemap(
-                remaps = listOf(ItDesignationRemap(1, 3, 4, 6)),
+                remaps = listOf(ItDesignationRemap(1, 3, 4, 6, setOf(4))),
                 consumed = listOf(ItDesignationConsumption(0, 1)),
             ),
         )

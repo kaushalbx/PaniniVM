@@ -67,6 +67,54 @@ boundary instead.
 
 ## Architecture
 
+Named action-result references (`युज् + ल्युट् + ङस् फल + अम्`) lower to
+explicit history loads and per-occurrence operand slots, not substitutions of
+`LastResult`. Single and multiple references support arithmetic, procedure
+arguments, conditions, and loop predicates. Ordering qualifiers retain their
+case agreement; chronological ordinals remain fixed while latest references
+reload when a loop condition is evaluated. Unselected branches do not load
+history, and missing reached antecedents fail explicitly.
+
+Kāraka-history queries such as `युज् + ल्युट् + ङस् कर्मन् + अम्` are a
+different feature: compiled display and assignment preserve remembered
+participants and their order. Assignment expands explicit history-group wrappers,
+packs several participants into a Suchi, and retains a single collection-valued
+participant as that collection. The assignment's own history records the original
+expanded inputs, not its packed result. Numeric-fold actions also consume
+explicitly expanded history groups through numeric-fold IR, without flattening
+collection-valued participants. Their operator and minimum operand count come
+from the resolved action contract. Subtraction/division retain coordinated input
+order; this does not introduce general ablative/instrumental arithmetic lowering.
+Other non-display participant-history
+operations still need valency-aware IR lowering. These references are not general
+सर्वनाम resolution.
+
+Bare accusative history groups for numeric/counting verbs use `CallParticipantGroup`
+IR: canonical verb features and the group survive until the shared operation
+resolver sees actual runtime participants. This preserves गण's multiplication
+versus counting distinction, records successful action inputs, and does not
+reparse source or re-enter the interpreter. It is an action-runtime boundary;
+other verb families and general kāraka roles remain pending.
+Mixed-history expressions also use this boundary when numeric placeholders cannot
+prove a unique verb meaning. Group packing preserves actual collection-valued
+participants, and resolved agent bindings are retained in completed action history.
+Coordinated groups and explicit destinations share this path. The selected
+operation's result-binding contract controls destination writes through the
+scope-aware runtime, after successful execution and input-history capture.
+Ordinary named operands use the same deferred selection when payload types are
+unknown; proven numeric AST literals retain primitive lowering. Boundary reports
+include these calls as `dynamic:<canonical dhātu>` rather than omitting them.
+Typed operands retain explicit reference identity: value lowering reads a current
+binding when available and otherwise uses the captured fallback. Literal text
+without a reference identity never becomes a collection/position reference merely
+because a variable has the same spelling.
+Generic-call expression serialization preserves these referents, explicit Pada
+annotations, and collection-member selections rather than reconstructing meaning
+from value spellings or dropping grammatical metadata.
+Ordinary Pada literals are not implicitly rebound by their spelling. Copular
+planning retains subject/standard reference identity and nominal fallbacks
+explicitly, so generic equality calls do not need runtime name guessing.
+
 - **`BytecodeCompiler`** is the public API for compiling single-source programs
   or source-file modules, loading generated classes, and writing `.class` files.
 - **`PaniniModuleDescriptor`** defines source membership, entry points, and
@@ -130,6 +178,10 @@ Without a descriptor, all `.pvm` files below the source directory are members;
 files named `*mukhya*` are entry points when present, otherwise non-`*_lib`
 files are entry points. Compilation emits `<Module>Program.class` and
 `<module>.pvmmeta`.
+
+Metadata format 2 preserves procedure precedence across separately compiled
+libraries. Regenerate format-1 metadata with the current compiler; it is rejected
+because it cannot represent this dispatch contract.
 
 `BytecodeCompiler.compileModule` accepts an in-memory descriptor, while
 `compileModuleDirectory` performs descriptor discovery and writes both artifact

@@ -19,6 +19,481 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
+    @Test fun `explicit display object is not duplicated by a preceding sequence result`() {
+        val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ततः नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals("नवन्", (interpreted.last() as ExecutionResult.Success).value)
+        assertEquals("नवन्", compileAndInspect(source, "CompiledExplicitSequenceDisplay")
+            .values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test fun `pronoun assignment remains live across action connectors`() {
+        for ((index, assignment) in listOf("दा + क्त्वा", "दा + लोट् + सिप् ततः").withIndex()) {
+            val source = """
+                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+                द्वि + अम् तद् + ङे $assignment तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+                नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+            """.trimIndent()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+            assertEquals("द्वि", (interpreted.last() as ExecutionResult.Success).value)
+            assertEquals("द्वि", compileAndInspect(source, "CompiledLivePronounChain$index")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test fun `prior action pronouns preserve explicit objects and omitted result display`() {
+        for ((index, objectPhrase) in listOf("", "तद् + अम्").withIndex()) {
+            val source = """
+                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सूची + सुँ इति मान + सुँ ।
+                तद् + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा $objectPhrase मुद्र् + णिच् + लोट् + सिप् ॥
+                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+                सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
+            """.trimIndent()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+            val expected = (interpreted.last() as ExecutionResult.Success).value
+            if (index == 0) assertTrue(interpreted.filterIsInstance<ExecutionResult.Success>().any {
+                (it.typedValue as? SanskritValue.Sankhya)?.value == 6L
+            }, interpreted.toString())
+            else assertEquals("[एक, द्वि, त्रि]", expected)
+            assertEquals(expected, compileAndInspect(source, "CompiledPriorPronouns$index")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test fun `genitive pronoun preserves ordinal and final member selection`() {
+        for ((index, selector) in listOf("द्वि + तीय + अम्", "अन्तिम + अम्").withIndex()) {
+            val source = """
+                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सूची + सुँ इति मान + सुँ ।
+                तद् + ङस् $selector उद् + हृ + लोट् + सिप् ॥
+                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+                सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
+            """.trimIndent()
+            val expected = if (index == 0) 2L else 3L
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+            assertEquals(expected, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(expected, (compileAndInspect(source, "CompiledPronounMember$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test fun `coordinated pronouns remain two participants referencing one antecedent`() {
+        val source = """
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            तद् + अम् तद् + अम् च युज् + लोट् + सिप् ॥
+            नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(18L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Sankhya).value)
+        assertEquals(18L, (compileAndInspect(source, "CompiledCoordinatedPronouns")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test fun `pronoun values bind through named procedure slots`() {
+        val source = """
+            दर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ॥
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मूल्य + ङि तद् + अम् दर्शन + टा कृ + लोट् + सिप् ॥
+            नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(10L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Sankhya).value)
+        assertEquals(10L, (compileAndInspect(source, "CompiledNamedPronoun")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test fun `callee pronouns do not capture dynamic caller participants`() {
+        val source = """
+            दर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            द्वि + औट् दर्शन + टा कृ + लोट् + सिप् ॥
+            नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals("द्वि", (interpreted.last() as ExecutionResult.Success).value)
+        assertEquals("द्वि", compileAndInspect(source, "CompiledPronounBoundary")
+            .values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test fun `implicit branch pronoun returns its participant rather than literal text`() {
+        val source = """
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि तद् + सुँ अन्यथा द्वि + औ ॥
+            नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(9L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Sankhya).value)
+        assertEquals(9L, (compileAndInspect(source, "CompiledImplicitPronoun")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test fun `compiled pronouns reject missing and ambiguous participants`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerFrontend.lower("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।", "MissingPronoun")
+        }
+        val source = """
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            नवन् + शस् द्वि + औट् च परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val failure = assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(source, "AmbiguousPronoun") }
+        assertTrue(failure.message.orEmpty().contains("Ambiguous तद् antecedent"), failure.toString())
+    }
+
+    @Test fun `local pronouns preserve participant identity through assignment and predicates`() {
+        val source = """
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            यावत् तद् + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् तावत् द्वि + अम् तद् + ङे दा + लोट् + सिप् ।
+            यदि तद् + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् तर्हि तद् + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals("द्वि", compileAndInspect(source, "CompiledLocalPronouns")
+            .values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `procedure arguments read derived named values instead of their base bindings`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            निवेश + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            निवेश + अम् एक + अम् च युज् + लोट् + सिप् ॥
+            पञ्च + अम् मान + ङि स्था + णिच् + लोट् + सिप् ।
+            नवन् + अम् मान + त्व + ङि स्था + णिच् + लोट् + सिप् ।
+            मान + त्व + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(10L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+            as SanskritValue.Sankhya).value)
+        assertEquals(10L, (compileAndInspect(source, "CompiledDerivedNamedArgument")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `derived parameter names remain distinct through positional and named calls`() {
+        val procedure = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + त्व + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + अम् मान + त्व + अम् च वि + युज् + लोट् + सिप् ॥
+        """.trimIndent()
+        val calls = listOf("नवन् + अम् द्वि + अम् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।",
+            "मान + त्व + ङि द्वि + अम् मान + ङि नवन् + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
+        for ((index, call) in calls.withIndex()) {
+            val source = procedure + "\n" + call
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it !is ExecutionResult.Success }, interpreted.toString())
+            assertEquals(7L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+                as SanskritValue.Sankhya).value)
+            assertEquals(7L, (compileAndInspect(source, "CompiledDerivedParameter$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `truth field predicates do not read a same named outer state`() {
+        for ((index, case) in listOf("सत्य" to 5L, "असत्य" to 0L).withIndex()) {
+            val source = """
+                सत्य + अम् अवस्था + ङि स्था + णिच् + लोट् + सिप् ।
+                गुण + मतुप् + ङस् अवस्था + सुँ ${case.first} + सुँ असँ + लट् + तिप् ।
+                यदि गुण + मतुप् + ङस् अवस्था + सुँ असँ + लट् + तिप्
+                तर्हि द्वि + अम् त्रि + अम् च युज् + लोट् + सिप्
+                अन्यथा शून्य + अम् शून्य + अम् च युज् + लोट् + सिप् ।
+            """.trimIndent()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertTrue(interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue is SanskritValue.Sankhya,
+                interpreted.toString())
+            assertEquals(case.second, (interpreted.filterIsInstance<ExecutionResult.Success>()
+                .last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(case.second, (compileAndInspect(source, "CompiledTruthField$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+            val negated = source.replace("अवस्था + सुँ असँ", "अवस्था + सुँ न असँ")
+            val expectedNegated = if (case.second == 5L) 0L else 5L
+            assertEquals(expectedNegated, (PaniniVM().evalScript(negated)
+                .filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(expectedNegated, (compileAndInspect(negated, "CompiledNegatedTruthField$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+            val loop = source.substringBefore("यदि") + "द्वि + कृत्वसुच् यावत् गुण + मतुप् + ङस् अवस्था + सुँ असँ + लट् + तिप् " +
+                "तावत् द्वि + अम् त्रि + अम् च युज् + लोट् + सिप् ।"
+            val outcome = PaniniVM().evalScript(loop).filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Rupa
+            assertEquals(if (case.second == 5L) 2L else 0L,
+                (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+            assertEquals(outcome, compileAndInspect(loop, "CompiledTruthFieldLoop$index").values.getValue("परिणाम"))
+            val invalid = source.replace("अवस्था + सुँ ${case.first} + सुँ", "अवस्था + सुँ द्वि + सुँ")
+            assertTrue(PaniniVM().evalScript(invalid).last() is ExecutionResult.Failure)
+            assertFailsWith<InvocationTargetException> {
+                compileAndInspect(invalid, "CompiledInvalidTruthField$index")
+            }
+        }
+    }
+
+    @Test
+    fun `bounded field conditions preserve loop counts and reject missing references`() {
+        val declarations = """
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        fun program(standard: String) = declarations + "\nद्वि + कृत्वसुच् यावत् " +
+            "गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + सुँ $standard + टा सम + सुँ असँ + लट् + तिप् " +
+            "तावत् द्वि + अम् त्रि + अम् च युज् + लोट् + सिप् ।"
+        for ((index, case) in listOf("नवन्" to 2L, "अष्टन्" to 0L).withIndex()) {
+            val source = program(case.first)
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            val outcome = interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue as SanskritValue.Rupa
+            assertEquals(case.second, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+            assertEquals(outcome, compileAndInspect(source, "CompiledFieldLoop$index").values.getValue("परिणाम"))
+        }
+        val missing = program("नवन्").replace("मान + मतुप्", "अन्य + मतुप्")
+        assertTrue(PaniniVM().evalScript(missing).last() is ExecutionResult.Failure)
+        assertFailsWith<InvocationTargetException> { compileAndInspect(missing, "CompiledMissingLoopField") }
+    }
+
+    @Test
+    fun `embedded nested field comparisons select the same branch in both backends`() {
+        val declarations = """
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        for ((index, case) in listOf("नवन्" to 5L, "अष्टन्" to 0L).withIndex()) {
+            val source = declarations + "\nयदि गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + सुँ ${case.first} + टा सम + सुँ असँ + लट् + तिप् " +
+                "तर्हि द्वि + अम् त्रि + अम् च युज् + लोट् + सिप् अन्यथा शून्य + अम् शून्य + अम् च युज् + लोट् + सिप् ।"
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(case.second, (interpreted.filterIsInstance<ExecutionResult.Success>()
+                .last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(case.second, (compileAndInspect(source, "CompiledFieldCondition$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+        val lazyAlternate = declarations + "\nयदि गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् " +
+            "तर्हि द्वि + अम् त्रि + अम् च युज् + लोट् + सिप् " +
+            "अन्यथा यदि अनुपस्थित + मतुप् + ङस् मूल्य + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् " +
+            "तर्हि शून्य + अम् शून्य + अम् च युज् + लोट् + सिप् ।"
+        val interpreted = PaniniVM().evalScript(lazyAlternate)
+        assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+        assertEquals(5L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+            as SanskritValue.Sankhya).value)
+        assertEquals(5L, (compileAndInspect(lazyAlternate, "CompiledLazyFieldAlternate")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `disconnected embedded fields cannot become literal arithmetic operands`() {
+        val source = "गुण + मतुप् + ङस् न मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ।"
+        for (operation in listOf<() -> Unit>(
+            { PaniniVM().evalScript(source); Unit },
+            { BytecodeCompiler.compile(source, "RejectedDisconnectedField"); Unit },
+        )) {
+            assertTrue(assertFailsWith<IllegalArgumentException> { operation() }
+                .message.orEmpty().contains("intervening words"))
+        }
+    }
+
+    @Test
+    fun `multiple and nested field operands resolve independently`() {
+        val declarations = """
+            गुण + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ द्वि + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        val operations = listOf(
+            "गुण + मतुप् + ङस् मूल्य + अम् शब्द + त्व + मतुप् + ङस् मूल्य + अम् च युज् + लोट् + सिप्" to 11L,
+            "गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् एक + अम् च युज् + लोट् + सिप्" to 3L,
+        )
+        for ((index, operation) in operations.withIndex()) {
+            val source = declarations + "\n${operation.first} ।"
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(operation.second, (interpreted.filterIsInstance<ExecutionResult.Success>()
+                .last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(operation.second, (compileAndInspect(source, "CompiledMultipleFieldOperands$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+        val missing = declarations + "\nगुण + मतुप् + ङस् अन्य + अम् एक + अम् च युज् + लोट् + सिप् ।"
+        assertTrue(PaniniVM().evalScript(missing).last() is ExecutionResult.Failure)
+        assertFailsWith<InvocationTargetException> {
+            compileAndInspect(missing, "CompiledMissingFieldOperand")
+        }
+    }
+
+    @Test
+    fun `embedded genitive fields supply typed arithmetic and procedure operands`() {
+        val declarations = "गुण + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।"
+        val arithmetic = "गुण + मतुप् + ङस् मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ।"
+        val procedure = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + अम् एक + अम् च युज् + लोट् + सिप् ॥
+        """.trimIndent()
+        val programs = listOf(declarations + "\n" + arithmetic,
+            declarations + "\n" + procedure + "\nगुण + मतुप् + ङस् मूल्य + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
+        for ((index, source) in programs.withIndex()) {
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(10L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+                as SanskritValue.Sankhya).value)
+            assertEquals(10L, (compileAndInspect(source, "CompiledEmbeddedFieldOperand$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `nested retrieval works inside procedures branches and repetitions`() {
+        val declarations = """
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        val query = "गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप्"
+        val procedure = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            $query ॥
+        """.trimIndent()
+        val programs = listOf(
+            declarations + "\n" + procedure + "\nपरीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।",
+            declarations + "\nयदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि $query अन्यथा शून्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            declarations + "\nद्वि + कृत्वसुच् $query ।",
+        )
+        for ((index, source) in programs.withIndex()) {
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(9L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+                as SanskritValue.Sankhya).value)
+            assertEquals(9L, (compileAndInspect(source, "CompiledScopedGenitiveQuery$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `field retrieval does not discard negation participants or verb morphology`() {
+        val query = "गुण + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        for ((index, invalid) in listOf(
+            query.replace("ग्रहँ", "न ग्रहँ"),
+            query.replace("ग्रहँ", "द्वि + अम् ग्रहँ"),
+            query.replace("लोट् + सिप्", "लट् + तिप्"),
+            query.replace("मूल्य + अम्", "मूल्य + सुँ"),
+        ).withIndex()) {
+            assertFailsWith<IllegalArgumentException> { PaniniVM().evalScript(invalid) }
+            val failure = assertFailsWith<IllegalArgumentException> {
+                BytecodeCompiler.compile(invalid, "RejectedIncompleteFieldQuery$index")
+            }
+            assertTrue(failure.message.orEmpty().contains("retrieval"), failure.message)
+        }
+    }
+
+    @Test
+    fun `nested genitive retrieval follows derived references through compiler IR`() {
+        val declarations = """
+            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        val source = declarations + "\nगुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledNestedDerivedReference")
+        assertEquals(9L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        val longer = declarations + "\nक्रम + मतुप् + ङस् मान + सुँ गुण + सुँ असँ + लट् + तिप् ।\n" +
+            "क्रम + मतुप् + ङस् मान + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        assertEquals(PaniniVM().evalScript(longer).filterIsInstance<ExecutionResult.Success>().last().typedValue,
+            compileAndInspect(longer, "CompiledLongGenitiveChain").values.getValue("LastResult"))
+        val absentFinal = source.replace("मूल्य + अम्", "अन्य + अम्")
+        assertEquals(SanskritValue.Lopa, compileAndInspect(absentFinal, "CompiledNestedAbsentField")
+            .values.getValue("LastResult"))
+        val absentIntermediate = source.replace("मान + मतुप्", "अन्य + मतुप्")
+        assertTrue(PaniniVM().evalScript(absentIntermediate).last() is ExecutionResult.Failure)
+        assertFailsWith<InvocationTargetException> {
+            compileAndInspect(absentIntermediate, "CompiledNestedAbsentReference")
+        }
+        val scalarIntermediate = source.replace("मान + सुँ शब्द + त्व + सुँ", "मान + सुँ द्वि + सुँ")
+        assertTrue(PaniniVM().evalScript(scalarIntermediate).last() is ExecutionResult.Failure)
+        assertFailsWith<InvocationTargetException> {
+            compileAndInspect(scalarIntermediate, "CompiledNestedScalarReference")
+        }
+    }
+
+    @Test
+    fun `asserted derived nominal values retain their reference identity`() {
+        val source = """
+            गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मान + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+        val expected = SanskritValue.Shabda("शब्द + त्व")
+        assertEquals(expected, interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue)
+        assertEquals(expected, compileAndInspect(source, "CompiledDerivedRecordValue")
+            .values.getValue("LastResult"))
+    }
+
+    @Test
+    fun `derived record owners and field names do not alias their base stems`() {
+        val declarations = """
+            गुण + मतुप् + ङस् मूल्य + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            गुण + त्व + मतुप् + ङस् मूल्य + सुँ सप्तन् + सुँ असँ + लट् + तिप् ।
+            गुण + त्व + मतुप् + ङस् मूल्य + त्व + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        for ((index, case) in listOf(
+            "गुण + मतुप् + ङस् मूल्य + अम्" to 5L,
+            "गुण + त्व + मतुप् + ङस् मूल्य + अम्" to 7L,
+            "गुण + त्व + मतुप् + ङस् मूल्य + त्व + अम्" to 9L,
+        ).withIndex()) {
+            val source = declarations + "\n${case.first} ग्रहँ + श्ना + लोट् + सिप् ।"
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(case.second, (interpreted.filterIsInstance<ExecutionResult.Success>()
+                .last().typedValue as SanskritValue.Sankhya).value)
+            assertEquals(case.second, (compileAndInspect(source, "CompiledDerivedRecordIdentity$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `field assertions preserve the preceding action result until explicit retrieval`() {
+        val source = """
+            द्वि + अम् त्रि + अम् च युज् + लोट् + सिप् ।
+            गुण + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            फल + अम् एक + अम् च युज् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+        assertEquals(6L, (interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue
+            as SanskritValue.Sankhya).value)
+        val compiled = compileAndInspect(source, "CompiledAssertionPreservesResult")
+        assertEquals(6L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(9L, ((compiled.values.getValue("गुण") as SanskritValue.Rupa)
+            .fields.getValue("मूल्य") as SanskritValue.Sankhya).value)
+        val retrieval = source + "\nगुण + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        assertEquals(9L, (compileAndInspect(retrieval, "CompiledAssertionRetrievedResult")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(9L, (PaniniVM().evalScript(retrieval).filterIsInstance<ExecutionResult.Success>()
+            .last().typedValue as SanskritValue.Sankhya).value)
+    }
+
     @Test
     fun `unsupported prohibition is rejected rather than silently ignored`() {
         val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
@@ -134,7 +609,7 @@ class StructuredBytecodeCompilerTest {
             "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
         assertTrue(PaniniVM().evalScript(source).last() is ExecutionResult.Failure)
-        assertFailsWith<InvocationTargetException> {
+        assertFailsWith<IllegalArgumentException> {
             compileAndInspect(source, "CompiledInvalidScalarListParameter")
         }
     }
@@ -478,6 +953,172 @@ class StructuredBytecodeCompilerTest {
             .values.getValue("LastResult").toDisplayText())
     }
     @Test
+    fun `coordinated history heads match interpreter values in compiled procedures`() {
+        for ((head, expected) in listOf("कर्मन्" to "एक द्वि नवन्", "फल" to "त्रीणि नवन्")) {
+            val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "युज् + ल्युट् + ङस् $head + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+            assertEquals(expected, (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+            assertEquals(expected, compileAndInspect(source, "CompiledGroupedHistory")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+    @Test
+    fun `compiled coordinated history heads reject missing antecedents`() {
+        for (head in listOf("कर्मन्", "फल")) {
+            val source = "युज् + ल्युट् + ङस् $head + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।"
+            assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                (PaniniVM().evalScript(source).last() as ExecutionResult.Failure).error)
+            val failure = assertFailsWith<InvocationTargetException> {
+                compileAndInspect(source, "CompiledMissingGroupedHistory")
+            }
+            assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                (failure.cause as CompiledPaniniExecutionException).error)
+        }
+    }
+    @Test
+    fun `conditions compare two independently ordered action results`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "यदि युज् + ल्युट् + ङस् प्रथम + सुँ फल + सुँ " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + ङसिँ फल + ङसिँ न्यून + सुँ असँ + लट् + तिप् " +
+            "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        for ((program, expected) in listOf(source to "एक", source.replace("न्यून + सुँ", "अधिक + सुँ") to "नवन्")) {
+            assertEquals(expected, (PaniniVM().evalScript(program).last() as ExecutionResult.Success).value)
+            assertEquals(expected, compileAndInspect(program, "CompiledTwoHistoryCondition")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+    @Test
+    fun `arithmetic consumes independently ordered action result operands`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + अम् फल + अम् च युज् + णिच् + लोट् + सिप् ।"
+        for (program in listOf(source, source.replace("लोट् + सिप् ।\nयुज् + ल्युट्", "लोट् + सिप् ततः युज् + ल्युट्"))) {
+            assertEquals(8L, ((PaniniVM().evalScript(program).last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+            val compiled = compileAndInspect(program, "CompiledTwoHistoryArithmetic")
+            assertEquals(8L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+            assertTrue(compiled.values.keys.none { it.startsWith("__pvm_history_operand_") }, compiled.values.toString())
+        }
+    }
+    @Test
+    fun `procedure arguments preserve independent historical operands`() {
+        val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + अम् मूल्य + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + अम् फल + अम् परीक्षण + टा कृ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals(8L, ((results.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+        assertEquals(8L, (compileAndInspect(source, "CompiledHistoryArguments")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        val ordered = source.replace("मान + अम् मूल्य + अम् च युज् + णिच् + लोट् + सिप् ॥",
+            "मान + अम् मूल्य + अम् च मुद्र् + णिच् + लोट् + सिप् ॥")
+        assertEquals("त्रीणि पञ्च", (PaniniVM().evalScript(ordered).last() as ExecutionResult.Success).value)
+        assertEquals("त्रीणि पञ्च", compileAndInspect(ordered, "CompiledOrderedHistoryArguments")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `invalid history arguments fail before procedure body effects`() {
+        val prefix = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n"
+        val missing = prefix + "युज् + ल्युट् + ङस् द्वि + तीय + अम् फल + अम् वाचन + टा कृ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(missing)
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, (results.last() as ExecutionResult.Failure).error)
+        assertTrue(results.none { it is ExecutionResult.Success && it.outputKind == dev.panini.execution.OutputKind.CONSOLE })
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(missing, "CompiledMissingHistoryArgument")
+        }
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (failure.cause as CompiledPaniniExecutionException).error)
+        val disagreement = prefix + "युज् + ल्युट् + ङस् प्रथम + सुँ फल + अम् वाचन + टा कृ + लोट् + सिप् ।"
+        val invalid = PaniniVM().evalScript(disagreement)
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, (invalid.last() as ExecutionResult.Failure).error)
+        assertTrue(invalid.none { it is ExecutionResult.Success && it.outputKind == dev.panini.execution.OutputKind.CONSOLE })
+        assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(disagreement, "InvalidHistoryArgumentAgreement") }
+    }
+    @Test
+    fun `history assignment updates owning procedure cell without leaking operand frames`() {
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मान + ङे दा + लोट् + सिप् ।\n" +
+            "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "सप्तन् + अम् मान + ङे दा + लोट् + सिप् ।\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + अम् वाचन + टा कृ + लोट् + सिप् ।"
+        val vm = PaniniVM()
+        val results = vm.evalScript(source, sessionKey = "history-owner")
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals("त्रीणि", (results.last() as ExecutionResult.Success).value)
+        assertEquals("सप्तन्", (vm.eval("मान + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            sessionKey = "history-owner") as ExecutionResult.Success).value)
+        val compiled = compileAndInspect(source, "CompiledHistoryAssignmentOwner")
+        assertEquals("त्रीणि", compiled.values.getValue("LastResult").toDisplayText())
+        assertEquals(7L, (compiled.values.getValue("मान") as SanskritValue.Sankhya).value)
+        assertTrue(compiled.values.keys.none { it.startsWith("__pvm_history_operand_") })
+    }
+    @Test
+    fun `remembered participant keeps action time value after reassignment`() {
+        val source = "एक + अम् मान + ङे दा + लोट् + सिप् ।\n" +
+            "मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + अम् मान + ङे दा + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val compiled = compileAndInspect(source, "CompiledHistoricalParticipantSnapshot")
+        assertEquals("एक द्वि", compiled.values.getValue("LastResult").toDisplayText())
+        assertEquals("एक द्वि", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+    }
+    @Test
+    fun `participant assignment requires expansion rather than treating history as one group value`() {
+        val source = "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।\n" +
+            "सूची + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("[एक, द्वि]", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("[एक, द्वि]", compileAndInspect(source, "CompiledParticipantAssignment")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `unselected else if does not load unavailable ordered action results`() {
+        val source = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+            "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा यदि " +
+            "युज् + ल्युट् + ङस् प्रथम + सुँ फल + सुँ " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + ङसिँ फल + ङसिँ न्यून + सुँ असँ + लट् + तिप् " +
+            "तर्हि द्वि + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("एक", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("एक", compileAndInspect(source, "CompiledLazyMultipleHistory")
+            .values.getValue("LastResult").toDisplayText())
+        val selected = source.replace("एक + सुँ एक + टा", "एक + सुँ द्वि + टा")
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (PaniniVM().evalScript(selected).last() as ExecutionResult.Failure).error)
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(selected, "CompiledSelectedMissingHistory")
+        }
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (failure.cause as CompiledPaniniExecutionException).error)
+    }
+    @Test
+    fun `missing second condition antecedent cannot reuse the first result`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "यदि युज् + ल्युट् + ङस् प्रथम + सुँ फल + सुँ " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + टा फल + टा सम + सुँ असँ + लट् + तिप् " +
+            "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (PaniniVM().evalScript(source).last() as ExecutionResult.Failure).error)
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(source, "CompiledMissingSecondHistory")
+        }
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (failure.cause as CompiledPaniniExecutionException).error)
+    }
+    @Test
     fun `compiled history display rejects unavailable action or participant relation`() {
         for (query in listOf(
             "युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम्",
@@ -716,6 +1357,23 @@ class StructuredBytecodeCompilerTest {
         assertEquals(2L, completion.iterationCount)
         val outcome = compileAndInspect(loop, "CompiledOrdinalLoop").values.getValue("परिणाम") as SanskritValue.Rupa
         assertEquals(2L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+    @Test
+    fun `multiple history operands reload inside bounded and unbounded loops`() {
+        for ((index, bound) in listOf("", "पञ्च + कृत्वसुच् ").withIndex()) {
+            val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+                bound + "यावत् युज् + ल्युट् + ङस् फल + सुँ " +
+                "युज् + ल्युट् + ङस् प्रथम + ङसिँ फल + ङसिँ अधिक + सुँ असँ + लट् + तिप् " +
+                "तावत् एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+            val completion = results.filterIsInstance<ExecutionResult.Success>().last { it.operation == "pvm.while" }
+            assertEquals(1L, completion.iterationCount)
+            val outcome = compileAndInspect(source, "CompiledReloadedHistory$index")
+                .values.getValue("परिणाम") as SanskritValue.Rupa
+            assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        }
     }
 
     @Test
@@ -2162,10 +2820,10 @@ class StructuredBytecodeCompilerTest {
             राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val prohibited = """
-            विभाज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न द्वितीय + अम् शून्य + अम् ।
-            प्रथम + अम् द्वितीय + अम् च भज् + णिच् + लोट् + सिप् ॥
-            दश + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।
+            प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
+            दशन् + शस् शून्य + अम् च वि + भज् + णिच् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
 
         val typeFailure = assertFailsWith<InvocationTargetException> {
@@ -2248,7 +2906,7 @@ class StructuredBytecodeCompilerTest {
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>()
-            .single { it.controlSignal != null }
+            .single()
             .typedValue
         val bytes = BytecodeCompiler.compile(source, "CompiledBreakRepetition")
         val runtimeCalls = mutableListOf<String>()

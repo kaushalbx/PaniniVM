@@ -10,6 +10,7 @@ import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
+import dev.panini.execution.OperationValueType
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -31,22 +32,27 @@ class AsDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         CopularEqualityAction.op {
-            requires(Karaka.KARTR)
-            requires(Karaka.KARANA)
-            requires(Karaka.KARMAN, samjnas = arrayOf(Samjna.SHABDA))
+            predicates(dev.panini.execution.CopularPredicate.EQUAL)
+            requires(Karaka.KARTR, maximum = 1)
+            requires(Karaka.KARANA, maximum = 1)
+            requires(Karaka.KARMAN, maximum = 1, samjnas = arrayOf(Samjna.SHABDA))
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
         },
         CopularOrderAction.op {
-            requires(Karaka.KARTR, samjnas = arrayOf(Samjna.SANKHYA))
-            requires(Karaka.APADANA, samjnas = arrayOf(Samjna.SANKHYA))
-            requires(Karaka.KARMAN, samjnas = arrayOf(Samjna.SHABDA))
+            predicates(dev.panini.execution.CopularPredicate.LESS_THAN, dev.panini.execution.CopularPredicate.GREATER_THAN)
+            requires(Karaka.KARTR, maximum = 1, samjnas = arrayOf(Samjna.SANKHYA),
+                valueType = OperationValueType.NUMBER)
+            requires(Karaka.APADANA, maximum = 1, samjnas = arrayOf(Samjna.SANKHYA),
+                valueType = OperationValueType.NUMBER)
+            requires(Karaka.KARMAN, maximum = 1, samjnas = arrayOf(Samjna.SHABDA))
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
         },
         ListContainsAction.op {
-            requires(Karaka.KARTR)       // the entity whose presence is asserted
-            requires(Karaka.ADHIKARANA) // the collection in which it exists
+            requires(Karaka.KARTR, maximum = 1) // the entity whose presence is asserted
+            requires(Karaka.ADHIKARANA, maximum = 1,
+                valueType = OperationValueType.COLLECTION) // the collection in which it exists
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
         },
@@ -55,6 +61,7 @@ class AsDhatu : Dhatu(
         ListContainsAction.op {
             requires(Karaka.KARMAN)
             optional(Karaka.KARANA)
+            forbids(Karaka.KARTR, Karaka.APADANA, Karaka.ADHIKARANA)
             returns(Samjna.SATYA)
         }
     )

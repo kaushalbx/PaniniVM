@@ -40,13 +40,15 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() && isLaShaKu(term.varnas.first()) &&
+                state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA } &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
-            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
+            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
+                state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA }) {
                 val firstVarna = term.varnas.first()
                 if (isLaShaKu(firstVarna)) {
                     val marker = when (firstVarna) {
@@ -59,9 +61,8 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                         Vyanjana.GHA -> ItMarker.GHIT
                         else -> error("Unsupported 1.3.8 marker $firstVarna")
                     }
-                    val vowel = (term.varnas.getOrNull(1) as? Svara)?.devanagari.orEmpty()
                     val length = term.orthographicEndAfterInitialVarna()
-                    val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.orthographicDesignationText(0, length))
+                    val designation = ItDesignation(0, length, marker, sutra, designatedText = term.orthographicDesignationText(0, length), varnaIndices = setOf(0))
                     // The initial झ् of tiṅ झ/झि is designated here, but
                     // 7.1.3/7.1.5 (or the liṭ replacement) supersedes that
                     // exact segment before 1.3.9. Keep the designation alive

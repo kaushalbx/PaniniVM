@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -43,15 +46,15 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
         val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
 
-        if (affix.surface == "ई" || affix.upadesha == "शी") return false
+        if (affix.varnas == listOf(Svara.II) || affix.upadesha == "शी") return false
 
-        return isSarvanama && endsInA && (affix.upadesha == "जस्" || affix.id == "sup-jas")
+        return isSarvanama && endsInA && (affix.hasCurrentAffix(SupAffix.JAS) || affix.sourceSupAffix == SupAffix.JAS)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, "शी", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha, upadesha = "शी"),
+            state = context.replaceWholeAffix(affix.id, listOf(Vyanjana.SHA, Svara.II), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha, upadesha = "शी"),
             explanation = "7.1.17: Substituted 'śī' for 'jas' after pronoun stem."
         )
     }

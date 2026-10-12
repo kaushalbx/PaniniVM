@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,7 +35,7 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val lastTerm = context.terms.lastOrNull() ?: return false
         val hasPuranaRequest = context.samjnas.any { it.samjna == Samjna.PURANA }
-        val isAlreadyApplied = context.terms.any { it.surface == "म" || it.upadesha == "मट्" }
+        val isAlreadyApplied = context.terms.any { it.varnas == listOf(Vyanjana.MA, Svara.A) || it.upadesha == "मट्" }
         return hasPuranaRequest && !isAlreadyApplied &&
                 (lastTerm.varnas.lastOrNull() == Vyanjana.NA || lastTerm.upadeshaVarnas.lastOrNull() == Vyanjana.NA) &&
                 SankhyaResolver.isSankhya(lastTerm.upadesha)

@@ -5,6 +5,7 @@ import dev.panini.sankhya.SankhyaExpression
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
+import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 
 object PuranaPratyayaResolver {
@@ -13,6 +14,8 @@ object PuranaPratyayaResolver {
     fun ordinalValue(pada: Pada): Long? {
         return when (pada) {
             is SankhyaPuranaPada -> pada.value ?: typedOrdinalValue(pada.stems)
+            is SankhyaPada -> (runCatching { sankhyaEvaluator.evaluateStems(pada.stems) }.getOrNull()
+                as? SankhyaExpression.Purana)?.value
             is SubantaPada -> (pada.pratipadika as? MulaPratipadika)
                 ?.lexicalOrdinalValue
             else -> null

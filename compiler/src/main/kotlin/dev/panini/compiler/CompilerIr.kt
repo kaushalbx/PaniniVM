@@ -47,9 +47,14 @@ internal enum class CompilerValueKind {
 }
 
 internal fun PrakriyaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
+    PrakriyaValueType.UNCONSTRAINED -> CompilerValueKind.UNKNOWN
     PrakriyaValueType.SANKHYA -> CompilerValueKind.NUMBER
     PrakriyaValueType.SHABDA -> CompilerValueKind.TEXT
     PrakriyaValueType.SUCHI -> CompilerValueKind.LIST
+    PrakriyaValueType.SIMA -> CompilerValueKind.RANGE
+    PrakriyaValueType.RUPA -> CompilerValueKind.RECORD
+    PrakriyaValueType.SATYA -> CompilerValueKind.BOOLEAN
+    PrakriyaValueType.LOPA -> CompilerValueKind.VALUE
 }
 
 private typealias ValueKind = CompilerValueKind
@@ -122,13 +127,19 @@ internal object CompilerProgramVerifier {
     }
 
     private fun verifyFrames(instructions: List<CompilerInstruction>) {
+        val frames = java.util.ArrayDeque<Boolean>()
+        val frameScopes = mutableMapOf<Int, List<Int>>()
+        val scopeEntries = java.util.ArrayDeque<Int>()
         instructions.forEachIndexed { index, instruction ->
+            frameScopes[index] = scopeEntries.toList()
             when (instruction) {
                 is CompilerInstruction.EnterFrame -> {
+                    frames.addLast(instruction.scopedBinding)
+                    scopeEntries.addLast(index)
                     require(instruction.parameterNames.distinct().size == instruction.parameterNames.size) {
                         "IR frame parameter names must be unique at instruction $index"
                     }
-                    require(instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure ||
+                    require(instruction.scopedBinding || instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure ||
                         instructions.getOrNull(index + 1) is CompilerInstruction.InvokeDependencyProcedure) {
                         "IR EnterFrame must be followed by InvokeProcedure at instruction $index"
                     }
@@ -149,13 +160,28 @@ internal object CompilerProgramVerifier {
                     require(frame.parameterNames.size == instruction.argumentCount)
                     require(instructions.getOrNull(index + 1) == CompilerInstruction.ExitFrame)
                 }
-                CompilerInstruction.ExitFrame -> require(
-                    instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure ||
+                CompilerInstruction.ExitFrame -> {
+                    require(frames.isNotEmpty()) { "IR ExitFrame has no active frame at instruction $index" }
+                    scopeEntries.removeLast()
+                    require(frames.removeLast() || instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure ||
                         instructions.getOrNull(index - 1) is CompilerInstruction.InvokeDependencyProcedure,
-                ) {
-                    "IR ExitFrame requires InvokeProcedure at instruction $index"
+                    ) { "IR ExitFrame requires InvokeProcedure at instruction $index" }
                 }
                 else -> Unit
+            }
+        }
+        require(frames.isEmpty()) { "IR frame is not closed" }
+        val labels = instructions.mapIndexedNotNull { index, instruction ->
+            (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
+        }.toMap()
+        instructions.forEachIndexed { index, instruction ->
+            val target = when (instruction) {
+                is CompilerInstruction.Branch -> instruction.target
+                is CompilerInstruction.Jump -> instruction.target
+                else -> null
+            }
+            if (target != null && target in labels) require(frameScopes[index] == frameScopes[labels.getValue(target)]) {
+                "IR branch crosses a lexical frame boundary at instruction $index"
             }
         }
     }
@@ -175,8 +201,14 @@ internal sealed interface CompilerInstruction {
     }
 
     /** Consumes ordered participant values followed by the successful result. */
-    data class RecordActionFrame(val dhatuUpadesha: String, val participantRoles: List<dev.panini.core.Karaka>) : CompilerInstruction {
-        init { require(dhatuUpadesha.isNotBlank() && dev.panini.core.Karaka.ANIRDHARITA !in participantRoles) }
+    data class RecordActionFrame(val dhatuUpadesha: String, val participantRoles: List<dev.panini.core.Karaka>,
+        val expandGroups: List<Boolean> = emptyList()) : CompilerInstruction {
+        init {
+            require(dhatuUpadesha.isNotBlank() && dev.panini.core.Karaka.ANIRDHARITA !in participantRoles)
+            require(expandGroups.isEmpty() || expandGroups.size == participantRoles.size) {
+                "Action participant expansion flags must align with roles."
+            }
+        }
     }
 
     data class LoadActionResult(val dhatuUpadesha: String, val occurrenceFromLatest: Int = 1) : CompilerInstruction {
@@ -190,15 +222,22 @@ internal sealed interface CompilerInstruction {
 
     data class LoadActionParticipants(
         val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val occurrenceFromLatest: Int = 1,
+        val asGroup: Boolean = false,
     ) : CompilerInstruction {
         init { require(dhatuUpadesha.isNotBlank() && occurrenceFromLatest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
     }
 
     data class LoadOrdinalActionParticipants(
         val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val ordinalFromOldest: Long,
+        val asGroup: Boolean = false,
     ) : CompilerInstruction {
         init { require(dhatuUpadesha.isNotBlank() && ordinalFromOldest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
     }
+
+    /** Resolves an object group using its runtime participant shape and payloads. */
+    data class CallParticipantGroup(val dhatuUpadesha: String,
+        val features: dev.panini.execution.GrammaticalFeatures, val selectedOperation: String? = null,
+        val otherBindings: Map<Karaka, ExecutionExpression> = emptyMap()) : CompilerInstruction
 
     data class LoadLocal(val name: String) : CompilerInstruction
 
@@ -212,7 +251,16 @@ internal sealed interface CompilerInstruction {
     /** Reject numeric equality without coercing words or structured values. */
     data object CheckNumericProhibition : CompilerInstruction
 
+    /** Normal-return contract for a procedure's declared structured result. */
+    data class CheckProcedureResultSchema(val schema: String, val fields: List<String>) : CompilerInstruction
+
     data class BuildList(val size: Int, val memberType: dev.panini.execution.ListMemberType? = null) : CompilerInstruction
+
+    /** Expand only marked grammatical participant groups, not collection values. */
+    data class PackOperands(val expandGroups: List<Boolean>, val asGroup: Boolean = false) : CompilerInstruction
+    /** Expands grammatical participant groups, not collection-valued operands. */
+    data class FoldNumericOperands(val operator: ArithmeticOperator, val expandGroups: List<Boolean>,
+        val minimumOperands: Int = 1) : CompilerInstruction
 
     data class BuildRecord(val schema: String, val fields: List<String>) : CompilerInstruction
 
@@ -220,6 +268,9 @@ internal sealed interface CompilerInstruction {
 
     /** Loads a record field, producing Pāṇinian Lopa when the field is absent. */
     data class LoadFieldOrLopa(val name: String) : CompilerInstruction
+
+    /** Resolves a nominal record reference in the current runtime environment. */
+    data object ResolveRecordReference : CompilerInstruction
 
     data class RenderText(val size: Int) : CompilerInstruction
 
@@ -246,6 +297,7 @@ internal sealed interface CompilerInstruction {
     data class EnterFrame(
         val parameterNames: List<String>,
         val parameterKinds: List<CompilerValueKind> = emptyList(),
+        val scopedBinding: Boolean = false,
     ) : CompilerInstruction
 
     data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction
@@ -283,8 +335,16 @@ internal sealed interface CompilerInstruction {
     data class Label(val name: String) : CompilerInstruction
 
     data object ConsumeBreak : CompilerInstruction
+    /** Inspect control state without consuming the enclosing loop's break. */
+    data object IsBreakRequested : CompilerInstruction
+    data object IsProcedureReturnRequested : CompilerInstruction
+    data object IsProcedureExitRequested : CompilerInstruction
+    /** Consume a value and request return from the current procedure, not a loop. */
+    data object RequestProcedureReturn : CompilerInstruction
 
     data object EnterConditionIteration : CompilerInstruction
+    /** Consumes the one-based iteration number; budget is local to this loop. */
+    data object CheckCollectionIteration : CompilerInstruction
 
     data class InitializeLoopCondition(val name: String) : CompilerInstruction
 
@@ -327,6 +387,7 @@ internal enum class NumericUnaryOperator {
 }
 
 internal enum class CollectionOperator {
+    SNAPSHOT,
     SUM,
     SUM_NUMBER_MEMBERS,
     LENGTH,
@@ -400,11 +461,11 @@ internal object CompilerIrLowering {
             add(numberConstant(1))
             add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
             add(CompilerInstruction.StoreLocal(counter))
+            add(CompilerInstruction.ConsumeBreak)
+            add(CompilerInstruction.Branch(victory, whenTrue = true))
             if (usesReportedCondition) {
                 add(CompilerInstruction.CaptureReportedCondition(reportedCondition))
             }
-            add(CompilerInstruction.ConsumeBreak)
-            add(CompilerInstruction.Branch(victory, whenTrue = true))
             add(CompilerInstruction.Jump(conditionLabel))
             add(CompilerInstruction.Label(victory))
             addAll(loopOutcome("विजय", counter))
@@ -529,7 +590,7 @@ internal object CompilerIrLowering {
     }
 
     fun lowerLeaf(plan: ExecutionPlan): CompilerInstruction {
-        if (plan.resolved.operation.name == "विजयः") {
+        if (plan.resolved.operation.controlSignal == dev.panini.execution.ExecutionControlSignal.BREAK_LOOP) {
             return CompilerInstruction.RequestBreak
         }
         return CompilerInstruction.Call(
@@ -542,7 +603,9 @@ internal object CompilerIrLowering {
 
     /** Makes ordinary leaf result flow explicit through LastResult and destination stores. */
     fun lowerLeafValues(plan: ExecutionPlan): List<CompilerInstruction> {
-        lowerPrimitiveLeafValues(plan)?.let { return it }
+        if (plan.resolved.operation.controlSignal == null) {
+            lowerPrimitiveLeafValues(plan)?.let { return it }
+        }
         val lowered = lowerLeaf(plan)
         if (lowered !is CompilerInstruction.Call) return listOf(lowered)
         val bindingKaraka = plan.resolved.operation.resultBindingKaraka
@@ -585,7 +648,7 @@ internal object CompilerIrLowering {
             ?.let(::lowerOperands)
             .orEmpty()
         if (operands.size < 2) return lowerGenericCondition(plan)
-        val operator = if ("नि" in plan.resolved.operation.trigger.requiredUpasargas) {
+        val operator = if (dev.panini.core.Upasarga.NI in plan.resolved.operation.trigger.requiredUpasargaIdentities) {
             ComparisonOperator.LESS_THAN
         } else {
             ComparisonOperator.GREATER_THAN
@@ -774,12 +837,19 @@ internal object CompilerIrLowering {
             }
             collection == CollectionOperator.POP -> {
                 val frame = naturalOperation as? NaturalOperation.CollectionExtraction
-                if (frame != null && (frame.member as? ExecutionExpression.Pada)?.memberSelection !=
-                    dev.panini.execution.CollectionMemberSelection.FINAL) return null
-                val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
-                    ?.let(::lowerSingleCollectionValue)
-                    ?: return null
-                list + CompilerInstruction.Collection(CollectionOperator.POP)
+                val member = frame?.member as? ExecutionExpression.Pada
+                if (member?.memberSelection == dev.panini.execution.CollectionMemberSelection.ORDINAL) {
+                    val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                    val position = member.value as? SanskritValue.Sankhya ?: return null
+                    list + CompilerInstruction.Constant(position) + CompilerInstruction.Collection(CollectionOperator.INDEX)
+                } else {
+                    if (frame != null && member?.memberSelection !=
+                        dev.panini.execution.CollectionMemberSelection.FINAL) return null
+                    val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
+                        ?.let(::lowerSingleCollectionValue)
+                        ?: return null
+                    list + CompilerInstruction.Collection(CollectionOperator.POP)
+                }
             }
             collection == CollectionOperator.SLICE -> {
                 val naturalFrame = naturalOperation as? NaturalOperation.CollectionSlice
@@ -818,13 +888,13 @@ internal object CompilerIrLowering {
 
     internal fun lowerParticipantOperands(expression: ExecutionExpression): List<List<CompilerInstruction>> = when (expression) {
         is ExecutionExpression.Coordination -> expression.members.flatMap(::lowerParticipantOperands)
-        is ExecutionExpression.TypedOperand -> listOf(listOf(CompilerInstruction.Constant(expression.value)))
+        is ExecutionExpression.TypedOperand -> listOf(lowerTypedOperand(expression))
         is ExecutionExpression.Reference -> listOf(listOf(
             if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
             else CompilerInstruction.ResolveArgument(expression.name, SanskritValue.Shabda(expression.name))))
         is ExecutionExpression.Pada -> listOf(listOf(
             if (Samjna.REFERENCE in expression.samjnas) CompilerInstruction.LoadLastResult
-            else CompilerInstruction.ResolveArgument(expression.prakriti, expression.value ?: SanskritValue.Shabda(expression.prakriti))))
+            else CompilerInstruction.Constant(expression.value ?: SanskritValue.of(expression.prakriti, expression.samjnas))))
     }
 
     private fun lowerOperands(expression: ExecutionExpression): List<List<CompilerInstruction>>? = when (expression) {
@@ -846,7 +916,7 @@ internal object CompilerIrLowering {
         is ExecutionExpression.Pada -> if (Samjna.REFERENCE in expression.samjnas) {
             listOf(CompilerInstruction.LoadLastResult)
         } else expression.value?.let { listOf(CompilerInstruction.Constant(it)) }
-        is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
+        is ExecutionExpression.TypedOperand -> lowerTypedOperand(expression)
         is ExecutionExpression.Reference -> listOf(
             if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
             else CompilerInstruction.ResolveArgument(expression.name, SanskritValue.Shabda(expression.name)),
@@ -860,7 +930,7 @@ internal object CompilerIrLowering {
         } else expression.value?.let {
             listOf(CompilerInstruction.Constant(it))
         } ?: listOf(CompilerInstruction.Load(expression.prakriti))
-        is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
+        is ExecutionExpression.TypedOperand -> lowerTypedOperand(expression)
         is ExecutionExpression.Reference -> listOf(
             if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
             else CompilerInstruction.Load(expression.name),
@@ -877,11 +947,8 @@ internal object CompilerIrLowering {
                 null, is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(expression.prakriti))
                 else -> null
             }
-        is ExecutionExpression.TypedOperand -> when (val value = expression.value) {
-            is SanskritValue.Sankhya -> listOf(CompilerInstruction.Constant(value))
-            is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(value.text))
-            else -> null
-        }
+        is ExecutionExpression.TypedOperand -> if (expression.referenceName != null || expression.value is SanskritValue.Sankhya)
+            lowerTypedOperand(expression) else null
         is ExecutionExpression.Reference -> listOf(
             if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
             else CompilerInstruction.Load(expression.name),
@@ -902,11 +969,9 @@ internal object CompilerIrLowering {
                     ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
                 else -> null
             }
-        is ExecutionExpression.TypedOperand -> when (val value = expression.value) {
-            is SanskritValue.Suchi, is SanskritValue.Gana -> listOf(CompilerInstruction.Constant(value))
-            is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(value.text))
-            else -> null
-        }
+        is ExecutionExpression.TypedOperand -> if (expression.referenceName != null ||
+            expression.value is SanskritValue.Suchi || expression.value is SanskritValue.Gana)
+            lowerTypedOperand(expression) else null
         is ExecutionExpression.Coordination -> null
     }
 
@@ -919,8 +984,12 @@ internal object CompilerIrLowering {
             }
             add(CompilerInstruction.BuildList(expression.members.size))
         }
-        is ExecutionExpression.TypedOperand -> null
+        is ExecutionExpression.TypedOperand -> lowerTypedOperand(expression)
     }
+
+    private fun lowerTypedOperand(expression: ExecutionExpression.TypedOperand): List<CompilerInstruction> = listOf(
+        expression.referenceName?.let { CompilerInstruction.ResolveArgument(it, expression.value) }
+            ?: CompilerInstruction.Constant(expression.value))
 }
 
 /** Checks structural invariants required by every compiler backend. */
@@ -995,6 +1064,10 @@ internal object CompilerIrVerifier {
                     stack = stackAfter,
                     locals = before.locals + (instruction.name to before.stack.last()),
                 )
+                CompilerInstruction.RequestProcedureReturn -> before.copy(
+                    stack = stackAfter,
+                    values = before.values + ("LastResult" to before.stack.last()),
+                )
                 is CompilerInstruction.InvokeProcedure -> before.copy(
                     stack = stackAfter,
                     values = instruction.resultKind?.let { before.values + ("LastResult" to it) } ?: before.values,
@@ -1046,7 +1119,8 @@ internal object CompilerIrVerifier {
         }
         return when (instruction) {
             is CompilerInstruction.Constant -> before + when (instruction.value) {
-                is SanskritValue.Sankhya -> ValueKind.NUMBER
+                is SanskritValue.Sankhya, is SanskritValue.Rational -> ValueKind.NUMBER
+                is SanskritValue.Satya -> ValueKind.BOOLEAN
                 is SanskritValue.Shabda -> ValueKind.TEXT
                 is SanskritValue.Suchi, is SanskritValue.Gana -> ValueKind.LIST
                 is SanskritValue.Rupa -> ValueKind.RECORD
@@ -1058,6 +1132,16 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.LoadOrdinalActionResult -> before + ValueKind.UNKNOWN
             is CompilerInstruction.LoadActionParticipants -> before + ValueKind.UNKNOWN
             is CompilerInstruction.LoadOrdinalActionParticipants -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.CallParticipantGroup -> {
+                require(instruction.dhatuUpadesha.isNotBlank()) { "Participant-group calls require canonical dhātu identity" }
+                require(instruction.otherBindings.keys.none { it == Karaka.KARMAN || it == Karaka.ANIRDHARITA }) {
+                    "Participant-group auxiliary bindings must not replace its object group"
+                }
+                require(instruction.selectedOperation == null || instruction.selectedOperation in participantGroupOperations) {
+                    "Unsupported selected participant-group operation"
+                }
+                pop(ValueKind.LIST).first + ValueKind.UNKNOWN
+            }
             is CompilerInstruction.LoadLocal -> before + (state.locals[instruction.name] ?: ValueKind.UNKNOWN)
             is CompilerInstruction.ResolveArgument -> before + ValueKind.UNKNOWN
             CompilerInstruction.LoadLastResult -> before + (state.values["LastResult"] ?: ValueKind.UNKNOWN)
@@ -1066,9 +1150,45 @@ internal object CompilerIrVerifier {
                 before + value
             }
             CompilerInstruction.Pop -> pop().first
+            CompilerInstruction.CheckCollectionIteration -> {
+                val (remaining, kind) = pop()
+                require(kind in setOf(ValueKind.NUMBER, ValueKind.UNKNOWN, ValueKind.VALUE)) {
+                    "IR collection iteration requires a number at instruction $index"
+                }
+                remaining
+            }
             CompilerInstruction.CheckNumericProhibition -> {
                 require(before.size >= 2) { "IR numeric prohibition stack underflow at instruction $index" }
                 before.dropLast(2)
+            }
+            is CompilerInstruction.CheckProcedureResultSchema -> {
+                require(instruction.schema.isNotBlank()) { "IR result schema must not be blank" }
+                require(instruction.fields.all { it.isNotBlank() } &&
+                    instruction.fields.distinct().size == instruction.fields.size) {
+                    "IR result schema fields must be nonblank and unique"
+                }
+                before
+            }
+            is CompilerInstruction.PackOperands -> {
+                val size = instruction.expandGroups.size
+                require(size > 0 && before.size >= size) { "IR operand packing stack underflow at instruction $index" }
+                before.dropLast(size) + if (instruction.asGroup) ValueKind.LIST else ValueKind.UNKNOWN
+            }
+            is CompilerInstruction.FoldNumericOperands -> {
+                require(instruction.operator in setOf(ArithmeticOperator.ADD, ArithmeticOperator.SUBTRACT,
+                    ArithmeticOperator.MULTIPLY, ArithmeticOperator.DIVIDE, ArithmeticOperator.REMAINDER)) {
+                    "Unsupported IR numeric-fold operator: ${instruction.operator}"
+                }
+                require(instruction.minimumOperands > 0) { "IR numeric fold requires a positive operand minimum" }
+                val size = instruction.expandGroups.size
+                require(size > 0 && before.size >= size) { "IR numeric fold stack underflow at instruction $index" }
+                before.takeLast(size).forEachIndexed { operand, kind ->
+                    val expected = if (instruction.expandGroups[operand]) ValueKind.LIST else ValueKind.NUMBER
+                    require(kind == expected || kind == ValueKind.UNKNOWN) {
+                        "IR numeric fold requires $expected at operand $operand, instruction $index"
+                    }
+                }
+                before.dropLast(size) + ValueKind.NUMBER
             }
             is CompilerInstruction.BuildList -> {
                 require(instruction.size >= 0) { "IR list size must not be negative at instruction $index" }
@@ -1089,6 +1209,7 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.LoadField,
             is CompilerInstruction.LoadFieldOrLopa,
             -> pop().first + ValueKind.UNKNOWN
+            CompilerInstruction.ResolveRecordReference -> pop().first + ValueKind.RECORD
             is CompilerInstruction.RenderText -> {
                 require(instruction.size >= 0) { "IR text operand count must not be negative at instruction $index" }
                 require(before.size >= instruction.size) {
@@ -1096,7 +1217,7 @@ internal object CompilerIrVerifier {
                 }
                 before.dropLast(instruction.size) + ValueKind.TEXT
             }
-            CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
+            CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.BOOLEAN
             is CompilerInstruction.RandomRange -> {
                 require(instruction.minimum <= instruction.maximum) {
                     "IR random range minimum exceeds maximum at instruction $index"
@@ -1125,6 +1246,7 @@ internal object CompilerIrVerifier {
                     -> 2
                     CollectionOperator.SLICE -> 3
                     CollectionOperator.LENGTH,
+                    CollectionOperator.SNAPSHOT,
                     CollectionOperator.SUM,
                     CollectionOperator.SUM_NUMBER_MEMBERS,
                     CollectionOperator.REVERSE,
@@ -1155,7 +1277,10 @@ internal object CompilerIrVerifier {
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
                     CollectionOperator.LENGTH, CollectionOperator.SUM, CollectionOperator.SUM_NUMBER_MEMBERS -> ValueKind.NUMBER
-                    CollectionOperator.INDEX, CollectionOperator.CONTAINS, CollectionOperator.POP -> ValueKind.VALUE
+                    CollectionOperator.CONTAINS -> ValueKind.BOOLEAN
+                    // Member type is determined by the collection's runtime
+                    // payload, not an opaque scalar type or an integer guess.
+                    CollectionOperator.INDEX, CollectionOperator.POP -> ValueKind.UNKNOWN
                     else -> ValueKind.LIST
                 }
             }
@@ -1178,7 +1303,7 @@ internal object CompilerIrVerifier {
                     before.takeLast(instruction.parameterKinds.size)
                         .zip(instruction.parameterKinds)
                         .forEach { (actual, expected) ->
-                            require(actual == expected || actual == ValueKind.UNKNOWN) {
+                            require(actual == expected || actual == ValueKind.UNKNOWN || expected == ValueKind.UNKNOWN) {
                                 "IR frame expected $expected but found $actual at instruction $index"
                             }
                         }
@@ -1207,7 +1332,11 @@ internal object CompilerIrVerifier {
             CompilerInstruction.Cardinalize -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             CompilerInstruction.Booleanize -> pop().first + ValueKind.BOOLEAN
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
+            CompilerInstruction.RequestProcedureReturn -> pop().first
             CompilerInstruction.ConsumeBreak,
+            CompilerInstruction.IsBreakRequested,
+            CompilerInstruction.IsProcedureReturnRequested,
+            CompilerInstruction.IsProcedureExitRequested,
             is CompilerInstruction.TestLoopCondition,
             -> before + ValueKind.BOOLEAN
             is CompilerInstruction.Call -> before + ValueKind.UNKNOWN

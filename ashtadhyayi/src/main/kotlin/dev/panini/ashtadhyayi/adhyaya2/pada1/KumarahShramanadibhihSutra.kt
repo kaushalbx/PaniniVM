@@ -38,7 +38,7 @@ object KumarahShramanadibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val uttara = context.uttaraPada.upadesha
 
         val isPurvaKumara = purva == "कुमार" || purva == "कुमारी"
-        val isUttaraShramanadi = ShramanadiGana.contains(uttara) || ShramanadiGana.members.any { it.text.startsWith(uttara) }
+        val isUttaraShramanadi = ShramanadiGana.contains(uttara)
 
         return (context.samasaType == SamasaType.KARMADHARAYA || context.samasaType == SamasaType.TATPURUSA) &&
                 isPurvaKumara && isUttaraShramanadi

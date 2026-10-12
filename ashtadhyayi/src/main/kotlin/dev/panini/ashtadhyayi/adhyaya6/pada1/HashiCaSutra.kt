@@ -45,19 +45,19 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         // 1. Left term ends in repha (from ru) preceded by 'a'
         if (left.varnas.takeLast(2) != listOf(Svara.A, Vyanjana.RA)) return false
+        if (context.substitutions.none { it.targetId == left.id && it.sutra == "8.2.66" }) return false
 
         // 2. Followed by a voiced consonant (haś)
         val first = right.varnas.firstOrNull() as? Vyanjana ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, first.devanagari.single())
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, first)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalSankhyaIndex(context)
         val left = if (internalIndex >= 0) context.terms[internalIndex] else context.terms[context.terms.size - 2]
-        val newSurface = (left.varnas.dropLast(2) + Svara.U).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(left.id, newSurface, Vyanjana.RA, listOf(Svara.U), sutra)
+            state = context.replaceTermVarna(left.id, left.varnas.lastIndex, listOf(Svara.U), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.114: Substituted 'u' for 'ru' before a voiced consonant."
         )
@@ -65,10 +65,11 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
         index < context.terms.lastIndex && context.terms[index].varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA) &&
+            context.substitutions.any { it.targetId == context.terms[index].id && it.sutra == "8.2.66" } &&
             context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
             (context.terms[index + 1].varnas.firstOrNull() as? Vyanjana)?.let {
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it)
             } == true
     } ?: -1
 }

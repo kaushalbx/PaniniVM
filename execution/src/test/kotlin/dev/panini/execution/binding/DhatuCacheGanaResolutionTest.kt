@@ -11,6 +11,27 @@ import dev.panini.vyakaranam.ast.DhatuPrakriti
 
 class DhatuCacheGanaResolutionTest {
     @Test
+    fun `base root vikarana cannot override an active causative stem`() {
+        val form = PaniniParser().parse("एक + अम् युज् + णिच् + श्नम् + लोट् + सिप् ।")
+            .grammaticalVakyas().single().padas.filterIsInstance<TingantaPada>().single()
+        assertNull(DhatuCache.resolve(form))
+        assertEquals(form.sourceText, dev.panini.execution.PvmUktiSadhaka().sadhayaTinganta(form))
+        assertIs<dev.panini.execution.ExecutionResult.Failure>(dev.panini.execution.PaniniVM().eval(
+            "एक + अम् युज् + णिच् + श्नम् + लोट् + सिप् ।"))
+    }
+    @Test
+    fun `causative shap does not reclassify the original root as bhvadi`() {
+        for (root in listOf("युज्", "गण", "मुद्र्")) {
+            val parser = PaniniParser()
+            val implicit = parser.parse("एक + अम् $root + णिच् + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas.filterIsInstance<TingantaPada>().single()
+            val explicit = implicit.copy(vikarana = dev.panini.vyakaranam.ast.Vikarana.SHAP)
+            val expected = kotlin.test.assertNotNull(DhatuCache.resolve(implicit), root)
+            assertEquals(expected.id, DhatuCache.resolve(explicit)?.id, root)
+        }
+    }
+
+    @Test
     fun `root collisions never choose a registration-order winner`() {
         val byRoot = DhatuPatha.all.filter { it.operations.isNotEmpty() }.flatMap { dhatu ->
             listOf(dhatu.upadesha, dhatu.sourceSurface, dhatu.derivationalSurface)

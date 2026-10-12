@@ -1,7 +1,6 @@
 package dev.panini.execution.binding
 
 import dev.panini.analysis.SamasaPada
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -22,7 +21,7 @@ internal fun Pratipadika.toSamasaPada(derivedStem: String, vibhakti: Vibhakti): 
     )
 
 internal fun SubantaPada.hasVibhakti(vibhakti: Vibhakti): Boolean =
-    SupAffix.candidates(sup.text).any { it.vibhakti == vibhakti }
+    sup.supports(vibhakti)
 
 /**
  * Returns the canonical base text for this [Pratipadika]:
@@ -47,7 +46,7 @@ internal fun Pratipadika.baseText(): String = when (this) {
  * The external sup belongs to [SubantaPada], so it deliberately cannot affect
  * this key.
  */
-internal fun Pratipadika.referenceKey(): String =
+fun Pratipadika.referenceKey(): String =
     if (hasAdditionalDerivation()) morphologicalKey() else semanticKey()
 
 /** Additional nominal suffixes cannot alias the unmodified stem's referent. */

@@ -33,9 +33,7 @@ object IHalyaghohSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.substituteTermVarnas(
-                shna.id, shna.varnas.dropLast(1) + Svara.II, Svara.AA, listOf(Svara.II), sutra,
-            ),
+            context.replaceTermVarna(shna.id, shna.varnas.lastIndex, listOf(Svara.II), sutra),
             "6.4.113 substitutes ī for the ā of श्ना before a consonant-initial k/ṅ-it sārvadhātuka.",
         )
     }

@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -43,15 +45,15 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
         val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
 
-        if (affix.surface == "स्मै") return false
+        if (affix.varnas == SupSubstitutionVarnas.smai) return false
 
-        return isSarvanama && endsInA && (affix.upadesha == "ङे" || affix.id == "sup-nge")
+        return isSarvanama && endsInA && (affix.hasCurrentAffix(SupAffix.NGE) || affix.sourceSupAffix == SupAffix.NGE)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, "स्मै", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            state = context.replaceWholeAffix(affix.id, SupSubstitutionVarnas.smai, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.14 substitutes 'smai' for dative-singular 'ṅe' after a pronoun stem."
         )
     }

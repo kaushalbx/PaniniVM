@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,8 +35,9 @@ object YajakadibhishchaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
+        if (context.purvaPada.vibhakti != Vibhakti.SASTHI) return false
         val uttara = context.uttaraPada.upadesha
-        return YajakadiGana.contains(uttara) || YajakadiGana.members.any { it.text.startsWith(uttara) }
+        return YajakadiGana.contains(uttara)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
