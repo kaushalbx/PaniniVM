@@ -8,7 +8,7 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
-import dev.panini.execution.resolveSankhyaValues
+import dev.panini.execution.compareNumericValues
 import dev.panini.execution.CopularPredicate
 
 /** Evaluates न्यून/अधिक with a nominative subject and an ablative standard. */
@@ -20,11 +20,13 @@ object CopularOrderAction : DhatuAction("न्यूनता", "एकस्�
         }
         val subject = context.bindings[Karaka.KARTR] ?: return missingKaraka(operation, Karaka.KARTR)
         val standard = context.bindings[Karaka.APADANA] ?: return missingKaraka(operation, Karaka.APADANA)
-        val left = context.resolveSankhyaValues(subject)?.singleOrNull()
+        val left = context.resolveValues(subject).singleOrNull()
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The subject of ordering must be a number.")
-        val right = context.resolveSankhyaValues(standard)?.singleOrNull()
+        val right = context.resolveValues(standard).singleOrNull()
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The ablative standard of comparison must be a number.")
-        val result = if (predicate == CopularPredicate.LESS_THAN) left < right else left > right
+        val order = compareNumericValues(left, right)
+            ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Ordering requires two defined numeric values.")
+        val result = if (predicate == CopularPredicate.LESS_THAN) order < 0 else order > 0
         return ExecutionResult.Success(
             value = if (result) "सत्यम्" else "असत्यम्",
             operation = operation.name,

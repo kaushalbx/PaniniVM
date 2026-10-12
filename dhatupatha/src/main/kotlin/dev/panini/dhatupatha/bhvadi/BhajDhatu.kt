@@ -2,10 +2,10 @@ package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListSliceAction
 import dev.panini.actions.numeric.DivisionAction
-import dev.panini.actions.numeric.FractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.numericOp
 import dev.panini.execution.op
@@ -30,10 +30,7 @@ class BhajDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         DivisionAction.numericOp {
-            triggeredBy(requiredUpasargas = setOf("वि"))
-        },
-        FractionAction.numericOp {
-            triggeredBy(requiredUpasargas = setOf("वि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
         },
         ListSliceAction.op {
             requires(Karaka.KARMAN) // list

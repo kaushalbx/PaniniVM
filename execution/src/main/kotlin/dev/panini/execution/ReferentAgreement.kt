@@ -10,10 +10,8 @@ data class ReferentAgreement(
 ) {
     companion object {
         fun fromDeclaration(declaration: dev.panini.vyakaranam.ast.SubantaPada?): ReferentAgreement {
-            val stem = declaration?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika
-            val genders = if (stem == null || stem.vikaras.isNotEmpty()) emptySet() else
-                dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika(stem.text)?.linga.orEmpty()
-            return ReferentAgreement(declaration?.sup?.text?.let(dev.panini.core.SupAffix::candidates)
+            val genders = dev.panini.execution.binding.NominalGenderAgreement.genders(declaration)
+            return ReferentAgreement(declaration?.sup?.affixCandidates
                 ?.mapTo(mutableSetOf()) { it.vacana }.orEmpty(), genders)
         }
     }

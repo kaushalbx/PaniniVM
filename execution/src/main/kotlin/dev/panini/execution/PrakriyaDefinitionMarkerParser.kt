@@ -1,25 +1,18 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.core.Vacana
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.ast.KridantaLexicalIdentity
-import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.invocations
+import dev.panini.vyakaranam.ast.prakriyaDefinitionQualifier
 import dev.panini.vyakaranam.parser.PaniniParser
 
-enum class PrakriyaDefinitionQualifier {
-    PRAKRIYA,
-    APAVADA,
-    NITYA,
-    ANTARANGA,
-}
+/** Compatibility name for the shared AST classifier's typed result. */
+typealias PrakriyaDefinitionQualifier = dev.panini.vyakaranam.ast.PrakriyaDefinitionQualifier
 
 data class ParsedPrakriyaQualifiers(
     val declarationSource: String,
@@ -85,8 +78,7 @@ object PrakriyaDefinitionMarkerParser {
             return ParsedPrakriyaQualifiers(
                 declarationSource = declarationSource,
                 declarationPadas = declarationPadas,
-                qualifiers = qualifierPadas.filterIsInstance<SubantaPada>()
-                    .mapNotNull { it.definitionQualifier() }.toSet(),
+                qualifiers = definitionQualifiers(qualifierPadas),
             )
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
@@ -101,27 +93,27 @@ object PrakriyaDefinitionMarkerParser {
         return ParsedPrakriyaQualifiers(
             declarationSource = declarationSource,
             declarationPadas = declarationPadas,
-            qualifiers = qualifierPadas
-                .filterIsInstance<SubantaPada>()
-                .mapNotNull { it.definitionQualifier() }
-                .toSet(),
+            qualifiers = definitionQualifiers(qualifierPadas),
         )
     }
 
-    private fun SubantaPada.definitionQualifier(): PrakriyaDefinitionQualifier? {
-        if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
-        return when (val base = pratipadika) {
-            is MulaPratipadika -> when (base.lexicalIdentity) {
-                MulaPratipadikaIdentity.PRAKRIYA -> PrakriyaDefinitionQualifier.PRAKRIYA
-                MulaPratipadikaIdentity.APAVADA -> PrakriyaDefinitionQualifier.APAVADA
-                MulaPratipadikaIdentity.NITYA -> PrakriyaDefinitionQualifier.NITYA
-                MulaPratipadikaIdentity.ANTARANGA -> PrakriyaDefinitionQualifier.ANTARANGA
-                else -> null
-            }
-            is KridantaPratipadika -> PrakriyaDefinitionQualifier.APAVADA.takeIf {
-                base.lexicalIdentity == KridantaLexicalIdentity.APAVADA
-            }
-            else -> null
+    private fun SubantaPada.definitionQualifier(): PrakriyaDefinitionQualifier? = prakriyaDefinitionQualifier()
+
+    private fun definitionQualifiers(padas: List<Pada>): Set<PrakriyaDefinitionQualifier> {
+        val predicate = padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
+        val producesResult = predicate != null && dev.panini.dhatupatha.DhatuPatha.all.any {
+            it.denotesResultProduction(predicate)
         }
+        val nominals = padas.filterIsInstance<SubantaPada>()
+        val product = if (producesResult) {
+            requireNotNull(nominals.singleOrNull { it.sup.supports(Vibhakti.DVITIYA, Vacana.EKAVACANA) }) {
+                "A result-producing header requires one accusative singular product."
+            }
+        } else null
+        return nominals.filter { it !== product }.map { pada ->
+            requireNotNull(pada.definitionQualifier()) {
+                "Unsupported procedure qualifier: '${pada.sourceText}'; expected a recognized nominative singular modifier."
+            }
+        }.toSet()
     }
 }

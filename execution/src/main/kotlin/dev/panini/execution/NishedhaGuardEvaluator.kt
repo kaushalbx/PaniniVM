@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.execution.binding.NumeralPadaBinder
 import dev.panini.vyakaranam.ast.AvyayaFunction
@@ -85,15 +84,7 @@ object NishedhaGuardEvaluator {
         if (pada is SamuccitaSubanta) pada.members else listOf(pada)
 
     private fun isAccusative(pada: Pada): Boolean {
-        val sup = when (pada) {
-            is SubantaPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.SankhyaPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.SankhyaPuranaPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.KatapayadiPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.AryabhatiyaPada -> pada.sup.text
-            else -> return false
-        }
-        return SupAffix.fromUpadesha(sup)?.vibhakti == Vibhakti.DVITIYA
+        return (pada as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup?.supports(Vibhakti.DVITIYA) == true
     }
 
 }

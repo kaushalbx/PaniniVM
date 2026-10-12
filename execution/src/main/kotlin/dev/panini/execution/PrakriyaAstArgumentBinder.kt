@@ -6,7 +6,6 @@ import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pipeline
@@ -53,8 +52,7 @@ object PrakriyaAstArgumentBinder {
     }
 
     fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int,
-        knownOperationStems: Set<String> = emptySet(),
-        preserveInvocation: (Invocation) -> Boolean = { false }): ProgramNode {
+        knownOperationStems: Set<String> = emptySet()): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
         val localNames = mutableSetOf<String>()
         fun ordinalIndex(pada: Pada): Int? =
@@ -99,17 +97,7 @@ object PrakriyaAstArgumentBinder {
                 index?.let { reference(pada, it) } ?: pada
             }
             is SubantaPada -> {
-                val nominal = pada.pratipadika as? MulaPratipadika
-                if (
-                    nominal?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA &&
-                    nominal.vikaras.isEmpty() && pada.sup.text == dev.panini.core.SupAffix.AM.upadesha &&
-                    pada.pratipadika.semanticKey() !in names && argumentCount > 0
-                ) {
-                    val members = (0 until argumentCount).map { reference(pada, it) }
-                    SamuccitaSubanta(members.joinToString(" ") { it.sourceText }, members)
-                } else {
-                    parameterIndex(pada)?.let { reference(pada, it) } ?: pada
-                }
+                parameterIndex(pada)?.let { reference(pada, it) } ?: pada
             }
             is SamuccitaSubanta -> {
                 val members = pada.members.map { member ->
@@ -126,7 +114,6 @@ object PrakriyaAstArgumentBinder {
             return originalPadas.map { if (it in protected) it else bindPada(it) }
         }
         fun bindInvocation(node: Invocation): Invocation {
-            if (preserveInvocation(node)) return node
             val padas = bindPadas(node.vakya.padas)
             val source = padas.joinToString(" ") { it.sourceText }
             val vakya = when (val original = node.vakya) {

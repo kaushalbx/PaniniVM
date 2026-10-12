@@ -11,6 +11,22 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class PriorActionTest {
+    @Test fun `prior action classification uses typed affix identity not display text`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
+        val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
+        val sentence = assertIs<AkhyataVakya>(invocation.vakya)
+        fun withSuffix(suffix: String): Invocation = invocation.copy(vakya = sentence.copy(
+            padas = sentence.padas.map { pada ->
+                val derivation = (pada as? AvyayaPada)?.derivation as? AvyayaKridantaDerivation
+                if (derivation == null) pada else (pada as AvyayaPada).copy(
+                    sourceText = "display only",
+                    derivation = derivation.copy(pratyaya = suffix))
+            }))
+        assertNotNull(PriorActionLowering.expand(withSuffix(" क्त्वा ")))
+        assertNull(PriorActionLowering.expand(withSuffix("तुमुँन्")))
+        assertNull(PriorActionLowering.expand(withSuffix("unknown")))
+    }
+
     @Test fun `implicit display object preserves a subject following the finite verb`() {
         val source = "राम + सुँ एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
             "मुद्र् + णिच् + लट् + तिप् राम + सुँ ।"

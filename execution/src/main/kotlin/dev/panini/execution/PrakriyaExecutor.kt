@@ -58,8 +58,23 @@ internal class PrakriyaExecutor {
                 )
                 val produced = request.executeBody(boundProgram, callFrame.localScope, sourceFile)
                 results += produced
-                if (produced.any { it !is ExecutionResult.Success ||
-                        it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) return results
+                // Failure and suspension are not completed procedure results.
+                if (produced.any { it !is ExecutionResult.Success }) return results
+                if (produced.any { it is ExecutionResult.Success &&
+                        it.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE }) {
+                    validateResult(invocation, request.registry, results)?.let { results += it }
+                    return results.map { result ->
+                        if (result is ExecutionResult.Success &&
+                            result.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE)
+                            result.copy(controlSignal = null) else result
+                    }
+                }
+                if (produced.any { it is ExecutionResult.Success &&
+                        it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) {
+                    // Legacy break propagation must not bypass the result contract.
+                    validateResult(invocation, request.registry, results)?.let { results += it }
+                    return results
+                }
             }
         }
 
@@ -80,9 +95,10 @@ internal class PrakriyaExecutor {
             )
         }
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
-            val actual = frame.arguments.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
-                ?: PrakriyaValueClassifier.classifyTerm(pair.second)
-            pair.first.type != PrakriyaValueType.UNCONSTRAINED && actual != pair.first.type
+            val value = frame.arguments.getOrNull(index)
+            if (value != null) !PrakriyaValueClassifier.accepts(pair.first.type, value)
+            else pair.first.type != PrakriyaValueType.UNCONSTRAINED &&
+                PrakriyaValueClassifier.classifyTerm(pair.second) != pair.first.type
         } ?: return null
         return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
@@ -108,7 +124,7 @@ internal class PrakriyaExecutor {
                     invocation.kriya.signature.parameters,
                     frame.arguments,
                 ) || requiredType != null && frame.arguments.any {
-                    PrakriyaValueClassifier.classifyValue(it) != requiredType
+                    !PrakriyaValueClassifier.accepts(requiredType, it)
                 }
             ) {
                 return ExecutionResult.Failure(
@@ -134,10 +150,9 @@ internal class PrakriyaExecutor {
         }
         signature.resultType?.let { expected ->
             val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return null
-            val actual = PrakriyaValueClassifier.classifyValue(
-                finalResult.typedValue ?: SanskritValue.of(finalResult.value),
-            )
-            if (actual != expected) {
+            val value = finalResult.typedValue ?: SanskritValue.of(finalResult.value)
+            val actual = PrakriyaValueClassifier.classifyValue(value)
+            if (!PrakriyaValueClassifier.accepts(expected, value)) {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
                     "प्रक्रिया-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",

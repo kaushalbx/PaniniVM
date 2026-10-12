@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
 
@@ -18,8 +17,10 @@ object PrakriyaInvocationArgumentResolver {
         }
         val syntax = invocation.argumentSyntax.filterIsInstance<SubantaPada>()
         val hasNamedSyntax = syntax.any {
-            SupAffix.fromUpadesha(it.sup.text)?.vibhakti in setOf(Vibhakti.SAPTAMI, Vibhakti.SASTHI)
+            it.sup.supports(Vibhakti.SAPTAMI) || it.sup.supports(Vibhakti.SASTHI)
         }
+        val resolution = NamedPrakriyaArgumentResolver.resolve(syntax, signature)
+        if (resolution !is PrakriyaArgumentResolution.Success) return resolution
         if (!hasNamedSyntax && sourceArguments.isNotEmpty()) {
             return PrakriyaArgumentResolution.Success(
                 sourceArguments.mapIndexed { index, argument ->
@@ -36,9 +37,6 @@ object PrakriyaInvocationArgumentResolver {
                 named = false,
             )
         }
-        val resolution = NamedPrakriyaArgumentResolver.resolve(syntax, signature)
-        if (resolution !is PrakriyaArgumentResolution.Success) return resolution
-
         val remaining = sourceArguments.toMutableList()
         val resolved = resolution.arguments.mapIndexed { index, grammatical ->
             val term = grammatical.argument.term

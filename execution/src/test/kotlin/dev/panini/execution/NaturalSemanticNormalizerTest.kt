@@ -108,15 +108,9 @@ class NaturalSemanticNormalizerTest {
     }
 
     @Test
-    fun `normalizes ordinal procedure arithmetic into semantic operands`() {
+    fun `ordinal arithmetic requires contextual binding rather than global parameter inference`() {
         assertEquals(
-            NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic(
-                NaturalSemanticNormalizer.ArithmeticKind.ADD,
-                listOf(
-                    NaturalSemanticNormalizer.ProcedureOperand.Parameter(1),
-                    NaturalSemanticNormalizer.ProcedureOperand.Parameter(2),
-                ),
-            ),
+            null,
             NaturalSemanticNormalizer.normalize(
                 invocation("प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ।"),
             ),
@@ -133,9 +127,9 @@ class NaturalSemanticNormalizerTest {
     }
 
     @Test
-    fun `normalizes collection parameter summation by lexical identity`() {
+    fun `collection noun alone does not define an implicit aggregate parameter`() {
         assertEquals(
-            NaturalSemanticNormalizer.Operation.CollectionParameterSum,
+            null,
             NaturalSemanticNormalizer.normalize(
                 invocation("समवाय + अम् युज् + णिच् + लोट् + सिप् ।"),
             ),
@@ -143,11 +137,11 @@ class NaturalSemanticNormalizerTest {
     }
 
     @Test
-    fun `collection parameter compatibility slot retains derivation and object case`() {
+    fun `collection nouns retain ordinary derivation and case`() {
         for (phrase in listOf("समवाय + मतुप् + अम्", "समवाय + तरप् + अम्",
             "समवाय + टा", "समवाय + ङस्", "समवाय + शस्",
             "समवाय + अम् एक + अम् च")) {
-            kotlin.test.assertNotEquals(NaturalSemanticNormalizer.Operation.CollectionParameterSum,
+            assertEquals(null,
                 NaturalSemanticNormalizer.normalize(invocation("$phrase युज् + णिच् + लोट् + सिप् ।")), phrase)
         }
     }

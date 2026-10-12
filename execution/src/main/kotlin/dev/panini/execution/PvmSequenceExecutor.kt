@@ -16,11 +16,12 @@ internal class PvmSequenceExecutor {
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
         executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
-        val hasNamedStage = node.statements.drop(1).withIndex().any { (index, stage) ->
+        val hasNamedStage = node.statements.withIndex().any { (index, stage) ->
             stage is Invocation && registry.detectInvocation(
                 Ukti(sourceText = stage.sourceText, body = stage),
                 callerSourceFile = sourceFile,
-                injectedKarman = if (node.connectorKinds.getOrNull(index) == SequenceConnector.ANANTARYA)
+                injectedKarman = if (index > 0 &&
+                    node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
                     InjectedKarmanBinding(PIPE_OPERAND, null) else null,
             ) != null
         }
@@ -49,7 +50,7 @@ internal class PvmSequenceExecutor {
         var pipedValue = resultValue(stageResults)
         for ((index, stage) in node.statements.drop(1).withIndex()) {
             if (stageResults.any { it !is ExecutionResult.Success ||
-                    it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) break
+                    it.controlSignal != null }) break
             val invocation = stage as? Invocation
             stageResults = if (invocation != null && pipedValue != null &&
                 node.connectorKinds.getOrNull(index) == SequenceConnector.ANANTARYA) {

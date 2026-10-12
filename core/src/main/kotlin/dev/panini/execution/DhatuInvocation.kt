@@ -23,8 +23,11 @@ data class DhatuInvocation(
 data class AmbiguousKarakaBinding(
     val expression: ExecutionExpression,
     val candidates: Set<Karaka>,
+    /** Contextual sup interpretations retained until a role assignment is selected. */
+    val supSlots: Map<Karaka, dev.panini.core.SupAffix> = emptyMap(),
 ) {
     init {
         require(candidates.size > 1) { "An ambiguous binding requires multiple kāraka candidates." }
+        require(supSlots.keys.all { it in candidates }) { "Sup slots must belong to candidate kārakas." }
     }
 }

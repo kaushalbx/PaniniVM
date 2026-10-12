@@ -33,7 +33,7 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
                 ),
             )
         }
-        listOf("मूल्य", "परिमाण", "मान", "फल").forEach { text ->
+        listOf("मूल्य", "परिमाण", "मान", "फल", "परीक्षण").forEach { text ->
             put(text, PratipadikaEntry(text = text, linga = setOf(Linga.NAPUMSAKA)))
         }
         // Ordinal adjective stems retain gender independently of numeric identity.

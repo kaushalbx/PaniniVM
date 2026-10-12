@@ -128,6 +128,8 @@ internal class PvmLoopExecutor {
                             request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
                         )
                         val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
+                        if (success.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE)
+                            return results + success
                         success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
                             ?: return results + ExecutionResult.Failure(
                                 ExecutionError.INVALID_VALUE,
@@ -141,6 +143,8 @@ internal class PvmLoopExecutor {
             val iterationResults = request.executeNode(loop.body, request.scope, usesLatestResult)
             results += iterationResults.map(ExecutionResult::consumeLoopBreak)
             if (iterationResults.any { it !is ExecutionResult.Success }) return results
+            if (iterationResults.any { it is ExecutionResult.Success &&
+                    it.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE }) return results
             iterationCount++
             if (iterationResults.any { it is ExecutionResult.Success &&
                     it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) {
@@ -157,7 +161,12 @@ internal class PvmLoopExecutor {
             if (usesLatestResult && (if (isNegated) latestConditionValue else !latestConditionValue))
                 return complete(ExecutionResult.LoopOutcome.VIJAYA)
         }
-        loop.exhausted?.let { results += request.executeNode(it, request.scope, false) }
+        loop.exhausted?.let {
+            val exhaustedResults = request.executeNode(it, request.scope, false)
+            results += exhaustedResults
+            if (exhaustedResults.any { result -> result !is ExecutionResult.Success ||
+                    result.controlSignal != null }) return results
+        }
         return complete(ExecutionResult.LoopOutcome.SAMAPTI)
     }
 

@@ -5,6 +5,30 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class CollectionMemberMorphologyTest {
+    @Test fun `nonfinite extraction rejects further derived ordinals before chaining`() {
+        for (affix in listOf("मतुप्", "तरप्")) {
+            val source = "सूची + ङस् प्रथम + $affix + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"
+            val invocation = PaniniParser().parse(source).body as Invocation
+            assertFailsWith<IllegalArgumentException>(affix) { PriorActionLowering.expand(invocation) }
+            val results = PaniniVM().evalScript(
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source")
+            assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        }
+    }
+
+    @Test fun `derived ordinal cannot silently become an unqualified extraction`() {
+        for (affix in listOf("मतुप्", "तरप्")) {
+            val source = "सूची + ङस् प्रथम + $affix + अम् उद् + हृ + लोट् + सिप् ।"
+            val invocation = PaniniParser().parse(source).body as Invocation
+            assertFailsWith<IllegalArgumentException>(affix) {
+                CollectionMemberMorphology.validate(invocation)
+            }
+            val results = PaniniVM().evalScript(
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source")
+            assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        }
+    }
+
     @Test
     fun `final selector is typed and survives a same named variable and codec`() {
         for (phrase in listOf("सूची + ङस् अन्तिम + अम्", "अन्तिम + अम् सूची + ङस्")) {

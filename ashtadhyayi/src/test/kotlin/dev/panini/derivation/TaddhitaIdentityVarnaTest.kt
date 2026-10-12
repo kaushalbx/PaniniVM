@@ -7,7 +7,7 @@ import kotlin.test.*
 
 class TaddhitaIdentityVarnaTest {
     @Test fun `source affix and substitute identities preserve the previous exact domain`() {
-        val identities: List<TypedAffix> = TaddhitaAffix.entries + TaddhitaAdesha.entries
+        val identities: List<TypedAffix> = dev.panini.ashtadhyayi.initialVrddhiTaddhitaIdentities
         assertEquals(13, identities.size)
         assertEquals(13, identities.map { it.upadesha }.distinct().size)
         for (identity in identities) {
@@ -26,6 +26,16 @@ class TaddhitaIdentityVarnaTest {
                 assertEquals(1, result.substitutions.single().sourceVarnaIndex)
                 assertFalse(rule.matches(result))
             }
+        }
+    }
+
+    @Test fun `newly recognized affixes do not silently expand initial vrddhi support`() {
+        for (identity in listOf(TaddhitaAffix.MATUP, TaddhitaAffix.VATUP, TaddhitaAffix.TVA,
+            TaddhitaAffix.TAL, TaddhitaAffix.TARAP, TaddhitaAffix.TAMAP)) {
+            val state = DerivationState(listOf(DerivationTerm("stem", "नर", TermKind.PRATIPADIKA),
+                identity.term("affix").copy(itMarkers = setOf(ItMarker.NIT, ItMarker.KIT))))
+            assertFalse(TaddhitesvAcamAdehSutra.matches(state), identity.name)
+            assertFalse(KitiCaSutra.matches(state), identity.name)
         }
     }
 

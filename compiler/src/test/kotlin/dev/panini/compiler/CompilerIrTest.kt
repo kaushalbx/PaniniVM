@@ -312,6 +312,11 @@ class CompilerIrTest {
         CompilerProgramVerifier.verify(
             program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.NUMBER),
         )
+        CompilerProgramVerifier.verify(
+            program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.UNKNOWN).copy(
+                procedures = listOf(procedure.copy(parameterKinds = listOf(CompilerValueKind.UNKNOWN))),
+            ),
+        )
         assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
                 program(SanskritValue.Shabda("राम"), CompilerValueKind.NUMBER),
@@ -426,11 +431,14 @@ class CompilerIrTest {
     }
 
     @Test
-    fun `runtime boundary report counts only generic action calls`() {
+    fun `runtime boundary report counts static and dynamically selected action calls`() {
         val call = CompilerInstruction.Call("धातुः", "विशिष्टक्रिया", "", emptyMap())
         val program = CompilerProgram(
             "GeneratedProgram",
-            listOf(call, CompilerInstruction.Store("LastResult")),
+            listOf(call, CompilerInstruction.Store("LastResult"),
+                CompilerInstruction.Constant(SanskritValue.Gana(listOf(SanskritValue.Sankhya(1L, "एक")))),
+                CompilerInstruction.CallParticipantGroup("गण", dev.panini.execution.GrammaticalFeatures()),
+                CompilerInstruction.Store("LastResult")),
             listOf(
                 CompilerProcedure(
                     "prakriya_0",
@@ -439,7 +447,7 @@ class CompilerIrTest {
             ),
         )
 
-        assertEquals(mapOf("विशिष्टक्रिया" to 2), CompilerRuntimeBoundaryReport.operations(program))
+        assertEquals(mapOf("विशिष्टक्रिया" to 2, "dynamic:गण" to 1), CompilerRuntimeBoundaryReport.operations(program))
     }
 
     @Test

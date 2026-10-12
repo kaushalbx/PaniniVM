@@ -243,11 +243,7 @@ object DivadiDhatus {
                 "अवखण्डने", "कतरना, विभाग करना", "to cut,to mow",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
             )
-            dhatu(
-                "04.0044", 44, "जनीँ", "जन्",
-                "प्रादुर्भावे", "उत्पन्न करना, पैदा होना", "to be born,to become, to come to existence",
-                PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
-            )
+            dhatu(JanDhatu())
             dhatu(
                 "04.0045", 45, "दीपीँ", "दीप्",
                 "दीप्तौ", "प्रकाशित होना, चमकना", "to shine,to burn,to be illustrious, to glow",

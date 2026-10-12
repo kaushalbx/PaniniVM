@@ -5,6 +5,7 @@ import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import java.util.concurrent.ConcurrentHashMap
 
 /** Gives recognized numeral stems one stable typed identity before execution uses them. */
@@ -15,7 +16,7 @@ internal object NumeralAstNormalizer {
             is SankhyaPratipadika -> pratipadika.vikaras
             else -> return false
         }
-        return vikaras.any { it !is dev.panini.vyakaranam.ast.StriVikara }
+        return vikaras.any { !it.isRecognizedStriAffix }
     }
     private val recognized = ConcurrentHashMap<String, SanskritValue.Sankhya>()
     private val rejected = ConcurrentHashMap.newKeySet<String>()

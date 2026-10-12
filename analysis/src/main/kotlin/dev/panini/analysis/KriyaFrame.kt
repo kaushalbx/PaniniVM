@@ -88,6 +88,15 @@ sealed interface KriyaLink {
         override val target: KriyaId,
         val participantSource: String,
     ) : KriyaLink
+
+    /** Re-evaluation of a loop test, not grammatical prior-action attachment. */
+    data class LoopBack(override val source: KriyaId, override val target: KriyaId) : KriyaLink
+
+    /** The bounded-loop exhaustion alternative. */
+    data class Exhaustion(override val source: KriyaId, override val target: KriyaId) : KriyaLink
+
+    /** Result-target clause after loop completion. */
+    data class LoopResult(override val source: KriyaId, override val target: KriyaId) : KriyaLink
 }
 
 enum class FrameDiagnosticCode {
@@ -96,6 +105,7 @@ enum class FrameDiagnosticCode {
     UNASSIGNED_PARTICIPANT,
     AGREEMENT_MISMATCH,
     UNCLASSIFIED_PADA,
+    CONFLICTING_SHARED_AGENT,
 }
 
 data class FrameDiagnostic(

@@ -33,6 +33,8 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sankhya.SankhyaVacana
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.lexicalGanaConstraint
+import dev.panini.vyakaranam.ast.hasContradictoryActiveCausativeVikarana
 import dev.panini.vyakaranam.ast.AvyayaKridantaDerivation
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -583,13 +585,14 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
+        if (tinganta.hasContradictoryActiveCausativeVikarana()) return tinganta.sourceText
         tinganta.priorAction?.let { derivation ->
             val source = (derivation.upasargas + derivation.dhatu.sourceText + derivation.pratyaya)
                 .joinToString(" + ")
             return sadhayaPada(AvyayaPada(source, source, derivation))
         }
         val rawDhatu = tinganta.dhatu.mulaDhatu
-        val explicitGana = tinganta.vikarana?.gana
+        val explicitGana = tinganta.lexicalGanaConstraint()
         val matchingDhatus = DhatuPatha.all.filter { candidate ->
             sameDhatuSurface(candidate.upadesha, rawDhatu) ||
                 sameDhatuSurface(candidate.derivationalSurface, rawDhatu) ||

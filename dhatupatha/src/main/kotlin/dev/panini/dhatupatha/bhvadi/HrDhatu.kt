@@ -5,6 +5,7 @@ import dev.panini.actions.collection.ListPopAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
@@ -30,7 +31,7 @@ class HrDhatu : Dhatu(
     operations = listOf(
         DivisionAction.numericOp(),
         ListPopAction.op {
-            triggeredBy(requiredUpasargas = setOf("उद्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.UD))
             requires(Karaka.KARMAN)
             optional(Karaka.SAMBANDHA)
             returns(Samjna.SHABDA)

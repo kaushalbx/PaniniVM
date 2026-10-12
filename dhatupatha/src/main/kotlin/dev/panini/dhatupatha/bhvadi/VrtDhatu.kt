@@ -5,6 +5,7 @@ import dev.panini.actions.control.ForEachAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
@@ -28,12 +29,12 @@ class VrtDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         ListReverseAction.op {
-            triggeredBy(requiredUpasargas = setOf("प्रति"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.PRATI))
             requires(Karaka.KARMAN) // list
             returns(Samjna.GANA)
         },
         ForEachAction.op {
-            triggeredBy(requiredUpasargas = setOf("अनु"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.ANU))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // body action
             optional(Karaka.SAMPRADANA) // initial state/accumulator

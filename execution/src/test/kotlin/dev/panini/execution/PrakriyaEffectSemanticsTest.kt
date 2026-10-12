@@ -3,6 +3,46 @@ package dev.panini.execution
 import kotlin.test.*
 
 class PrakriyaEffectSemanticsTest {
+    @Test fun `procedure owns return effect and validates its value`() {
+        for (value in listOf(SanskritValue.Sankhya(1L, "एक"), SanskritValue.Shabda("text"))) {
+            val produced = ExecutionResult.Success(value.toDisplayText(), "return", typedValue = value,
+                controlSignal = ExecutionControlSignal.RETURN_PROCEDURE)
+            assertEquals(produced, produced.consumeLoopBreak())
+            val results = PrakriyaExecutor().execute(PrakriyaExecutor.Request(
+                PrakriyaInvocation(procedure(PrakriyaValueType.SANKHYA), "", ""),
+                ExecutionScope(), PrakriyaRegistry(), null,
+                executeBody = { _, _, _ -> listOf(produced) },
+            ))
+            assertNull(assertIs<ExecutionResult.Success>(results.first()).controlSignal)
+            if (value is SanskritValue.Sankhya) assertEquals(value,
+                assertIs<ExecutionResult.Success>(results.single()).typedValue)
+            else assertIs<ExecutionResult.Failure>(results.last())
+        }
+    }
+
+    @Test fun `early successful exit still enforces declared result type`() {
+        for (value in listOf(SanskritValue.Sankhya(1L, "एक"), SanskritValue.Shabda("text"))) {
+            var calls = 0
+            val results = PrakriyaExecutor().execute(PrakriyaExecutor.Request(
+                PrakriyaInvocation(procedure(PrakriyaValueType.SANKHYA), "", ""),
+                ExecutionScope(), PrakriyaRegistry(), null,
+                executeBody = { _, _, _ ->
+                    calls++
+                    listOf(ExecutionResult.Success(value.toDisplayText(), "test", typedValue = value,
+                        controlSignal = ExecutionControlSignal.BREAK_LOOP))
+                },
+            ))
+            assertEquals(1, calls)
+            if (value is SanskritValue.Sankhya) {
+                assertEquals(ExecutionControlSignal.BREAK_LOOP,
+                    assertIs<ExecutionResult.Success>(results.single()).controlSignal)
+            } else {
+                assertEquals(ExecutionError.INVALID_VALUE,
+                    assertIs<ExecutionResult.Failure>(results.last()).error)
+            }
+        }
+    }
+
     private fun procedure(resultType: PrakriyaValueType? = null, resultSchema: String? = null): Prakriya {
         val definition = PvmScript.parse("""
             सिध् + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।

@@ -1,6 +1,7 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
+import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
@@ -50,25 +51,23 @@ object DirectResultAssignment {
         if (vakya.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.DA) return null
         val head = vakya.tinganta
         if (head.upasargas.isNotEmpty() || head.dhatu.sanadiPratyayas.isNotEmpty() ||
-            head.lakara.upadesha != "लोट्" || head.ting.text != "सिप्") return null
-        val reference = NamedActionResultReferenceResolver.resolve(vakya.padas).singleOrNull() ?: return null
+            head.lakara != Lakara.LOT || head.ting.affix != TingAffix.SIP) return null
+        val reference = runCatching { NamedActionResultReferenceResolver.resolve(vakya.padas) }
+            .getOrNull()?.singleOrNull() ?: return null
         if (reference.hasOrderingQualifier) return null
         val modifier = reference.modifier.pratipadika as? KridantaPratipadika ?: return null
         val previousHead = (previous.vakya as? AkhyataVakya)?.tinganta ?: return null
         val identity = modifier.dhatu.canonicalDhatuIdentity() ?: return null
         if (previousHead.canonicalDhatuIdentity() != identity) return null
         val subantas = vakya.padas.filterIsInstance<SubantaPada>()
-        val phala = subantas.indexOfFirst {
-            NaturalSemanticNormalizer.isPriorResult(it) &&
-                it.vibhakti() == Vibhakti.DVITIYA
+        if (!reference.result.sup.supports(Vibhakti.DVITIYA) ||
+            !reference.modifier.sup.supports(Vibhakti.SASTHI)) return null
+        val target = subantas.singleOrNull {
+            it !== reference.result && it !== reference.modifier && it.sup.supports(Vibhakti.CHATURTHI)
         }
-        if (phala <= 0 || subantas.take(phala).none { it.vibhakti() == Vibhakti.SASTHI }) return null
-        val target = subantas.drop(phala + 1).singleOrNull { it.vibhakti() == Vibhakti.CHATURTHI }
             ?: return null
         if (vakya.padas.any { it !== head && it !== reference.result && it !== reference.modifier && it !== target }) return null
         return invocation to "${target.pratipadika.morphologicalKey()} + ${target.sup.text}"
     }
-
-    private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
 }

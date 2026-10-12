@@ -12,7 +12,64 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class ExplicitPrakriyaSignatureTest {
+    @Test fun `static truth evidence comes from an underived literal not its base spelling`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (stem in listOf("सत्य", "असत्य", "सत्य + मतुप्", "सत्य + त्व")) {
+            val pada = parser.parse("$stem + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>().single()
+            assertEquals(if ('+' in stem) PrakriyaValueType.UNCONSTRAINED else PrakriyaValueType.SATYA,
+                PrakriyaValueClassifier.classifyStaticPada(pada), stem)
+        }
+    }
+    @Test fun `contextual ordinal names are not static numeric argument evidence`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (stem in listOf("प्रथम", "प्रथम + टाप्", "द्वितीय")) {
+            val pada = parser.parse("$stem + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>().single()
+            assertEquals(PrakriyaValueType.UNCONSTRAINED, PrakriyaValueClassifier.classifyStaticPada(pada), stem)
+        }
+        val literal = parser.parse("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+            .grammaticalVakyas().single().padas.first()
+        assertEquals(PrakriyaValueType.SANKHYA, PrakriyaValueClassifier.classifyStaticPada(literal))
+    }
+    @Test fun `numeric procedure contract distinguishes payload classification from validity`() {
+        val undefined = SanskritValue.Rational(1, 0, "undefined")
+        assertEquals(PrakriyaValueType.SANKHYA, PrakriyaValueClassifier.classifyValue(undefined))
+        assertFalse(PrakriyaValueClassifier.accepts(PrakriyaValueType.SANKHYA, undefined))
+        assertTrue(PrakriyaValueClassifier.accepts(PrakriyaValueType.SANKHYA,
+            SanskritValue.Rational(1, -2, "negative")))
+        assertTrue(PrakriyaValueClassifier.accepts(PrakriyaValueType.UNCONSTRAINED,
+            SanskritValue.Shabda("text")))
+    }
+
     private val vm = PaniniVM()
+
+    @Test
+    fun `signature rejects incomplete result-producing header AST`() {
+        val declaration = assertIs<dev.panini.vyakaranam.ast.Prakriya>(
+            dev.panini.vyakaranam.parser.PaniniParser().parseDocument(
+                "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् । " +
+                    "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+            ).items.single()
+        )
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PrakriyaSignatureCompiler.compile(emptyList(), headerResult = declaration.declaredResult)
+        }
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PrakriyaSignatureCompiler.compile(emptyList(), headerPredicate = declaration.resultPredicate)
+        }
+        assertEquals(PrakriyaValueType.SANKHYA, PrakriyaSignatureCompiler.compile(
+            emptyList(), declaration.declaredResult, declaration.resultPredicate
+        ).resultType)
+        for (ending in listOf("सुँ", "औट्", "शस्", "ङस्")) {
+            val invalidProduct = declaration.declaredResult!!.copy(
+                sup = SupPratyaya(sourceText = ending, text = ending)
+            )
+            kotlin.test.assertFailsWith<IllegalArgumentException>(ending) {
+                PrakriyaSignatureCompiler.compile(emptyList(), invalidProduct, declaration.resultPredicate)
+            }
+        }
+    }
 
     @Test
     fun `parsed argument identity overrides misleading compatibility text`() {

@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.execution.binding.PhalaReference
@@ -57,13 +56,19 @@ data class ResolvedPrakriyaArgument(
             ?: PrakriyaInvocationMatcher.normalizeIdentity(argument.term)
 }
 
-/** Binds natural सप्तमी parameter slots (and legacy षष्ठी labels) to following द्वितीया values. */
+/** Binds natural सप्तमी parameter slots (and legacy षष्ठी labels) to द्वितीया values. */
 object NamedPrakriyaArgumentResolver {
     private data class NamedValue(val name: String, val pada: SubantaPada)
 
     /** Resolves argument order from the canonical AST without rendering and reparsing it. */
     fun resolve(padas: List<SubantaPada>, signature: PrakriyaSignature): PrakriyaArgumentResolution {
-        val positionalPadas = padas.filter { it.vibhakti() == Vibhakti.DVITIYA }
+        val unsupported = padas.firstOrNull {
+            !it.sup.supports(Vibhakti.DVITIYA) && !it.sup.supports(Vibhakti.SAPTAMI) &&
+                !it.sup.supports(Vibhakti.SASTHI)
+        }
+        if (unsupported != null) return PrakriyaArgumentResolution.Failure(
+            "Unsupported procedure argument morphology: '${unsupported.sourceText}'.")
+        val positionalPadas = padas.filter { it.sup.supports(Vibhakti.DVITIYA) }
         return resolve(padas, signature, positionalPadas)
     }
 
@@ -72,14 +77,18 @@ object NamedPrakriyaArgumentResolver {
         signature: PrakriyaSignature,
         positionalPadas: List<SubantaPada>,
     ): PrakriyaArgumentResolution {
+        val slots = padas.filter { it.sup.supports(Vibhakti.SAPTAMI) || it.sup.supports(Vibhakti.SASTHI) }
+        // A unique slot and unique value determine the relation without word order.
+        // Several slot/value pairs still require explicit local attachment evidence.
+        val uniqueValue = positionalPadas.singleOrNull().takeIf { slots.size == 1 }
         val pairs = padas.mapIndexedNotNull { index, pada ->
-            if (pada.vibhakti() !in setOf(Vibhakti.SAPTAMI, Vibhakti.SASTHI)) return@mapIndexedNotNull null
-            if (SupAffix.candidates(pada.sup.text).none { it.vacana == dev.panini.core.Vacana.EKAVACANA }) {
+            if (!pada.sup.supports(Vibhakti.SAPTAMI) && !pada.sup.supports(Vibhakti.SASTHI)) return@mapIndexedNotNull null
+            if (pada.sup.affixCandidates.none { it.vacana == dev.panini.core.Vacana.EKAVACANA }) {
                 return PrakriyaArgumentResolution.Failure(
                     "Parameter slot '${pada.stem()}' is singular; dual or plural slot references are unsupported.",
                 )
             }
-            val value = padas.getOrNull(index + 1)?.takeIf { it.vibhakti() == Vibhakti.DVITIYA }
+            val value = uniqueValue ?: padas.getOrNull(index + 1)?.takeIf { it.sup.supports(Vibhakti.DVITIYA) }
                 ?: return PrakriyaArgumentResolution.Failure(
                     "कारकदोषः: '${pada.stem()}' इति मानस्थानस्य अनन्तरं द्वितीयान्तं मूल्यम् अपेक्षितम्।",
                 )
@@ -121,8 +130,6 @@ object NamedPrakriyaArgumentResolver {
             named = true,
         )
     }
-
-    private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
     private fun SubantaPada.stem(): String =
         pratipadika.referenceKey()

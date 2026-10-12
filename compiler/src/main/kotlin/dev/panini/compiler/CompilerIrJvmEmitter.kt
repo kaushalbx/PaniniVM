@@ -38,6 +38,32 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Store -> emitStore(instruction.name)
                 is CompilerInstruction.RecordActionResult -> emitStore(instruction.dhatuUpadesha, "recordActionResult")
                 is CompilerInstruction.RecordActionFrame -> emitRecordActionFrame(instruction)
+                is CompilerInstruction.CallParticipantGroup -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitInsn(SWAP)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.features.upasargas.sorted().joinToString(","))
+                    mv.visitLdcInsn(instruction.features.sanadi.sorted().joinToString(","))
+                    mv.visitLdcInsn(instruction.features.avyayas.sorted().joinToString(","))
+                    mv.visitLdcInsn(instruction.features.lakara?.name.orEmpty())
+                    mv.visitLdcInsn(instruction.selectedOperation.orEmpty())
+                    val bindings = allocateLocal(1)
+                    mv.visitTypeInsn(NEW, "java/util/HashMap")
+                    mv.visitInsn(DUP)
+                    mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
+                    mv.visitVarInsn(ASTORE, bindings)
+                    instruction.otherBindings.forEach { (role, expression) ->
+                        mv.visitVarInsn(ALOAD, bindings)
+                        mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", role.name, "Ldev/panini/core/Karaka;")
+                        emitExpression(expression)
+                        mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "put",
+                            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false)
+                        mv.visitInsn(POP)
+                    }
+                    mv.visitVarInsn(ALOAD, bindings)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, "dev/panini/compiler/CompiledProgramRuntime", "executeParticipantGroup",
+                        "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 is CompilerInstruction.LoadActionResult -> {
                     mv.visitVarInsn(ALOAD, 0)
                     mv.visitLdcInsn(instruction.dhatuUpadesha)
@@ -92,7 +118,10 @@ internal class CompilerIrJvmEmitter(
                         "(Ljava/lang/String;[Ljava/lang/String;)V", false)
                 }
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size, instruction.memberType)
-                is CompilerInstruction.PackOperands -> emitBuildList(instruction.expandGroups.size, groups = instruction.expandGroups)
+                is CompilerInstruction.PackOperands -> emitBuildList(instruction.expandGroups.size,
+                    groups = instruction.expandGroups, groupResult = instruction.asGroup)
+                is CompilerInstruction.FoldNumericOperands -> emitBuildList(instruction.expandGroups.size,
+                    groups = instruction.expandGroups, fold = instruction.operator, minimumOperands = instruction.minimumOperands)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
                 is CompilerInstruction.LoadFieldOrLopa -> emitLoadFieldOrLopa(instruction.name)
@@ -185,6 +214,15 @@ internal class CompilerIrJvmEmitter(
                 )
                 is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
                 CompilerInstruction.ConsumeBreak -> emitRuntimeBoolean("consumeBreak")
+                CompilerInstruction.IsBreakRequested -> emitRuntimeBoolean("isBreakRequested")
+                CompilerInstruction.IsProcedureReturnRequested -> emitRuntimeBoolean("isProcedureReturnRequested")
+                CompilerInstruction.IsProcedureExitRequested -> emitRuntimeBoolean("isProcedureExitRequested")
+                CompilerInstruction.RequestProcedureReturn -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitInsn(SWAP)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "requestProcedureReturn",
+                        "(Ldev/panini/execution/SanskritValue;)V", false)
+                }
                 CompilerInstruction.EnterConditionIteration -> emitRuntimeVoid("enterConditionIteration")
                 CompilerInstruction.CheckCollectionIteration -> {
                     mv.visitVarInsn(ALOAD, 0)
@@ -235,7 +273,8 @@ internal class CompilerIrJvmEmitter(
     }
 
     private fun emitBuildList(size: Int, memberType: dev.panini.execution.ListMemberType? = null,
-        groups: List<Boolean>? = null) {
+        groups: List<Boolean>? = null, fold: ArithmeticOperator? = null, minimumOperands: Int = 1,
+        groupResult: Boolean = false) {
         val values = List(size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
         mv.visitLdcInsn(size)
@@ -248,11 +287,14 @@ internal class CompilerIrJvmEmitter(
         }
         memberType?.let { mv.visitLdcInsn(it.name) }
         groups?.let { mv.visitLdcInsn(it.joinToString("") { if (it) "1" else "0" }) }
+        fold?.let { mv.visitLdcInsn(it.name); mv.visitLdcInsn(minimumOperands) }
         mv.visitMethodInsn(
             INVOKESTATIC,
             if (groups == null) "dev/panini/compiler/PaniniRuntime" else "dev/panini/compiler/CompilerValueOperations",
-            if (groups != null) "packOperands" else if (memberType == null) "suchi" else "typedSuchi",
-            if (memberType == null && groups == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+            if (fold != null) "foldNumericOperands" else if (groupResult) "packParticipantGroup" else if (groups != null) "packOperands" else if (memberType == null) "suchi" else "typedSuchi",
+            if (fold != null) "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;I)Ldev/panini/execution/SanskritValue;"
+            else if (groupResult) "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue\$Gana;"
+            else if (memberType == null && groups == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
             else "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
             false,
         )
@@ -525,8 +567,14 @@ internal class CompilerIrJvmEmitter(
             mv.visitVarInsn(ALOAD, local)
             mv.visitInsn(AASTORE)
         }
-        mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "recordActionFrameValues",
-            "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ldev/panini/core/Karaka;[Ldev/panini/execution/SanskritValue;)V", false)
+        if (instruction.expandGroups.isNotEmpty()) {
+            mv.visitLdcInsn(instruction.expandGroups.joinToString("") { if (it) "1" else "0" })
+            mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "recordExpandedActionFrameValues",
+                "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ldev/panini/core/Karaka;[Ldev/panini/execution/SanskritValue;Ljava/lang/String;)V", false)
+        } else {
+            mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "recordActionFrameValues",
+                "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ldev/panini/core/Karaka;[Ldev/panini/execution/SanskritValue;)V", false)
+        }
     }
 
     private fun emitEnterFrame(call: CompilerInstruction.EnterFrame) {
@@ -579,11 +627,16 @@ internal class CompilerIrJvmEmitter(
                 mv.visitLdcInsn(expression.prakriti)
                 expression.value?.let { StructuredValueBytecodeEmitter.emit(mv, it) }
                     ?: mv.visitInsn(ACONST_NULL)
+                emitStringArray(expression.samjnas.map { when (it) {
+                    is dev.panini.shiksha.Samjna.Rudhi -> "RUDHI:${it.word}"
+                    is Enum<*> -> it.name
+                } })
+                expression.memberSelection?.let { mv.visitLdcInsn(it.name) } ?: mv.visitInsn(ACONST_NULL)
                 mv.visitMethodInsn(
                     INVOKESTATIC,
                     "dev/panini/compiler/PaniniRuntime",
                     "createPadaExpression",
-                    "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/ExecutionExpression\$Pada;",
+                    "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ljava/lang/String;Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Pada;",
                     false,
                 )
             }
@@ -595,11 +648,12 @@ internal class CompilerIrJvmEmitter(
                     expression.sup.name,
                     "Ldev/panini/core/SupAffix;",
                 )
+                expression.referenceName?.let { mv.visitLdcInsn(it) } ?: mv.visitInsn(ACONST_NULL)
                 mv.visitMethodInsn(
                     INVOKESTATIC,
                     "dev/panini/compiler/PaniniRuntime",
                     "createTypedOperandExpression",
-                    "(Ldev/panini/execution/SanskritValue;Ldev/panini/core/SupAffix;)Ldev/panini/execution/ExecutionExpression\$TypedOperand;",
+                    "(Ldev/panini/execution/SanskritValue;Ldev/panini/core/SupAffix;Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$TypedOperand;",
                     false,
                 )
             }

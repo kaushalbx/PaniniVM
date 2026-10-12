@@ -3,6 +3,14 @@ package dev.panini.vyakaranam.ast
 import dev.panini.core.Lakara
 import dev.panini.core.KrtAffix
 import dev.panini.core.SupLopa
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
+import dev.panini.core.SanadiAffix
+import dev.panini.core.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Upasarga
+import dev.panini.core.StriAffix
+import dev.panini.core.TaddhitaAffix
 import dev.panini.execution.SanskritValue
 
 sealed interface VyakaranamNode {
@@ -38,7 +46,7 @@ data class Ukti(
     val body: ProgramNode,
 ) : VyakaranamNode {
     /** Explicit grammatical query; execution order must be read from [body]. */
-    fun grammaticalVakyas(): List<Vakya> = body.invocations().map(Invocation::vakya)
+    fun grammaticalVakyas(): List<Vakya> = body.grammaticalInvocations().map(Invocation::vakya)
 }
 
 /**
@@ -169,6 +177,9 @@ data class Prakriya(
     /** Case-independent governing domain identity, when explicitly declared. */
     val domainIdentity: String? = domain,
     val modifiers: PrakriyaModifiers = PrakriyaModifiers(),
+    /** Accusative product of a result-producing declaration predicate. */
+    val declaredResult: SubantaPada? = null,
+    val resultPredicate: TingantaPada? = null,
 ) : ProgramNode
 
 data class Scope(
@@ -182,6 +193,10 @@ data class Scope(
 
 fun ProgramNode.invocations(): List<Invocation> =
     depthFirst().filterIsInstance<Invocation>().toList()
+
+/** All grammatical clauses, including loop tests that orchestration evaluates separately. */
+fun ProgramNode.grammaticalInvocations(): List<Invocation> =
+    depthFirst(includeLoopConditions = true).filterIsInstance<Invocation>().toList()
 
 /** Invocations in execution order, including copies introduced by [Repeat]. */
 fun ProgramNode.expandedInvocations(): List<Invocation> =
@@ -210,11 +225,16 @@ data class NamaVakya(
 
 sealed interface Pada : VyakaranamNode
 
+/** A pada whose written morphology includes a sup ending, irrespective of value encoding. */
+sealed interface SupBearingPada : Pada {
+    val sup: SupPratyaya
+}
+
 data class SubantaPada(
     override val sourceText: String,
     val pratipadika: Pratipadika,
-    val sup: SupPratyaya,
-) : Pada
+    override val sup: SupPratyaya,
+) : SupBearingPada
 
 data class TingantaPada(
     override val sourceText: String,
@@ -228,7 +248,9 @@ data class TingantaPada(
     val priorAction: AvyayaKridantaDerivation? = null,
     /** Constraint retained by internal collection-declaration lowering. */
     val listMemberType: dev.panini.execution.ListMemberType? = null,
-) : Pada
+) : Pada {
+    val upasargaIdentities: List<Upasarga?> get() = upasargas.map(Upasarga::fromUpadesha)
+}
 
 data class AvyayaPada(
     override val sourceText: String,
@@ -321,7 +343,7 @@ data class MulaPratipadika(
     val lexicalIdentity: MulaPratipadikaIdentity? = MulaPratipadikaIdentity.fromText(text)
     /** Gender formation preserves ordinal rank; other derivation needs its own semantics. */
     val lexicalOrdinalValue: Long?
-        get() = lexicalIdentity?.ordinalValue?.takeIf { vikaras.all { it is StriVikara } }
+        get() = lexicalIdentity?.ordinalValue?.takeIf { vikaras.all { it.isRecognizedStriAffix } }
 }
 
 enum class MulaPratipadikaIdentity {
@@ -414,10 +436,12 @@ data class KridantaPratipadika(
     val krtPratyaya: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
-    val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
     /** Shared grammatical identity, independent of the derived stem's ending. */
     val krtAffix: KrtAffix? = KrtAffix.fromUpadesha(krtPratyaya)
-    val lexicalIdentity: KridantaLexicalIdentity? = KridantaLexicalIdentity.fromStructure(
+    /** Compatibility view of the same identity, not a second restricted affix catalog. */
+    val krtPratyayaIdentity: KrtAffix? get() = krtAffix
+    val upasargaIdentities: List<Upasarga?> get() = upasargas.map(Upasarga::fromUpadesha)
+    val lexicalIdentity: KridantaLexicalIdentity? = if (dhatu.sanadiAffixes.isNotEmpty()) null else KridantaLexicalIdentity.fromStructure(
         upasargas = upasargas,
         mulaDhatu = dhatu.mulaDhatu,
         krtPratyaya = krtPratyayaIdentity,
@@ -433,32 +457,21 @@ enum class KridantaLexicalIdentity {
         fun fromStructure(
             upasargas: List<String>,
             mulaDhatu: String,
-            krtPratyaya: KrtPratyayaIdentity?,
+            krtPratyaya: KrtAffix?,
         ): KridantaLexicalIdentity? = when {
-            upasargas == listOf("अधि") &&
+            upasargas.map(Upasarga::fromUpadesha) == listOf(Upasarga.ADHI) &&
                 mulaDhatu == "कृ" &&
-                krtPratyaya == KrtPratyayaIdentity.GHAN -> ADHIKARA
-            upasargas == listOf("अप") &&
+                krtPratyaya == KrtAffix.GHAN -> ADHIKARA
+            upasargas.map(Upasarga::fromUpadesha) == listOf(Upasarga.APA) &&
                 mulaDhatu == "वद्" &&
-                krtPratyaya == KrtPratyayaIdentity.GHAN -> APAVADA
+                krtPratyaya == KrtAffix.GHAN -> APAVADA
             else -> null
         }
     }
 }
 
-enum class KrtPratyayaIdentity {
-    KTA,
-    GHAN,
-    ;
-
-    companion object {
-        fun fromUpadesha(upadesha: String): KrtPratyayaIdentity? = when (upadesha.trim()) {
-            "क्त" -> KTA
-            "घञ्" -> GHAN
-            else -> null
-        }
-    }
-}
+/** Source compatibility; [KrtAffix] is the single grammatical affix identity. */
+typealias KrtPratyayaIdentity = KrtAffix
 
 data class UnadyantaPratipadika(
     override val sourceText: String,
@@ -494,10 +507,10 @@ data class SankhyaPratipadika(
     )
 }
 
-sealed interface SankhyaBoundaryPada : Pada {
+sealed interface SankhyaBoundaryPada : SupBearingPada {
     val stems: List<String>
     val value: Long?
-    val sup: SupPratyaya
+    override val sup: SupPratyaya
 }
 
 data class SankhyaPada(
@@ -524,22 +537,22 @@ data class KatapayadiPada(
     override val sourceText: String,
     val word: String,
     val value: Long? = null,
-    val sup: SupPratyaya,
-) : Pada
+    override val sup: SupPratyaya,
+) : SupBearingPada
 
 data class AryabhatiyaPada(
     override val sourceText: String,
     val word: String,
     val value: Long? = null,
-    val sup: SupPratyaya,
-) : Pada
+    override val sup: SupPratyaya,
+) : SupBearingPada
 
 data class BhutasamkhyaPada(
     override val sourceText: String,
     val terms: List<String>,
     val value: Long? = null,
-    val sup: SupPratyaya,
-) : Pada
+    override val sup: SupPratyaya,
+) : SupBearingPada
 
 data class SamasaAnga(
     override val sourceText: String,
@@ -557,10 +570,10 @@ enum class TaddhitaPratyayaClass {
     ;
 
     companion object {
-        fun fromUpadesha(upadesha: String): TaddhitaPratyayaClass? = when (upadesha.trim()) {
-            "मतुप्", "वतुप्", "मत्", "वत्" -> POSSESSIVE
-            "अण्", "इञ्" -> APATYA
-            "त्व", "तल्" -> BHAVA
+        fun fromUpadesha(upadesha: String): TaddhitaPratyayaClass? = when (TaddhitaAffix.fromUpadesha(upadesha)) {
+            TaddhitaAffix.MATUP, TaddhitaAffix.VATUP, TaddhitaAffix.VAT -> POSSESSIVE
+            TaddhitaAffix.AN, TaddhitaAffix.INY -> APATYA
+            TaddhitaAffix.TVA, TaddhitaAffix.TAL -> BHAVA
             else -> null
         }
     }
@@ -570,29 +583,52 @@ data class TaddhitaVikara(
     override val sourceText: String,
     val pratyaya: String,
 ) : PratipadikaVikara {
+    val affix: TaddhitaAffix? get() = TaddhitaAffix.fromUpadesha(pratyaya)
     val pratyayaClass: TaddhitaPratyayaClass? = TaddhitaPratyayaClass.fromUpadesha(pratyaya)
 }
 
 data class StriVikara(
     override val sourceText: String,
     val pratyaya: String,
-) : PratipadikaVikara
+) : PratipadikaVikara {
+    val affix: StriAffix? get() = StriAffix.fromUpadesha(pratyaya)
+}
+
+/** An AST wrapper alone is not grammatical evidence of a feminine affix. */
+val PratipadikaVikara.isRecognizedStriAffix: Boolean
+    get() = this is StriVikara && affix != null
 
 data class DhatuPrakriti(
     override val sourceText: String,
     val mulaDhatu: String,
     val sanadiPratyayas: List<String> = emptyList(),
-) : VyakaranamNode
+) : VyakaranamNode {
+    /** Preserve unknown affixes and their positions; never silently discard them. */
+    val sanadiAffixes: List<SanadiAffix?> get() = sanadiPratyayas.map(SanadiAffix::fromUpadesha)
+}
 
 data class SupPratyaya(
     override val sourceText: String,
     val text: String,
-) : VyakaranamNode
+) : VyakaranamNode {
+    /** Syncretic endings retain every grammatical interpretation. */
+    val affixCandidates: List<SupAffix> get() = SupAffix.candidates(text)
+
+    /** Contextual compatibility, not a choice of one interpretation for the node. */
+    fun supports(vibhakti: Vibhakti, vacana: Vacana? = null): Boolean =
+        affixCandidates.any { it.vibhakti == vibhakti && (vacana == null || it.vacana == vacana) }
+
+    /** Case and number must come from the same possible slot; unknown is not agreement. */
+    fun sharesSlotWith(other: SupPratyaya): Boolean =
+        affixCandidates.any { it in other.affixCandidates }
+}
 
 data class TingPratyaya(
     override val sourceText: String,
     val text: String,
-) : VyakaranamNode
+) : VyakaranamNode {
+    val affix: TingAffix? get() = TingAffix.fromUpadesha(text)
+}
 
 sealed interface AvyayaDerivation
 
@@ -600,7 +636,10 @@ data class AvyayaKridantaDerivation(
     val upasargas: List<String>,
     val dhatu: DhatuPrakriti,
     val pratyaya: String,
-) : AvyayaDerivation
+) : AvyayaDerivation {
+    val krtAffix: KrtAffix? get() = KrtAffix.fromUpadesha(pratyaya)
+    val upasargaIdentities: List<Upasarga?> get() = upasargas.map(Upasarga::fromUpadesha)
+}
 
 data class AvyayaTaddhitaDerivation(
     val pratipadika: String,

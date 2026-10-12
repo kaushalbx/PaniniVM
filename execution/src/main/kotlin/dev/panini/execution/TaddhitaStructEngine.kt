@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -59,7 +58,7 @@ data class TaddhitaFieldAssertion(
 
 data class TaddhitaAttributeAccess(
     val chain: List<String>,
-    val resultAffix: SupAffix,
+    val resultSup: dev.panini.vyakaranam.ast.SupPratyaya,
 )
 
 data class TaddhitaAttributeReference(
@@ -78,13 +77,13 @@ object TaddhitaStructEngine {
         val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         if (
             verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
-            TingAffix.fromUpadesha(verb.ting.text) != TingAffix.TIP
+            verb.ting.affix != TingAffix.TIP
         ) return null
         val owner = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
-            pada.vibhakti() == Vibhakti.SASTHI && pada.pratipadika.isMatup()
+            pada.hasVibhakti(Vibhakti.SASTHI) && pada.pratipadika.isMatup()
         } ?: return null
         val nominatives = vakya.padas.filter { pada ->
-            pada !== owner && pada.vibhakti() == Vibhakti.PRATHAMA
+            pada !== owner && pada.hasVibhakti(Vibhakti.PRATHAMA)
         }
         if (nominatives.size != 2) return null
         val field = nominatives[0] as? SubantaPada ?: return null
@@ -141,16 +140,15 @@ object TaddhitaStructEngine {
         val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         if (
             verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
-            TingAffix.fromUpadesha(verb.ting.text) != TingAffix.JHI
+            verb.ting.affix != TingAffix.JHI
         ) return null
         val role = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
-            pada.vibhakti() == Vibhakti.PRATHAMA &&
+            pada.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.BAHUVACANA) &&
                 (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
-                MulaPratipadikaIdentity.KSHETRA &&
-                SupAffix.fromUpadesha(pada.sup.text)?.vacana == dev.panini.core.Vacana.BAHUVACANA
+                MulaPratipadikaIdentity.KSHETRA
         } ?: return null
         val schema = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
-            pada !== role && pada.vibhakti() == Vibhakti.SASTHI
+            pada !== role && pada.hasVibhakti(Vibhakti.SASTHI)
         } ?: return null
         require(verb.lakara == dev.panini.core.Lakara.LAT &&
             verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty()) {
@@ -161,8 +159,8 @@ object TaddhitaStructEngine {
         }
         require(vakya.padas.all { pada ->
             pada === verb || pada === role || pada === schema || when (pada) {
-                is SubantaPada -> pada.vibhakti() == Vibhakti.PRATHAMA
-                is SamuccitaSubanta -> pada.members.all { it.vibhakti() == Vibhakti.PRATHAMA }
+                is SubantaPada -> pada.hasVibhakti(Vibhakti.PRATHAMA)
+                is SamuccitaSubanta -> pada.members.all { it.hasVibhakti(Vibhakti.PRATHAMA) }
                 is AvyayaPada -> pada.form == "च"
                 else -> false
             }
@@ -174,7 +172,7 @@ object TaddhitaStructEngine {
                 else -> emptyList()
             }
         }.filter { pada ->
-            pada !== role && pada !== schema && pada.vibhakti() == Vibhakti.PRATHAMA
+            pada !== role && pada !== schema && pada.hasVibhakti(Vibhakti.PRATHAMA)
         }.map { it.stemIdentity() }
         return TaddhitaStructSchema(schema.pratipadika.referenceKey(), fields)
             .takeIf { fields.size >= 2 }
@@ -201,14 +199,14 @@ object TaddhitaStructEngine {
         val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         if (verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.GRAH) return null
         val operands = vakya.padas.filter { it !== verb }
-        if (operands.none { it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI &&
+        if (operands.none { it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) &&
                 it.pratipadika.isMatup() }) return null
         val access = requireNotNull(detectAttributeAccess(operands)) {
             "Unsupported genitive field retrieval: extra participants or disconnected modifiers cannot be discarded."
         }
-        require(access.resultAffix.vibhakti == Vibhakti.DVITIYA &&
+        require(access.resultSup.supports(Vibhakti.DVITIYA) &&
             verb.lakara == dev.panini.core.Lakara.LOT &&
-            TingAffix.fromUpadesha(verb.ting.text) == TingAffix.SIP &&
+            verb.ting.affix == TingAffix.SIP &&
             verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty()) {
             "Field retrieval requires one accusative field and the underived imperative गृहाण."
         }
@@ -218,22 +216,26 @@ object TaddhitaStructEngine {
     fun detectAttributeAccess(padas: List<Pada>): TaddhitaAttributeAccess? {
         if (padas.size < 2 || padas.any { it !is SubantaPada }) return null
         val receivers = padas.dropLast(1).filterIsInstance<SubantaPada>()
-        if (receivers.any { it.vibhakti() != Vibhakti.SASTHI || !it.pratipadika.isMatup() }) return null
+        if (receivers.any { !it.hasVibhakti(Vibhakti.SASTHI) || !it.pratipadika.isMatup() }) return null
         val chain = receivers
             .map { it.pratipadika.baseIdentity() }
         val key = padas.last() as SubantaPada
-        val affix = SupAffix.fromUpadesha(key.sup.text) ?: return null
+        if (key.sup.affixCandidates.isEmpty()) return null
         return (chain + key.stemIdentity()).takeIf { receivers.isNotEmpty() }?.let {
-            TaddhitaAttributeAccess(it, affix)
+            TaddhitaAttributeAccess(it, key.sup)
         }
     }
 
     /** Finds a leading genitive attribute expression embedded in a verbal condition. */
-    fun detectAttributeReference(vakya: Vakya): TaddhitaAttributeReference? {
+    fun detectAttributeReference(vakya: Vakya, excludedReceivers: Set<Pada> = emptySet()): TaddhitaAttributeReference? {
+        // A recognized member selector belongs to the collection frame; मतुप्
+        // on its whole does not turn that relation into record field access.
+        if (CollectionMemberMorphology.protectedPadas(vakya.padas).isNotEmpty()) return null
         val padas = vakya.padas
         val receiverIndices = padas.indices.filter { index ->
             val pada = padas[index] as? SubantaPada
-            pada?.vibhakti() == Vibhakti.SASTHI && pada.pratipadika.isMatup()
+            pada != null && pada.hasVibhakti(Vibhakti.SASTHI) && pada.pratipadika.isMatup() &&
+                excludedReceivers.none { it === pada }
         }
         val first = receiverIndices.firstOrNull() ?: return null
         var lastReceiver = first
@@ -259,7 +261,7 @@ object TaddhitaStructEngine {
     /** Retains the parsed method nominal when the declaration AST already exists. */
     fun detectMethodHeader(padas: List<Pada>): Pair<String, SubantaPada>? {
         val receiverIndex = padas.indexOfFirst {
-            it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
+            it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika.isMatup()
         }
         if (receiverIndex < 0) return null
         val receiver = padas[receiverIndex] as SubantaPada
@@ -275,12 +277,12 @@ object TaddhitaStructEngine {
         val ukti = parsed(sentenceText, null) ?: return null
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val receiverIndex = padas.indexOfFirst {
-            it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
+            it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika.isMatup()
         }
         if (receiverIndex < 0) return null
         val receiver = padas[receiverIndex] as SubantaPada
         val method = padas.drop(receiverIndex + 1).filterIsInstance<SubantaPada>()
-            .firstOrNull { it.vibhakti() == Vibhakti.TRTIYA } ?: return null
+            .firstOrNull { it.hasVibhakti(Vibhakti.TRTIYA) } ?: return null
         val karma = padas.take(receiverIndex).joinToString(" ") { it.canonicalSource() }
         return Triple(receiver.pratipadika.baseIdentity(), method.pratipadika.baseIdentity(), karma)
     }
@@ -288,17 +290,8 @@ object TaddhitaStructEngine {
     private fun parsed(text: String, supplied: Ukti?): Ukti? =
         supplied ?: runCatching { parser.parse(text.trim().trimEnd('।', '॥', ' ')) }.getOrNull()
 
-    private fun Pada.vibhakti(): Vibhakti? = supText()?.let(SupAffix::fromUpadesha)?.vibhakti
-
-    private fun Pada.supText(): String? = when (this) {
-        is SubantaPada -> sup.text
-        is SankhyaPada -> sup.text
-        is SankhyaPuranaPada -> sup.text
-        is KatapayadiPada -> sup.text
-        is AryabhatiyaPada -> sup.text
-        is BhutasamkhyaPada -> sup.text
-        else -> null
-    }
+    private fun Pada.hasVibhakti(vibhakti: Vibhakti): Boolean =
+        (this as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup?.supports(vibhakti) == true
 
     private fun Pada.stemIdentity(): String = when (this) {
         is SubantaPada -> pratipadika.referenceKey()

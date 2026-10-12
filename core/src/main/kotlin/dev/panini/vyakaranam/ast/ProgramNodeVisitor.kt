@@ -35,17 +35,23 @@ fun ProgramNode.children(): List<ProgramNode> = accept(ProgramNodeChildren)
  * When [expandRepeats] is true, a repeat body is visited once per iteration.
  * Conditional alternatives remain structural alternatives; choosing a branch
  * is an execution concern rather than an AST traversal concern.
+ * [includeLoopConditions] includes tests for grammatical analysis. The default
+ * binding projection leaves tests to the loop orchestrator, as before.
  */
-fun ProgramNode.depthFirst(expandRepeats: Boolean = false): kotlin.sequences.Sequence<ProgramNode> = sequence {
+fun ProgramNode.depthFirst(
+    expandRepeats: Boolean = false,
+    includeLoopConditions: Boolean = false,
+): kotlin.sequences.Sequence<ProgramNode> = sequence {
     yield(this@depthFirst)
-    val structuralChildren = children()
+    val structuralChildren = if (includeLoopConditions && this@depthFirst is WhileLoop)
+        listOf(condition) + children() else children()
     if (expandRepeats && this@depthFirst is Repeat) {
         repeat(count) {
-            yieldAll(body.depthFirst(expandRepeats = true))
+            yieldAll(body.depthFirst(expandRepeats = true, includeLoopConditions = includeLoopConditions))
         }
     } else {
         structuralChildren.forEach { child ->
-            yieldAll(child.depthFirst(expandRepeats))
+            yieldAll(child.depthFirst(expandRepeats, includeLoopConditions))
         }
     }
 }

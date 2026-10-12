@@ -277,6 +277,8 @@ class KriyaFrameAnalyzerTest {
             dhatu = DhatuPrakriti("फ्रेम्", "फ्रेम्"),
             lakara = Lakara.LAT,
             ting = TingPratyaya("तिप्", "तिप्"),
+            priorAction = dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+                emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), "क्त्वा"),
         )
         val ktvaVakya = AkhyataVakya(
             sourceText = "गत्वा",
@@ -301,6 +303,141 @@ class KriyaFrameAnalyzerTest {
         assertEquals(KriyaId("kriya-1"), purvakalika.single().source)
         assertEquals(KriyaId("kriya-2"), purvakalika.single().target)
         assertEquals("राम + सुँ", sharedAgent.single().participantSource)
+    }
+
+    @Test
+    fun `purpose links require typed infinitive rather than text resemblance`() {
+        for (typed in listOf(false, true)) {
+            val infinitive = AvyayaPada("तुम्", "तुम्", if (typed)
+                dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+                    emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), "तुमुँन्") else null)
+            val source = akhyata(infinitive).copy(sourceText = "तुम्")
+            val target = akhyata()
+            val analysis = UktiAnalyzer(analyzer).analyze(Ukti("परीक्षण", body = Sequence(
+                "परीक्षण", listOf(Invocation(source), Invocation(target)))))
+            assertEquals(if (typed) 1 else 0, analysis.links.filterIsInstance<KriyaLink.Purpose>().size)
+        }
+    }
+
+    @Test
+    fun `prior action links require morphology and do not cross alternative branches`() {
+        for (suffix in listOf("क्त्वा", "ल्यप्")) {
+            val prior = AvyayaPada("unrelated spelling", "unrelated spelling",
+                dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+                    emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), suffix))
+            val source = akhyata(prior)
+            val target = akhyata()
+            val sequence = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
+                listOf(Invocation(source), Invocation(target)))))
+            assertEquals(1, sequence.links.filterIsInstance<KriyaLink.Purvakalika>().size)
+            val conditional = UktiAnalyzer(analyzer).analyze(Ukti("", body = Conditional("",
+                condition = Invocation(target), consequent = Invocation(source), alternate = Invocation(target))))
+            assertEquals(0, conditional.links.filterIsInstance<KriyaLink.Purvakalika>().size)
+        }
+        val source = akhyata(AvyayaPada("क्त्वा", "क्त्वा")).copy(sourceText = "गत्वा")
+        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
+            listOf(Invocation(source), Invocation(akhyata())))))
+        assertEquals(0, analysis.links.filterIsInstance<KriyaLink.Purvakalika>().size)
+    }
+
+    @Test
+    fun `shared agents compare nominal identity rather than taking first available agent`() {
+        val prior = AvyayaPada("prior", "prior", dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+            emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), "क्त्वा"))
+        val rama = subanta("राम + सुँ", "राम", "सुँ")
+        val others = listOf(
+            rama.copy(sourceText = "different source formatting"),
+            subanta("देव + सुँ", "देव", "सुँ"),
+            rama.copy(pratipadika = MulaPratipadika("राम", "राम", listOf(
+                dev.panini.vyakaranam.ast.StriVikara("टाप्", "टाप्")))),
+            subanta("राम + औ", "राम", "औ"),
+        )
+        for ((index, other) in others.withIndex()) {
+            val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
+                Invocation(akhyata(prior, rama)), Invocation(akhyata(other))))))
+            assertEquals(if (index == 0) 1 else 0,
+                analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().size)
+            assertEquals(if (index == 0) 0 else 1,
+                analysis.diagnostics.count { it.code == FrameDiagnosticCode.CONFLICTING_SHARED_AGENT })
+        }
+    }
+
+    @Test
+    fun `purpose link does not establish an omitted shared agent`() {
+        val purpose = AvyayaPada("purpose", "purpose", dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+            emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), "तुमुँन्"))
+        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
+            Invocation(akhyata(purpose)), Invocation(akhyata(subanta("राम + सुँ", "राम", "सुँ")))))))
+        assertEquals(1, analysis.links.filterIsInstance<KriyaLink.Purpose>().size)
+        assertEquals(0, analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().size)
+    }
+
+    @Test
+    fun `coordinated agents share every member without depending on member order`() {
+        val prior = AvyayaPada("prior", "prior", dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
+            emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), "क्त्वा"))
+        val rama = subanta("राम + सुँ", "राम", "सुँ")
+        val deva = subanta("देव + सुँ", "देव", "सुँ")
+        fun coordinated(members: List<SubantaPada>) =
+            dev.panini.vyakaranam.ast.SamuccitaSubanta("coordinated", members)
+        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
+            Invocation(akhyata(prior, coordinated(listOf(rama, deva)))),
+            Invocation(akhyata(coordinated(listOf(deva, rama))))))))
+        assertEquals(setOf(rama.sourceText, deva.sourceText),
+            analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().map { it.participantSource }.toSet())
+        assertEquals(emptyList(), analysis.diagnostics)
+    }
+
+    @Test
+    fun `both conditional exits connect to following sentence`() {
+        for (hasAlternate in listOf(false, true)) {
+            fun invocation() = Invocation(akhyata())
+            val branch = Conditional("", invocation(), invocation(),
+                if (hasAlternate) invocation() else null)
+            val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
+                listOf(branch, invocation()), listOf("ततः"))))
+            val edges = analysis.links.filterIsInstance<KriyaLink.Coordination>()
+            val next = KriyaId(if (hasAlternate) "kriya-4" else "kriya-3")
+            assertEquals(setOf(
+                KriyaId("kriya-2") to next,
+                KriyaId(if (hasAlternate) "kriya-3" else "kriya-1") to next,
+            ), edges.map { it.source to it.target }.toSet())
+            assertEquals(setOf("ततः"), edges.map { it.connector }.toSet())
+        }
+    }
+
+    @Test
+    fun `nested conditional retains every branch exit`() {
+        fun invocation() = Invocation(akhyata())
+        val inner = Conditional("", invocation(), invocation(), invocation())
+        val outer = Conditional("", invocation(), inner, invocation())
+        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
+            listOf(outer, invocation()))))
+        assertEquals(setOf(3, 4, 5).map { KriyaId("kriya-$it") to KriyaId("kriya-6") }.toSet(),
+            analysis.links.filterIsInstance<KriyaLink.Coordination>().map { it.source to it.target }.toSet())
+    }
+
+    @Test
+    fun `loop analysis retains condition exhaustion result and following frame identities`() {
+        fun invocation(label: String) = Invocation(akhyata().copy(sourceText = label))
+        val loop = dev.panini.vyakaranam.ast.WhileLoop("", invocation("test"), invocation("body"),
+            maximumIterationStems = listOf("दशन्"), exhausted = invocation("exhausted"),
+            resultTarget = invocation("result"))
+        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
+            listOf(loop, invocation("following")))))
+        assertEquals(listOf("test", "body", "exhausted", "result", "following"),
+            analysis.frames.map { it.vakya.sourceText })
+        fun id(n: Int) = KriyaId("kriya-$n")
+        assertEquals(listOf(KriyaLink.Condition(id(1), id(2))),
+            analysis.links.filterIsInstance<KriyaLink.Condition>())
+        assertEquals(listOf(KriyaLink.LoopBack(id(2), id(1))),
+            analysis.links.filterIsInstance<KriyaLink.LoopBack>())
+        assertEquals(listOf(KriyaLink.Exhaustion(id(2), id(3))),
+            analysis.links.filterIsInstance<KriyaLink.Exhaustion>())
+        assertEquals(setOf(1, 2, 3).map { KriyaLink.LoopResult(id(it), id(4)) }.toSet(),
+            analysis.links.filterIsInstance<KriyaLink.LoopResult>().toSet())
+        assertEquals(listOf(KriyaLink.Coordination(id(4), id(5), "")),
+            analysis.links.filterIsInstance<KriyaLink.Coordination>())
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =

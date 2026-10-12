@@ -1,7 +1,6 @@
 package dev.panini.execution
 
 import dev.panini.core.Linga
-import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.ast.*
 
 /** AST-only projection of supported anaphors; सर्वनाम classification alone is not enough. */
@@ -14,7 +13,7 @@ object AnaphoricOperandProjection {
         if (stem.text != "तद्" || stem.vikaras.isNotEmpty()) return null
         // Segmented तद् does not specify one gender. Preserve all possibilities;
         // resolution selects an antecedent identity, not a guessed gender.
-        return ReferentAgreement(SupAffix.candidates(pada.sup.text).mapTo(mutableSetOf()) { it.vacana },
+        return ReferentAgreement(pada.sup.affixCandidates.mapTo(mutableSetOf()) { it.vacana },
             Linga.entries.toSet())
     }
 

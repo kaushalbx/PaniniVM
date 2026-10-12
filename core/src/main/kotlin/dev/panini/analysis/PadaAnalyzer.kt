@@ -174,7 +174,7 @@ class PadaAnalyzer(
         return SubantaAnalysis(
             pada = pada,
             lexicalEntry = lexicalEntry,
-            supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error(
+            supCandidates = pada.sup.affixCandidates.takeIf { it.isNotEmpty() } ?: error(
                 "सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"
             ),
             linga = lexicalEntry?.linga ?: setOf(),
@@ -189,8 +189,12 @@ class PadaAnalyzer(
                 "धातुपाठे धातुः न प्राप्तः: ${pada.dhatu.mulaDhatu}",
             )
 
-        val tingAffix = requireNotNull(TingAffix.fromUpadesha(pada.ting.text)) {
+        val tingAffix = requireNotNull(pada.ting.affix) {
             "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
+        }
+
+        require(pada.dhatu.sanadiAffixes.all { it != null }) {
+            "Unknown sanādi affix: ${pada.dhatu.sanadiPratyayas.joinToString()}."
         }
 
         val passive = pada.vikarana == dev.panini.vyakaranam.ast.Vikarana.YAK

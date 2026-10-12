@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.*
@@ -30,7 +31,7 @@ object ListDeclarationLowering {
     }
 
     private fun withName(declaration: Sequence, name: SubantaPada, sourceText: String): Sequence {
-        require(name.sup.text == SupAffix.SU.upadesha) {
+        require(name.sup.affixCandidates == listOf(SupAffix.SU)) {
             "A list name must be declared as one nominative singular referent."
         }
         val destination = name.copy(sourceText = "${name.pratipadika.sourceText} + ङि",
@@ -53,7 +54,7 @@ object ListDeclarationLowering {
         if (sentence.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS) return null
         val target = sentence.padas.filterIsInstance<SubantaPada>().singleOrNull {
             (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SUCHI &&
-                it.sup.text == SupAffix.SU.upadesha
+                it.sup.affixCandidates == listOf(SupAffix.SU)
         } ?: return null
         require((target.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
             "A derived form of सूची is not the plain list declaration noun."
@@ -66,16 +67,16 @@ object ListDeclarationLowering {
             (sentence.padas[index - 1] as? SubantaPada)
                 ?: throw IllegalArgumentException("नाम requires a preceding nominal name.")
         }
-        require(name == null || name.sup.text == SupAffix.SU.upadesha) {
+        require(name == null || name.sup.affixCandidates == listOf(SupAffix.SU)) {
             "नाम requires one nominative singular name."
         }
-        require(sentence.tinganta.lakara == Lakara.LAT && sentence.tinganta.ting.text == "तिप्" &&
+        require(sentence.tinganta.lakara == Lakara.LAT && sentence.tinganta.ting.affix == TingAffix.TIP &&
             sentence.tinganta.upasargas.isEmpty() && sentence.tinganta.dhatu.sanadiPratyayas.isEmpty()) {
             "A singular list declaration requires the present third-person singular अस्ति."
         }
         val qualifiers = sentence.padas.filterIsInstance<SubantaPada>().filter {
             (it.pratipadika as? MulaPratipadika)?.lexicalIdentity in MEMBER_TYPES.keys &&
-                it.sup.text == SupAffix.AM_6.upadesha
+                it.sup.affixCandidates == listOf(SupAffix.AM_6)
         }
         require(qualifiers.size <= 1) { "A list declaration requires one unambiguous member-type qualifier." }
         val qualifier = qualifiers.singleOrNull()
@@ -89,7 +90,7 @@ object ListDeclarationLowering {
             return null
         }
         fun accusative(sup: SupPratyaya): SupPratyaya {
-            val genitive = SupAffix.candidates(sup.text).singleOrNull { it.vibhakti == Vibhakti.SASTHI }
+            val genitive = sup.affixCandidates.singleOrNull { it.vibhakti == Vibhakti.SASTHI }
                 ?: throw IllegalArgumentException("List declaration members require genitive case.")
             val text = SupAffix.select(Vibhakti.DVITIYA, genitive.vacana).upadesha
             return SupPratyaya(text, text)

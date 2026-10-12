@@ -16,6 +16,8 @@ object ProgramSutraArthaCodec {
                 "candidates" to SutraArthaValue.Sequence(
                     binding.candidates.map { SutraArthaValue.Symbol(it.name) },
                 ),
+                "supSlots" to SutraArthaValue.Record(binding.supSlots.mapKeys { it.key.name }
+                    .mapValues { SutraArthaValue.Symbol(it.value.name) }),
             ),
         )
 
@@ -35,6 +37,15 @@ object ProgramSutraArthaCodec {
                     ?: throw IllegalArgumentException("Ambiguous binding requires field 'expression'."),
             ),
             candidates = candidates,
+            supSlots = fields["supSlots"]?.let { encoded ->
+                val slots = (encoded as? SutraArthaValue.Record)?.fields
+                    ?: throw IllegalArgumentException("Sup slots must be a semantic record.")
+                slots.map { (role, value) ->
+                    val slot = (value as? SutraArthaValue.Symbol)?.name
+                        ?: throw IllegalArgumentException("A sup slot must be a symbol.")
+                    Karaka.valueOf(role) to SupAffix.valueOf(slot)
+                }.toMap()
+            }.orEmpty(),
         )
     }
 

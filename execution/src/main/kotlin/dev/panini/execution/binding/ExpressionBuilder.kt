@@ -12,6 +12,10 @@ import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.core.SupAffix
+import dev.panini.core.Karaka
+import dev.panini.core.Prayoga
+import dev.panini.analysis.KarakaInference
+import dev.panini.shiksha.Karmatva
 
 /**
  * Converts a [SubantaPada] to an [ExecutionExpression], resolving references to prior
@@ -36,26 +40,45 @@ internal object ExpressionBuilder {
         ctx: BindingContext,
         overridePhalaId: String? = null,
         collectionMemberFrame: Boolean = false,
+        resolvedKaraka: Karaka? = null,
     ): ExecutionExpression {
         val normalized = NumeralAstNormalizer.normalize(pada)
         val text = normalized.pratipadika.referenceKey()
+        val literalValue = dev.panini.execution.NominalValueAnalysis.literalValue(pada)
+        (literalValue as? SanskritValue.Satya)?.let { value ->
+            return ExecutionExpression.Pada(text, value.samjnas, value = value)
+        }
         val nominal = normalized.pratipadika as? MulaPratipadika
         if (collectionMemberFrame) {
             dev.panini.execution.CollectionMemberMorphology.ordinalExpression(pada)?.let { return it }
         }
         val selection = if (nominal?.vikaras?.isEmpty() == true) when {
             nominal.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
-                normalized.sup.text == SupAffix.SAS.upadesha -> dev.panini.execution.CollectionMemberSelection.NUMBERS
+                normalized.sup.affixCandidates == listOf(SupAffix.SAS) -> dev.panini.execution.CollectionMemberSelection.NUMBERS
             nominal.lexicalIdentity == MulaPratipadikaIdentity.ANTIMA &&
-                normalized.sup.text == SupAffix.AM.upadesha -> dev.panini.execution.CollectionMemberSelection.FINAL
+                normalized.sup.affixCandidates == listOf(SupAffix.AM) -> dev.panini.execution.CollectionMemberSelection.FINAL
             else -> null
         } else null
         if (collectionMemberFrame && selection != null) {
             return ExecutionExpression.Pada(text, setOf(Samjna.SHABDA), memberSelection = selection)
         }
+        val numeralValue = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
+        (literalValue as? SanskritValue.Sankhya)?.let { value ->
+            return ExecutionExpression.sankhya(value.value, value.word)
+        }
         val isPhalaReference = PhalaReference.isReference(normalized)
         if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
-            val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
+            val candidates = normalized.sup.affixCandidates
+            require(candidates.isNotEmpty()) { "Unknown sup ending: '${normalized.sup.text}'." }
+            val prayoga = ctx.frame.prayoga.takeUnless { it == Prayoga.ANIRDHARITA } ?: Prayoga.KARTARI
+            val compatible = candidates.filter {
+                KarakaInference.infer(it.vibhakti, prayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA) == resolvedKaraka
+            }
+            val sup = if (resolvedKaraka != null) {
+                requireNotNull(compatible.singleOrNull()) {
+                    "Sup ending '${normalized.sup.text}' does not determine one slot for $resolvedKaraka."
+                }
+            } else candidates.first()
             return ExecutionExpression.TypedOperand(value, sup, referenceName = text)
         }
         var resolvedId: String? = null
@@ -80,10 +103,10 @@ internal object ExpressionBuilder {
             return ExecutionExpression.Reference(resolvedId ?: PhalaReference.RUNTIME_KEY)
         }
 
-        val sankhyaValue = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
+        numeralValue?.let { return ExecutionExpression.sankhya(it.value, it.word) }
+
         val samjnas = buildSet {
             add(Samjna.SHABDA)
-            if (sankhyaValue != null) add(Samjna.SANKHYA)
             if (isPhalaReference) add(Samjna.REFERENCE)
             when (normalized.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
@@ -91,12 +114,7 @@ internal object ExpressionBuilder {
                 else -> Unit
             }
         }
-        return if (sankhyaValue != null) {
-            ExecutionExpression.sankhya(sankhyaValue.value, sankhyaValue.word)
-        } else {
-            val svamRupamValue = dev.panini.execution.nominalTruthValue(normalized.pratipadika)
-                ?: SvamRupamEngine.evaluate(normalized.pratipadika)
-            ExecutionExpression.Pada(text, samjnas, value = svamRupamValue, memberSelection = selection)
-        }
+        val svamRupamValue = SvamRupamEngine.evaluate(normalized.pratipadika)
+        return ExecutionExpression.Pada(text, samjnas, value = svamRupamValue, memberSelection = selection)
     }
 }

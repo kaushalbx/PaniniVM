@@ -119,9 +119,12 @@ object OperationResolver {
             val ambiguous = invocation.ambiguousBindings[index]
             val matches = ambiguous.candidates intersect acceptedKarakas
             for (karaka in matches) {
-                val expression = bindings[karaka]?.let { existing ->
-                    ExecutionExpression.Coordination(listOf(existing, ambiguous.expression))
+                val assigned = (ambiguous.expression as? ExecutionExpression.TypedOperand)?.let { operand ->
+                    ambiguous.supSlots[karaka]?.let { operand.copy(sup = it) }
                 } ?: ambiguous.expression
+                val expression = bindings[karaka]?.let { existing ->
+                    ExecutionExpression.Coordination(listOf(existing, assigned))
+                } ?: assigned
                 yieldAll(assignments(index + 1, bindings + (karaka to expression)))
             }
         }
@@ -131,6 +134,12 @@ object OperationResolver {
     private fun moreSpecific(left: OperationSignature, right: OperationSignature): Boolean {
         val rightByKaraka = right.requirements.associateBy { it.karaka }
         var strictlyStronger = false
+        if (right.copularPredicates.isNotEmpty()) {
+            if (left.copularPredicates.isEmpty() || !right.copularPredicates.containsAll(left.copularPredicates)) return false
+        }
+        if (left.copularPredicates.isNotEmpty() && left.copularPredicates != right.copularPredicates) strictlyStronger = true
+        if (!left.forbiddenKarakas.containsAll(right.forbiddenKarakas)) return false
+        if (left.forbiddenKarakas != right.forbiddenKarakas) strictlyStronger = true
         for (leftRequirement in left.requirements) {
             val rightRequirement = rightByKaraka[leftRequirement.karaka]
             if (rightRequirement == null) {
@@ -152,6 +161,13 @@ object OperationResolver {
 
     private fun evaluate(operation: DhatuOperation, context: ExecutionContext): SignatureEvaluation {
         val signature = operation.signature
+        val predicate = CopularPredicate.from(context.bindings[Karaka.KARMAN])
+        if (predicate != null && signature.copularPredicates.isNotEmpty() && predicate !in signature.copularPredicates) {
+            return SignatureEvaluation.Incompatible("This operation does not accept the written copular predicate.")
+        }
+        if (signature.forbiddenKarakas.any { it in context.bindings }) {
+            return SignatureEvaluation.Incompatible("This operation does not accept the supplied grammatical roles.")
+        }
         val memberSum = dev.panini.execution.NaturalOperationResolver.resolve(operation, context)
             as? dev.panini.execution.NaturalOperation.CollectionSummation
         val missing = signature.requirements.map { it.karaka }.filterNot { it in context.bindings }

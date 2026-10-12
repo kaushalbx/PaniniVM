@@ -5,6 +5,7 @@ import dev.panini.vyakaranam.ast.AkhyataVakya
 
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.bindingName
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
 import dev.panini.execution.PrakriyaInvocationArgumentResolver
@@ -140,14 +141,17 @@ internal object CompilerFrontend {
             lowering.callerSourceFile = procedure.source.name
             val definition = procedure.definition
             val signature = procedure.signature
+            val exitLabel = "procedure_contract_exit_${procedure.methodName}"
             lowering.setProcedureReferents(signature.parameters, definition.body)
             val instructions = definition.body.filterNot { sentence ->
                 sentence.isNishedha || PrakriyaSignatureDeclarationParser.isDeclaration(sentence)
             }.flatMap { sentence ->
                 sentence.program?.let {
-                    lowering.lowerProcedureSentence(it, sentence.text, signature.parameters) + CompilerInstruction.ReturnIfBreak
+                    lowering.lowerProcedureSentence(it, sentence.text, signature.parameters) +
+                        listOf(CompilerInstruction.IsProcedureExitRequested,
+                            CompilerInstruction.Branch(exitLabel, whenTrue = true))
                 }.orEmpty()
-            } + signature.resultSchema?.let { schema ->
+            } + CompilerInstruction.Label(exitLabel) + signature.resultSchema?.let { schema ->
                 listOf(CompilerInstruction.CheckProcedureResultSchema(schema,
                     requireNotNull(resultSchemas[schema]) {
                         "No schema named '$schema' is declared for procedure '${procedure.symbol}'."
@@ -205,12 +209,7 @@ internal object CompilerFrontend {
                 referenceName = { it }).invocation
         fun lowerProcedureSentence(node: ProgramNode, source: String, parameters: List<PrakriyaParameter>): List<CompilerInstruction> {
             val bound = dev.panini.execution.PrakriyaAstArgumentBinder.bind(node, parameters,
-                parameters.size, registry.all().mapTo(mutableSetOf()) { it.nameStem },
-                preserveInvocation = { invocation ->
-                    val semantic = NaturalSemanticNormalizer.normalize(invocation)
-                    semantic is NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic ||
-                        semantic == NaturalSemanticNormalizer.Operation.CollectionParameterSum
-                })
+                parameters.size, registry.all().mapTo(mutableSetOf()) { it.nameStem })
             return lower(bound, source)
         }
         private val resultLexicon by lazy {
@@ -363,16 +362,6 @@ internal object CompilerFrontend {
             val source = normalized(rendered)
             val naturalSemantic = NaturalSemanticNormalizer.normalize(node)
             lowerRangeChoice(node)?.let { return it }
-            if (naturalSemantic == NaturalSemanticNormalizer.Operation.CollectionParameterSum) {
-                return listOf(
-                    CompilerInstruction.Load("समवाय"),
-                    CompilerInstruction.Collection(CollectionOperator.SUM),
-                    CompilerInstruction.Store("LastResult"),
-                )
-            }
-            (naturalSemantic as? NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic)
-                ?.let(::lowerImplicitParameterOperation)
-                ?.let { return it }
             val consumesPriorResult = piped && !alreadyReferencesResult ||
                 naturalSemantic ==
                 NaturalSemanticNormalizer.Operation.DisplayPriorResult
@@ -455,38 +444,6 @@ internal object CompilerFrontend {
             }
         }
 
-        private fun lowerImplicitParameterOperation(
-            semantic: NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic,
-        ): List<CompilerInstruction>? {
-            val operator = when (semantic.kind) {
-                NaturalSemanticNormalizer.ArithmeticKind.ADD -> ArithmeticOperator.ADD
-                NaturalSemanticNormalizer.ArithmeticKind.MULTIPLY -> ArithmeticOperator.MULTIPLY
-                NaturalSemanticNormalizer.ArithmeticKind.DIVIDE -> ArithmeticOperator.DIVIDE
-            }
-            val operands = semantic.operands.map { operand ->
-                when (operand) {
-                    is NaturalSemanticNormalizer.ProcedureOperand.Literal ->
-                        CompilerInstruction.Constant(SanskritValue.Sankhya(operand.value, operand.value.toString()))
-                    NaturalSemanticNormalizer.ProcedureOperand.PriorResult ->
-                        CompilerInstruction.LoadLastResult
-                    is NaturalSemanticNormalizer.ProcedureOperand.Parameter -> {
-                        if (operand.position !in 1L..Int.MAX_VALUE.toLong()) return null
-                        val name = dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey((operand.position - 1).toInt())
-                        CompilerInstruction.Load(name)
-                    }
-                }
-            }
-            if (operands.size < 2 || operands.none { it is CompilerInstruction.Load }) return null
-            return buildList {
-                add(operands.first())
-                operands.drop(1).forEach { operand ->
-                    add(operand)
-                    add(CompilerInstruction.Arithmetic(operator))
-                }
-                add(CompilerInstruction.Store("LastResult"))
-            }
-        }
-
         /** Lowers an already parsed call without rendering and reparsing its Sanskrit. */
         private fun lowerProcedureCall(node: Invocation, piped: Boolean): List<CompilerInstruction>? {
             val ukti = Ukti(node.sourceText, body = node)
@@ -548,11 +505,14 @@ internal object CompilerFrontend {
         ): CompilerInstruction {
             val value = argument.argument.value ?: fallbackValue
             val name = argument.referenceName
+            val literal = argument.argument.pada?.let(PrakriyaValueClassifier::literalValue)
             return when {
                 argument.argument.actionResult != null -> historyLoad(requireNotNull(argument.argument.actionResult))
                 argument.isPriorResult -> CompilerInstruction.LoadLastResult
+                literal != null -> CompilerInstruction.Constant(literal)
                 value != null -> CompilerInstruction.Constant(value)
-                else -> CompilerInstruction.ResolveArgument(name, null)
+                else -> CompilerInstruction.ResolveArgument(name,
+                    argument.argument.pada?.let(PrakriyaValueClassifier::numericFallback))
             }
         }
 
@@ -597,7 +557,10 @@ internal object CompilerFrontend {
                                 node.sourceText,
                                 "Pipeline stage '${stage.operationStem}' lacks parsed nominal argument ${parameterIndex + 1}.",
                             )
-                        add(CompilerInstruction.ResolveArgument(argumentPada.pratipadika.referenceKey(), null))
+                        val literal = PrakriyaValueClassifier.literalValue(argumentPada)
+                        add(literal?.let(CompilerInstruction::Constant)
+                            ?: CompilerInstruction.ResolveArgument(argumentPada.pratipadika.referenceKey(),
+                                PrakriyaValueClassifier.numericFallback(argumentPada)))
                     }
                 }
                 val kinds = parameters.map { it.type.toCompilerValueKind() }
@@ -630,11 +593,18 @@ internal object CompilerFrontend {
             if (references.any { reference -> dev.panini.core.SupAffix.candidates(reference.referent.sup.text).none {
                 it.vibhakti == dev.panini.core.Vibhakti.DVITIYA
             } }) return null
+            lowerKarakaHistoryValueOperation(node, references)?.let { return it }
             val protected = dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(node.vakya.padas)
             val remaining = node.vakya.padas.filter { it !in protected }
             val sentence = node.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya ?: return null
             val heads = remaining.filter { it is TingantaPada || it is dev.panini.vyakaranam.ast.AvyayaPada }
             val projected = node.copy(vakya = sentence.copy(padas = heads))
+            if (references.size == 1 && remaining.all { pada ->
+                pada in heads || (pada is SubantaPada && dev.panini.core.SupAffix.candidates(pada.sup.text)
+                    .any { it.vibhakti == dev.panini.core.Vibhakti.CHATURTHI })
+            }) {
+                lowerBareParticipantGroup(node.copy(vakya = sentence.copy(padas = remaining)), references.single())?.let { return it }
+            }
             val loads = references.mapIndexed { index, reference ->
                 "__history_operand_${nextLabel++}_$index" to CompilerIrLowering.lowerKarakaHistory(reference)
             }.toMap()
@@ -661,6 +631,117 @@ internal object CompilerFrontend {
             }
         }
 
+        private fun lowerBareParticipantGroup(node: Invocation,
+            reference: dev.panini.execution.binding.KarakaHistoryReference): List<CompilerInstruction>? {
+            val conversation = dev.panini.execution.SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+            val bound = dev.panini.execution.binding.VyakaranamExecutionAdapter.bind(
+                dev.panini.execution.SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", node.sourceText),
+                dev.panini.vyakaranam.ast.Ukti(node.sourceText, body = node), conversation,
+                injectedBindings = mapOf(Karaka.KARMAN to ExecutionExpression.Reference("__participant_group")))
+                as? dev.panini.execution.ExecutionBindingResult.Bound ?: return null
+            val invocation = bound.ukti.invocations.singleOrNull() ?: return null
+            val candidates = invocation.dhatu.operations.filter { it.trigger.matches(invocation.grammaticalFeatures) }
+            if (candidates.isEmpty() || candidates.any { it.name !in participantGroupOperations } || invocation.ambiguousBindings.isNotEmpty()) return null
+            val load = when (val instruction = CompilerIrLowering.lowerKarakaHistory(reference)) {
+                is CompilerInstruction.LoadActionParticipants -> instruction.copy(asGroup = true)
+                is CompilerInstruction.LoadOrdinalActionParticipants -> instruction.copy(asGroup = true)
+                else -> error("Expected participant history load")
+            }
+            return listOf(load, CompilerInstruction.CallParticipantGroup(invocation.dhatu.upadesha,
+                invocation.grammaticalFeatures, invocation.selectedOperation,
+                invocation.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }), CompilerInstruction.Store("LastResult"))
+        }
+
+        private fun lowerKarakaHistoryValueOperation(node: Invocation,
+            references: List<dev.panini.execution.binding.KarakaHistoryReference>): List<CompilerInstruction>? {
+            val sentence = node.vakya as? AkhyataVakya ?: return null
+            val padas = sentence.padas.flatMap {
+                if (it is dev.panini.vyakaranam.ast.SamuccitaSubanta) it.members else listOf(it)
+            }
+            val occupied = padas.filterIsInstance<SubantaPada>().mapTo(mutableSetOf()) { it.pratipadika.referenceKey() }
+            val loads = linkedMapOf<String, CompilerInstruction>()
+            val replacements = java.util.IdentityHashMap<SubantaPada, SubantaPada>()
+            references.forEach { reference ->
+                var name: String
+                do { name = "__pvm_history_group_${nextLabel++}" } while (!occupied.add(name))
+                loads[name] = when (val load = CompilerIrLowering.lowerKarakaHistory(reference)) {
+                    is CompilerInstruction.LoadActionParticipants -> load.copy(asGroup = true)
+                    is CompilerInstruction.LoadOrdinalActionParticipants -> load.copy(asGroup = true)
+                    else -> error("Expected a participant history load")
+                }
+                replacements[reference.referent] = reference.referent.copy(
+                    pratipadika = MulaPratipadika(name, name))
+            }
+            val protected = dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(sentence.padas)
+            val projected = node.copy(vakya = sentence.copy(padas = padas.mapNotNull { pada ->
+                (pada as? SubantaPada)?.let(replacements::get) ?: pada.takeUnless { it in protected }
+            }))
+            val plan = ResolvedLeafPlanner.planAny(projected) ?: return null
+            val numericAction = plan.resolved.operation.action as? dev.panini.actions.numeric.NumericFoldDhatuAction
+            val arithmetic = when (numericAction?.operator) {
+                dev.panini.actions.numeric.NumericFoldOperator.ADD -> ArithmeticOperator.ADD
+                dev.panini.actions.numeric.NumericFoldOperator.MULTIPLY -> ArithmeticOperator.MULTIPLY
+                dev.panini.actions.numeric.NumericFoldOperator.SUBTRACT -> ArithmeticOperator.SUBTRACT
+                dev.panini.actions.numeric.NumericFoldOperator.DIVIDE -> ArithmeticOperator.DIVIDE
+                dev.panini.actions.numeric.NumericFoldOperator.MODULO -> ArithmeticOperator.REMAINDER
+                else -> null
+            }
+            if (plan.resolved.operation.name != "मूल्यदानम्" && arithmetic == null) return null
+            val destination = plan.resolved.operation.resultBindingKaraka
+                ?.let(plan.resolved.context.bindings::get)?.bindingName()
+            if (arithmetic == null && destination == null) return null
+            val participants = plan.resolved.context.bindings.entries.filter { it.key != Karaka.ANIRDHARITA }
+                .flatMap { (role, expression) ->
+                    CompilerIrLowering.lowerParticipantOperands(expression).map { instructions ->
+                        var group = false
+                        val lowered = instructions.map { instruction ->
+                            val name = when (instruction) {
+                                is CompilerInstruction.Load -> instruction.name
+                                is CompilerInstruction.ResolveArgument -> instruction.name
+                                else -> null
+                            }
+                            loads[name]?.also { group = true } ?: instruction
+                        }
+                        Triple(role, lowered, group)
+                    }
+                }
+            val operands = participants.indices.filter { participants[it].first == Karaka.KARMAN }
+            if (operands.isEmpty()) return null
+            val candidates = plan.resolved.invocation.dhatu.operations.filter {
+                it.trigger.matches(plan.resolved.invocation.grammaticalFeatures)
+            }
+            val dynamic = arithmetic != null && candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction }
+            if (dynamic && (participants.any { it.first !in setOf(Karaka.KARMAN, Karaka.KARTR, Karaka.SAMPRADANA) } ||
+                    candidates.any { it.name !in participantGroupOperations })) return null
+            val locals = participants.indices.map { "history_assignment_${nextLabel++}_$it" }
+            return buildList {
+                participants.forEachIndexed { index, (_, instructions, _) ->
+                    addAll(instructions)
+                    add(CompilerInstruction.StoreLocal(locals[index]))
+                }
+                operands.forEach { add(CompilerInstruction.LoadLocal(locals[it])) }
+                val flags = operands.map { participants[it].third }
+                if (dynamic) {
+                    add(CompilerInstruction.PackOperands(flags, asGroup = true))
+                    add(CompilerInstruction.CallParticipantGroup(plan.resolved.invocation.dhatu.upadesha,
+                        plan.resolved.invocation.grammaticalFeatures, plan.resolved.invocation.selectedOperation,
+                        plan.resolved.context.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }))
+                    add(CompilerInstruction.Store("LastResult"))
+                    return@buildList
+                }
+                add(if (arithmetic == null) CompilerInstruction.PackOperands(flags)
+                    else CompilerInstruction.FoldNumericOperands(arithmetic, flags,
+                        minimumOperands = requireNotNull(numericAction).minimumOperands))
+                if (destination != null) add(CompilerInstruction.Duplicate)
+                add(CompilerInstruction.Store("LastResult"))
+                if (destination != null) add(CompilerInstruction.Store(destination))
+                locals.forEach { add(CompilerInstruction.LoadLocal(it)) }
+                add(CompilerInstruction.LoadLastResult)
+                add(CompilerInstruction.RecordActionFrame(plan.resolved.invocation.dhatu.upadesha,
+                    participants.map { it.first }, participants.map { it.third }))
+            }
+        }
+
         private fun rejectUnsupportedKarakaHistory(node: Invocation) {
             if (dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(node.vakya.padas).isNotEmpty()) {
                 throw CompilerUnsupportedException(CompilerUnsupportedKind.INVOCATION, render(node),
@@ -679,10 +760,34 @@ internal object CompilerFrontend {
                     CompilerIrLowering.lowerParticipantOperands(expression).map { role to it }
                 }
             val locals = participants.indices.map { "action_input_${nextLabel++}_$it" }
+            val objects = participants.indices.filter { participants[it].first == Karaka.KARMAN }
+            val candidates = plan.resolved.invocation.dhatu.operations.filter {
+                it.trigger.matches(plan.resolved.invocation.grammaticalFeatures)
+            }
+            fun staticNumeric(expression: ExecutionExpression): Boolean = when (expression) {
+                is ExecutionExpression.Coordination -> expression.members.isNotEmpty() && expression.members.all(::staticNumeric)
+                is ExecutionExpression.Pada -> expression.value is dev.panini.execution.SanskritValue.Sankhya &&
+                    dev.panini.shiksha.Samjna.REFERENCE !in expression.samjnas
+                is ExecutionExpression.TypedOperand -> expression.referenceName == null &&
+                    expression.value is dev.panini.execution.SanskritValue.Sankhya
+                is ExecutionExpression.Reference -> false
+            }
+            val dynamic = objects.isNotEmpty() && candidates.all { it.name in participantGroupOperations } &&
+                candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction } &&
+                plan.resolved.context.bindings[Karaka.KARMAN]?.let(::staticNumeric) != true
             return buildList {
                 participants.forEachIndexed { index, (_, instructions) ->
                     addAll(instructions)
                     add(CompilerInstruction.StoreLocal(locals[index]))
+                }
+                if (dynamic) {
+                    objects.forEach { add(CompilerInstruction.LoadLocal(locals[it])) }
+                    add(CompilerInstruction.PackOperands(List(objects.size) { false }, asGroup = true))
+                    add(CompilerInstruction.CallParticipantGroup(plan.resolved.invocation.dhatu.upadesha,
+                        plan.resolved.invocation.grammaticalFeatures, plan.resolved.invocation.selectedOperation,
+                        plan.resolved.context.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }))
+                    add(CompilerInstruction.Store("LastResult"))
+                    return@buildList
                 }
                 addAll(CompilerIrLowering.lowerLeafValues(plan))
                 locals.forEach { add(CompilerInstruction.LoadLocal(it)) }

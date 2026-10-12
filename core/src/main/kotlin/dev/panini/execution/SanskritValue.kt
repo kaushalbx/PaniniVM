@@ -7,7 +7,7 @@ enum class ListMemberType {
     NUMBER, TEXT;
 
     fun accepts(value: SanskritValue): Boolean = when (this) {
-        NUMBER -> value is SanskritValue.Sankhya || value is SanskritValue.Rational
+        NUMBER -> OperationValueType.NUMBER.accepts(value)
         TEXT -> value is SanskritValue.Shabda
     }
 }
@@ -44,7 +44,10 @@ sealed interface SanskritValue {
         val word: String,
     ) : SanskritValue {
         override val samjnas: Set<Samjna> = setOf(Samjna.SANKHYA, Samjna.SHABDA)
-        override fun toDisplayText(): String = "$numerator/$denominator ($word)"
+        override fun toDisplayText(): String {
+            val fraction = "$numerator/$denominator"
+            return if (word.isBlank() || word == fraction) fraction else "$fraction ($word)"
+        }
     }
 
     data class Shabda(

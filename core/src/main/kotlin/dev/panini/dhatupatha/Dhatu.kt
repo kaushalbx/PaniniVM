@@ -32,6 +32,9 @@ open class Dhatu(
     open val semanticRelations: Set<SemanticRelation> = emptySet(),
     open val surfaceAliases: Set<String> = emptySet(),
 ) {
+    /** Lexical declaration meaning; not an executable action or a return effect. */
+    open fun denotesResultProduction(form: dev.panini.vyakaranam.ast.TingantaPada): Boolean = false
+
     /** Cached phonological form of the source root, separate from its raw upadeśa. */
     val sourceVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { sourceSurface.toVarnas() }
 

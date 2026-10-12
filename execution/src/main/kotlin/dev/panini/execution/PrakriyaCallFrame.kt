@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.NumeralPadaBinder
 import dev.panini.sankhya.SankhyaEvaluator
 
 /** Runtime state owned by one reusable prakriyā call. */
@@ -23,9 +22,10 @@ data class PrakriyaCallFrame(
                 val argument = resolved.argument
                 val referenceName = resolved.referenceName
                 argument.value
+                    ?: argument.pada?.let(PrakriyaValueClassifier::literalValue)
                     ?: callerScope.environment.values[referenceName]
                     ?: resolveValue(referenceName)
-                    ?: argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
+                    ?: argument.pada?.let(NominalValueAnalysis::numericFallback)
                     ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
                         .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }
                     ?: SanskritValue.Shabda(argument.term)

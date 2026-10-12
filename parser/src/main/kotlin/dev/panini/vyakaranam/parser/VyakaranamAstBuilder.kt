@@ -2,6 +2,7 @@ package dev.panini.vyakaranam.parser
 
 import dev.panini.core.Lakara
 import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
@@ -79,7 +80,7 @@ class VyakaranamAstBuilder {
         val identity = (marker.pratipadika as? MulaPratipadika)?.lexicalIdentity
         if (identity == MulaPratipadikaIdentity.SIMA) {
             require(padas.size == 3 && padas.first() is ParyantaRangePada &&
-                SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+                marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "A सीमा declaration requires ablative and पर्यन्त bounds and nominative सीमा."
             }
             return RangeDeclaration(ukti.sourceText, padas.first() as ParyantaRangePada, marker)
@@ -89,8 +90,8 @@ class VyakaranamAstBuilder {
         if (isScope) {
             val domain = padas.first() as? SubantaPada
             require(padas.size == 3 && domain != null &&
-                SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&
-                SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+                domain.sup.supports(Vibhakti.PRATHAMA) &&
+                marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "An अधिकार declaration requires a nominative domain and marker."
             }
             return Scope(ukti.sourceText, domain.sourceText, domain.pratipadika.morphologicalKey())
@@ -101,8 +102,8 @@ class VyakaranamAstBuilder {
     fun buildScopeDeclaration(context: PaniniyaVyakaranamParser.ScopeDeclarationContext): Scope {
         val domain = buildSubanta(requireNotNull(context.domain))
         val marker = buildSubanta(requireNotNull(context.marker))
-        require(SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&
-            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+        require(domain.sup.supports(Vibhakti.PRATHAMA) &&
+            marker.sup.supports(Vibhakti.PRATHAMA)) {
             "An अधिकार declaration requires nominative domain and marker."
         }
         require(when (val stem = marker.pratipadika) {
@@ -116,7 +117,7 @@ class VyakaranamAstBuilder {
     fun buildRangeDeclaration(context: PaniniyaVyakaranamParser.RangeDeclarationContext): RangeDeclaration {
         val marker = buildSubanta(requireNotNull(context.marker))
         require((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SIMA &&
-            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+            marker.sup.supports(Vibhakti.PRATHAMA)) {
             "An inclusive range declaration requires nominative सीमा."
         }
         return RangeDeclaration(context.text, buildParyantaRange(requireNotNull(context.boundary)), marker)
@@ -134,12 +135,12 @@ class VyakaranamAstBuilder {
         val names = context.names.map(::buildSubanta)
         require(names.size in 1..2) { "A prakriyā declaration names one operation and optionally one domain." }
         val operation = names.last()
-        require(SupAffix.fromUpadesha(operation.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
-            "A prakriyā name requires the nominative case."
+        require(operation.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)) {
+            "A single prakriyā declaration requires a nominative singular name."
         }
         val domain = names.dropLast(1).singleOrNull()
-        require(domain == null || SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.SASTHI) {
-            "A prakriyā domain requires the genitive case."
+        require(domain == null || domain.sup.supports(Vibhakti.SASTHI, dev.panini.core.Vacana.EKAVACANA)) {
+            "A single prakriyā declaration requires a genitive singular domain."
         }
         val declarationContext = requireNotNull(context.declaration)
         val marker = SubantaPada(
@@ -148,31 +149,35 @@ class VyakaranamAstBuilder {
             SupPratyaya(declarationContext.markerSup!!.text, declarationContext.markerSup!!.text),
         )
         val copula = buildTinganta(requireNotNull(declarationContext.copula))
+        val result = declarationContext.result?.let(::buildSubanta)
         val declaration = AkhyataVakya(declarationContext.text,
             declarationContext.qualifiers.map(::buildSubanta) + marker + copula, copula)
-        require(declaration.tinganta.dhatu.mulaDhatu in setOf("असँ", "अस्") &&
-            declaration.tinganta.dhatu.sanadiPratyayas.isEmpty() &&
+        val predicate = declaration.tinganta
+        val validPredicate = if (result == null) {
+            predicate.dhatu.mulaDhatu in setOf("असँ", "अस्") &&
+                predicate.dhatu.sanadiPratyayas.isEmpty()
+        } else {
+            require(result.sup.affixCandidates == listOf(SupAffix.AM)) {
+                "A procedure's declared product requires the accusative singular."
+            }
+            require(marker.sup.affixCandidates == listOf(SupAffix.SU)) { "A result-producing procedure must be singular." }
+            // The parser retains morphology; the lexical dhātu class owns meaning.
+            true
+        }
+        require(validPredicate &&
             declaration.tinganta.upasargas.isEmpty() &&
-            declaration.tinganta.lakara == Lakara.LAT && declaration.tinganta.ting.text == "तिप्") {
-            "A prakriyā declaration requires अस्ति."
+            declaration.tinganta.lakara == Lakara.LAT && declaration.tinganta.ting.affix == TingAffix.TIP) {
+            "A prakriyā declaration requires अस्ति, or an accusative product with जनयति."
         }
         val qualifiers = declaration.padas.filterIsInstance<SubantaPada>().map { pada ->
-            require(SupAffix.fromUpadesha(pada.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
-                "Prakriyā qualifiers require the nominative case."
+            require(pada.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)) {
+                "Prakriyā subject and qualifiers require nominative singular agreement with the declaration predicate."
             }
-            when (val stem = pada.pratipadika) {
-                is MulaPratipadika -> stem.lexicalIdentity
-                is KridantaPratipadika -> MulaPratipadikaIdentity.APAVADA.takeIf {
-                    stem.lexicalIdentity == KridantaLexicalIdentity.APAVADA
-                }
-                else -> null
+            requireNotNull(pada.prakriyaDefinitionQualifier()) {
+                "Unsupported prakriyā qualifier."
             }
         }
-        require(MulaPratipadikaIdentity.PRAKRIYA in qualifiers) { "A reusable declaration requires प्रक्रिया." }
-        require(qualifiers.all { it in setOf(MulaPratipadikaIdentity.PRAKRIYA,
-            MulaPratipadikaIdentity.ANTARANGA, MulaPratipadikaIdentity.NITYA, MulaPratipadikaIdentity.APAVADA) }) {
-            "Unsupported prakriyā qualifier."
-        }
+        require(PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers) { "A reusable declaration requires प्रक्रिया." }
         return Prakriya(
             sourceText = sourceText,
             name = operation.sourceText,
@@ -180,12 +185,14 @@ class VyakaranamAstBuilder {
             nameIdentity = operation.pratipadika.morphologicalKey(),
             domainIdentity = domain?.pratipadika?.morphologicalKey(includeTaddhita = false),
             body = body,
+            declaredResult = result,
+            resultPredicate = predicate.takeIf { result != null },
             modifiers = PrakriyaModifiers(
-                visibility = if (MulaPratipadikaIdentity.ANTARANGA in qualifiers) PrakriyaVisibility.INTERNAL else PrakriyaVisibility.PUBLIC,
+                visibility = if (PrakriyaDefinitionQualifier.ANTARANGA in qualifiers) PrakriyaVisibility.INTERNAL else PrakriyaVisibility.PUBLIC,
                 precedence = when {
-                    MulaPratipadikaIdentity.APAVADA in qualifiers -> PrakriyaPrecedence.APAVADA
-                    MulaPratipadikaIdentity.NITYA in qualifiers -> PrakriyaPrecedence.NITYA
-                    MulaPratipadikaIdentity.ANTARANGA in qualifiers -> PrakriyaPrecedence.ANTARANGA
+                    PrakriyaDefinitionQualifier.APAVADA in qualifiers -> PrakriyaPrecedence.APAVADA
+                    PrakriyaDefinitionQualifier.NITYA in qualifiers -> PrakriyaPrecedence.NITYA
+                    PrakriyaDefinitionQualifier.ANTARANGA in qualifiers -> PrakriyaPrecedence.ANTARANGA
                     else -> PrakriyaPrecedence.DEFAULT
                 },
             ),
@@ -325,8 +332,8 @@ class VyakaranamAstBuilder {
     private fun buildDistributiveClause(clause: PaniniyaVyakaranamParser.DistributiveClauseContext): ForEach {
         val collection = buildSubanta(requireNotNull(clause.collection))
         val member = buildSubanta(requireNotNull(clause.member))
-        require(collection.sup.text == "ङस्") { "Distributive iteration requires a genitive singular collection." }
-        require(member.sup.text == "अम्") { "Distributive प्रति requires a singular accusative member." }
+        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) { "Distributive iteration requires a genitive singular collection." }
+        require(member.sup.affixCandidates == listOf(SupAffix.AM)) { "Distributive प्रति requires a singular accusative member." }
         require(member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
             "The iteration member must introduce an underived nominal referent."
         }
@@ -378,7 +385,7 @@ class VyakaranamAstBuilder {
 
     private fun primitiveCardinalValue(value: Pratipadika): Long? = when (value) {
         is SankhyaPratipadika -> value.semanticValue.value
-        is MulaPratipadika -> if (value.vikaras.all { it is StriVikara })
+        is MulaPratipadika -> if (value.vikaras.all { it.isRecognizedStriAffix })
             dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(value.text)?.value else null
         else -> null
     }
@@ -432,10 +439,10 @@ class VyakaranamAstBuilder {
             val domain = buildSubanta(stage.domain!!)
             val operation = buildSubanta(stage.operation!!)
             if (isNaturalSequence) {
-                require(SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.SASTHI) {
+                require(domain.sup.supports(Vibhakti.SASTHI)) {
                     "A sequential procedure stage requires its domain in ṣaṣṭhī."
                 }
-                require(SupAffix.fromUpadesha(operation.sup.text)?.vibhakti == Vibhakti.TRTIYA) {
+                require(operation.sup.supports(Vibhakti.TRTIYA)) {
                     "A sequential procedure stage requires its operation in tṛtīyā."
                 }
             }

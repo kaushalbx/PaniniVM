@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -25,6 +24,8 @@ data class Prakriya(
     val visibility: PrakriyaVisibility = PrakriyaVisibility.PUBLIC,
     val precedence: PrakriyaPrecedence = PrakriyaPrecedence.DEFAULT,
     val signatureOverride: PrakriyaSignature? = null,
+    val headerResult: SubantaPada? = null,
+    val headerPredicate: dev.panini.vyakaranam.ast.TingantaPada? = null,
 ) {
     init {
         require(body.all { it.program != null }) {
@@ -32,7 +33,9 @@ data class Prakriya(
         }
     }
 
-    val signature: PrakriyaSignature by lazy { signatureOverride ?: PrakriyaSignatureCompiler.compile(body) }
+    val signature: PrakriyaSignature by lazy {
+        signatureOverride ?: PrakriyaSignatureCompiler.compile(body, headerResult, headerPredicate)
+    }
 
     val isInternal: Boolean get() = visibility == PrakriyaVisibility.INTERNAL
 
@@ -180,6 +183,9 @@ class PrakriyaRegistry {
                 PrakriyaValueClassifier.classifyStaticPada(pada)
             } else PrakriyaValueClassifier.classifyPada(pada)
         val operandPadas = dev.panini.execution.binding.NamedActionResultReferenceResolver.operandPadas(shape.argumentPadas)
+        operandPadas.filter(Pada::isAccusative).forEach { pada ->
+            PrakriyaValueClassifier.literalValue(pada)?.let { resultValues[pada] = it }
+        }
         operandPadas.filterIsInstance<SubantaPada>().filter {
             it.isAccusative() && NaturalSemanticNormalizer.isPriorResult(it) &&
                 resultReferences.none { reference -> reference.result === it }
@@ -292,16 +298,8 @@ data class PrakriyaArgument(
 )
 
 private fun Pada.isAccusative(): Boolean {
-    val supText = when (this) {
-        is SubantaPada -> sup.text
-        is SankhyaPada -> sup.text
-        is SankhyaPuranaPada -> sup.text
-        is KatapayadiPada -> sup.text
-        is AryabhatiyaPada -> sup.text
-        is BhutasamkhyaPada -> sup.text
-        else -> return false
-    }
-    return SupAffix.fromUpadesha(supText)?.vibhakti == dev.panini.core.Vibhakti.DVITIYA
+    return (this as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup
+        ?.supports(dev.panini.core.Vibhakti.DVITIYA) == true
 }
 
 private fun Pada.argumentTerm(): String = when (this) {

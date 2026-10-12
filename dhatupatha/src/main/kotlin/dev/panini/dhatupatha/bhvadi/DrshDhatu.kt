@@ -6,6 +6,7 @@ import dev.panini.actions.state.SutraInspectAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
@@ -30,18 +31,18 @@ class DrshDhatu : Dhatu(
     operations = listOf(
         VariableInspectAction.op {
             requires(Karaka.KARMAN)
-            triggeredBy(forbiddenUpasargas = setOf("प्र", "नि"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.PRA, Upasarga.NI))
             returns(Samjna.SHABDA)
         },
         SutraInspectAction.op {
             requires(Karaka.KARMAN)
             optional(Karaka.ADHIKARANA, Karaka.KARANA)
-            triggeredBy(requiredUpasargas = setOf("नि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NI))
             returns(Samjna.GANA)
         },
         PrintAction.op {
             requires(Karaka.KARMAN)
-            triggeredBy(requiredUpasargas = setOf("प्र"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.PRA))
             returns(Samjna.SHABDA)
         },
     ),

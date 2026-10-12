@@ -3,6 +3,19 @@ package dev.panini.execution
 import kotlin.test.*
 
 class LocalAnaphorExecutionTest {
+    @Test fun `feminine derived local declaration supplies complete antecedent evidence`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser().parse("प्रथम + टाप् + सुँ ।")
+        val declaration = parsed.grammaticalVakyas().single().padas.single() as dev.panini.vyakaranam.ast.SubantaPada
+        val locals = ProcedureLocalBindings.member(null, "member", SanskritValue.Sankhya(9, "नव"), declaration)
+        val results = PaniniVM().evalScript("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् तद् + ङे दा + लोट् + सिप् ।\n" +
+            "तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            scope = ExecutionScope(procedureBindings = locals))
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertTrue(results.filterIsInstance<ExecutionResult.Success>().any { it.value == "नव" })
+        assertEquals("द्वि", assertIs<ExecutionResult.Success>(results.last()).value)
+    }
+
     @Test fun `conditional compares a resolved grammatical participant`() {
         val results = PaniniVM().evalScript("""
             परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।

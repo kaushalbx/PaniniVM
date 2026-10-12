@@ -9,6 +9,22 @@ import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 
 class MemoryOrderQualifierTest {
+    @Test fun `history qualifier agreement uses sup morphology across encoded numeric targets`() {
+        val accusative = SupPratyaya("अम्", "अम्")
+        val modifier = SubantaPada("प्रथम", MulaPratipadika("प्रथम", "प्रथम"), accusative)
+        val qualifier = MemoryOrderQualifier(modifier, ordinalNumber = 1L)
+        val targets = listOf(
+            dev.panini.vyakaranam.ast.KatapayadiPada("क", "क", 1L, accusative),
+            dev.panini.vyakaranam.ast.AryabhatiyaPada("क", "क", 1L, accusative),
+            dev.panini.vyakaranam.ast.BhutasamkhyaPada("चन्द्र", listOf("चन्द्र"), 1L, accusative),
+        )
+        for (target in targets) assertTrue(qualifier.agreesWith(target), target.sourceText)
+        assertFalse(qualifier.agreesWith(dev.panini.vyakaranam.ast.KatapayadiPada(
+            "क", "क", 1L, SupPratyaya("शस्", "शस्"))))
+        assertFalse(qualifier.agreesWith(dev.panini.vyakaranam.ast.KatapayadiPada(
+            "क", "क", 1L, SupPratyaya("unknown", "unknown"))))
+    }
+
     @Test
     fun `shared resolver discovers original result nodes inside coordination`() {
         val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(

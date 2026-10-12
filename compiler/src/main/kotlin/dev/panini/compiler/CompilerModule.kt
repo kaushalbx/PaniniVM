@@ -9,10 +9,6 @@ import dev.panini.execution.PrakriyaSignatureCompiler
 import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
-import dev.panini.vyakaranam.ast.SankhyaPuranaPada
-import dev.panini.vyakaranam.ast.SubantaPada
 import java.io.File
 import java.util.Base64
 
@@ -282,7 +278,8 @@ internal object PaniniModuleAnalyzer {
 
     private fun inferSignature(definition: PvmScriptStatement.PrakriyaDefinition,
         knownOperationStems: Set<String>): PrakriyaSignature {
-        val declared = PrakriyaSignatureCompiler.compile(definition.body)
+        val declared = PrakriyaSignatureCompiler.compile(definition.body, definition.prakriya.declaredResult,
+            definition.prakriya.resultPredicate)
         if (declared.parameters.isNotEmpty()) return declared
         val padas = definition.body.flatMap { sentence ->
             sentence.ukti?.grammaticalVakyas()?.flatMap { vakya ->
@@ -300,14 +297,7 @@ internal object PaniniModuleAnalyzer {
                 else -> dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey((value - 1).toInt()) }
             PrakriyaParameter(name, declared.argumentType ?: PrakriyaValueType.UNCONSTRAINED)
         }
-        val hasCollection = padas.filterIsInstance<SubantaPada>().any { pada ->
-            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
-        }
-        return declared.copy(parameters = when {
-            ordinalParameters.isNotEmpty() -> ordinalParameters
-            hasCollection -> listOf(PrakriyaParameter("समवाय", PrakriyaValueType.SUCHI))
-            else -> emptyList()
-        })
+        return declared.copy(parameters = ordinalParameters)
     }
 
     private fun signatureKey(signature: PrakriyaSignature): String = signature.parameters.joinToString { it.type.name }

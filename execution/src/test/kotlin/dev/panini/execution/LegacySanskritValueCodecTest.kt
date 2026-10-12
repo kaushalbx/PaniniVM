@@ -4,8 +4,16 @@ import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class LegacySanskritValueCodecTest {
+    @Test fun `legacy fractions cannot silently discard extra numeric components`() {
+        for (tag in listOf("RATIONAL:1/2/3", "RATIONAL:1", "RATIONAL:/2", "RATIONAL:1/")) {
+            assertFailsWith<IllegalArgumentException>(tag) { decode(tag, "fraction") }
+        }
+        assertEquals(SanskritValue.Rational(1, -2, "negative"), decode("RATIONAL:1/-2", "negative"))
+    }
+
 
     @Test
     fun `decodes legacy scalar value tags`() {

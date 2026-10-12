@@ -58,7 +58,8 @@ prakriyaHeader
     ;
 
 prakriyaDeclaration
-    : qualifiers+=subantaPada* PRAKRIYA_NOUN PLUS markerSup=supPratyaya copula=tingantaPada
+    : qualifiers+=subantaPada* PRAKRIYA_NOUN PLUS markerSup=supPratyaya
+      result=subantaPada? copula=tingantaPada
     ;
 
 // Reusable clause content: document/block entry rules own their delimiters and EOF.

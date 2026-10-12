@@ -6,4 +6,5 @@ import dev.panini.core.TypedAffix
 
 /** Existing supported identity domain; not a claim that all taddhita affixes are implemented. */
 internal val initialVrddhiTaddhitaIdentities: List<TypedAffix> =
-    TaddhitaAffix.entries + TaddhitaAdesha.entries
+    listOf(TaddhitaAffix.AN, TaddhitaAffix.INY, TaddhitaAffix.YANY, TaddhitaAffix.PHAK,
+        TaddhitaAffix.DHAK, TaddhitaAffix.VAT, TaddhitaAffix.TASIL, TaddhitaAffix.TRAL) + TaddhitaAdesha.entries

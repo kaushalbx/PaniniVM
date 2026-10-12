@@ -1,7 +1,6 @@
 package dev.panini.execution
 
 import dev.panini.core.KrtAffix
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.execution.binding.canonicalDhatuIdentity
@@ -22,7 +21,7 @@ object PriorActionLowering {
         val padas = sentence.padas
         val boundaries = padas.indices.filter { index ->
             val derivation = (padas[index] as? AvyayaPada)?.derivation as? AvyayaKridantaDerivation
-            derivation != null && KrtAffix.fromUpadesha(derivation.pratyaya) in setOf(KrtAffix.KTVA, KrtAffix.LYAP)
+            derivation != null && derivation.krtAffix in setOf(KrtAffix.KTVA, KrtAffix.LYAP)
         }
         if (boundaries.isEmpty()) return null
         // Preserve the established range-exclusion construction until its
@@ -34,7 +33,7 @@ object PriorActionLowering {
         }
         boundaries.forEach { index ->
             val derivation = (padas[index] as AvyayaPada).derivation as AvyayaKridantaDerivation
-            require(KrtAffix.fromUpadesha(derivation.pratyaya) != KrtAffix.LYAP || derivation.upasargas.isNotEmpty()) {
+            require(derivation.krtAffix != KrtAffix.LYAP || derivation.upasargas.isNotEmpty()) {
                 "ल्यप्-प्रयोगे पूर्वपदम् अपेक्षितम्।"
             }
         }
@@ -46,7 +45,7 @@ object PriorActionLowering {
         boundaries.forEach { index -> groups += padas.subList(start, index + 1); start = index + 1 }
         groups += padas.drop(start)
         fun isSubject(pada: SubantaPada): Boolean {
-            val candidates = SupAffix.candidates(pada.sup.text)
+            val candidates = pada.sup.affixCandidates
             return candidates.isNotEmpty() && candidates.all { it.vibhakti == Vibhakti.PRATHAMA }
         }
         // Preserve coordination when sharing an understood agent. Flattening it
@@ -66,7 +65,7 @@ object PriorActionLowering {
             }
         // Derivational suffixes identify the participant too: a base noun and
         // a possessive/feminine derivative are not automatically coreferential.
-        }.map { it.pratipadika.morphologicalKey() to it.sup.text }.groupingBy { it }.eachCount()
+        }.map { it.pratipadika.morphologicalKey() to it.sup.affixCandidates }.groupingBy { it }.eachCount()
         val declaredSubjects = groups.map(::subjects).filter { it.isNotEmpty() }
         val sharedSubjects = declaredSubjects.firstOrNull().orEmpty()
         val sharedIdentities = identities(sharedSubjects)

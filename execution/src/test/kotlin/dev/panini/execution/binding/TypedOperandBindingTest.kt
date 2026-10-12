@@ -14,6 +14,35 @@ import kotlin.test.assertIs
 
 class TypedOperandBindingTest {
     @Test
+    fun `unknown ending cannot become an accusative scope operand`() {
+        val vakya = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("मूल्य + अम् दा + लोट् + सिप् ।").grammaticalVakyas().single()
+        val noun = vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+        val frame = dev.panini.analysis.KriyaFrame(dev.panini.analysis.KriyaId("invalid"),
+            vakya, null, dev.panini.core.Prayoga.KARTARI, emptyList(), emptyList())
+        val ctx = BindingContext(null, 0, dev.panini.dhatupatha.juhotyadi.DaDhatu(), frame,
+            previousDhatus = emptyList(),
+            environment = ValueEnvironment(mapOf("मूल्य" to SanskritValue.Sankhya(3, "त्रि"))))
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            ExpressionBuilder.build(noun.copy(sup = dev.panini.vyakaranam.ast.SupPratyaya("unknown", "unknown")), ctx)
+        }
+    }
+
+    @Test
+    fun `typed recipient retains contextual dative slot of a shared ending`() {
+        val value = SanskritValue.Shabda("recipient")
+        val result = assertIs<ExecutionBindingResult.Bound>(VyakaranamExecutionAdapter.bind(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "मूल्य + अम् राम + भ्याम् दा + लोट् + सिप् ।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            environment = ValueEnvironment(mapOf("राम" to value)),
+        ))
+        val operand = assertIs<ExecutionExpression.TypedOperand>(
+            result.ukti.invocations.single().bindings.getValue(Karaka.SAMPRADANA))
+        assertEquals(SupAffix.BHYAM_4, operand.sup)
+        assertEquals(value, operand.value)
+    }
+
+    @Test
     fun `derived nouns use morphology retaining reference keys`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         for (stem in listOf("मान", "युज् + ल्युट्")) {

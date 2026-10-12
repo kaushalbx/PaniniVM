@@ -105,7 +105,7 @@ class PrakriyaAstArgumentBinderTest {
     }
 
     @Test
-    fun `collection argument shortcut preserves derivation case and declared parameter identity`() {
+    fun `collection nouns are ordinary names unless explicitly declared as parameters`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         for (phrase in listOf("समवाय + मतुप् + अम्", "समवाय + तरप् + अम्", "समवाय + ङस्")) {
             val original = assertIs<Invocation>(parser.parse("$phrase युज् + णिच् + लोट् + सिप् ।").body)
@@ -114,7 +114,7 @@ class PrakriyaAstArgumentBinderTest {
         }
         val plain = assertIs<Invocation>(parser.parse("समवाय + अम् युज् + णिच् + लोट् + सिप् ।").body)
         val legacy = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain, emptyList(), 2))
-        assertIs<dev.panini.vyakaranam.ast.SamuccitaSubanta>(legacy.vakya.padas.first())
+        assertEquals(plain.vakya.padas, legacy.vakya.padas)
         val named = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain,
             listOf(PrakriyaParameter("समवाय", PrakriyaValueType.SUCHI)), 1))
         val parameter = assertIs<dev.panini.vyakaranam.ast.SubantaPada>(named.vakya.padas.first())
@@ -409,9 +409,9 @@ class PrakriyaAstArgumentBinderTest {
     fun `nishedha guard binds ordinal parameters in its stored AST`() {
         val definition = PvmScript.parse(
             """
-            विभाज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न द्वितीय + अम् शून्य + अम् ।
-            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+            प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
         val guard = definition.body.single { it.isNishedha }

@@ -34,6 +34,7 @@ class OperationCatalog(
     ): DhatuOperation? {
         val compatible = resolveAll(upadesha)
             .filter { operation -> operation.trigger.matches(GrammaticalFeatures()) }
+            .filter { operation -> operation.signature.forbiddenKarakas.intersect(providedKarakas).isEmpty() }
             .filter { operation ->
             operation.signature.requirements.all { requirement ->
                 requirement.karaka in providedKarakas &&

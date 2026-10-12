@@ -5,6 +5,14 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class AttributeOperandProjectionTest {
+    @Test fun `method phrase does not prevent projection of later field arguments`() {
+        val original = invocation("गुण + मतुप् + ङस् परीक्षण + टा शब्द + मतुप् + ङस् मूल्य + अम् डुकृञ् + उ + लोट् + सिप् ।")
+        val projection = AttributeOperandProjection.project(original, knownOperationStems = setOf("परीक्षण"))
+        assertEquals(listOf(listOf("शब्द", "मूल्य")), projection.operands.map { it.access.chain })
+        assertTrue(projection.invocation.vakya.padas.any { it === original.vakya.padas[0] })
+        assertTrue(projection.invocation.vakya.padas.any { it === original.vakya.padas[1] })
+    }
+
     private fun invocation(source: String) = assertIs<Invocation>(PaniniParser().parse(source).body)
 
     @Test fun `projection preserves case and negation outside the field phrase`() {

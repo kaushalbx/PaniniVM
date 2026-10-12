@@ -7,6 +7,36 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class AnaphoricOperandProjectionTest {
+    @Test fun `syncretic pronouns retain dual number and every case slot after resolution`() {
+        val dual = ReferentAgreement(setOf(Vacana.DVIVACANA), setOf(Linga.NAPUMSAKA))
+        for (ending in listOf("भ्याम्", "ओस्")) {
+            val node = invocation("तद् + $ending मुद्र् + णिच् + लोट् + सिप् ।")
+            val original = node.vakya.padas.filterIsInstance<SubantaPada>().single()
+            assertEquals(setOf(Vacana.DVIVACANA), AnaphoricOperandProjection.agreement(original)?.numbers)
+            assertEquals(setOf(Vacana.DVIVACANA), ReferentAgreement.fromDeclaration(original).numbers)
+            val projected = AnaphoricOperandProjection.project(node, listOf(
+                AgreementCandidate("singular", singular), AgreementCandidate("dual", dual)))
+            assertEquals("dual", projected.operands.single().identity)
+            val replacement = projected.invocation.vakya.padas.filterIsInstance<SubantaPada>().single()
+            assertSame(original.sup, replacement.sup)
+            assertTrue(replacement.sup.affixCandidates.size > 1)
+        }
+    }
+
+    @Test fun `unknown sup provides no number evidence and cannot select a pronoun antecedent`() {
+        val node = invocation("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+        val original = node.vakya.padas.filterIsInstance<SubantaPada>().single()
+        val unknown = original.copy(sup = SupPratyaya("unknown", "unknown"))
+        assertTrue(assertNotNull(AnaphoricOperandProjection.agreement(unknown)).numbers.isEmpty())
+        assertTrue(ReferentAgreement.fromDeclaration(unknown).numbers.isEmpty())
+        val vakya = (node.vakya as AkhyataVakya).copy(padas = node.vakya.padas.map {
+            if (it === original) unknown else it
+        })
+        assertTrue(assertFailsWith<IllegalArgumentException> {
+            AnaphoricOperandProjection.project(node.copy(vakya = vakya), listOf(AgreementCandidate("slot", singular)))
+        }.message.orEmpty().contains("Incomplete"))
+    }
+
     private val singular = ReferentAgreement(setOf(Vacana.EKAVACANA), setOf(Linga.NAPUMSAKA))
     private fun invocation(source: String) = assertIs<Invocation>(PaniniParser().parse(source).body)
 

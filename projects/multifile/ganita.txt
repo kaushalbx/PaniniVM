@@ -9,9 +9,9 @@
 
 # प्रक्रिया: विभाजनम् (Division procedure with Pāṇinian निषेध-सूत्र zero guard)
 # Niṣedha Sūtra: "न द्वितीय + अम् शून्य + अम् ।" (Divisor must NOT be zero)
-विभाज्+ल्युट्+सुँ इति प्रक्रिया अस्ति ।
+विभाजनम् इति प्रक्रिया अस्ति ।
 न द्वितीयं शून्यम् ।
-प्रथमं द्वितीयं च भज्+णिच्+लोट्+सिप् ॥
+प्रथमं द्वितीयं च वि+भज्+णिच्+लोट्+सिप् ॥
 
 # प्रक्रिया: समवाययोजनम् (Collection / List batch fold-addition procedure)
 # Sums all items passed in the collection (समवाय)

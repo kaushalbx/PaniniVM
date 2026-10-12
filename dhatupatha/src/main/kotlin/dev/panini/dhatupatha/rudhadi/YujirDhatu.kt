@@ -1,12 +1,13 @@
 package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.actions.numeric.AdditionAction
-import dev.panini.actions.numeric.ComparisonAction
 import dev.panini.actions.numeric.SubtractionAction
 import dev.panini.actions.collection.ListConcatAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
+import dev.panini.core.SanadiAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
@@ -35,21 +36,17 @@ open class YujirDhatu : Dhatu(
             requires(Karaka.KARMAN, maximum = 1, valueType = dev.panini.execution.OperationValueType.COLLECTION)
             // Causative instrumental secondary agent, resolved as the companion collection.
             requires(Karaka.KARTR, maximum = 1, valueType = dev.panini.execution.OperationValueType.COLLECTION)
-            triggeredBy(requiredUpasargas = setOf("सम्"), requiredSanadi = setOf("णिच्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM), requiredSanadiIdentities = setOf(SanadiAffix.NIC))
             returns(Samjna.GANA)
         },
         AdditionAction.numericOp {
             optional(Karaka.SAMBANDHA)
-            triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
+            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         SubtractionAction.numericOp {
-            triggeredBy(requiredUpasargas = setOf("वि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
-        },
-        ComparisonAction.GreaterThan.numericOp {
-            triggeredBy(requiredUpasargas = setOf("तुल्"))
-            returns(Samjna.SHABDA)
         },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),

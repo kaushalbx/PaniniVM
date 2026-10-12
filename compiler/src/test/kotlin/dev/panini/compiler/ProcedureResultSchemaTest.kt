@@ -5,6 +5,21 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.test.*
 
 class ProcedureResultSchemaTest {
+    @Test fun `early procedure break cannot bypass declared schema`() {
+        val source = """
+            अवस्था + सुँ मान + सुँ च फलरूप + ङस् क्षेत्र + जस् असँ + लट् + झि ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            फलरूप + सुँ इति परिणाम + सुँ ।
+            वि + स्था + लोट् + सिप् ॥
+            परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        val generated = BytecodeCompiler.compileAndLoad(source, "EarlySchemaContract")
+        assertIs<CompiledPaniniExecutionException>(assertFailsWith<InvocationTargetException> {
+            generated.getMethod("execute").invoke(null)
+        }.cause)
+    }
+
     private val fields = listOf("अवस्था", "मान")
 
     private fun execute(result: SanskritValue): Map<String, SanskritValue> {

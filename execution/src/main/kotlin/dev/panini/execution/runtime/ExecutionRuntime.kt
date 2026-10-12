@@ -92,6 +92,13 @@ object ExecutionRuntime {
             }
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
+                    if (result.controlSignal != plan.resolved.operation.controlSignal) {
+                        val failure = ExecutionResult.Failure(ExecutionError.ACTION_FAILED,
+                            "Operation '${plan.resolved.operation.name}' declared control effect " +
+                                "${plan.resolved.operation.controlSignal}, but produced ${result.controlSignal}.",
+                            result.trace)
+                        return Phala.Asiddha(failure, trace + plan.resolved.resolutionTrace + result.trace)
+                    }
                     participantValues[plan.invocationId] = participants
                     val typedResult = result.typedValue ?: SanskritValue.of(
                         result.value,
@@ -122,6 +129,7 @@ object ExecutionRuntime {
                     trace += plan.resolved.resolutionTrace + result.trace
                     lastOutputKind = result.outputKind
                     lastControlSignal = result.controlSignal
+                    if (result.controlSignal != null) break
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
             }

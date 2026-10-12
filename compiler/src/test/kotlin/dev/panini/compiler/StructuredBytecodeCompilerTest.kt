@@ -609,7 +609,7 @@ class StructuredBytecodeCompilerTest {
             "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
         assertTrue(PaniniVM().evalScript(source).last() is ExecutionResult.Failure)
-        assertFailsWith<InvocationTargetException> {
+        assertFailsWith<IllegalArgumentException> {
             compileAndInspect(source, "CompiledInvalidScalarListParameter")
         }
     }
@@ -1082,7 +1082,8 @@ class StructuredBytecodeCompilerTest {
             "युज् + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।\n" +
             "सूची + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         assertEquals("[एक, द्वि]", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
-        assertFailsWith<CompilerUnsupportedException> { CompilerFrontend.lower(source, "CompiledParticipantAssignment") }
+        assertEquals("[एक, द्वि]", compileAndInspect(source, "CompiledParticipantAssignment")
+            .values.getValue("LastResult").toDisplayText())
     }
     @Test
     fun `unselected else if does not load unavailable ordered action results`() {
@@ -2819,10 +2820,10 @@ class StructuredBytecodeCompilerTest {
             राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val prohibited = """
-            विभाज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न द्वितीय + अम् शून्य + अम् ।
-            प्रथम + अम् द्वितीय + अम् च भज् + णिच् + लोट् + सिप् ॥
-            दश + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।
+            प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
+            दशन् + शस् शून्य + अम् च वि + भज् + णिच् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
 
         val typeFailure = assertFailsWith<InvocationTargetException> {

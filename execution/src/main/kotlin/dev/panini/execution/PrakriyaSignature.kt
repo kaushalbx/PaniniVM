@@ -1,7 +1,6 @@
 package dev.panini.execution
 
 import dev.panini.sankhya.SankhyaEvaluator
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
@@ -14,6 +13,7 @@ import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.core.TingAffix
+import dev.panini.core.Lakara
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
 enum class PrakriyaValueType {
@@ -78,9 +78,23 @@ internal fun requireUniqueParameters(parameters: List<PrakriyaParameter>) {
  * Runtime dispatch consumes [PrakriyaSignature] and does not inspect rule-body text.
  */
 object PrakriyaSignatureCompiler {
-    fun compile(body: List<PvmScriptStatement.Sentence>): PrakriyaSignature {
+    fun compile(body: List<PvmScriptStatement.Sentence>, headerResult: SubantaPada? = null,
+        headerPredicate: TingantaPada? = null): PrakriyaSignature {
+        require((headerResult == null) == (headerPredicate == null)) {
+            "A result-producing procedure header requires both its result and predicate."
+        }
+        if (headerResult != null) {
+            require(headerResult.sup.supports(Vibhakti.DVITIYA, dev.panini.core.Vacana.EKAVACANA)) {
+                "A procedure's declared product requires the accusative singular."
+            }
+        }
+        if (headerResult != null) require(headerPredicate != null &&
+            dev.panini.dhatupatha.DhatuPatha.all.any { it.denotesResultProduction(headerPredicate) }) {
+            "A typed procedure header requires a result-producing declaration predicate."
+        }
         val parameters = body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
-        val resultDeclarations = body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
+        val resultDeclarations = listOfNotNull(headerResult?.let(PrakriyaSignatureDeclarationParser::result)) +
+            body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
         requireUniqueParameters(parameters)
         require(resultDeclarations.size <= 1) { "A प्रक्रिया may declare only one result." }
         val resultType = resultDeclarations.singleOrNull()?.type
@@ -107,7 +121,7 @@ object PrakriyaSignatureCompiler {
         if (negations.size != 1) return null
         val nominals = padas.filterIsInstance<SubantaPada>()
         if (nominals.size != 2 || padas.size != 3 || nominals.any {
-                SupAffix.fromUpadesha(it.sup.text)?.vibhakti != Vibhakti.DVITIYA
+                !it.sup.supports(Vibhakti.DVITIYA)
             }) return null
         return nominals.mapNotNull { pada ->
                 val stem = pada.pratipadika as? MulaPratipadika ?: return@mapNotNull null
@@ -159,10 +173,12 @@ object PrakriyaSignatureDeclarationParser {
     private fun resultOrNull(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
         val (declared, marker) = declarationPadas(sentence) ?: return null
         if (marker.lexicalIdentity() != MulaPratipadikaIdentity.PARINAMA || declared.size != 1) return null
-        val result = declared.single().pratipadika.referenceKey()
-        return declared.single().lexicalIdentity()?.let(::typeOrNull)?.let { ResultDeclaration(type = it) }
-            ?: ResultDeclaration(schema = result)
+        return result(declared.single())
     }
+
+    fun result(pada: SubantaPada): ResultDeclaration =
+        pada.lexicalIdentity()?.let(::typeOrNull)?.let { ResultDeclaration(type = it) }
+            ?: ResultDeclaration(schema = pada.pratipadika.referenceKey())
 
     fun resultType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? = result(sentence)?.type
 
@@ -188,15 +204,13 @@ object PrakriyaSignatureDeclarationParser {
             val copula = reporting.singleOrNull() as? TingantaPada ?: return null
             if (copula.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
                 copula.upasargas.isNotEmpty() || copula.dhatu.sanadiPratyayas.isNotEmpty() ||
-                copula.lakara.upadesha != "लट्" || TingAffix.fromUpadesha(copula.ting.text) != TingAffix.TIP
+                copula.lakara != Lakara.LAT || copula.ting.affix != TingAffix.TIP
             ) return null
         }
         // These contracts declare one named slot or one result, even when its
         // payload is a collection. Plural morphology is not a singular contract.
         if ((declared + marker).any {
-                val affix = SupAffix.fromUpadesha(it.sup.text)
-                affix?.vibhakti != Vibhakti.PRATHAMA ||
-                    affix.vacana != dev.panini.core.Vacana.EKAVACANA
+                !it.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)
             }) {
             return null
         }
@@ -210,10 +224,24 @@ object PrakriyaSignatureDeclarationParser {
 object PrakriyaValueClassifier {
     private val sankhyaEvaluator = SankhyaEvaluator()
 
+    /** Parsed numeric meaning used only after contextual reference lookup fails. */
+    fun numericFallback(pada: dev.panini.vyakaranam.ast.Pada): SanskritValue.Sankhya? =
+        NominalValueAnalysis.numericFallback(pada)
+
+    /** Literal evidence precedes environment lookup; lexical ordinals remain contextual. */
+    fun literalValue(pada: dev.panini.vyakaranam.ast.Pada): SanskritValue? =
+        NominalValueAnalysis.literalValue(pada)
+
+    /** Classification names a payload kind; acceptance additionally checks its validity. */
+    fun accepts(expected: PrakriyaValueType, value: SanskritValue): Boolean = when (expected) {
+        PrakriyaValueType.UNCONSTRAINED -> true
+        PrakriyaValueType.SANKHYA -> OperationValueType.NUMBER.accepts(value)
+        else -> classifyValue(value) == expected
+    }
+
     /** A nominal spelling may name a runtime referent; only literal evidence establishes its type. */
     fun classifyStaticPada(pada: dev.panini.vyakaranam.ast.Pada): PrakriyaValueType =
-        dev.panini.execution.binding.NumeralPadaBinder.resolveSemanticValue(pada)
-            ?.let { PrakriyaValueType.SANKHYA }
+        literalValue(pada)?.let(::classifyValue)
             ?: PrakriyaValueType.UNCONSTRAINED
 
     fun classifyTerm(term: String): PrakriyaValueType =
@@ -236,7 +264,6 @@ object PrakriyaValueClassifier {
     }
 
     fun classifyPada(pada: dev.panini.vyakaranam.ast.Pada): PrakriyaValueType =
-        dev.panini.execution.binding.NumeralPadaBinder.resolveSemanticValue(pada)
-            ?.let { PrakriyaValueType.SANKHYA }
+        (literalValue(pada) ?: numericFallback(pada))?.let(::classifyValue)
             ?: PrakriyaValueType.SHABDA
 }

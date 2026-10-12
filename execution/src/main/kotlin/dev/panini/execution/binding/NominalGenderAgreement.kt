@@ -15,7 +15,8 @@ internal object NominalGenderAgreement {
             is UnadyantaPratipadika -> stem.vikaras
             is SamasaPratipadika -> stem.vikaras
         }
-        if (vikaras.any { it is StriVikara }) return setOf(Linga.STRI)
+        if (vikaras.lastOrNull()?.isRecognizedStriAffix == true) return setOf(Linga.STRI)
+        if (vikaras.isNotEmpty()) return emptySet()
         val lexicalForm = when (stem) {
             is MulaPratipadika -> stem.text
             is SankhyaPratipadika -> stem.semanticValue.word

@@ -6,6 +6,7 @@ import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 
 /** One grammatical ordering modifier shared by phala and kāraka memory queries. */
 internal data class MemoryOrderQualifier(
@@ -21,17 +22,9 @@ internal data class MemoryOrderQualifier(
         if (invalidOrdinal) return false
         if (!isExplicit) return true
         if (!NominalGenderAgreement.compatible(pada, target)) return false
-        fun sup(pada: Pada?): String? = when (pada) {
-            is SubantaPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.SankhyaPada -> pada.sup.text
-            is dev.panini.vyakaranam.ast.SankhyaPuranaPada -> pada.sup.text
-            else -> null
-        }
-        val modifierCases = sup(pada)?.let(dev.panini.core.SupAffix::candidates).orEmpty()
-        val targetCases = sup(target)?.let(dev.panini.core.SupAffix::candidates).orEmpty()
-        return modifierCases.any { modifier -> targetCases.any { referent ->
-            modifier.vibhakti == referent.vibhakti && modifier.vacana == referent.vacana
-        } }
+        val modifierSup = (pada as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup ?: return false
+        val targetSup = (target as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup ?: return false
+        return modifierSup.sharesSlotWith(targetSup)
     }
 
     fun <T> select(values: List<T>): T? = when {
@@ -60,7 +53,7 @@ internal object MemoryOrderQualifierResolver {
         val nominal = (pada as? SubantaPada)?.pratipadika as? MulaPratipadika
         val purva = nominal?.lexicalIdentity == MulaPratipadikaIdentity.PURVA
         val derivedPurva = purva && nominal.vikaras.any {
-            it !is dev.panini.vyakaranam.ast.StriVikara
+            !it.isRecognizedStriAffix
         }
         val previous = purva && !derivedPurva
         val derivedOrdinal = nominal?.lexicalIdentity?.ordinalValue != null &&

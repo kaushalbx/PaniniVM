@@ -8,13 +8,22 @@ sealed interface TypedAffix {
     val alternateUpadeshas: Set<String> get() = emptySet()
 }
 
-/** Source identities currently supported by the initial-vrddhi taddhita rules. */
+/** Taddhita source identities; recognition does not imply every derivation rule is implemented. */
 enum class TaddhitaAffix(override val upadesha: String) : TypedAffix {
     AN("अण्"), INY("इञ्"), YANY("यञ्"), PHAK("फक्"), DHAK("ढक्"),
-    VAT("वत्"), TASIL("तसिल्"), TRAL("त्रल्");
+    VAT("वत्"), TASIL("तसिल्"), TRAL("त्रल्"),
+    MATUP("मतुप्"), VATUP("वतुप्"), TVA("त्व"), TAL("तल्"), TARAP("तरप्"), TAMAP("तमप्");
 
     override val initialSurface: String get() = upadesha
     override val itMarkers: Set<ItMarker> get() = emptySet()
+
+    companion object {
+        fun fromUpadesha(text: String): TaddhitaAffix? = when (val normalized = text.trim()) {
+            // Legacy source notation, not an additional original affix.
+            "मत्" -> MATUP
+            else -> entries.singleOrNull { it.upadesha == normalized }
+        }
+    }
 }
 
 /** Current substitute identities, not additional original taddhita affixes. */
@@ -77,10 +86,8 @@ enum class KrtAffix(
 
     companion object {
         fun fromUpadesha(value: String): KrtAffix? = when (val normalized = value.trim()) {
-            "अनीयर" -> ANIYAR
-            "यत" -> YAT
             "अन" -> LYUT
-            else -> entries.singleOrNull { it.upadesha == normalized }
+            else -> entries.singleOrNull { it.upadesha == normalized || normalized in it.alternateUpadeshas }
         }
     }
 }

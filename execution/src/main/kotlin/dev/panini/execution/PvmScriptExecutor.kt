@@ -167,7 +167,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             repeat(node.count) {
                 val produced = executeProgramNode(node.body, context.copy(onResult = { context.publish(it.consumeLoopBreak()) }))
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
-                if (produced.hasBreakSignal() || produced.any { it !is ExecutionResult.Success }) return@buildList
+                if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) return@buildList
             }
         }
         is WhileLoop -> executeWhileLoop(node, context)
@@ -305,8 +305,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     )
     }
 
-    private fun List<ExecutionResult>.hasBreakSignal(): Boolean = any {
-        it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
+    private fun List<ExecutionResult>.hasControlSignal(): Boolean = any {
+        it is ExecutionResult.Success && it.controlSignal != null
     }
 
     private fun executeForEach(loop: ForEach, context: ExecutionContext): List<ExecutionResult> {
@@ -343,7 +343,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         onResult = { context.publish(it.consumeLoopBreak()) }))
                 }
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
-                if (produced.hasBreakSignal() || produced.any { it !is ExecutionResult.Success }) break
+                if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) break
             }
         }
     }

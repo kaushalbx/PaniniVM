@@ -107,7 +107,6 @@ class CompilerCoverageTest {
         val examples = listOf(
             "examples/arithmetic/addition.pvm",
             "examples/arithmetic/average_demo.pvm",
-            "examples/arithmetic/count_demo.pvm",
             "examples/arithmetic/min.pvm",
             "examples/arithmetic/mod_demo.pvm",
             "examples/arithmetic/scaling.pvm",
@@ -121,5 +120,15 @@ class CompilerCoverageTest {
             val program = CompilerFrontend.lower(File(path).readText(), "BoundaryGate_$index")
             assertEquals(emptyMap(), CompilerRuntimeBoundaryReport.operations(program), path)
         }
+    }
+
+    @Test
+    fun `counting example reports its deferred action boundary`() {
+        val source = File("examples/arithmetic/count_demo.pvm").readText()
+        val program = CompilerFrontend.lower(source, "CountBoundaryGate")
+        assertEquals(mapOf("dynamic:गण" to 1), CompilerRuntimeBoundaryReport.operations(program))
+        val generated = BytecodeCompiler.compileAndLoad(source, "CountExampleSemantics")
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals("त्रीणि", (values["LastResult"] as dev.panini.execution.SanskritValue).toDisplayText())
     }
 }

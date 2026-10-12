@@ -12,6 +12,23 @@ import kotlin.test.assertIs
 import kotlin.test.assertFailsWith
 
 class ProgramSutraArthaCodecTest {
+    @Test fun `ambiguous bindings preserve typed slot evidence through semantic serialization`() {
+        val binding = dev.panini.execution.AmbiguousKarakaBinding(
+            ExecutionExpression.TypedOperand(SanskritValue.Sankhya(2, "द्वि"), SupAffix.BHYAM_3, "मान"),
+            setOf(dev.panini.core.Karaka.KARANA, dev.panini.core.Karaka.APADANA),
+            mapOf(dev.panini.core.Karaka.KARANA to SupAffix.BHYAM_3,
+                dev.panini.core.Karaka.APADANA to SupAffix.BHYAM_5))
+        val encoded = ProgramSutraArthaCodec.encodeAmbiguousBinding(binding)
+        val text = SutraArthaTextCodec.encode(encoded)
+        val decoded = assertIs<SutraArthaTextDecoding.Success>(SutraArthaTextCodec.decode(text))
+        assertEquals(binding, ProgramSutraArthaCodec.decodeAmbiguousBinding(decoded.value))
+        assertEquals(binding.copy(supSlots = emptyMap()), ProgramSutraArthaCodec.decodeAmbiguousBinding(
+            dev.panini.sutra.runtime.SutraArthaValue.Record(encoded.fields - "supSlots")))
+        assertFailsWith<IllegalArgumentException> {
+            binding.copy(supSlots = mapOf(dev.panini.core.Karaka.KARMAN to SupAffix.AM))
+        }
+    }
+
     @Test fun `typed reference identity must not be blank`() {
         assertFailsWith<IllegalArgumentException> {
             ExecutionExpression.TypedOperand(SanskritValue.Shabda("क्रम"), SupAffix.AM, " ")

@@ -43,13 +43,13 @@ internal object PersistedSanskritValueCodec {
             2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
             3 -> SanskritValue.Shabda(
                 readUTF(),
-                buildSet { repeat(readInt()) { add(PersistedSamjnaCodec.decode(readUTF())) } },
+                buildSet { repeat(readCount()) { add(PersistedSamjnaCodec.decode(readUTF())) } },
             )
-            4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(read(input)) } })
-            5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(read(input)) } })
+            4 -> SanskritValue.Gana(buildList { repeat(readCount()) { add(read(input)) } })
+            5 -> SanskritValue.Suchi(buildList { repeat(readCount()) { add(read(input)) } })
             10 -> {
                 val memberType = ListMemberType.valueOf(readUTF())
-                SanskritValue.Suchi(buildList { repeat(readInt()) { add(read(input)) } }, memberType)
+                SanskritValue.Suchi(buildList { repeat(readCount()) { add(read(input)) } }, memberType)
             }
             6 -> SanskritValue.Satya(readBoolean())
             7 -> SanskritValue.Lopa
@@ -59,9 +59,17 @@ internal object PersistedSanskritValueCodec {
             )
             9 -> SanskritValue.Rupa(
                 readUTF(),
-                buildMap { repeat(readInt()) { put(readUTF(), read(input)) } },
+                buildMap { repeat(readCount()) {
+                    val name = readUTF()
+                    require(name !in this) { "Duplicate persisted record field: $name" }
+                    put(name, read(input))
+                } },
             )
             else -> throw IllegalArgumentException("Unknown persisted Sanskrit value type: $tag")
         }
+    }
+
+    private fun DataInputStream.readCount(): Int = readInt().also {
+        require(it >= 0) { "Persisted value member count must not be negative." }
     }
 }

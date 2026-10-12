@@ -4,6 +4,8 @@ import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.lexicalGanaConstraint
+import dev.panini.vyakaranam.ast.hasContradictoryActiveCausativeVikarana
 
 /** Stable lexical identities for dhātus that carry language-level syntax. */
 internal enum class CanonicalDhatuIdentity(val dhatupathaId: String) {
@@ -122,8 +124,9 @@ internal object DhatuCache {
      * Tries exact match first, then a normalised surface match.
      */
     internal fun resolve(tinganta: TingantaPada): Dhatu? {
+        if (tinganta.hasContradictoryActiveCausativeVikarana()) return null
         val text = tinganta.dhatu.mulaDhatu
-        val requiredGana = tinganta.vikarana?.gana
+        val requiredGana = tinganta.lexicalGanaConstraint()
         if (requiredGana != null) {
             val candidates = DhatuPatha.all.filter { candidate ->
                 candidate.gana == requiredGana &&

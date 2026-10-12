@@ -5,6 +5,7 @@ import dev.panini.actions.collection.ListPushAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
@@ -30,14 +31,14 @@ class KshipDhatu : Dhatu(
         ListPushAction.op {
             requires(Karaka.KARMAN)      // the value being inserted
             requires(Karaka.ADHIKARANA)  // the collection receiving it
-            triggeredBy(requiredUpasargas = setOf("नि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NI))
             returns(Samjna.GANA, Samjna.SHABDA)
         },
         ListPushAction.op {
             requires(Karaka.KARMAN); returns(Samjna.GANA, Samjna.SHABDA)
         },
         ListFoldAction.op {
-            triggeredBy(requiredUpasargas = setOf("सम्"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // binary operation
             requires(Karaka.SAMPRADANA) // initial value

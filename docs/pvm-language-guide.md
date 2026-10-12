@@ -39,6 +39,9 @@ instrumental standard for equality; `न्यून` and `अधिक` use an 
 for numeric less-than and greater-than respectively. An unrelated adjective
 is not silently treated as `न्यून`, and changing a runtime value does not
 change the predicate identity.
+The three nominal participants may occur in any order: their cases, not
+adjacency, determine subject, standard, and predicate. This is supported for these
+copular comparison frames; it is not a claim of unrestricted sentence understanding.
 
 Equality compares typed values, not their rendered spelling. Different words
 for the same number compare equal; a text value is not equal to a numeric
@@ -80,6 +83,17 @@ Root lookup does not choose between distinct executable lexical identities
 by registration order. Supply distinguishing morphology, such as the matching
 vikaraṇa, when required. An incompatible vikaraṇa is rejected rather than
 ignored.
+
+For a `णिच्` causative in `लट्` or `लोट्`, explicit `शप्` belongs to the
+derived stem, not to the original root's gaṇa. Thus
+`एक + अम् द्वि + अम् च युज् + णिच् + शप् + लोट् + सिप् ।`
+has the same addition semantics as the form with implicit vikaraṇa. This
+does not yet provide general sanādi/vikaraṇa compatibility validation.
+Explicit non-`शप्` affixes on this single-`णिच्`, `लट्`/`लोट्`, parasmaipada
+construction are rejected rather than selecting the base root's gaṇa.
+Passive forms and other derivational combinations require separate analysis.
+Readable generation uses the same lexical-root constraint: explicit causative
+`शप्` does not prevent a supported non-bhvādi root from rendering.
 
 Multiple upasargas retain their source order. Readable generation composes
 their boundaries from the verb outward, applying the supported consonant
@@ -340,6 +354,13 @@ Feminine ordinal stems such as `प्रथमा` and explicit feminine affixe
 `प्रथम + टाप्` cannot qualify neuter `मूल्य` in this construction, even when
 their case and number endings otherwise match.
 
+Literal and reference identity are distinct. Recognized cardinal numerals and
+truth literals keep their grammatical values even if a host environment contains
+the same spelling. Ordinal words can name stored values outside a member-selection
+construction; within genitive-whole extraction, selector morphology takes
+precedence over a same-named host binding. This does not relax adjective agreement
+when an explicit member noun is present.
+
 Prefer the indeclinable naming particle `नाम` when the name belongs after the
 members, within the declaration itself:
 
@@ -468,7 +489,44 @@ Inside a procedure, the ordinal in this construction still selects
 the remembered action; it does not refer to the procedure's positional argument.
 Compiled display commands support accusative kāraka-history references, including
 multiple ordered references and mixed ordinary/history object operands in written
-order. Other verbs and condition queries remain explicitly unsupported. Participant
+order. Assignment also accepts these remembered participants:
+
+```pvm
+एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+युज् + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।
+सूची + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This assigns the two inputs, not their sum: the list is `[एक, एक]`. A sole
+list-valued participant stays a list without another wrapping layer or member
+expansion. Ordinary objects can appear alongside remembered groups; written
+operand order is preserved. The assignment's remembered कर्म contains its actual
+inputs, not one collection fabricated from its result.
+
+Compiled numeric-fold actions also accept remembered participants alongside
+written operands:
+
+```pvm
+एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+युज् + ल्युट् + ङस् कर्मन् + अम् नवन् + शस् च युज् + णिच् + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This adds the original inputs `1, 2` to `9`, producing `12`, rather than adding
+the earlier result as a single operand. Numeric folds preserve written order
+(important for subtraction and division), validate the expanded operand count,
+and reject collection-valued participants instead of flattening them into numbers.
+Bare accusative history groups also work with numeric/counting verbs, without
+another written operand. Their actual participant shape selects the operation
+at runtime: several numeric objects can select multiplication under गण, whereas
+one list-valued object selects list counting without flattening that object.
+Mixed remembered/written objects likewise retain operation selection when the
+verb has counting alternatives. Numeric signatures require number payloads;
+collections do not become numeric operands merely by inheriting सङ्ख्या annotations.
+Multiple coordinated history groups and explicit dative result destinations are
+supported for these verbs. Destination writes follow the selected operation's
+result-binding contract and update procedure-local slots when present. Completed
+history captures the original destination participant before it is overwritten.
+Other verbs and condition queries remain explicitly unsupported. Participant
 history is recorded for resolved ordinary leaves; specialized action paths are
 still incomplete.
 The supported compiled display form also works inside procedure bodies and
@@ -809,8 +867,37 @@ with `॥`:
 फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 ```
 
+The first sentence can also declare what the procedure produces:
+
+```pvm
+परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
+एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+```
+
+Meaning: “The procedure named Parīkṣaṇa produces a number.” The procedure is
+nominative singular; its product is accusative singular. The causative form of
+Divādi `जनीँ` is `जनयति`; both the root `जन्` and its upadeśa `जनीँ` are accepted.
+`JanDhatu` owns this lexical declaration meaning. `सङ्ख्या`, `शब्द`, and `सूची`
+declare existing result types; another nominal identifies a declared record schema.
+The vikaraṇa may be omitted as above or written explicitly as
+`जन् + णिच् + शप् + लट् + तिप्`. The causative takes `शप्`, not the base
+root's `श्यन्` ([3.1.68](https://ashtadhyayi.github.io/suutra/3.1/3.1.68/)).
+Incompatible explicit affixes are rejected in this declaration.
+The interpreter and compiler enforce the same result contract. Do not add a
+second `… इति परिणाम …` declaration in the body. This header declares a contract;
+it does not execute a generation action or make a body sentence return early.
+Existing `… प्रक्रिया … अस्ति` headers and body result declarations still work.
+See `examples/control_flow/typed_procedure_header.pvm`.
+
 Invoke the declared name in the instrumental with `कृ`. An ordinary noun
 name takes its case suffix directly; do not add `ल्युट्` to it:
+
+Current invocation selects one procedure: use instrumental singular `टा`, with
+an optional genitive singular domain (`ङस्`). Dual/plural procedure or domain
+references are rejected as unsupported rather than silently executed once.
+This restriction concerns the named referents, not the number of input values.
+Declarations likewise use a nominative singular name and, when scoped, a genitive
+singular domain. Dual/plural declarations do not currently define multiple symbols.
 
 `नाम` is the naming particle. The existing `इति प्रक्रिया … अस्ति` form remains
 supported and produces the same native procedure identity. For a neuter name
@@ -881,6 +968,9 @@ Pass one list-valued argument to that declared parameter. It remains a single
 collection value rather than becoming a nested list or a series of scalar
 arguments.
 
+`समवाय` is an ordinary name, not an implicit collection of all procedure
+arguments. Declare a list parameter and express its member relation as above.
+
 Supported declared parameter/result types are:
 
 ```text
@@ -891,6 +981,9 @@ Argument types belong to resolved values, not to the spelling of a name. A
 nominal argument can refer to a list declared earlier. Compiled calls check
 known values statically and validate unresolved arguments against the declared
 parameter types after resolving their values, before entering the procedure.
+An ordinal such as `प्रथम` may name a bound value, including a collection.
+Its spelling alone does not establish a numeric argument type during static
+analysis; use explicit parameter declarations for the intended contract.
 A word or scalar does not become a list merely because the parameter expects one.
 
 ### 11.3 Positional call
@@ -904,10 +997,16 @@ Accusative arguments bind in declaration order:
 The older ordinal references `प्रथम`, `द्वितीय`, and so on remain supported for
 untyped and migrated definitions.
 
+An explicitly declared parameter name takes precedence over ordinal position.
+For example, if `द्वितीय` is declared first and `प्रथम` second, `प्रथम + अम्`
+refers to the second declared slot by its name. Without a matching declaration,
+the legacy ordinal reference selects its corresponding argument position.
+
 ### 11.4 Named call
 
-For a named argument, place the parameter slot in saptamī and immediately
-follow it with its value in dvitīyā. Thus `दक्षिणे त्रि` means “three in the
+For a named argument, place the parameter slot in saptamī and its value in
+dvitīyā. With several parameter/value pairs, immediately follow each slot
+with its value. Thus `दक्षिणे त्रि` means “three in the
 right-hand slot”:
 
 ```pvm
@@ -920,6 +1019,16 @@ Named arguments may appear in any order. One call must be entirely positional
 or entirely named. The validator reports unknown, duplicate, missing, mixed,
 and incorrectly typed arguments. The older ṣaṣṭhī label remains accepted only
 for source compatibility.
+
+With exactly one written slot and one accusative value, their attachment does
+not depend on adjacency or order: `मान + ङि पञ्च + अम्` and
+`पञ्च + अम् मान + ङि` bind the same named argument. The procedure noun and
+finite कृ verb may occur between them. This does not establish arbitrary
+attachment for several separated slot/value pairs.
+
+Field-valued arguments can also follow a record method name. Projection retains
+the genitive receiver and instrumental method while resolving each separate
+field phrase; encountering the method does not end argument analysis.
 
 ### 11.5 Scope and nested calls
 
@@ -1234,11 +1343,15 @@ clause; it need not repeat the antecedent's case.
 ```
 
 This prints the three members in order. Resolution uses declaration number and
-established lexical gender evidence, not payload type, list length, or the most
+established lexical or explicit feminine-derivation gender evidence, not payload type, list length, or the most
 recent value. Missing evidence, missing antecedents, and multiple compatible
 antecedents are errors. A singular noun naming a list is still grammatically
 singular and may compete with a singular member; use an explicit name when
 agreement cannot distinguish them.
+Further derivation does not automatically inherit the base noun's gender; when
+gender evidence is incomplete, use the declared name rather than relying on तद्.
+An explicit feminine suffix supplies evidence at the final derivational layer;
+an earlier feminine suffix does not override a later unsupported derivation.
 
 The selected referent remains live: assignment through `तद् + ङे` updates its
 local cell. References work in ordinary invocations, predicates, and implicit

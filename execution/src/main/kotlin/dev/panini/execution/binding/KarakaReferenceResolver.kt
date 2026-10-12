@@ -40,9 +40,11 @@ object KarakaReferenceResolver {
             val genitive = subantas.take(index).lastOrNull {
                 it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
             } ?: return@mapIndexedNotNull null
+            val derivation = genitive.pratipadika as KridantaPratipadika
+            derivation.requireActionHistoryNominal()
             val order = MemoryOrderQualifierResolver.before(referent, padas)
             KarakaHistoryReference(referent, genitive, karaka,
-                DhatuCache.resolve((genitive.pratipadika as KridantaPratipadika).dhatu)?.upadesha,
+                DhatuCache.resolve(derivation.dhatu)?.upadesha,
                 order.pada.takeIf { order.isExplicit }, order.ordinalNumber, order.previous, order.agreesWith(referent))
         }
     }

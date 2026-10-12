@@ -5,6 +5,7 @@ import dev.panini.actions.numeric.MinAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
+import dev.panini.core.Upasarga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
@@ -30,12 +31,12 @@ class VidDhatu : Dhatu(
     operations = listOf(
         ComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
-            triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"), forbiddenUpasargas = setOf("नि"))
+            triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"), forbiddenUpasargaIdentities = setOf(Upasarga.NI))
             returns(Samjna.SATYA)
         },
         ComparisonAction.LessThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
-            triggeredBy(requiredUpasargas = setOf("नि"))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NI))
             returns(Samjna.SATYA)
         },
         MinAction.op {

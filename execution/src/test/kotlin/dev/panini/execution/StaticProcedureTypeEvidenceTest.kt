@@ -3,6 +3,22 @@ package dev.panini.execution
 import kotlin.test.*
 
 class StaticProcedureTypeEvidenceTest {
+    @Test fun `synthesized dispatch recognizes truth literals without erasing derived morphology`() {
+        val registry = PrakriyaRegistry()
+        for (type in listOf(PrakriyaValueType.SATYA, PrakriyaValueType.SHABDA)) {
+            registry.register(Prakriya("परीक्षण", "परीक्षण", emptyList(),
+                signatureOverride = PrakriyaSignature(parameters = listOf(PrakriyaParameter("मान", type)))))
+        }
+        for (word in listOf("सत्य", "असत्य", "सत्य + मतुप्")) {
+            val pada = dev.panini.vyakaranam.parser.PaniniParser()
+                .parse("$word + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            val argument = PrakriyaArgument(word, pada = pada, origin = PrakriyaArgumentOrigin.WRITTEN)
+            val selected = assertNotNull(registry.resolveStructuredInvocation("परीक्षण", null, listOf(argument), ""))
+            assertEquals(if ('+' in word) PrakriyaValueType.SHABDA else PrakriyaValueType.SATYA,
+                selected.kriya.signature.parameters.single().type, word)
+        }
+    }
     @Test fun `static ordinary call selection retains ambiguous unknown referent overloads`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।

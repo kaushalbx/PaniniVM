@@ -1,7 +1,6 @@
 package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.Pipeline
-import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.CanonicalNumeralStem
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -124,7 +123,8 @@ object PrakriyaScriptValidator {
             if (parameters.map { it.nameStem }.distinct().size != parameters.size || results.size > 1) {
                 return@forEach
             }
-            val signature = runCatching { PrakriyaSignatureCompiler.compile(definition.body) }.getOrElse { error ->
+            val signature = runCatching { PrakriyaSignatureCompiler.compile(definition.body,
+                definition.prakriya.declaredResult, definition.prakriya.resultPredicate) }.getOrElse { error ->
                 diagnostics += diagnostic(source, definition.nameSegmented,
                     error.message ?: "Invalid procedure signature.")
                 return@forEach
@@ -261,7 +261,7 @@ object PrakriyaScriptValidator {
                 val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@mapNotNull null
                 val marker = declaration.nominativeMarker ?: return@mapNotNull null
                 if ((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity != MulaPratipadikaIdentity.SAMJNA ||
-                    SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
+                    !marker.sup.supports(Vibhakti.PRATHAMA)
                 ) return@mapNotNull null
                 "इति${marker.sourceText.filterNot(Char::isWhitespace)}"
             }
