@@ -49,6 +49,11 @@ object ExecutionRuntime {
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
+            if (plan.resolved.operation.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE &&
+                scope.procedureBindings?.hasProcedureOwner != true) {
+                return Phala.Asiddha(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "A procedure return requires an active procedure frame."), trace)
+            }
             val paused = ExecutionContinuation(
                 continuation.planning,
                 index,

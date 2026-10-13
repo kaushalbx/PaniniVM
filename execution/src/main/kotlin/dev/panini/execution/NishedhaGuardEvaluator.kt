@@ -75,7 +75,7 @@ object NishedhaGuardEvaluator {
         arguments.mapIndexed { index, resolved ->
             resolved.argument.value
                 ?: knownValues.getOrNull(index)
-                ?: resolved.argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
+                ?: resolved.argument.pada?.let(NominalValueAnalysis::fallbackValue)
                 ?: SanskritValue.Shabda(resolved.referenceName)
         },
     )

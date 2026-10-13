@@ -110,6 +110,8 @@ object ProgramSutraArthaCodec {
     }
 
     fun encodeValue(value: SanskritValue): SutraArthaValue.Record = when (value) {
+        is SanskritValue.Purana -> record("purana",
+            "position" to SutraArthaValue.Number(value.value), "word" to SutraArthaValue.Text(value.word))
         is SanskritValue.Sankhya -> record(
             "sankhya",
             "number" to SutraArthaValue.Number(value.value),
@@ -157,6 +159,7 @@ object ProgramSutraArthaCodec {
             ?: throw IllegalArgumentException("A Sanskrit value must be a semantic record.")
         return when (fields.symbol("valueType")) {
             "lopa" -> SanskritValue.Lopa
+            "purana" -> SanskritValue.Purana(fields.number("position"), fields.text("word"))
             "sankhya" -> SanskritValue.Sankhya(
                 fields.number("number"),
                 fields.text("word"),

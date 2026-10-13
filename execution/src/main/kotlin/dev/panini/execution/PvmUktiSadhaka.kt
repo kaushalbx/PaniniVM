@@ -342,11 +342,13 @@ class PvmUktiSadhaka(
     fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
         is ParyantaRangePada -> sadhayaParyantaRange(pada)
         is SubantaPada -> sadhayaSubanta(pada, linga)
-        is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it, linga) } + " च"
+        is SamuccitaSubanta -> pada.conjuncts().joinToString(" ") { group ->
+            group.joinToString(" ") { sadhayaPada(it, linga) } + " च"
+        }
         is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> sadhayaAvyaya(pada)
         is SankhyaPada -> sadhayaSankhya(pada, linga)
-        is SankhyaPuranaPada -> sadhayaSankhyaPurana(pada)
+        is SankhyaPuranaPada -> sadhayaSankhyaPurana(pada, linga)
         is SankhyaAbhyasaPada -> sadhayaSankhyaAbhyasa(pada)
         is KatapayadiPada -> sadhayaEncodedNumeral(pada.word, pada.sup)
         is AryabhatiyaPada -> sadhayaEncodedNumeral(pada.word, pada.sup)
@@ -416,12 +418,20 @@ class PvmUktiSadhaka(
         }
     }
 
-    fun sadhayaSankhyaPurana(pada: SankhyaPuranaPada): String {
+    fun sadhayaSankhyaPurana(pada: SankhyaPuranaPada, linga: Linga? = null): String {
         return try {
-            val expr = sankhyaEvaluator.evaluateStems(pada.stems)
-            val baseText = sankhyaGenerator.ordinal(expr.value).final.surface
+            val striAffix = pada.striAffix
+            if (striAffix != null) {
+                val base = OrdinalFeminineDerivation.derive(pada)
+                val ending = SupAffix.fromUpadesha(pada.sup.text) ?: return pada.sourceText
+                return subantaEngine.derive(SubantaDerivationRequest(base, ending.vibhakti, ending.vacana,
+                    Linga.STRI, if (striAffix == dev.panini.core.StriAffix.TAP) NominalStemFormation.AP
+                    else NominalStemFormation.UNSPECIFIED,
+                    sourceSuffixUpadeshas = setOf(striAffix.upadesha))).final.surface
+            }
+            val baseText = requireNotNull(PuranaPratyayaResolver.semanticValue(pada)).word
             val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana)
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga ?: Linga.PUMS)
             subantaEngine.derive(req).final.surface
         } catch (_: Throwable) {
             pada.sourceText

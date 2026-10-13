@@ -110,7 +110,7 @@ object VyakaranamExecutionAdapter {
                         override fun findPratipadika(text: String): PratipadikaEntry? = null
                         override fun findDhatu(text: String): Dhatu? = null
                     },
-                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
+                    sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             ).analyze(vakya, frameId)
         } else {
@@ -122,7 +122,7 @@ object VyakaranamExecutionAdapter {
                         override fun findDhatu(text: String): Dhatu = dhatu
                     },
                     validatePadaCompatibility = false,
-                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
+                    sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             ).analyze(vakya, frameId)
         }
@@ -277,6 +277,7 @@ object VyakaranamExecutionAdapter {
         val prayer = KriyaQualificationKind.COURTESY in qualificationKinds
         val prohibition = KriyaQualificationKind.NEGATION in qualificationKinds
         val localVariables = mutableSetOf<String>()
+        val previousActionIdentities = mutableListOf<dev.panini.core.ActionIdentity?>()
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
         val normalizedFrequency = normalizeFrequencyAst(executableUkti)
@@ -311,6 +312,7 @@ object VyakaranamExecutionAdapter {
                 localVariables = localVariables,
                 localVariableInvocationIds = localVariableInvocationIds,
                 environment = environment,
+                previousActionIdentities = previousActionIdentities,
             )
             val invocation = try { buildDhatuInvocation(
                 index = index,
@@ -327,6 +329,7 @@ object VyakaranamExecutionAdapter {
                 return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Missing action result."), utteranceAnalysis)
             }
             invocations += invocation
+            previousActionIdentities += frame.kriya?.actionIdentity
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
             val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()
             if (bindingName != null) {

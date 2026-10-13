@@ -103,6 +103,9 @@ internal object ExpressionBuilder {
             return ExecutionExpression.Reference(resolvedId ?: PhalaReference.RUNTIME_KEY)
         }
 
+        dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)?.let { value ->
+            return ExecutionExpression.Pada(text, value.samjnas, value = value)
+        }
         numeralValue?.let { return ExecutionExpression.sankhya(it.value, it.word) }
 
         val samjnas = buildSet {

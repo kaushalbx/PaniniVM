@@ -1,6 +1,110 @@
 # Natural PVM language roadmap
 
-Updated: 2026-10-12.
+Updated: 2026-10-13.
+
+Current consolidation:
+
+- Ordinal values now have a distinct `SanskritValue.Purana` (पूरण) type with a
+  positive, one-based position and display word. Equality compares ordinal
+  positions without equating them to cardinal numbers. Productive ordinal result
+  literals, typed persistence, semantic codecs, and JVM constants preserve this
+  distinction; compiler IR uses `ORDINAL`, not `NUMBER`. Collection-member
+  selectors now retain `Purana` through binding and semantic serialization;
+  extraction reads the one-based position explicitly. Productive ordinal action
+  operands also retain their type; locative list indexing and JVM INDEX explicitly
+  accept ordinal positions alongside cardinal indices without numeric coercion.
+  Lexical ordinal action operands retain `Purana` after contextual reference
+  lookup, including a whole collection named with an ordinal. Remaining migration:
+  Copular symbolic fallback now preserves the ordinal category too: an unbound
+  ordinal cannot substitute for cardinal one in numeric ordering, while a live
+  named cardinal value still works. Procedure-argument fallback and classification
+  now retain `Purana`; cardinal-only signatures reject an unbound ordinal, while
+  lexical names can still resolve to live cardinal values. Unconstrained procedure
+  calls preserve ordinal payloads, including productive literals that cannot be
+  shadowed by same-spelled names. NumeralAstNormalizer now leaves lexical ordinal
+  AST nodes intact instead of manufacturing cardinal pratipadikas; recognition
+  also rejects ordinal evaluator results. This preserves feminine agreement
+  through rendering and history selection. The readable procedure-return example
+  was regenerated through the CLI. PadaAnalyzer now retains native productive
+  ordinal nodes in nominal analysis; kāraka and shared-agent consumers preserve
+  their morphology. Ordinals no longer enter the cardinal decoder or numeric
+  fallback, and numeric prohibition guards do not coerce ordinal rank to magnitude.
+  General numeral-node ordinals (including चतुर् + डट्) also bind as `Purana`;
+  ordinal binding now consults native sup-bearing participant identity instead
+  of synthesizing a lexical noun. Arithmetic op-stem lookahead excludes ordinals.
+  Bare and feminine ordinal values now share source-affix licensing against
+  supported derivation variants. Readable rendering uses that same derivation
+  rather than silently substituting a default ordinal from numeric rank.
+  Typed participant inference also validates the ordinal value before claiming
+  an input slot, preventing bare unsupported affixes from bypassing licensing
+  merely because their numeric rank is known.
+  Untyped positional signature inference likewise checks derivation licensing
+  after enforcing its allocation budget. Remembered-result selectors validate
+  ordinal morphology and retain failed derivations as explicit unresolved
+  selectors, never silently interpreting them as latest-result queries.
+  Broader pending work includes contextual coordination and whole/member
+  attachment rather than source-specific ordinal adapters.
+- Explicit repeated-च coordination now retains conjunct sizes in the native AST.
+  Typed participant analysis and binding use those grammatical phrase scopes,
+  allowing same-case first/second number inputs without nearest-word attachment.
+  Case changes keep coordinated agents, objects, and genitive dependents distinct;
+  history selectors preserve their original noun and qualifier occurrences.
+  Rendering retains connective boundaries. Tests cover reordered adjectives,
+  subtraction operand order, unmarked ambiguity, shared agents, remembered values,
+  and AST boundary invariants. The full core/parser/execution/compiler/CLI run passed.
+  Coordination members now retain native SupBearingPada nodes. Both final-च and
+  repeated-च grammar admit lexical nouns, productive ordinals, and encoded
+  numerals. Typed binding, positional inference, anaphora, prior-action sharing,
+  kāraka extraction, and rendering consume native member types without converting
+  ordinal stems into invented lexical nouns. Productive feminine ordinal input
+  phrases have parser and interpreter/JVM parity coverage. Contextual attachment
+  for ambiguous trailing-only च and nested whole/member phrases remains pending.
+- Typed participant analysis now represents positions within सङ्ख्या/शब्द/सूची
+  separately from global argument positions. It uses parsed ordinal identities,
+  singular sup-slot agreement, and shared lexical gender evidence; retains
+  occurrence indices and ambiguous candidate heads; and accepts caller-established
+  protected member/history roles. Tests cover reversed word order, mismatches,
+  repeated heads, and further-derived type nouns. Source procedures now infer
+  typed input slots, bind actual values by category and order within that category,
+  enforce exact type counts, and lower through the same body binder in both
+  backends. Metadata format 3 retains per-type ordinals for source-free linking.
+  Tests cover dynamic numeric-looking text, collections, recursion, invalid
+  attachments, strict counts, and exported calls. General phrase ownership beyond
+  explicit conjunct scopes and nested whole/member attachment remain unfinished.
+  Verification status: the full core/parser/execution/compiler/CLI regression run passed,
+  including dynamic wrong-type counts, error boundaries, and IR verification.
+  The CLI example executes and its readable companion is generated.
+  Productive ordinal grammar now retains a typed feminine affix separately from
+  numeric stems: द्वि + तीय + टाप् has ordinal position two and feminine agreement.
+  Agreement and readable rendering share the existing feminine derivation engine's
+  affix-licensing checks. The source ordinal affix must match a supported ordinal
+  derivation variant; numeric meaning alone cannot silently replace it. Native AST,
+  first/second/third feminine forms, missing
+  affixes, unsupported combinations, and emitted-JVM input binding are covered.
+  Broader licensing remains limited by the derivation engine's supported rules.
+- Declared and inferred positional calls share an early exact-arity check across
+  interpreter, validator, and compiler. Positional inference is shared and bounded;
+  member/history selectors and known procedure names are excluded. A list counts
+  as one argument. Unrestricted legacy bodies still need signature consolidation.
+- History tests now cover persisted ordered prefixes, failed operations, host
+  budget exhaustion, dynamic numeric/collection calls, and recursive calls.
+- Reusable nominal modifier/head analysis preserves all compatible sup slots,
+  unknown gender evidence, distinct equal-looking occurrences, and ambiguity
+  diagnostics. History qualifier agreement uses it; general multi-head source
+  attachment still needs migration from local construction-specific rules.
+- Source procedure results use nominative फल … अस्ति predications in their
+  owning procedure. The old प्रति + ऋ + णिच् source return is removed.
+  Tests cover statements, ततः chains, branches, repetition, while, foreach,
+  collection payloads, contract failures, nested ownership, and caller resumption.
+  Optional parameters and suspended enclosing continuations remain unfinished.
+- Procedure argument history now uses the same qualified selector as ordinary
+  history operands, eliminating two root-only duplicated lookup paths.
+- The language guide and procedure-return example describe the implemented
+  source syntax. Readable files are CLI-generated; morphological generation of
+  some new forms still falls back to segmented text.
+
+The five consolidation priorities are not all complete: general attachment,
+continuation ownership, and the full special-case audit remain active work.
 
 The division library's derived procedure name and corresponding fixtures now
 retain `वि + भज् + णिच् + ल्युट्`, rather than treating surface `विभाज्` as a
@@ -43,9 +147,9 @@ supplies an omitted shared agent. Diagnostic enforcement across consumers
 and general discourse attachment remain unfinished.
 Resolved operations can declare typed control signals. The vi-sthā operation
 declares `BREAK_LOOP`, and compiler break lowering reads that declaration rather
-than matching the display name `विजयः`. Source-level procedure return syntax is
-still not implemented: return propagation/IR tests prove internal machinery,
-not the existence of a grammatical return-producing source operation.
+than matching the display name `विजयः`. Procedure result predications resolve a
+nominative value and request return from their lexical procedure owner. Compiler
+lowering uses explicit value and return-request IR, not action-name matching.
 Runtime successful results must match the operation's declared control signal;
 missing, different, and undeclared signals fail before result/history bindings
 are recorded. Primitive compiler optimization cannot erase declared control
@@ -78,7 +182,8 @@ uses typed prefix/affix identities and does not erase sanādi derivation.
 Result and participant-history references share action-nominal validation:
 supported ल्युट्/घञ् forms retain history semantics, while other kṛt meanings and
 unsupported further derivations cannot alias the root's completed-action history.
-This does not yet distinguish every prefixed/sanādi action in history queries.
+Qualified history queries retain ordered prefixes/sanādi and lexical identity;
+unqualified action nouns retain root-family lookup.
 Canonical क्तवतुँ is required in affix notation by the lexer, typed catalog, and
 editor completion. Unmarked क्तवतु is not an alternative affix upadeśa.
 Compatibility procedure qualifiers now enforce recognized nominative singular
@@ -232,8 +337,8 @@ Semantic hardening is complete only when:
 - Interpreter/compiler parity and negative tests cover nested control flow,
   recursion, mutation, ambiguous references, failures, and budget exhaustion.
 
-Prioritize procedure return/control-effect separation and result-contract checks,
-then enclosing continuation ownership, general references, and attachment.
+Prioritize enclosing continuation ownership, general references, and migration
+of multi-head attachment to explicit candidate analysis.
 
 This roadmap records current capabilities and unfinished work. Usage and examples
 belong in [the language guide](pvm-language-guide.md); sentence-level list issues
@@ -766,9 +871,8 @@ Preserved raw segments indicate an unresolved derivation, not successful renderi
   disappears when the callee frame exits. Emitted-JVM tests verify value transfer,
   caller continuation, contract errors, and separation from loop break; IR
   verification tracks the returned LastResult type and rejects stack underflow.
-  This is internal infrastructure, not yet a usable source-level early return:
-  grammatical syntax, complete lowering through structured constructs, callback
-  ownership, and suspension/resumption remain unfinished.
+  Source-level result predications now lower through structured constructs.
+  Callback ownership and enclosing suspension/resumption remain unfinished.
 - Define derived-predicate/object semantics and dedicated unsupported-derivation
   diagnostics; an unresolved derived subject must not alias its plain base.
 - Replace finite projections for prior actions with dedicated nonfinite heads.
@@ -1010,6 +1114,75 @@ Execution/compiler suites passed after these semantic changes. The latest added
 nonfinite-selector regressions also pass. The guide documents literal, name, and
 selector roles. General role/type inference across overloaded constructions is
 still unfinished; these construction-specific checks are not a general analyzer.
+
+## Participant-history attachment
+
+The semantic model now exposes `ActionIdentity`: a resolved Dhātupāṭha entry id,
+ordered typed upasargas, and ordered typed sanādi affixes. `KriyaHead` derives it
+from analyzed morphology without folding away unknown affixes. Discourse memory
+has an exact structural query alongside its explicitly root-only queries. Tests
+distinguish plain, prefixed, causative, and differently ordered derivations.
+Compiler history loads and recordings now retain this typed identity in IR.
+The JVM emitter indexes the same completed event under its structural identity
+alongside the root-family index, without duplicating the root event. Source
+morphology supplies ordered affixes rather than sorted runtime feature sets.
+
+Parsed result and participant references now expose the same typed identity as
+finite action frames. Exact-memory ordering selects within that structural
+identity before applying first/previous/latest semantics. Tests connect a
+वि + भज् + णिच् + ल्युट् reference to the matching finite frame and reject a
+second/previous match when only one exact derived action exists, even when other
+actions of the same root are available. A fresh-VM persisted-session test now
+verifies causative identity, result lookup, participant snapshots, and rejection
+of a second qualified match when only unrelated plain actions follow it.
+Interpreter source references with explicit prefixes or sanādi now use exact
+structural matching. Unqualified nouns retain root-family lookup. Qualified
+result references use full identities for earlier local clauses and remembered
+discourse; root-only compatibility history cannot prove a qualified match.
+Qualified participant references also filter before ordering. The algorithm
+suite's causative subtraction reference now retains णिच् + ल्युट्.
+Compiler/interpreter parity tests cover qualified result and participant lookup,
+prefix-sensitive matches, and missing previous/second exact matches even when
+other same-root events exist. Compound lowering retains each action's source
+morphology. Additional parity tests cover qualified lookup after recursive
+procedure calls, dynamic numeric/collection participant calls, and persisted
+ordered-prefix chains. Failure and host-budget tests check that only successful
+qualified actions enter discourse history.
+
+Both result and participant history resolvers now require a resolved action root
+and recognized typed upasarga/sanādi morphology. Unknown typed-AST affixes cannot
+be discarded, and an unknown action root cannot silently become an ordinary
+unresolved operand. Recognized prefixes and sanādi are retained in qualified
+history matching rather than reduced to the root identity.
+
+Backend parity tests exhaust all 24 permutations of action genitive, ordinal,
+history head, and dative destination for both result and participant references
+(48 source arrangements). They verify first-history selection rather than the
+latest action and check the stored destination: a numeric result or a collection
+of the original participants. This verifies this unambiguous construction, not
+general Sanskrit free-word-order understanding.
+
+Single-head participant references now share result-reference ordering analysis:
+an isolated ordering qualifier may follow the head, with case/number/gender
+agreement still checked. Competing isolated ordinals remain invalid.
+An unambiguously dative argument with an ordering stem (for example पूर्व + ङे
+as a destination) stays separate from a non-dative history head regardless of
+word order, including when the ordinal follows the head or is absent. A competing
+ordinal with wrong gender, number, or nominative case cannot use that exception
+to disappear. Result-reference operand projection preserves the dative argument
+instead of consuming every ordering-looking word as a qualifier. Multi-head ordering
+still uses local attachment rather than unrestricted free-order inference.
+
+A single kāraka-history head now accepts its genitive action modifier before or
+after the head, matching action-result reference attachment. Multiple action
+modifiers for one participant are rejected as ambiguous rather than selecting
+the nearest preceding action. Regression tests cover both orders and ambiguity.
+One unique action modifier can qualify multiple participant heads in either
+order. Repeated action-modifier/head phrases retain their local attachment and
+separate ordinal selectors. General attachment ambiguity across multiple actions
+and heads still needs a grammatical design rather than proximity alone.
+Qualified selectors now use prefixed/causative action identity; unqualified
+action nouns deliberately retain root-family lookup.
 
 ## Grammatical references
 

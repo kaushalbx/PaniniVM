@@ -82,6 +82,7 @@ object SmritiSaveAction : DhatuAction("स्मृतिरक्षणम्",
             listener = "यन्त्रम्",
             mentionedEntities = context.variables.mapValues { (_, v) ->
                 when (v) {
+                    is SanskritValue.Purana -> v.toDisplayText()
                     is SanskritValue.Sankhya -> v.word
                     is SanskritValue.Rational -> v.toDisplayText()
                     is SanskritValue.Shabda -> v.text

@@ -27,7 +27,10 @@ data class KarakaHistoryReference(
     val ordinalFromOldest: Long?,
     val previous: Boolean,
     val orderingValid: Boolean,
-)
+) {
+    val actionIdentity: dev.panini.core.ActionIdentity
+        get() = (genitive.pratipadika as KridantaPratipadika).resolveActionHistoryIdentity()
+}
 
 /** Resolves phrases such as योजनस्य कर्म into participants of a remembered kriyā. */
 object KarakaReferenceResolver {
@@ -35,16 +38,25 @@ object KarakaReferenceResolver {
         if (it is SamuccitaSubanta) it.members else listOf(it)
     }.filterIsInstance<SubantaPada>()): List<KarakaHistoryReference> {
         val padas = sourcePadas.flatMap { if (it is SamuccitaSubanta) it.members else listOf(it) }
+        val referentCount = subantas.count {
+            Karaka.fromPratipadika(it.pratipadika.baseText()) != null
+        }
+        val actionModifiers = subantas.filter {
+            it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
+        }
+        require(referentCount != 1 || actionModifiers.size <= 1) {
+            "Ambiguous participant-history reference: multiple genitive actions modify one kāraka."
+        }
         return subantas.mapIndexedNotNull { index, referent ->
             val karaka = Karaka.fromPratipadika(referent.pratipadika.baseText()) ?: return@mapIndexedNotNull null
-            val genitive = subantas.take(index).lastOrNull {
+            val genitive = actionModifiers.singleOrNull() ?: subantas.take(index).lastOrNull {
                 it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
             } ?: return@mapIndexedNotNull null
             val derivation = genitive.pratipadika as KridantaPratipadika
-            derivation.requireActionHistoryNominal()
-            val order = MemoryOrderQualifierResolver.before(referent, padas)
+            val actionDhatu = derivation.resolveActionHistoryDhatu()
+            val order = MemoryOrderQualifierResolver.forHead(referent, genitive, padas, referentCount == 1)
             KarakaHistoryReference(referent, genitive, karaka,
-                DhatuCache.resolve(derivation.dhatu)?.upadesha,
+                actionDhatu.upadesha,
                 order.pada.takeIf { order.isExplicit }, order.ordinalNumber, order.previous, order.agreesWith(referent))
         }
     }
@@ -77,7 +89,9 @@ object KarakaReferenceResolver {
             val upadesha = reference.dhatuUpadesha ?: throw MissingActionResultException(
                 "The named action in this kāraka reference has no resolved dhātu identity.")
             val order = MemoryOrderQualifier(reference.qualifier, reference.ordinalFromOldest, reference.previous)
-            val remembered = order.select(ctx.memory, upadesha) ?: throw MissingActionResultException(
+            val identity = reference.actionIdentity
+            val remembered = (if (identity.upasargas.isNotEmpty() || identity.sanadi.isNotEmpty())
+                order.select(ctx.memory, identity) else order.select(ctx.memory, upadesha)) ?: throw MissingActionResultException(
                 "No remembered action is available for this kāraka reference.",
             )
             val captured = remembered.participants[reference.karaka]
@@ -105,6 +119,12 @@ object KarakaReferenceResolver {
 
     private fun participantExpression(relation: KarakaRelation): ExecutionExpression {
         val pada = relation.participant.pada
+        dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)?.let { value ->
+            return ExecutionExpression.Pada(pada.sourceText, value.samjnas, value = value)
+        }
+        require(pada is dev.panini.vyakaranam.ast.SubantaPada) {
+            "Unsupported nominal participant: ${pada.sourceText}"
+        }
         val pratipadika = pada.pratipadika
         if (pratipadika is SankhyaPratipadika) {
             val value = pratipadika.semanticValue.value

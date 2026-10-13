@@ -71,9 +71,13 @@ internal object PhalaResolver {
             val root = DhatuCache.getActionRoot(base)
             val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
                 ?.dhatu?.let(DhatuCache::resolve)?.upadesha
+            val exactIdentity = namedReference?.actionIdentity?.takeIf {
+                it.upasargas.isNotEmpty() || it.sanadi.isNotEmpty()
+            }
 
             // ---- 1. Resolve against earlier clauses in this utterance ----------------
             val matchingIndices = (0 until ctx.clauseIndex).filter { i ->
+                if (exactIdentity != null) return@filter ctx.previousActionIdentities.getOrNull(i) == exactIdentity
                 val prevDhatu = ctx.previousDhatus.getOrNull(i) ?: return@filter false
                 if (referencedDhatu != null) return@filter prevDhatu.upadesha == referencedDhatu
                 val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
@@ -84,6 +88,8 @@ internal object PhalaResolver {
             }
             // ---- 3. Compatibility fallback to conversation result history -----------
             val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
+                // Compatibility records contain only the root, not evidence of derivation.
+                if (exactIdentity != null) return@filter false
                 val dhatuUpadesha = ctx.conversation.metadata[ExecutionMetadata.dhatu(result.id)]
                     ?: ctx.conversation.metadata[ExecutionMetadata.dhatu(result.invocationId)]
                 val prevDhatu = dhatuUpadesha?.let { DhatuCache.upadeshaDhatuCache[it] }
@@ -97,7 +103,9 @@ internal object PhalaResolver {
             } ?: emptyList()
 
             val rememberedIds = if (referencedDhatu == null) emptyList() else ctx.memory.entries
-                .filter { it.phala != null && it.frame.kriya?.dhatu?.upadesha == referencedDhatu }
+                .filter { it.phala != null && if (exactIdentity != null)
+                    it.frame.kriya?.actionIdentity == exactIdentity
+                    else it.frame.kriya?.dhatu?.upadesha == referencedDhatu }
                 .map { it.frame.id.value }
             // Memory and compatibility history describe the same earlier discourse;
             // use one representation, then append preceding local clauses once.

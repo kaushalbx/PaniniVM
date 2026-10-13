@@ -16,28 +16,36 @@ internal class PvmSequenceExecutor {
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
         executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
-        val hasNamedStage = node.statements.withIndex().any { (index, stage) ->
+        val hasNamedStage = try { node.statements.withIndex().any { (index, stage) ->
             stage is Invocation && registry.detectInvocation(
-                Ukti(sourceText = stage.sourceText, body = stage),
-                callerSourceFile = sourceFile,
-                injectedKarman = if (index > 0 &&
-                    node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
-                    InjectedKarmanBinding(PIPE_OPERAND, null) else null,
-            ) != null
+                Ukti(sourceText = stage.sourceText, body = stage), callerSourceFile = sourceFile,
+                injectedKarman = if (index > 0 && node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
+                    InjectedKarmanBinding(PIPE_OPERAND, null) else null) != null
+        } } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure invocation."))
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
         val hasAnaphor = node.statements.filterIsInstance<Invocation>().any { invocation ->
             invocation.vakya.padas.any { pada -> when (pada) {
                 is dev.panini.vyakaranam.ast.SubantaPada -> AnaphoricOperandProjection.agreement(pada) != null
-                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.any {
-                    AnaphoricOperandProjection.agreement(it) != null
-                }
+                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().any { AnaphoricOperandProjection.agreement(it) != null }
                 else -> false
             } }
         }
+        val hasReturnStage = node.statements.filterIsInstance<Invocation>().any { invocation ->
+            if (scope.procedureBindings?.hasProcedureOwner == true && ProcedureResultStatement.resolve(invocation,
+                    roleShadowed = scope.procedureBindings.isDeclaredInProcedure("फल")) != null) return@any true
+            val head = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
+            val root = head?.let(dev.panini.execution.binding.DhatuCache::resolve)
+            val features = head?.let { GrammaticalFeatures(it.upasargas.toSet(), it.dhatu.sanadiPratyayas.toSet(),
+                lakara = it.lakara) }
+            root?.operations?.any { it.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE &&
+                features != null && it.trigger.matches(features) } == true
+        }
         if (node.statements.size < 2 ||
             node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
-            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor)
+            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor && !hasReturnStage)
         ) return evaluateWhole()
 
         val results = mutableListOf<ExecutionResult>()

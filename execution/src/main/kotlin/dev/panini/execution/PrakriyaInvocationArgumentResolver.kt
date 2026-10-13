@@ -5,11 +5,23 @@ import dev.panini.vyakaranam.ast.SubantaPada
 
 /** Shared AST-first argument ordering for interpreted and compiled prakriyā calls. */
 object PrakriyaInvocationArgumentResolver {
-    fun resolve(invocation: PrakriyaInvocation): PrakriyaArgumentResolution {
+    fun resolve(invocation: PrakriyaInvocation,
+        knownOperationStems: Set<String> = emptySet()): PrakriyaArgumentResolution {
         if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) {
             return PrakriyaArgumentResolution.Failure("The ordering qualifier and फल must agree in case and number.")
         }
         val signature = invocation.kriya.signature
+        val expectedParameters = try { signature.parameters.ifEmpty {
+            PrakriyaSignatureCompiler.positionalParameters(invocation.kriya.body, signature.argumentType,
+                knownOperationStems)
+        } } catch (failure: IllegalArgumentException) {
+            return PrakriyaArgumentResolution.Failure(failure.message ?: "Invalid procedure parameter morphology.")
+        }
+        fun checked(result: PrakriyaArgumentResolution.Success): PrakriyaArgumentResolution =
+            if (expectedParameters.isNotEmpty() && result.arguments.size != expectedParameters.size) {
+                PrakriyaArgumentResolution.Failure(PrakriyaDiagnostics.arity(
+                    invocation.kriya.nameStem, expectedParameters.size, result.arguments.size))
+            } else result
         // Attach compatibility payloads before grammatical ordering changes source positions.
         val sourceArguments = invocation.arguments.mapIndexed { index, argument ->
             val fallback = invocation.argumentValues.getOrNull(index)
@@ -22,7 +34,7 @@ object PrakriyaInvocationArgumentResolver {
         val resolution = NamedPrakriyaArgumentResolver.resolve(syntax, signature)
         if (resolution !is PrakriyaArgumentResolution.Success) return resolution
         if (!hasNamedSyntax && sourceArguments.isNotEmpty()) {
-            return PrakriyaArgumentResolution.Success(
+            return checked(PrakriyaArgumentResolution.Success(
                 sourceArguments.mapIndexed { index, argument ->
                     ResolvedPrakriyaArgument(
                         parameter = signature.parameters.getOrNull(index),
@@ -35,7 +47,7 @@ object PrakriyaInvocationArgumentResolver {
                     )
                 },
                 named = false,
-            )
+            ))
         }
         val remaining = sourceArguments.toMutableList()
         val resolved = resolution.arguments.mapIndexed { index, grammatical ->
@@ -57,6 +69,11 @@ object PrakriyaInvocationArgumentResolver {
                 },
             )
         }
-        return PrakriyaArgumentResolution.Success(resolved, resolution.named)
+        // Named ordering must consume every supplied operand, including piped values.
+        // Otherwise an extra operand could disappear before the arity check.
+        if (remaining.isNotEmpty()) return PrakriyaArgumentResolution.Failure(
+            PrakriyaDiagnostics.arity(invocation.kriya.nameStem, expectedParameters.size,
+                resolved.size + remaining.size))
+        return checked(PrakriyaArgumentResolution.Success(resolved, resolution.named))
     }
 }

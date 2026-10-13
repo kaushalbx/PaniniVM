@@ -310,7 +310,7 @@ sankhyaPada
     ;
 
 sankhyaPuranaPada
-    : (sankhyaStem PLUS)+ puranaPratyaya PLUS supPratyaya
+    : (sankhyaStem PLUS)+ puranaPratyaya (PLUS striPratyaya)? PLUS supPratyaya
     ;
 
 puranaPratyaya
@@ -507,13 +507,26 @@ asamasikaPratipadikaMula
 // ============================================================================
 
 samuccitaSubanta
-    : subantaPada
-      (COMMA? subantaPada)+
+    : supantaPada
+      (COMMA? supantaPada)+
       CHA
     ;
 
 explicitSamuccitaSubanta
-    : subantaPada CHA (subantaPada CHA)+
+    : subantaSamudaya CHA (subantaSamudaya CHA)+
+    ;
+
+subantaSamudaya
+    : supantaPada+
+    ;
+
+supantaPada
+    : subantaPada
+    | sankhyaPuranaPada
+    | sankhyaPada
+    | katapayadiPada
+    | aryabhatiyaPada
+    | bhutasamkhyaPada
     ;
 
 // ============================================================================

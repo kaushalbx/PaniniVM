@@ -32,4 +32,5 @@ internal data class BindingContext(
     val localVariableInvocationIds: Map<String, String> = emptyMap(),
     /** Typed operands supplied directly by the execution scope. */
     val environment: ValueEnvironment = ValueEnvironment(),
+    val previousActionIdentities: List<dev.panini.core.ActionIdentity?> = emptyList(),
 )

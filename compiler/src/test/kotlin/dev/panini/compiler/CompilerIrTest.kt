@@ -630,6 +630,8 @@ class CompilerIrTest {
                 CompilerInstruction.Compare(ComparisonOperator.LESS_THAN),
                 CompilerInstruction.Branch("test-repeat_exit"),
                 *body.toTypedArray(),
+                CompilerInstruction.IsProcedureReturnRequested,
+                CompilerInstruction.Branch("test-repeat_exit", whenTrue = true),
                 CompilerInstruction.ConsumeBreak,
                 CompilerInstruction.Branch("test-repeat_exit", whenTrue = true),
                 CompilerInstruction.LoadLocal("test-repeat_counter"),
@@ -694,6 +696,8 @@ class CompilerIrTest {
                 CompilerInstruction.Branch("test-while_victory"),
                 CompilerInstruction.EnterConditionIteration,
                 *body.toTypedArray(),
+                CompilerInstruction.IsProcedureReturnRequested,
+                CompilerInstruction.Branch("test-while_return_exit", whenTrue = true),
                 CompilerInstruction.LoadLocal("test-while_counter"),
                 numericConstant(1),
                 CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
@@ -713,6 +717,7 @@ class CompilerIrTest {
                 CompilerInstruction.Store("LastResult"),
                 CompilerInstruction.Jump("test-while_target"),
                 CompilerInstruction.Label("test-while_target"),
+                CompilerInstruction.Label("test-while_return_exit"),
             ),
             instructions,
         )
@@ -741,7 +746,8 @@ class CompilerIrTest {
             ),
         )
         assertTrue(instructions.contains(CompilerInstruction.Store("परिणाम")))
-        assertEquals(CompilerInstruction.Store("LastResult"), instructions.last())
+        assertEquals(CompilerInstruction.Label("bounded_return_exit"), instructions.last())
+        assertEquals(CompilerInstruction.Store("LastResult"), instructions[instructions.lastIndex - 1])
         CompilerIrVerifier.verify(instructions)
     }
 

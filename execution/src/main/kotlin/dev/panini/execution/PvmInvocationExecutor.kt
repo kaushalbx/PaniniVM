@@ -27,7 +27,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
         val explicitResult = request.node.vakya.padas.any { pada ->
             when (pada) {
                 is dev.panini.vyakaranam.ast.SubantaPada -> NaturalSemanticNormalizer.isPriorResult(pada)
-                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.any(NaturalSemanticNormalizer::isPriorResult)
+                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().any(NaturalSemanticNormalizer::isPriorResult)
                 else -> false
             }
         }
@@ -36,7 +36,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
         }
         val text = request.node.vakya.sourceText.trim().trimEnd('।', '॥').trim() + " ।"
         val parsedUkti = Ukti(sourceText = text, body = request.node)
-        val invocation = request.registry.detectInvocation(
+        val invocation = try { request.registry.detectInvocation(
             parsedUkti,
             callerSourceFile = request.sourceFile,
             injectedKarman = injectedKarman,
@@ -48,11 +48,12 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 ?: vm.runtimeValue(request.sessionKey, name) },
             resolveActionResult = { reference ->
                 val memory = vm.kriyaMemory(request.sessionKey)
-                if (reference.ordinalFromOldest != null) {
-                    memory.ordinalKriya(reference.ordinalFromOldest, reference.dhatuUpadesha)?.phala
-                } else memory.latestKriya(reference.dhatuUpadesha, if (reference.previous) 1 else 0)?.phala
+                reference.select(memory)?.phala
             },
-        )
+        ) } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure invocation."))
+        }
         if (invocation != null) {
             if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) return listOf(
                 ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
@@ -67,9 +68,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                         "No preceding result is available for this फल procedure argument."))
                 }
                 val reference = argument.actionResult ?: return@map argument
-                val result = if (reference.ordinalFromOldest != null) {
-                    memory.ordinalKriya(reference.ordinalFromOldest, reference.dhatuUpadesha)
-                } else memory.latestKriya(reference.dhatuUpadesha, if (reference.previous) 1 else 0)
+                val result = reference.select(memory)
                 val value = result?.phala ?: return listOf(ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE, "No completed named action result is available for this procedure argument.",
                 ))

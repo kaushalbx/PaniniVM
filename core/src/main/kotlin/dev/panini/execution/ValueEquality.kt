@@ -2,6 +2,7 @@ package dev.panini.execution
 
 /** Equality of semantic payloads, independent of rendering and annotation metadata. */
 fun SanskritValue.semanticallyEquals(other: SanskritValue): Boolean = when (this) {
+    is SanskritValue.Purana -> other is SanskritValue.Purana && value == other.value
     is SanskritValue.Sankhya -> compareNumericValues(this, other) == 0
     is SanskritValue.Shabda -> other is SanskritValue.Shabda && text == other.text
     is SanskritValue.Satya -> other is SanskritValue.Satya && boolean == other.boolean

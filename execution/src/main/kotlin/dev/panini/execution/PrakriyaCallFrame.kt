@@ -18,18 +18,22 @@ data class PrakriyaCallFrame(
             callerScope: ExecutionScope,
             resolveValue: (String) -> SanskritValue? = { null },
         ): PrakriyaCallFrame {
-            val values = resolvedArguments.map { resolved ->
+            val sourceValues = resolvedArguments.map { resolved ->
                 val argument = resolved.argument
                 val referenceName = resolved.referenceName
                 argument.value
                     ?: argument.pada?.let(PrakriyaValueClassifier::literalValue)
                     ?: callerScope.environment.values[referenceName]
                     ?: resolveValue(referenceName)
-                    ?: argument.pada?.let(NominalValueAnalysis::numericFallback)
+                    ?: argument.pada?.let(NominalValueAnalysis::fallbackValue)
                     ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
                         .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }
                     ?: SanskritValue.Shabda(argument.term)
             }
+            val signature = invocation.kriya.signature
+            val values = if (signature.hasTypedParticipants)
+                TypedParticipantBinding.orderValues(signature.parameters.map { it.type }, sourceValues)
+            else sourceValues
             val bindings = invocation.kriya.signature.parameters
                 .zip(values)
                 .associate { (parameter, value) -> parameter.nameStem to value }
@@ -38,7 +42,8 @@ data class PrakriyaCallFrame(
                     .filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
                         val parameter = PrakriyaSignatureDeclarationParser.parameter(sentence) ?: return@mapNotNull null
                         PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let { parameter.nameStem to it }
-                    }.toMap())
+                    }.toMap() + if (signature.hasTypedParticipants)
+                    TypedParticipantAnalysis.declarations(invocation.kriya.body) else emptyMap())
             return PrakriyaCallFrame(
                 parameterBindings = bindings,
                 arguments = values,

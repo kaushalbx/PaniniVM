@@ -63,12 +63,13 @@ enum class ExpressionShape { LITERAL, COORDINATION, REFERENCE }
 
 /** Runtime payload eligibility, independent of inherited grammatical saṃjñās. */
 enum class OperationValueType {
-    NUMBER, INTEGER, TEXT, BOOLEAN, COLLECTION, RECORD, RANGE;
+    NUMBER, INTEGER, ORDINAL, TEXT, BOOLEAN, COLLECTION, RECORD, RANGE;
 
     fun accepts(value: SanskritValue): Boolean = when (this) {
         NUMBER -> value is SanskritValue.Sankhya ||
             (value is SanskritValue.Rational && value.denominator != 0L)
         INTEGER -> value is SanskritValue.Sankhya
+        ORDINAL -> value is SanskritValue.Purana
         TEXT -> value is SanskritValue.Shabda
         BOOLEAN -> value is SanskritValue.Satya
         COLLECTION -> value is SanskritValue.Suchi || value is SanskritValue.Gana

@@ -17,10 +17,9 @@ class ContradictoryProcedureSignatureTest {
                 परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
             val published = mutableListOf<ExecutionResult>()
-            assertFailsWith<IllegalArgumentException> {
-                PaniniVM().evalScript(source, onResult = published::add)
-            }
-            assertTrue(published.isEmpty(), published.toString())
+            val results = PaniniVM().evalScript(source, onResult = published::add)
+            assertIs<ExecutionResult.Failure>(results.last())
+            assertTrue(published.none { it is ExecutionResult.Success }, published.toString())
             assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(source, "InvalidSignature") }
             assertTrue(PrakriyaScriptValidator.validate(source).any { it.severity == PrakriyaDiagnosticSeverity.ERROR })
         }

@@ -504,12 +504,12 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.AkhyataVakyaContext,
     ): AkhyataVakya {
         val purvaPadas = context.purvaVakyaPada()
-            .map { buildVakyaPada(it.vakyaPada()!!) }
+            .flatMap { buildVakyaPada(it.vakyaPada()!!) }
 
         val tinganta = buildTinganta(context.tingantaPada()!!)
 
         val uttaraPadas = context.uttaraVakyaPada()
-            .map { buildVakyaPada(it.vakyaPada()!!) }
+            .flatMap { buildVakyaPada(it.vakyaPada()!!) }
 
         return AkhyataVakya(
             sourceText = context.text,
@@ -522,7 +522,7 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.NamaVakyaContext,
     ): NamaVakya {
         val padas = context.vakyaPada()
-            .map(::buildVakyaPada)
+            .flatMap(::buildVakyaPada)
 
         return NamaVakya(
             sourceText = context.text,
@@ -532,16 +532,16 @@ class VyakaranamAstBuilder {
 
     private fun buildVakyaPada(
         context: PaniniyaVyakaranamParser.VakyaPadaContext,
-    ): Pada =
+    ): List<Pada> =
         when {
             context.paryantaRange() != null ->
-                buildParyantaRange(context.paryantaRange()!!)
+                listOf(buildParyantaRange(context.paryantaRange()!!))
 
             context.subantaVakyaPada() != null ->
-                buildSubantaVakyaPada(context.subantaVakyaPada()!!).single()
+                buildSubantaVakyaPada(context.subantaVakyaPada()!!)
 
             context.avyayaPada() != null ->
-                buildAvyaya(context.avyayaPada()!!)
+                listOf(buildAvyaya(context.avyayaPada()!!))
 
             else -> error("अज्ञातं वाक्यपदम्: ${context.text}")
         }
@@ -620,6 +620,9 @@ class VyakaranamAstBuilder {
         return SankhyaPuranaPada(
             sourceText = context.text,
             stems = stems,
+            striAffix = context.striPratyaya()?.let {
+                requireNotNull(dev.panini.core.StriAffix.fromUpadesha(it.text)) { "Unknown feminine affix: ${it.text}" }
+            },
             sup = SupPratyaya(
                 sourceText = context.supPratyaya()!!.text,
                 text = context.supPratyaya()!!.text,
@@ -684,11 +687,7 @@ class VyakaranamAstBuilder {
     ): List<Pada> =
         when {
             context.explicitSamuccitaSubanta() != null -> {
-                val coordination = context.explicitSamuccitaSubanta()!!
-                listOf(SamuccitaSubanta(
-                    sourceText = coordination.text,
-                    members = coordination.subantaPada().map(::buildSubanta),
-                ))
+                buildExplicitCoordination(context.explicitSamuccitaSubanta()!!)
             }
             context.subantaPada() != null ->
                 listOf(buildSubanta(context.subantaPada()!!))
@@ -717,13 +716,63 @@ class VyakaranamAstBuilder {
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }
 
+    /** Case changes delimit distinct grammatical roles, not multiword conjuncts. */
+    private fun buildExplicitCoordination(
+        context: PaniniyaVyakaranamParser.ExplicitSamuccitaSubantaContext,
+    ): List<Pada> {
+        val result = mutableListOf<Pada>()
+        val pending = mutableListOf<List<SupBearingPada>>()
+        var sharedCases = emptySet<Vibhakti>()
+        fun cases(pada: SupBearingPada) = pada.sup.affixCandidates.mapTo(mutableSetOf()) { it.vibhakti }
+        fun flush() {
+            if (pending.isEmpty()) return
+            val members = pending.flatten()
+            val source = pending.joinToString(" ") { words -> words.joinToString(" ") { it.sourceText } + " च" }
+            result += SamuccitaSubanta(source, members,
+                conjunctSizes = if (pending.size > 1) pending.map { it.size } else emptyList())
+            pending.clear()
+            sharedCases = emptySet()
+        }
+        for (group in context.subantaSamudaya()) {
+            val words = group.supantaPada().map(::buildSupanta)
+            var start = words.lastIndex
+            var tailCases: Set<Vibhakti> = cases(words.last())
+            while (start > 0) {
+                val common = tailCases.intersect(cases(words[start - 1]))
+                if (common.isEmpty()) break
+                tailCases = common
+                start--
+            }
+            if (start > 0) {
+                flush()
+                // Preserve differently cased dependents (for example a genitive
+                // action nominal) outside the following accusative coordination.
+                result += words.take(start)
+            }
+            if (pending.isNotEmpty() && sharedCases.intersect(tailCases).isEmpty()) flush()
+            sharedCases = if (pending.isEmpty()) tailCases else sharedCases.intersect(tailCases)
+            pending += words.drop(start)
+        }
+        flush()
+        return result
+    }
+
     private fun buildSamuccitaSubanta(
         context: PaniniyaVyakaranamParser.SamuccitaSubantaContext,
     ): SamuccitaSubanta =
         SamuccitaSubanta(
             sourceText = context.text,
-            members = context.subantaPada().map(::buildSubanta),
+            members = context.supantaPada().map(::buildSupanta),
         )
+
+    private fun buildSupanta(context: PaniniyaVyakaranamParser.SupantaPadaContext): SupBearingPada = when {
+        context.subantaPada() != null -> buildSubanta(context.subantaPada()!!)
+        context.sankhyaPuranaPada() != null -> buildSankhyaPuranaPada(context.sankhyaPuranaPada()!!)
+        context.sankhyaPada() != null -> buildSankhyaPada(context.sankhyaPada()!!)
+        context.katapayadiPada() != null -> buildKatapayadiPada(context.katapayadiPada()!!)
+        context.aryabhatiyaPada() != null -> buildAryabhatiyaPada(context.aryabhatiyaPada()!!)
+        else -> buildBhutasamkhyaPada(context.bhutasamkhyaPada()!!)
+    }
 
     private fun buildSambodhana(
         context: PaniniyaVyakaranamParser.SambodhanaContext,

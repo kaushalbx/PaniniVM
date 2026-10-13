@@ -29,9 +29,8 @@ internal object NumeralAstNormalizer {
     fun resolve(pratipadika: Pratipadika): SankhyaPratipadika? = when (pratipadika) {
         is SankhyaPratipadika -> pratipadika.takeUnless(::hasNonGenderDerivation)
 
-        is MulaPratipadika -> if (hasNonGenderDerivation(pratipadika)) null else (pratipadika.lexicalOrdinalValue?.let {
-            SanskritValue.Sankhya(it, pratipadika.text)
-        } ?: recognize(pratipadika.text))?.let {
+        is MulaPratipadika -> if (hasNonGenderDerivation(pratipadika) ||
+            pratipadika.lexicalIdentity?.ordinalValue != null) null else recognize(pratipadika.text)?.let {
             SankhyaPratipadika(
                 sourceText = pratipadika.sourceText,
                 semanticValue = it,
@@ -46,12 +45,17 @@ internal object NumeralAstNormalizer {
         recognized[stem]?.let { return it }
         if (stem in rejected) return null
 
-        val value = runCatching {
-            sharedSankhyaEvaluator.evaluateStems(listOf(stem)).value
+        val expression = runCatching {
+            sharedSankhyaEvaluator.evaluateStems(listOf(stem))
         }.getOrElse {
             rejected += stem
             return null
         }
+        if (expression is dev.panini.sankhya.SankhyaExpression.Purana) {
+            rejected += stem
+            return null
+        }
+        val value = expression.value
         return SanskritValue.Sankhya(value, stem).also { recognized[stem] = it }
     }
 }

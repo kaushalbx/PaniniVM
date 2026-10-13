@@ -5,6 +5,21 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class CollectionMemberMorphologyTest {
+    @Test fun `ordinal member retains its value category through binding and codec`() {
+        for (selector in listOf("द्वितीय + अम्", "द्वि + तीय + अम्")) {
+            val bound = assertIs<ExecutionBindingResult.Bound>(
+                dev.panini.execution.binding.VyakaranamExecutionAdapter.bind(
+                    SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "सूची + ङस् $selector उद् + हृ + लोट् + सिप् ।"),
+                    SambhashanaContext("प्रयोक्ता", "यन्त्रम्")))
+            val member = assertIs<ExecutionExpression.Pada>(
+                bound.ukti.invocations.single().bindings[dev.panini.core.Karaka.KARMAN])
+            assertEquals(CollectionMemberSelection.ORDINAL, member.memberSelection)
+            assertEquals(2L, assertIs<SanskritValue.Purana>(member.value).value)
+            assertEquals(member, dev.panini.execution.sutra.ProgramSutraArthaCodec.decodeExpression(
+                dev.panini.execution.sutra.ProgramSutraArthaCodec.encodeExpression(member)))
+        }
+    }
+
     @Test fun `nonfinite extraction rejects further derived ordinals before chaining`() {
         for (affix in listOf("मतुप्", "तरप्")) {
             val source = "सूची + ङस् प्रथम + $affix + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"

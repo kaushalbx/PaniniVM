@@ -12,4 +12,19 @@ internal fun KridantaPratipadika.requireActionHistoryNominal() {
     require(vikaras.all { it.isRecognizedStriAffix }) {
         "A further-derived action noun requires its own reference semantics, not its base action's history."
     }
+    require(upasargaIdentities.all { it != null } && dhatu.sanadiAffixes.all { it != null }) {
+        "Action history cannot discard an unrecognized upasarga or sanādi affix."
+    }
+}
+
+internal fun KridantaPratipadika.resolveActionHistoryDhatu(): dev.panini.dhatupatha.Dhatu {
+    requireActionHistoryNominal()
+    return requireNotNull(DhatuCache.resolve(dhatu)) {
+        "The named action in this history reference has no resolved dhātu identity."
+    }
+}
+
+internal fun KridantaPratipadika.resolveActionHistoryIdentity(): dev.panini.core.ActionIdentity {
+    val lexical = resolveActionHistoryDhatu()
+    return dev.panini.core.ActionIdentity(lexical.id, upasargaIdentities.filterNotNull(), dhatu.sanadiAffixes.filterNotNull())
 }

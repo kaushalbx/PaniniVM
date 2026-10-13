@@ -14,7 +14,9 @@ object NominalResultSemantics {
 
     fun operand(pada: Pada): Operand {
         val nominal = pada as? SubantaPada
-        val literal = NumeralPadaBinder.resolveSemanticValue(pada)
+        val ordinal = PuranaPratyayaResolver.semanticValue(pada)
+        val lexicalOrdinal = (nominal?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika)?.lexicalOrdinalValue != null
+        val literal = if (lexicalOrdinal) null else ordinal ?: NumeralPadaBinder.resolveSemanticValue(pada)
             ?: nominal?.pratipadika?.let(::nominalTruthValue)
         val cardinalSup = when (pada) {
             is dev.panini.vyakaranam.ast.SankhyaPada -> pada.sup
@@ -29,6 +31,6 @@ object NominalResultSemantics {
             if (ending != null) dev.panini.sankhya.SankhyaVacana.requireCompatible(literal.value, ending.vacana)
         }
         val key = nominal?.pratipadika?.referenceKey()
-        return Operand(literal, key, literal ?: SanskritValue.Shabda(key ?: pada.sourceText))
+        return Operand(literal, key, literal ?: ordinal ?: SanskritValue.Shabda(key ?: pada.sourceText))
     }
 }

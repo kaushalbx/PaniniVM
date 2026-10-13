@@ -73,7 +73,7 @@ internal object KarakaExtractor {
 
         // ---- kāraka inference helpers -----------------------------------------------
 
-        fun inferKarakas(pada: SubantaPada): Set<Karaka> {
+        fun inferKarakas(pada: dev.panini.vyakaranam.ast.SupBearingPada): Set<Karaka> {
             val relation = ctx.frame.relations.firstOrNull {
                 it.participant.pada === pada
             }
@@ -213,6 +213,10 @@ internal object KarakaExtractor {
                 is SankhyaPada -> {
                     // अभ्यास-कृत्वः forms are frequency metadata, not argument values.
                     if (FrequencyExtractor.isAbhyasa(pada.stems)) return@forEachIndexed
+                    if (dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) {
+                        NumeralPadaBinder.bindOrdinal(pada, ::inferKarakas, ::addBinding)
+                        return@forEachIndexed
+                    }
                     // Op-stems (गुणित, वर्ग, …) consume the following numeral pada as their operand.
                     var targetIdx = -1
                     var nextVal: Long? = null
@@ -258,11 +262,6 @@ internal object KarakaExtractor {
                 is KatapayadiPada    -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is AryabhatiyaPada   -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is BhutasamkhyaPada  -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
-                is SamuccitaSubanta -> {
-                    // Each member retains its grammatical relation. The final grouping
-                    // combines only members that actually resolve to the same kāraka.
-                    pada.members.forEach { add(it) }
-                }
                 else -> Unit
             }
         }

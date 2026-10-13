@@ -6,6 +6,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class StandardPratipadikaLexiconTest {
+    @Test fun `participant type nouns retain grammatical gender`() {
+        assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सङ्ख्या")?.linga)
+        assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सूची")?.linga)
+        assertEquals(setOf(dev.panini.core.Linga.PUMS), StandardPratipadikaLexicon.findPratipadika("शब्द")?.linga)
+    }
     @Test
     fun `ordinal numeric identity does not erase feminine stem gender`() {
         assertEquals(setOf(dev.panini.core.Linga.STRI),

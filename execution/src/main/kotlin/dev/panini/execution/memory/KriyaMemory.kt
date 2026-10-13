@@ -31,6 +31,10 @@ data class KriyaMemory(
 
     fun frame(id: KriyaId): KriyaFrame? = entries.lastOrNull { it.frame.id == id }?.frame
 
+    /** Exact derived-action query; root-only discourse queries remain explicitly separate. */
+    fun matchingActions(identity: dev.panini.core.ActionIdentity): List<RememberedKriya> =
+        entries.filter { it.frame.kriya?.actionIdentity == identity }
+
     fun latest(count: Int = 1): List<RememberedKriya> {
         require(count >= 0) { "A memory query count cannot be negative." }
         return entries.takeLast(count)

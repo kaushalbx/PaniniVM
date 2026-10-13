@@ -17,6 +17,13 @@ sealed interface SanskritValue {
     val samjnas: Set<Samjna>
     fun toDisplayText(): String
 
+    /** A one-based ordinal (पूरण), distinct from a cardinal count of the same magnitude. */
+    data class Purana(val value: Long, val word: String) : SanskritValue {
+        init { require(value > 0L) { "An ordinal position must be positive and one-based." } }
+        override val samjnas: Set<Samjna> = setOf(Samjna.PURANA, Samjna.SANKHYA, Samjna.SHABDA)
+        override fun toDisplayText(): String = word
+    }
+
     data class Sankhya(
         val value: Long,
         val word: String,

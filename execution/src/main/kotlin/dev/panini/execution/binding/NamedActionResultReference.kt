@@ -14,7 +14,18 @@ data class NamedActionResultReference(
     val hasOrderingQualifier: Boolean = previous || ordinalFromOldest != null,
     val orderingQualifier: Pada? = null,
     val orderingQualifiers: List<Pada> = listOfNotNull(orderingQualifier),
-)
+) {
+    val actionIdentity: dev.panini.core.ActionIdentity
+        get() = (modifier.pratipadika as KridantaPratipadika).resolveActionHistoryIdentity()
+
+    fun select(memory: dev.panini.execution.memory.KriyaMemory): dev.panini.execution.memory.RememberedKriya? {
+        if (!orderingAgrees) return null
+        val order = MemoryOrderQualifier(orderingQualifier, ordinalFromOldest, previous)
+        val identity = actionIdentity
+        return if (identity.upasargas.isNotEmpty() || identity.sanadi.isNotEmpty()) order.select(memory, identity)
+            else order.select(memory, dhatuUpadesha)
+    }
+}
 
 object NamedActionResultReferenceResolver {
     /** Consume genitive and ordering modifiers without consuming the referenced value. */
@@ -45,14 +56,11 @@ object NamedActionResultReferenceResolver {
                 else null) ?: nominals.take(index).lastOrNull { it.hasVibhakti(Vibhakti.SASTHI) }
                 ?: return@mapNotNull null
             val derivation = modifier.pratipadika as? KridantaPratipadika ?: return@mapNotNull null
-            derivation.requireActionHistoryNominal()
-            val dhatu = DhatuCache.resolve(derivation.dhatu) ?: return@mapNotNull null
+            val dhatu = derivation.resolveActionHistoryDhatu()
             val remaining = padas.filter { it !== result && it !== modifier && it !is TingantaPada }
             val candidates = remaining.map(MemoryOrderQualifierResolver::from)
-            val order = if (singleResult && candidates.isNotEmpty() && candidates.all { it.isExplicit }) {
-                candidates.singleOrNull() ?: MemoryOrderQualifier(unresolvedOrdinal = true)
-            } else MemoryOrderQualifierResolver.before(result, padas)
-            val qualifiers = if (singleResult && candidates.isNotEmpty() && candidates.all { it.isExplicit })
+            val order = MemoryOrderQualifierResolver.forHead(result, modifier, padas, singleResult)
+            val qualifiers = if (order.isExplicit && order.pada == null && singleResult && candidates.isNotEmpty() && candidates.all { it.isExplicit })
                 candidates.mapNotNull { it.pada } else listOfNotNull(order.pada.takeIf { order.isExplicit })
             NamedActionResultReference(result, modifier, dhatu.upadesha, order.ordinalNumber, order.previous,
                 order.agreesWith(result), order.isExplicit, order.pada.takeIf { order.isExplicit }, qualifiers)

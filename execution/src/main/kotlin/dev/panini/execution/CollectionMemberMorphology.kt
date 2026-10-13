@@ -19,13 +19,13 @@ object CollectionMemberMorphology {
         sup(pada)?.affixCandidates == listOf(slot)
 
     fun ordinalExpression(pada: Pada): ExecutionExpression.Pada? {
-        val ordinal = PuranaPratyayaResolver.ordinalValue(pada) ?: return null
+        val ordinal = PuranaPratyayaResolver.semanticValue(pada) ?: return null
         sup(pada) ?: return null
-        require(hasSlot(pada, SupAffix.AM) && ordinal > 0) {
+        require(hasSlot(pada, SupAffix.AM)) {
             "Ordinal-member extraction requires a positive singular accusative selector."
         }
         return ExecutionExpression.Pada(pada.sourceText,
-            value = SanskritValue.Sankhya(ordinal, pada.sourceText),
+            value = ordinal,
             memberSelection = CollectionMemberSelection.ORDINAL)
     }
 

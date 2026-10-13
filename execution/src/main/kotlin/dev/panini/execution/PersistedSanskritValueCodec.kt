@@ -8,6 +8,7 @@ internal object PersistedSanskritValueCodec {
     fun write(output: DataOutputStream, value: SanskritValue) {
         with(output) {
             when (value) {
+                is SanskritValue.Purana -> { writeByte(11); writeLong(value.value); writeUTF(value.word) }
                 is SanskritValue.Sankhya -> { writeByte(1); writeLong(value.value); writeUTF(value.word) }
                 is SanskritValue.Rational -> {
                     writeByte(2); writeLong(value.numerator); writeLong(value.denominator); writeUTF(value.word)
@@ -39,6 +40,7 @@ internal object PersistedSanskritValueCodec {
 
     fun read(input: DataInputStream): SanskritValue = with(input) {
         when (val tag = readByte().toInt()) {
+            11 -> SanskritValue.Purana(readLong(), readUTF())
             1 -> SanskritValue.Sankhya(readLong(), readUTF())
             2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
             3 -> SanskritValue.Shabda(

@@ -24,19 +24,26 @@ internal class PrakriyaExecutor {
         invocation.resolutionError?.let {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, it))
         }
-        val signature = invocation.kriya.signature
-        val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+        val signature = try { invocation.kriya.signature } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure signature."))
+        }
+        val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
+            request.registry.all().mapTo(mutableSetOf()) { it.nameStem })
         if (argumentResolution is PrakriyaArgumentResolution.Failure) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
         val resolvedArguments = (argumentResolution as PrakriyaArgumentResolution.Success).arguments
         val argTerms = argumentResolution.terms
-        val callFrame = PrakriyaCallFrame.createResolved(
+        val callFrame = try { PrakriyaCallFrame.createResolved(
             invocation,
             resolvedArguments,
             request.scope,
             request.resolveValue,
-        )
+        ) } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure inputs."))
+        }
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }
         validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }

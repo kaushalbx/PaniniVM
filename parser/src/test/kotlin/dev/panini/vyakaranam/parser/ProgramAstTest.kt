@@ -21,6 +21,50 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class ProgramAstTest {
+    @Test fun `productive ordinals retain native morphology in explicit coordination`() {
+        val node = assertIs<Invocation>(PaniniParser().parse(
+            "प्रथ् + अमच् + टाप् + अम् सङ्ख्या + अम् च द्वि + तीय + टाप् + अम् सङ्ख्या + अम् च युज् + णिच् + लोट् + सिप् ।").body)
+        val group = node.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
+        assertEquals(listOf(2, 2), group.conjunctSizes)
+        assertEquals(listOf(listOf("प्रथ्", "अमच्"), listOf("द्वि", "तीय")),
+            group.conjuncts().map { assertIs<SankhyaPuranaPada>(it.first()).stems })
+        assertEquals(listOf(dev.panini.core.StriAffix.TAP, dev.panini.core.StriAffix.TAP),
+            group.conjuncts().map { assertIs<SankhyaPuranaPada>(it.first()).striAffix })
+    }
+
+    @Test fun `explicit coordination preserves distinct agent and object case roles`() {
+        val node = assertIs<Invocation>(PaniniParser().parse(
+            "राम + सुँ च श्याम + सुँ च एक + अम् द्वि + औट् च युज् + णिच् + लट् + तस् ।").body)
+        val groups = node.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>()
+        assertEquals(2, groups.size)
+        assertEquals(listOf(1, 1), groups.first().conjunctSizes)
+        assertEquals(emptyList(), groups.last().conjunctSizes)
+        assertEquals(listOf("राम", "श्याम"), groups.first().members.map { (assertIs<SubantaPada>(it).pratipadika as MulaPratipadika).text })
+        assertEquals(listOf("एक", "द्वि"), groups.last().members.map { (assertIs<SubantaPada>(it).pratipadika as MulaPratipadika).text })
+    }
+    @Test fun `repeated cha preserves multiword nominal conjuncts`() {
+        val source = "प्रथम + टाप् + अम् सङ्ख्या + अम् च द्वितीय + टाप् + अम् सङ्ख्या + अम् च युज् + णिच् + लोट् + सिप् ।"
+        val node = assertIs<Invocation>(PaniniParser().parse(source).body)
+        val group = node.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
+        assertEquals(listOf(2, 2), group.conjunctSizes)
+        assertEquals(4, group.members.size)
+        assertEquals(listOf("प्रथम", "द्वितीय"), group.conjuncts().map {
+            (assertIs<SubantaPada>(it.first()).pratipadika as MulaPratipadika).text
+        })
+    }
+    @Test fun `productive ordinal retains a typed feminine affix separately from numeric stems`() {
+        val invocation = assertIs<Invocation>(PaniniParser().parse(
+            "द्वि + तीय + टाप् + अम् सङ्ख्या + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val ordinal = assertIs<SankhyaPuranaPada>(invocation.vakya.padas.first())
+        assertEquals(listOf("द्वि", "तीय"), ordinal.stems)
+        assertEquals(dev.panini.core.StriAffix.TAP, ordinal.striAffix)
+        assertEquals(listOf(dev.panini.core.SupAffix.AM), ordinal.sup.affixCandidates)
+        val bare = assertIs<Invocation>(PaniniParser().parse("द्वि + तीय + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        assertNull(assertIs<SankhyaPuranaPada>(bare.vakya.padas.first()).striAffix)
+        assertFailsWith<PaniniParseException> {
+            PaniniParser().parse("द्वि + तीय + टाप् + टाप् + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+        }
+    }
     @Test
     fun `amach is parsed as first ordinal morphology`() {
         val invocation = assertIs<Invocation>(

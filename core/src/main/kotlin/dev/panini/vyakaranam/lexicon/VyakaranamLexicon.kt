@@ -36,6 +36,10 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         listOf("मूल्य", "परिमाण", "मान", "फल", "परीक्षण").forEach { text ->
             put(text, PratipadikaEntry(text = text, linga = setOf(Linga.NAPUMSAKA)))
         }
+        // Technical category and grammatical gender are independent metadata.
+        put("सङ्ख्या", getValue("सङ्ख्या").copy(linga = setOf(Linga.STRI)))
+        put("सूची", PratipadikaEntry("सूची", setOf(Linga.STRI)))
+        put("शब्द", PratipadikaEntry("शब्द", setOf(Linga.PUMS)))
         // Ordinal adjective stems retain gender independently of numeric identity.
         listOf("प्रथम", "द्वितीय", "तृतीय").forEach { text ->
             put(text, PratipadikaEntry(text, setOf(Linga.PUMS, Linga.NAPUMSAKA)))

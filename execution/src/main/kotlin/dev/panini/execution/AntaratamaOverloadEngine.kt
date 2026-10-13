@@ -15,6 +15,11 @@ object AntaratamaOverloadEngine {
     fun matchTypes(signature: PrakriyaSignature, argumentTypes: List<PrakriyaValueType>): TypeMatch {
         if (signature.parameters.isNotEmpty()) {
             if (signature.parameters.size != argumentTypes.size) return TypeMatch.MISMATCH
+            if (signature.hasTypedParticipants) {
+                if (!TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, argumentTypes))
+                    return TypeMatch.MISMATCH
+                return if (PrakriyaValueType.UNCONSTRAINED in argumentTypes) TypeMatch.UNCONSTRAINED else TypeMatch.EXACT
+            }
             return if (signature.parameters.zip(argumentTypes).all { (parameter, actual) ->
                     parameter.type == PrakriyaValueType.UNCONSTRAINED ||
                         actual == PrakriyaValueType.UNCONSTRAINED || actual == parameter.type

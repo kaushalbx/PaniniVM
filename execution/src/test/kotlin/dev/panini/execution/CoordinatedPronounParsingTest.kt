@@ -11,7 +11,7 @@ class CoordinatedPronounParsingTest {
             val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
             val group = invocation.vakya.padas.filterIsInstance<SamuccitaSubanta>().single()
             assertEquals(2, group.members.size, source)
-            assertTrue(group.members.all { (it.pratipadika as MulaPratipadika).text == "तद्" })
+            assertTrue(group.members.all { (assertIs<SubantaPada>(it).pratipadika as MulaPratipadika).text == "तद्" })
             assertTrue(group.members.all { it.sup.text == sup })
             assertTrue(invocation.vakya.padas.none { it is SubantaPada })
         }

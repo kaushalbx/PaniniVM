@@ -20,6 +20,7 @@ enum class PrakriyaValueType {
     /** Internal absence of a type constraint, not a source-language type noun. */
     UNCONSTRAINED,
     SANKHYA,
+    PURANA,
     SHABDA,
     SUCHI,
     SIMA,
@@ -32,6 +33,7 @@ enum class PrakriyaValueType {
         get() = when (this) {
             UNCONSTRAINED -> "unconstrained"
             SANKHYA -> "सङ्ख्या"
+            PURANA -> "पूरणसङ्ख्या"
             SHABDA -> "शब्द"
             SUCHI -> "सूची"
             SIMA -> "सीमा"
@@ -55,7 +57,10 @@ object PrakriyaDiagnostics {
 data class PrakriyaParameter(
     val nameStem: String,
     val type: PrakriyaValueType,
-)
+    val participantOrdinal: Long? = null,
+) {
+    init { participantOrdinal?.let { TypedParticipantSlot(type, it) } }
+}
 
 data class PrakriyaSignature(
     val argumentType: PrakriyaValueType? = null,
@@ -63,8 +68,17 @@ data class PrakriyaSignature(
     val resultType: PrakriyaValueType? = null,
     val resultSchema: String? = null,
 ) {
+    val hasTypedParticipants: Boolean get() = parameters.any { it.participantOrdinal != null }
     init {
         requireUniqueParameters(parameters)
+        if (hasTypedParticipants) {
+            require(parameters.all { it.participantOrdinal != null }) { "Typed participants and named declarations cannot share a signature." }
+            parameters.groupBy { it.type }.values.forEach { group ->
+                require(group.map { it.participantOrdinal } == (1L..group.size.toLong()).toList()) {
+                    "Typed participant positions must be consecutive and ordered within each type."
+                }
+            }
+        }
     }
 }
 
@@ -78,6 +92,38 @@ internal fun requireUniqueParameters(parameters: List<PrakriyaParameter>) {
  * Runtime dispatch consumes [PrakriyaSignature] and does not inspect rule-body text.
  */
 object PrakriyaSignatureCompiler {
+    /** Positional slots are grammatical ordinals, excluding member and history selectors. */
+    fun positionalParameters(body: List<PvmScriptStatement.Sentence>,
+        argumentType: PrakriyaValueType? = null,
+        knownOperationStems: Set<String> = emptySet()): List<PrakriyaParameter> {
+        val parameterPadas = body.asSequence().flatMap { sentence ->
+            sentence.ukti?.grammaticalVakyas().orEmpty().asSequence().flatMap { vakya ->
+                val padas = vakya.padas.flatMap {
+                    if (it is dev.panini.vyakaranam.ast.SamuccitaSubanta) it.members else listOf(it)
+                }
+                val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(padas, knownOperationStems)
+                padas.asSequence().filter { it !in protected }
+            }
+        }.toList()
+        val highestPosition = parameterPadas.mapNotNull(PuranaPratyayaResolver::ordinalValue).maxOrNull() ?: 0L
+        require(highestPosition <= 4096L) {
+            "Positional signature inference exceeds the analysis budget of 4096 slots."
+        }
+        // Check the budget before deriving forms, but never let a known rank
+        // license an unsupported ordinal construction as a real input slot.
+        parameterPadas.forEach { pada ->
+            if (PuranaPratyayaResolver.ordinalValue(pada) != null)
+                PuranaPratyayaResolver.semanticValue(pada)
+        }
+        return (1L..highestPosition).map { value ->
+            val name = when (value) {
+                1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"
+                else -> PrakriyaAstArgumentBinder.referenceKey((value - 1).toInt())
+            }
+            PrakriyaParameter(name, argumentType ?: PrakriyaValueType.UNCONSTRAINED)
+        }
+    }
+
     fun compile(body: List<PvmScriptStatement.Sentence>, headerResult: SubantaPada? = null,
         headerPredicate: TingantaPada? = null): PrakriyaSignature {
         require((headerResult == null) == (headerPredicate == null)) {
@@ -92,7 +138,12 @@ object PrakriyaSignatureCompiler {
             dev.panini.dhatupatha.DhatuPatha.all.any { it.denotesResultProduction(headerPredicate) }) {
             "A typed procedure header requires a result-producing declaration predicate."
         }
-        val parameters = body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
+        val declaredParameters = body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
+        val participants = TypedParticipantAnalysis.inferParameters(body)
+        require(declaredParameters.isEmpty() || participants.isEmpty()) {
+            "Use either named parameter declarations or typed participant phrases in a procedure."
+        }
+        val parameters = declaredParameters.ifEmpty { participants }
         val resultDeclarations = listOfNotNull(headerResult?.let(PrakriyaSignatureDeclarationParser::result)) +
             body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
         requireUniqueParameters(parameters)
@@ -224,9 +275,9 @@ object PrakriyaSignatureDeclarationParser {
 object PrakriyaValueClassifier {
     private val sankhyaEvaluator = SankhyaEvaluator()
 
-    /** Parsed numeric meaning used only after contextual reference lookup fails. */
-    fun numericFallback(pada: dev.panini.vyakaranam.ast.Pada): SanskritValue.Sankhya? =
-        NominalValueAnalysis.numericFallback(pada)
+    /** Parsed value meaning used only after contextual reference lookup fails. */
+    fun fallbackValue(pada: dev.panini.vyakaranam.ast.Pada): SanskritValue? =
+        NominalValueAnalysis.fallbackValue(pada)
 
     /** Literal evidence precedes environment lookup; lexical ordinals remain contextual. */
     fun literalValue(pada: dev.panini.vyakaranam.ast.Pada): SanskritValue? =
@@ -254,6 +305,7 @@ object PrakriyaValueClassifier {
         }
 
     fun classifyValue(value: SanskritValue): PrakriyaValueType = when (value) {
+        is SanskritValue.Purana -> PrakriyaValueType.PURANA
         is SanskritValue.Sankhya, is SanskritValue.Rational -> PrakriyaValueType.SANKHYA
         is SanskritValue.Suchi, is SanskritValue.Gana -> PrakriyaValueType.SUCHI
         is SanskritValue.Shabda -> PrakriyaValueType.SHABDA
@@ -264,6 +316,6 @@ object PrakriyaValueClassifier {
     }
 
     fun classifyPada(pada: dev.panini.vyakaranam.ast.Pada): PrakriyaValueType =
-        (literalValue(pada) ?: numericFallback(pada))?.let(::classifyValue)
+        (literalValue(pada) ?: fallbackValue(pada))?.let(::classifyValue)
             ?: PrakriyaValueType.SHABDA
 }

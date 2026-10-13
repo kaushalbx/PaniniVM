@@ -41,7 +41,7 @@ internal object LocalAnaphorBinding {
                 val padas = program.vakya.padas.map { pada ->
                     if (protected.any { it === pada }) pada else when (pada) {
                         is SubantaPada -> nominal(pada)
-                        is SamuccitaSubanta -> pada.copy(members = pada.members.map(::nominal))
+                        is SamuccitaSubanta -> pada.copy(members = pada.members.map { if (it is SubantaPada) nominal(it) else it })
                         else -> pada
                     }
                 }

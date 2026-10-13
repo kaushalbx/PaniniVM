@@ -44,7 +44,7 @@ object PriorActionLowering {
         var start = 0
         boundaries.forEach { index -> groups += padas.subList(start, index + 1); start = index + 1 }
         groups += padas.drop(start)
-        fun isSubject(pada: SubantaPada): Boolean {
+        fun isSubject(pada: dev.panini.vyakaranam.ast.SupBearingPada): Boolean {
             val candidates = pada.sup.affixCandidates
             return candidates.isNotEmpty() && candidates.all { it.vibhakti == Vibhakti.PRATHAMA }
         }
@@ -52,20 +52,28 @@ object PriorActionLowering {
         // would turn a dual/plural controller into unrelated singular nouns.
         fun subjects(group: List<Pada>): List<Pada> = group.filter { pada ->
             when (pada) {
-                is SubantaPada -> isSubject(pada)
+                is dev.panini.vyakaranam.ast.SupBearingPada -> isSubject(pada)
                 is SamuccitaSubanta -> pada.members.isNotEmpty() && pada.members.all(::isSubject)
                 else -> false
             }
         }
         fun identities(subjects: List<Pada>) = subjects.flatMap { pada ->
             when (pada) {
-                is SubantaPada -> listOf(pada)
+                is dev.panini.vyakaranam.ast.SupBearingPada -> listOf(pada)
                 is SamuccitaSubanta -> pada.members
                 else -> emptyList()
             }
         // Derivational suffixes identify the participant too: a base noun and
         // a possessive/feminine derivative are not automatically coreferential.
-        }.map { it.pratipadika.morphologicalKey() to it.sup.affixCandidates }.groupingBy { it }.eachCount()
+        }.map { member ->
+            val identity: Any = when (member) {
+                is SubantaPada -> member.pratipadika.morphologicalKey()
+                is dev.panini.vyakaranam.ast.SankhyaPuranaPada -> member.stems to member.striAffix
+                is dev.panini.vyakaranam.ast.SankhyaPada -> member.stems
+                else -> member
+            }
+            identity to member.sup.affixCandidates
+        }.groupingBy { it }.eachCount()
         val declaredSubjects = groups.map(::subjects).filter { it.isNotEmpty() }
         val sharedSubjects = declaredSubjects.firstOrNull().orEmpty()
         val sharedIdentities = identities(sharedSubjects)

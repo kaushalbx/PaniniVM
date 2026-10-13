@@ -303,7 +303,7 @@ class GrammaticalRegexArchitectureTest {
         assertTrue("TingAffix.JHI" in structEngine)
         assertFalse("substringBefore(\" + \")" in structEngine)
         assertFalse("substringBeforeLast" in structEngine)
-        assertTrue("pratipadika.semanticKey()" in structEngine)
+        assertTrue("it.stemIdentity()" in structEngine)
 
         val uktiRenderer = File(
             repository,
@@ -363,7 +363,7 @@ class GrammaticalRegexArchitectureTest {
         assertFalse("substringBefore('+')" in guardEvaluator)
         assertFalse("normalizeIdentity(term)" in guardEvaluator)
         assertFalse("split(\" + \")" in guardEvaluator)
-        assertTrue("resolved.argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)" in guardEvaluator)
+        assertTrue("resolved.argument.pada?.let(NominalValueAnalysis::fallbackValue)" in guardEvaluator)
 
         val registry = File(
             repository,

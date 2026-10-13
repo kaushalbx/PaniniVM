@@ -200,7 +200,7 @@ object ResolvedLeafPlanner {
             .flatMap { pada ->
                 when (pada) {
                     is SubantaPada -> listOf(pada)
-                    is SamuccitaSubanta -> pada.members
+                    is SamuccitaSubanta -> pada.members.filterIsInstance<SubantaPada>()
                     else -> emptyList()
                 }
             }
@@ -430,7 +430,8 @@ object ResolvedLeafPlanner {
             }.map { affix -> pada to affix }
         }.distinct()
         val (pada, affix) = candidates.singleOrNull() ?: return null
-        val fallback = NominalValueAnalysis.numericFallback(pada) ?: SvamRupamEngine.evaluate(pada.pratipadika)
+        val fallback = dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)
+            ?: NominalValueAnalysis.numericFallback(pada) ?: SvamRupamEngine.evaluate(pada.pratipadika)
         return ExecutionExpression.TypedOperand(fallback, affix, pada.pratipadika.referenceKey())
     }
 
@@ -462,6 +463,7 @@ object ResolvedLeafPlanner {
     }
 
     private fun isSupportedConstant(value: SanskritValue): Boolean = when (value) {
+        is SanskritValue.Purana,
         is SanskritValue.Sankhya,
         is SanskritValue.Range,
         is SanskritValue.Rational,

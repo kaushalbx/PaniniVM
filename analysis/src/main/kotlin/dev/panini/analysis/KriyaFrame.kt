@@ -17,7 +17,17 @@ value class KriyaId(val value: String) {
 data class KriyaHead(
     val analysis: TingantaAnalysis,
     val dhatu: Dhatu?,
-)
+) {
+    /** Unknown morphological identities must not become a less-specific action. */
+    val actionIdentity: dev.panini.core.ActionIdentity?
+        get() {
+            val lexical = dhatu ?: return null
+            val prefixes = analysis.pada.upasargaIdentities
+            val sanadi = analysis.pada.dhatu.sanadiAffixes
+            if (prefixes.any { it == null } || sanadi.any { it == null }) return null
+            return dev.panini.core.ActionIdentity(lexical.id, prefixes.filterNotNull(), sanadi.filterNotNull())
+        }
+}
 
 sealed interface FrameKarakaResolution {
     data class Resolved(val karaka: Karaka) : FrameKarakaResolution
