@@ -272,6 +272,26 @@ object PrakriyaSignatureDeclarationParser {
         (pratipadika as? MulaPratipadika)?.takeIf { it.vikaras.isEmpty() }?.lexicalIdentity
 }
 
+/** Owns the mapping from signature slots to their grammatical declaration padas. */
+object PrakriyaParameterDeclarations {
+    fun resolve(
+        parameters: List<PrakriyaParameter>,
+        body: List<PvmScriptStatement.Sentence>,
+    ): Map<String, SubantaPada> {
+        val named = body.mapNotNull { sentence ->
+            PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let {
+                it.pratipadika.referenceKey() to it
+            }
+        }.toMap()
+        val typed = if (parameters.any { it.participantOrdinal != null }) {
+            TypedParticipantAnalysis.declarations(body)
+        } else {
+            emptyMap()
+        }
+        return named + typed
+    }
+}
+
 object PrakriyaValueClassifier {
     private val sankhyaEvaluator = SankhyaEvaluator()
 

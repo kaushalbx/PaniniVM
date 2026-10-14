@@ -54,6 +54,16 @@ data class ResolvedPrakriyaArgument(
             ?.pratipadika
             ?.referenceKey()
             ?: PrakriyaInvocationMatcher.normalizeIdentity(argument.term)
+
+    /** Shared compiler/interpreter view of this argument's value evidence. */
+    fun semanticOperand(compatibilityValue: SanskritValue? = null): SemanticOperand {
+        val constraint = parameter?.type?.takeUnless { it == PrakriyaValueType.UNCONSTRAINED }
+        val analyzed = argument.pada?.let { SemanticOperandAnalysis.nominal(it, constraint) }
+        if (analyzed is SemanticOperand.Literal) return analyzed
+        val resolved = argument.value ?: compatibilityValue
+        if (resolved != null) return SemanticOperand.Resolved(resolved, argument.pada, constraint)
+        return analyzed ?: SemanticOperand.Reference(referenceName, typeConstraint = constraint)
+    }
 }
 
 /** Binds natural सप्तमी parameter slots (and legacy षष्ठी labels) to द्वितीया values. */

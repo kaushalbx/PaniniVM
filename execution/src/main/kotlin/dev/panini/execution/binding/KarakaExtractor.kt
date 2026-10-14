@@ -56,11 +56,6 @@ internal object KarakaExtractor {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
-        val requiredKarakas = ctx.dhatu.operations
-            .flatMapTo(mutableSetOf()) { operation ->
-                operation.signature.requirements.map { it.karaka } + operation.signature.optionalKarakas
-            }
-
         val subantas = padas.filterIsInstance<SubantaPada>()
         val isCopularClause = padas.filterIsInstance<TingantaPada>().any {
             it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS
@@ -84,8 +79,7 @@ internal object KarakaExtractor {
                 val candidates = KarakaInference.candidates(
                     pada.sup.affixCandidates, effectivePrayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA,
                 )
-                val compatible = candidates intersect requiredKarakas
-                return compatible.takeIf { it.size == 1 } ?: candidates
+                return candidates
             }
             trace += relation.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
             val candidates = when (val resolution = relation.resolution) {
@@ -96,8 +90,6 @@ internal object KarakaExtractor {
                 is FrameKarakaResolution.Ambiguous -> resolution.candidates
                 is FrameKarakaResolution.Unassigned -> emptySet()
             }
-            val requiredCandidates = candidates intersect requiredKarakas
-            if (requiredCandidates.size == 1) return requiredCandidates
             val legacyMorphologicalCandidates = relation.participant.supCandidates.mapNotNullTo(mutableSetOf()) {
                 val effectivePrayoga = if (ctx.frame.prayoga == Prayoga.ANIRDHARITA) {
                     Prayoga.KARTARI
@@ -110,8 +102,7 @@ internal object KarakaExtractor {
                     ctx.dhatu.karmatva != Karmatva.AKARMAKA,
                 )
             }
-            val compatibleLegacyCandidates = legacyMorphologicalCandidates intersect requiredKarakas
-            return compatibleLegacyCandidates.takeIf { it.size == 1 } ?: candidates
+            return candidates.ifEmpty { legacyMorphologicalCandidates }
         }
 
         fun addBinding(expression: ExecutionExpression, candidates: Set<Karaka>,

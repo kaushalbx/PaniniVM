@@ -44,7 +44,8 @@ internal object ExpressionBuilder {
     ): ExecutionExpression {
         val normalized = NumeralAstNormalizer.normalize(pada)
         val text = normalized.pratipadika.referenceKey()
-        val literalValue = dev.panini.execution.NominalValueAnalysis.literalValue(pada)
+        val semanticOperand = dev.panini.execution.SemanticOperandAnalysis.nominal(pada)
+        val literalValue = (semanticOperand as? dev.panini.execution.SemanticOperand.Literal)?.value
         (literalValue as? SanskritValue.Satya)?.let { value ->
             return ExecutionExpression.Pada(text, value.samjnas, value = value)
         }
@@ -80,6 +81,9 @@ internal object ExpressionBuilder {
                 }
             } else candidates.first()
             return ExecutionExpression.TypedOperand(value, sup, referenceName = text)
+        }
+        if (!isPhalaReference && text in ctx.environment.constraints) {
+            return ExecutionExpression.Reference(text)
         }
         var resolvedId: String? = null
 
@@ -117,7 +121,8 @@ internal object ExpressionBuilder {
                 else -> Unit
             }
         }
-        val svamRupamValue = SvamRupamEngine.evaluate(normalized.pratipadika)
+        val svamRupamValue = (semanticOperand as? dev.panini.execution.SemanticOperand.Reference)?.fallback
+            ?: SvamRupamEngine.evaluate(normalized.pratipadika)
         return ExecutionExpression.Pada(text, samjnas, value = svamRupamValue, memberSelection = selection)
     }
 }

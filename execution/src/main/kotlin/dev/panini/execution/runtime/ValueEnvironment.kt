@@ -5,13 +5,17 @@ import dev.panini.shiksha.Samjna
 /** One authoritative map for values carried through planning and execution. */
 data class ValueEnvironment(
     val values: Map<String, SanskritValue> = emptyMap(),
+    val constraints: Map<String, SemanticValueConstraint> = emptyMap(),
 ) {
     fun with(name: String, value: SanskritValue): ValueEnvironment =
         mergedWith(ValueEnvironment(mapOf(name to value)))
 
     fun mergedWith(other: ValueEnvironment): ValueEnvironment =
-        ValueEnvironment(if (values is LiveValueMap || other.values is LiveValueMap)
-            ValueOverlay(values, other.values) else values + other.values)
+        ValueEnvironment(
+            if (values is LiveValueMap || other.values is LiveValueMap)
+                ValueOverlay(values, other.values) else values + other.values,
+            constraints + other.constraints,
+        )
 
     fun displayValues(): Map<String, String> = values.mapValues { it.value.toDisplayText() }
 
@@ -32,6 +36,12 @@ data class ValueEnvironment(
         )
     }
 }
+
+/** Facts known during planning without fabricating a runtime payload. */
+data class SemanticValueConstraint(
+    val valueType: OperationValueType? = null,
+    val samjnas: Set<Samjna> = emptySet(),
+)
 
 /** Preserve live lexical slots while allowing inner bindings to shadow them. */
 private interface LiveValueMap : Map<String, SanskritValue>

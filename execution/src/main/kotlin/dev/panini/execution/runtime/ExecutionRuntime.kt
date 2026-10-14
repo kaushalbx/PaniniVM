@@ -10,19 +10,20 @@ object ExecutionRuntime {
         environment: ValueEnvironment = scope.environment,
         evaluateCondition: Boolean = false,
     ): Phala {
-        val executableDisposition = planning.plans.all {
+        val semanticProgram = planning.resolvedProgram
+        val executableDisposition = semanticProgram.plans.all {
             it.disposition in setOf(ExecutionDisposition.EXECUTE, ExecutionDisposition.REQUEST_EXECUTION)
         }
-        val grammaticalCondition = evaluateCondition && planning.plans.all {
+        val grammaticalCondition = evaluateCondition && semanticProgram.plans.all {
             it.disposition == ExecutionDisposition.DECLARE &&
                 it.requiredEffects == setOf(ExecutionEffect.PURE) &&
                 Samjna.SATYA in it.resolved.operation.resultSamjnas
         }
         if (!executableDisposition && !grammaticalCondition) {
-            val disposition = requireNotNull(planning.plans.firstOrNull()?.disposition)
+            val disposition = requireNotNull(semanticProgram.plans.firstOrNull()?.disposition)
             return Phala.Avagata(
                 disposition,
-                planning.plans,
+                semanticProgram.plans,
                 listOf("Understood the utterance as $disposition; no task action was performed."),
             )
         }
@@ -46,7 +47,7 @@ object ExecutionRuntime {
         val trace = continuation.trace.toMutableList()
         var lastOutputKind = continuation.lastOutputKind
         var lastControlSignal: ExecutionControlSignal? = null
-        val plans = continuation.planning.plans
+        val plans = continuation.planning.resolvedProgram.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
             if (plan.resolved.operation.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE &&
@@ -139,7 +140,7 @@ object ExecutionRuntime {
                 else -> return Phala.Asiddha(result, trace + result.trace)
             }
         }
-        val invocationIds = continuation.planning.plans.mapTo(mutableSetOf()) { it.invocationId }
+        val invocationIds = continuation.planning.resolvedProgram.plans.mapTo(mutableSetOf()) { it.invocationId }
         val results = ValueEnvironment(values.filterKeys { it in invocationIds })
         return Phala.Siddha(
             results.displayValues(),

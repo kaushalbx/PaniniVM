@@ -21,7 +21,10 @@ data class UktiAnalysis(
     val frames: List<KriyaFrame>,
     val links: List<KriyaLink>,
     val diagnostics: List<FrameDiagnostic> = emptyList(),
-)
+) {
+    val blockingDiagnostics: List<FrameDiagnostic>
+        get() = (diagnostics + frames.flatMap { it.diagnostics }).filter(FrameDiagnosticPolicy::blocksExecution)
+}
 
 /**
  * Performs the second, utterance-level stage of analysis.

@@ -23,6 +23,7 @@ import dev.panini.execution.SmrtaPhala
 import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
+import dev.panini.execution.semanticResultConstraint
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.runtime.GranthaId
@@ -60,6 +61,7 @@ object SanskritGranthaSourceCompiler {
             )
         }
         var currentConversation = conversation
+        var resultConstraints = emptyMap<String, dev.panini.execution.SemanticValueConstraint>()
         val sutras = mutableListOf<dev.panini.sutra.runtime.SutraBlueprint>()
         val trace = mutableListOf<String>()
 
@@ -80,9 +82,9 @@ object SanskritGranthaSourceCompiler {
             }
             trace += bound.trace.map { "line ${index + 1}: $it" }
 
-            val planning = plan(bound.ukti, currentConversation)
+            val planning = plan(bound.ukti, currentConversation, resultConstraints)
             val plans = when (planning) {
-                is PlanningResult.Planned -> planning.plans
+                is PlanningResult.Planned -> planning.resolvedProgram.plans
                 is PlanningResult.Failed -> return invalidLine(
                     index,
                     when (val result = planning.result) {
@@ -132,6 +134,16 @@ object SanskritGranthaSourceCompiler {
                 .compileBlueprintGrantha(globalUkti, granthaId)
                 .sutras
             currentConversation = advance(currentConversation, plans)
+            resultConstraints = resultConstraints + plans.flatMap { plan ->
+                val constraint = plan.resolved.operation.semanticResultConstraint()
+                val bindingName = plan.resolved.operation.resultBindingKaraka
+                    ?.let(plan.resolved.context.bindings::get)
+                    ?.bindingName()
+                buildList {
+                    add(plan.invocationId to constraint)
+                    if (bindingName != null) add(bindingName to constraint)
+                }
+            }
         }
 
         val grantha = SutraBlueprintGrantha(
@@ -155,6 +167,7 @@ object SanskritGranthaSourceCompiler {
     private fun plan(
         ukti: ExecutableUkti,
         conversation: SambhashanaContext,
+        resultConstraints: Map<String, dev.panini.execution.SemanticValueConstraint>,
     ): PlanningResult {
         val blueprint = ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti)
         val program = when (
@@ -190,7 +203,7 @@ object SanskritGranthaSourceCompiler {
                 displayValues = conversation.mentionedEntities + conversation.previousResults,
                 samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,
                 typedValues = historicalValues + conversation.previousTypedResults,
-            ),
+            ).mergedWith(ValueEnvironment(constraints = resultConstraints)),
         )
     }
 
@@ -199,28 +212,20 @@ object SanskritGranthaSourceCompiler {
         plans: List<ExecutionPlan>,
     ): SambhashanaContext {
         val nextTurn = conversation.turnNumber + 1
-        val mockResults = plans.associate { it.invocationId to simulatedResult(it) }
-        val localBindings = plans.mapNotNull { plan ->
-            val karaka = plan.resolved.operation.resultBindingKaraka ?: return@mapNotNull null
-            val name = plan.resolved.context.bindings[karaka]?.bindingName() ?: return@mapNotNull null
-            name to mockResults.getValue(plan.invocationId)
-        }.toMap()
         val remembered = plans.map { plan ->
             SmrtaPhala(
                 id = SmrtaPhalaId.of(nextTurn, plan.invocationId),
                 turnNumber = nextTurn,
                 invocationId = plan.invocationId,
-                value = "<${plan.invocationId}>",
+                value = plan.invocationId,
                 samjnas = plan.resolved.operation.resultSamjnas,
-                typedValue = mockResults.getValue(plan.invocationId),
             )
         }
         return conversation.copy(
             previousResults = conversation.previousResults +
-                plans.associate { it.invocationId to "<${it.invocationId}>" },
+                plans.associate { it.invocationId to it.invocationId },
             previousResultSamjnas = conversation.previousResultSamjnas +
                 plans.associate { it.invocationId to it.resolved.operation.resultSamjnas },
-            previousTypedResults = conversation.previousTypedResults + mockResults + localBindings,
             resultHistory = conversation.resultHistory + remembered,
             metadata = conversation.metadata + plans.associate { plan ->
                 dev.panini.execution.ExecutionMetadata.dhatu(SmrtaPhalaId.of(nextTurn, plan.invocationId)) to
@@ -228,33 +233,6 @@ object SanskritGranthaSourceCompiler {
             },
             turnNumber = nextTurn,
         )
-    }
-
-    private val sankhyaGenerator = dev.panini.sankhya.SankhyaGenerator()
-
-    private fun simulatedResult(plan: ExecutionPlan): SanskritValue {
-        val operands = plan.resolved.context.bindings[Karaka.KARMAN]
-            ?.let(plan.resolved.context::resolveValues)
-            .orEmpty()
-        val sankhyaOperands = operands.filterIsInstance<SanskritValue.Sankhya>().map { it.value }
-        if (sankhyaOperands.isNotEmpty()) {
-            val opName = plan.resolved.operation.name
-            val resVal = when (opName) {
-                "सङ्ख्यायोगः", "panini.math.add" -> sankhyaOperands.sum()
-                "सङ्ख्याअन्तरम्", "panini.math.subtract" -> if (sankhyaOperands.size >= 2) sankhyaOperands[0] - sankhyaOperands[1] else sankhyaOperands[0]
-                "सङ्ख्यागुणनम्", "panini.math.multiply" -> sankhyaOperands.fold(1L) { a, b -> a * b }
-                else -> sankhyaOperands.sum()
-            }
-            val word = sankhyaGenerator.cardinal(resVal).final.surface
-            return SanskritValue.Sankhya(resVal, word)
-        }
-        if (plan.resolved.operation.resultBindingKaraka != null) {
-            if (operands.isNotEmpty()) {
-                return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
-            }
-        }
-        if (Samjna.SATYA in plan.resolved.operation.resultSamjnas) return SanskritValue.Satya(true)
-        return SanskritValue.Shabda("<${plan.invocationId}>", plan.resolved.operation.resultSamjnas)
     }
 
     private fun ExecutionExpression.rewriteReferences(localIds: Map<String, String>): ExecutionExpression =

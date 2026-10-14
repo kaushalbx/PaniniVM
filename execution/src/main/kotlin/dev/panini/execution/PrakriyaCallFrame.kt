@@ -17,20 +17,19 @@ data class PrakriyaCallFrame(
             resolvedArguments: List<ResolvedPrakriyaArgument>,
             callerScope: ExecutionScope,
             resolveValue: (String) -> SanskritValue? = { null },
+            analysis: ProcedureBodyAnalysis = invocation.kriya.bodyAnalysis,
         ): PrakriyaCallFrame {
             val sourceValues = resolvedArguments.map { resolved ->
-                val argument = resolved.argument
-                val referenceName = resolved.referenceName
-                argument.value
-                    ?: argument.pada?.let(PrakriyaValueClassifier::literalValue)
-                    ?: callerScope.environment.values[referenceName]
-                    ?: resolveValue(referenceName)
-                    ?: argument.pada?.let(NominalValueAnalysis::fallbackValue)
-                    ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
-                        .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }
-                    ?: SanskritValue.Shabda(argument.term)
+                resolved.semanticOperand().resolve(
+                    lookup = { name -> callerScope.environment.values[name] ?: resolveValue(name) },
+                    unresolved = { reference ->
+                        runCatching { sankhyaEvaluator.evaluateStems(listOf(reference.name)) }
+                            .getOrNull()?.let { SanskritValue.Sankhya(it.value, reference.name) }
+                            ?: SanskritValue.Shabda(resolved.argument.term)
+                    },
+                )
             }
-            val signature = invocation.kriya.signature
+            val signature = analysis.signature
             val values = if (signature.hasTypedParticipants)
                 TypedParticipantBinding.orderValues(signature.parameters.map { it.type }, sourceValues)
             else sourceValues
@@ -38,12 +37,8 @@ data class PrakriyaCallFrame(
                 .zip(values)
                 .associate { (parameter, value) -> parameter.nameStem to value }
             val localBindings = ProcedureLocalBindings.create(invocation.kriya.signature.parameters, values,
-                callerScope.procedureBindings, invocation.kriya.body
-                    .filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
-                        val parameter = PrakriyaSignatureDeclarationParser.parameter(sentence) ?: return@mapNotNull null
-                        PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let { parameter.nameStem to it }
-                    }.toMap() + if (signature.hasTypedParticipants)
-                    TypedParticipantAnalysis.declarations(invocation.kriya.body) else emptyMap())
+                callerScope.procedureBindings,
+                analysis.parameterDeclarations)
             return PrakriyaCallFrame(
                 parameterBindings = bindings,
                 arguments = values,

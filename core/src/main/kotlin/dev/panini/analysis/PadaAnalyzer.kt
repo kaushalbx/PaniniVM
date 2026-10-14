@@ -33,6 +33,8 @@ data class SubantaAnalysis(
     val lexicalEntry: PratipadikaEntry?,
     val supCandidates: List<SupAffix>,
     val linga: Set<Linga>,
+    /** Intrinsic value evidence without replacing the parser-owned pada node. */
+    val semanticValue: SanskritValue? = null,
 ) {
     /** Compatibility view; semantic analysis must use [supCandidates]. */
     val sup: SupAffix get() = supCandidates.first()
@@ -162,19 +164,16 @@ class PadaAnalyzer(
                     ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${sup.text}"), emptySet()))
         }
         require(semanticValue is SanskritValue.Sankhya) { "Numeral analysis requires cardinal or ordinal value evidence." }
-        val subanta = SubantaPada(
-            pada.sourceText,
-            SankhyaPratipadika(pada.sourceText, semanticValue),
-            sup,
-        )
+        require(pada is dev.panini.vyakaranam.ast.SupBearingPada)
         return AnalyzedSubanta(
-            pada = subanta,
+            pada = pada,
             analysis = SubantaAnalysis(
-                pada = subanta,
+                pada = pada,
                 lexicalEntry = null,
                 supCandidates = SupAffix.candidates(sup.text).takeIf { it.isNotEmpty() }
                     ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${sup.text}"),
                 linga = emptySet(),
+                semanticValue = semanticValue,
             ),
         )
     }

@@ -118,11 +118,31 @@ enum class FrameDiagnosticCode {
     CONFLICTING_SHARED_AGENT,
 }
 
+enum class FrameDiagnosticSeverity { INFO, WARNING, ERROR }
+
+/** Central policy for whether a grammatical diagnostic may reach execution planning. */
+object FrameDiagnosticPolicy {
+    fun severity(code: FrameDiagnosticCode): FrameDiagnosticSeverity = when (code) {
+        FrameDiagnosticCode.UNKNOWN_DHATU -> FrameDiagnosticSeverity.ERROR
+        FrameDiagnosticCode.UNCLASSIFIED_PADA -> FrameDiagnosticSeverity.INFO
+        FrameDiagnosticCode.AMBIGUOUS_KARAKA,
+        FrameDiagnosticCode.UNASSIGNED_PARTICIPANT,
+        FrameDiagnosticCode.AGREEMENT_MISMATCH,
+        FrameDiagnosticCode.CONFLICTING_SHARED_AGENT,
+        -> FrameDiagnosticSeverity.WARNING
+    }
+
+    fun blocksExecution(diagnostic: FrameDiagnostic): Boolean =
+        severity(diagnostic.code) == FrameDiagnosticSeverity.ERROR
+}
+
 data class FrameDiagnostic(
     val code: FrameDiagnosticCode,
     val message: String,
     val sourceText: String? = null,
-)
+) {
+    val severity: FrameDiagnosticSeverity get() = FrameDiagnosticPolicy.severity(code)
+}
 
 data class KriyaFrame(
     val id: KriyaId,

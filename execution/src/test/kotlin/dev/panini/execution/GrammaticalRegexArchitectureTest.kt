@@ -99,7 +99,8 @@ class GrammaticalRegexArchitectureTest {
         assertFalse("source.split('+')" in frontend, "Structured values must consume parsed value padas.")
         assertTrue("TaddhitaStructEngine.assertionValue" in frontend)
         assertFalse("name == \"फल\"" in frontend)
-        assertTrue("argument.referenceName" in frontend)
+        assertTrue("argument.semanticOperand" in frontend,
+            "Compiler operands must consume the shared literal/reference decision.")
         assertTrue(".isPriorResult" in frontend)
         assertFalse("PvmDiscourseContext.from" in frontend, "Later ranges must not be hoisted into earlier statements.")
         assertTrue("CompilerInstruction.RandomActiveRange" in frontend)
@@ -268,7 +269,7 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/binding/ExpressionBuilder.kt",
         ).readText()
         assertFalse("when (baseText)" in expressionBuilder)
-        assertTrue("NominalValueAnalysis.literalValue(pada)" in expressionBuilder)
+        assertTrue("SemanticOperandAnalysis.nominal(pada)" in expressionBuilder)
         val truthValue = File(repository,
             "execution/src/main/kotlin/dev/panini/execution/NominalTruthValue.kt").readText()
         assertTrue("MulaPratipadikaIdentity.SATYA" in truthValue)
@@ -355,6 +356,19 @@ class GrammaticalRegexArchitectureTest {
         ).readText()
         assertFalse("substringBefore('+')" in leafPlanner)
         assertTrue("pratipadika.semanticKey()" in leafPlanner)
+        assertTrue("SemanticValueConstraint" in leafPlanner)
+        assertFalse("SanskritValue.Sankhya(1L" in leafPlanner,
+            "Planning must not invent numeric witness values for references.")
+        assertFalse("SanskritValue.Suchi(emptyList())" in leafPlanner,
+            "Planning must not invent collection witness values for references.")
+
+        val executionPlanner = File(
+            repository,
+            "execution/src/main/kotlin/dev/panini/execution/planning/ExecutionPlanner.kt",
+        ).readText()
+        assertTrue("semanticResultConstraint()" in executionPlanner)
+        assertFalse("SanskritValue.Shabda(\"<" in executionPlanner,
+            "Prior action results must remain symbolic during planning.")
 
         val guardEvaluator = File(
             repository,
