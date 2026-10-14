@@ -141,6 +141,7 @@ object SanskritGranthaSourceCompiler {
                     ?.bindingName()
                 buildList {
                     add(plan.invocationId to constraint)
+                    add(SmrtaPhalaId.of(turn, plan.invocationId) to constraint)
                     if (bindingName != null) add(bindingName to constraint)
                 }
             }
@@ -193,7 +194,7 @@ object SanskritGranthaSourceCompiler {
         }
         val historicalValues = mutableMapOf<String, SanskritValue>()
         conversation.resultHistory.forEach { result ->
-            val valObj = result.typedValue ?: SanskritValue.of(result.value, result.samjnas)
+            val valObj = result.typedValue ?: return@forEach
             historicalValues[result.id] = valObj
             historicalValues[result.invocationId] = valObj
         }
