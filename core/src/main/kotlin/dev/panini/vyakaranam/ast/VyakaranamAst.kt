@@ -280,8 +280,23 @@ enum class AvyayaFunction {
 
 data class SamuccitaSubanta(
     override val sourceText: String,
-    val members: List<SubantaPada>,
-) : Pada
+    val members: List<SupBearingPada>,
+    /** Explicit च-delimited conjunct sizes; empty means a single final connective. */
+    val conjunctSizes: List<Int> = emptyList(),
+) : Pada {
+    init {
+        require(conjunctSizes.isEmpty() || conjunctSizes.all { it > 0 } &&
+            conjunctSizes.sumOf { it.toLong() } == members.size.toLong()) {
+            "Explicit coordination boundaries must cover every nominal occurrence."
+        }
+    }
+
+    fun conjuncts(): List<List<SupBearingPada>> {
+        if (conjunctSizes.isEmpty()) return listOf(members)
+        var start = 0
+        return conjunctSizes.map { size -> members.subList(start, start + size).also { start += size } }
+    }
+}
 
 /** The inclusive सीमा licensed by an ablative source and segmented पर्यन्तम्. */
 data class ParyantaRangePada(
@@ -525,6 +540,7 @@ data class SankhyaPuranaPada(
     override val stems: List<String>,
     override val value: Long? = null,
     override val sup: SupPratyaya,
+    val striAffix: StriAffix? = null,
 ) : SankhyaBoundaryPada
 
 data class SankhyaAbhyasaPada(

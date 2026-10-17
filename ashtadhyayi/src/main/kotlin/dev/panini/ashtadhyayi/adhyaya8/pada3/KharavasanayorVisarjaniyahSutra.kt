@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.SpeechBoundary
+import dev.panini.derivation.firstVarnaAfterTerm
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Vyanjana
@@ -35,14 +37,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
     scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.VISARJANIYA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        val target = targetTerm(context) ?: return false
-        val index = context.terms.indexOf(target)
-        if (index == context.terms.lastIndex) return true
-
-        val next = context.terms[index + 1].varnas.firstOrNull() as? Vyanjana ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
-    }
+    override fun matches(context: DerivationState): Boolean = targetTerm(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = requireNotNull(targetTerm(context))
@@ -50,16 +45,26 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         return DerivationChange(
             state = context.replaceTermVarna(target.id, target.varnas.lastIndex, listOf(Ayogavaha.VISARGA), number)
                 .copy(stage = DerivationStage.FINAL),
-            explanation = "8.3.15: Replaced final 'r' with visarga (Avasāna)."
+            explanation = "8.3.15 replaces the eligible final sound with visarga before khar or explicit avasāna."
         )
     }
 
     private fun targetTerm(context: DerivationState): DerivationTerm? = context.terms.firstOrNull { term ->
         val isRutva = term.varnas.lastOrNull() == Vyanjana.RA && context.substitutions.any { substitution ->
-            substitution.targetId == term.id && substitution.sutra == "8.2.66"
+            substitution.targetId == term.id && substitution.sutra in setOf("8.2.66", "8.3.7") &&
+                (substitution.sourceVarnaIndex == null || substitution.sourceVarnaIndex == term.varnas.lastIndex)
         }
         val isSuffixalSha = term.varnas.lastOrNull() == Vyanjana.SSA && term.kind == TermKind.PRATYAYA &&
             term.upadeshaVarnas.lastOrNull() == Vyanjana.SA
-        isRutva || isSuffixalSha
+        // 8.3.15 says repha, not only repha produced by 8.2.66. A completed
+        // pada licenses lexical r too; this includes a newly completed sup/tiṅ
+        // combination, not just a previously formed external input. An arbitrary
+        // internal r without the established designation still does not qualify.
+        val isCompletedPadaRepha = term.varnas.lastOrNull() == Vyanjana.RA &&
+            context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.PADA }
+        val next = context.firstVarnaAfterTerm(term.id)
+        val environment = if (next == null) context.effectiveContext.finalBoundary == SpeechBoundary.AVASANA
+            else Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
+        (isRutva || isCompletedPadaRepha || isSuffixalSha) && environment
     }
 }

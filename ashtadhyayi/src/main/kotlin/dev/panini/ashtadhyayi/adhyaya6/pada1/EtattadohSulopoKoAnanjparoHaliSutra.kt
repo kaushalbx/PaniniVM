@@ -4,12 +4,16 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.hasRutvaAt
+import dev.panini.core.Linga
+import dev.panini.core.Vibhakti
+import dev.panini.core.Vacana
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,7 +28,7 @@ import dev.panini.sutra.SutraType
  */
 object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.1.132",
-    text = "एतत्तदोः सुलोपो कोरनञ्परो हलि",
+    text = "एतत्तदोः सुलोपोऽकोरनञ्समासे हलि",
     hindiExplanation = "सः तथा एषः के विसर्ग (सुँ) का हल् (व्यंजन) परे होने पर लोप होता है (उदा. स गच्छति, एष विष्णुः)।",
     type = SutraType.NITYA,
     chapter = 6,
@@ -43,7 +47,7 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
             val curr = context.terms[i]
             val next = context.terms[i + 1]
 
-            val isSaOrEsha = isSaOrEsha(curr.varnas)
+            val isSaOrEsha = isSaOrEsha(curr)
             val first = next.varnas.firstOrNull() as? Vyanjana
             val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first)
 
@@ -56,7 +60,7 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
             val curr = context.terms[i]
             val next = context.terms[i + 1]
 
-            val isSaOrEsha = isSaOrEsha(curr.varnas)
+            val isSaOrEsha = isSaOrEsha(curr)
             val first = next.varnas.firstOrNull() as? Vyanjana
             val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first)
 
@@ -64,19 +68,25 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
         }
 
         val targetTerm = context.terms[targetIndex]
-        val source = targetTerm.varnas.last()
-        val newSurface = targetTerm.varnas.dropLast(1).toDevanagari()
-
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, source, emptyList(), sutra),
+            state = context.deleteTermVarnas(targetTerm.id, targetTerm.varnas.lastIndex, 1, sutra),
             explanation = "6.1.132: Elided visarga (su-lopa) from ${targetTerm.surface} before hal."
         )
     }
 
-    private fun isSaOrEsha(varnas: List<Varna>): Boolean = varnas in setOf(
+    private fun isSaOrEsha(term: DerivationTerm): Boolean {
+        val varnas = term.varnas
+        val rupa = term.formedPadaRupa
+        val establishedSuRu = term.upadesha in setOf("तद्", "एतद्") &&
+            rupa?.linga == Linga.PUMS && rupa.vibhakti == Vibhakti.PRATHAMA && rupa.vacana == Vacana.EKAVACANA &&
+            term.hasRutvaAt(varnas.lastIndex) && varnas in setOf(
+                listOf(Vyanjana.SA, Svara.A, Vyanjana.RA),
+                listOf(Svara.E, Vyanjana.SSA, Svara.A, Vyanjana.RA))
+        return establishedSuRu || varnas in setOf(
         listOf(Vyanjana.SA, Svara.A, Ayogavaha.VISARGA),
         listOf(Svara.E, Vyanjana.SSA, Svara.A, Ayogavaha.VISARGA),
         listOf(Vyanjana.SA, Svara.A, Vyanjana.SA),
         listOf(Svara.E, Vyanjana.SSA, Svara.A, Vyanjana.SA),
-    )
+        )
+    }
 }

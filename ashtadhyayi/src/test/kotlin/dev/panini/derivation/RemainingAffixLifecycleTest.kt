@@ -219,13 +219,13 @@ class RemainingAffixLifecycleTest {
     }
 
     @Test
-    fun `kvip is designated exactly before 6 1 67 consumes its processed vi`() {
-        var state = DerivationState(listOf(rawAffix("kvip", "क्विप्", "3.2.61")))
+    fun `kvip is designated exactly before 6 1 67 consumes its processed v`() {
+        var state = DerivationState(listOf(dev.panini.core.KrtAffix.KVIP.rawTerm("kvip", "3.2.61")))
         state = LasakvataddhiteSutra.apply(state).state
         state = HalantyamSutra.apply(state).state
         assertEquals(setOf("1.3.8", "1.3.3"), state.terms.single().itDesignations.map { it.sutra }.toSet())
         state = TasyaLopahSutra.apply(state).state
-        assertEquals("वि", state.surface)
+        assertEquals("व्", state.surface)
         state = VerAprktasyaSutra.apply(state).state
         assertEquals("", state.surface)
         state.requireCompleteItProcessing()
@@ -281,13 +281,17 @@ class RemainingAffixLifecycleTest {
         state = TasyaLopahSutra.apply(state).state
         assertEquals("आन", state.terms.last().surface)
 
+        // Muk requires the final a of the preceding aṅga (here processed śap).
+        state = state.copy(terms = listOf(state.terms.first(),
+            DerivationTerm("shap", "अ", TermKind.PRATYAYA, upadesha = "शप्", itProcessingPhase = ItProcessingPhase.PROCESSED),
+            state.terms.last()))
         state = AaneMukSutra.apply(state).state
         assertEquals("7.2.82", state.terms.last().createdBySutra)
         state = UpadesheAjanunasikaItSutra.apply(state).state
         state = HalantyamSutra.apply(state).state
         state = AdyantauTakitauSutra.apply(state).state
         state = TasyaLopahSutra.apply(state).state
-        assertEquals("मान", DerivationState(state.terms.drop(1)).surface)
+        assertEquals("अमान", DerivationState(state.terms.drop(1)).surface)
         state.requireCompleteItProcessing()
     }
 

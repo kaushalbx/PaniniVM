@@ -147,7 +147,8 @@ object PrakriyaScriptValidator {
                 validatePipeline(source, pipeline, registry, diagnostics)
             } else {
                 sentence.ukti?.let { registry.detectInvocation(it, staticAnalysis = true) }?.let { invocation ->
-                    validateCall(source, invocation, diagnostics)
+                    validateCall(source, invocation, diagnostics,
+                        registry.all().mapTo(mutableSetOf()) { it.nameStem })
                 }
             }
         }
@@ -194,7 +195,11 @@ object PrakriyaScriptValidator {
                         PrakriyaDiagnostics.arity(stage.operationStem, signature.parameters.size, arguments.size),
                     )
                 } else {
-                    signature.parameters.zip(argumentTypes).firstOrNull { (parameter, actual) ->
+                    if (signature.hasTypedParticipants && !TypedParticipantBinding.acceptsTypes(
+                            signature.parameters.map { it.type }, argumentTypes)) {
+                        diagnostics += diagnostic(source, stage.operationStem, "Procedure typed participant mismatch.")
+                    }
+                    signature.parameters.zip(argumentTypes).takeUnless { signature.hasTypedParticipants }.orEmpty().firstOrNull { (parameter, actual) ->
                         parameter.type != PrakriyaValueType.UNCONSTRAINED &&
                             actual != PrakriyaValueType.UNCONSTRAINED && parameter.type != actual
                     }?.let { (parameter, actual) ->
@@ -218,6 +223,7 @@ object PrakriyaScriptValidator {
         source: String,
         invocation: PrakriyaInvocation,
         diagnostics: MutableList<PrakriyaDiagnostic>,
+        knownOperationStems: Set<String>,
     ) {
         invocation.resolutionError?.let {
             diagnostics += diagnostic(source, invocation.kriya.nameStem, it)
@@ -225,7 +231,7 @@ object PrakriyaScriptValidator {
         }
         val signature = invocation.kriya.signature
         val callName = invocation.kriya.nameStem
-        val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+        val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation, knownOperationStems)
         if (resolution is PrakriyaArgumentResolution.Failure) {
             diagnostics += diagnostic(source, callName, resolution.message)
             return
@@ -238,6 +244,16 @@ object PrakriyaScriptValidator {
                 callName,
                 PrakriyaDiagnostics.arity(callName, signature.parameters.size, arguments.size),
             )
+            return
+        }
+        if (signature.hasTypedParticipants) {
+            val types = arguments.map { argument ->
+                argument.argument.value?.let(PrakriyaValueClassifier::classifyValue)
+                    ?: argument.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
+                    ?: PrakriyaValueType.UNCONSTRAINED
+            }
+            if (!TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, types))
+                diagnostics += diagnostic(source, callName, "Procedure typed participant mismatch.")
             return
         }
         signature.parameters.zip(arguments).firstOrNull { (parameter, argument) ->

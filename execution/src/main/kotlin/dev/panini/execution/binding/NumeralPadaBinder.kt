@@ -23,7 +23,7 @@ import dev.panini.vyakaranam.ast.SupPratyaya
  *
  *   decode value → construct synthetic [SubantaPada] → infer kārakas → add binding
  *
- * The four simple numeral pada types ([SankhyaPuranaPada], [KatapayadiPada],
+ * The simple numeral pada types ([SankhyaPuranaPada], [KatapayadiPada],
  * [AryabhatiyaPada], [BhutasamkhyaPada]) each get a typed [bind] overload that
  * reduces their dispatch arm in [KarakaExtractor] to a single line.
  *
@@ -37,14 +37,10 @@ internal object NumeralPadaBinder {
     private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
 
     internal fun resolveSemanticValue(pada: Pada): SanskritValue.Sankhya? {
-        val value = when (pada) {
-            is SankhyaPuranaPada -> pada.value
-                ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
-            else -> extractNumeralValue(pada)
-        } ?: return null
+        if (dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) return null
+        val value = extractNumeralValue(pada) ?: return null
         val word = when (pada) {
             is SankhyaPada -> pada.stems.joinToString(" ")
-            is SankhyaPuranaPada -> pada.stems.joinToString(" ")
             is KatapayadiPada -> pada.word
             is AryabhatiyaPada -> pada.word
             is BhutasamkhyaPada -> pada.terms.joinToString(" ")
@@ -59,7 +55,9 @@ internal object NumeralPadaBinder {
      * Decodes [pada] to a Long if it carries a numeric value, otherwise returns null.
      * Used by the [SankhyaPada] op-stem arm to peek ahead at the next numeral pada.
      */
-    internal fun extractNumeralValue(pada: Pada): Long? = when (pada) {
+    internal fun extractNumeralValue(pada: Pada): Long? {
+        if (dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) return null
+        return when (pada) {
         is SankhyaPada -> pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
         is SubantaPada -> if (NumeralAstNormalizer.hasNonGenderDerivation(pada.pratipadika)) null
             else NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
@@ -68,6 +66,7 @@ internal object NumeralPadaBinder {
         is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
         is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
         else -> null
+        }
     }
 
     /** Extracts an ordinal value only when numeric morphology evaluates to pūraṇa. */
@@ -95,17 +94,24 @@ internal object NumeralPadaBinder {
     internal fun evaluateStems(stems: List<String>) = sharedSankhyaEvaluator.evaluateStems(stems)
 
     // ---- Typed bind overloads -------------------------------------------------------
-    // Each decodes its pada then delegates to [bindDecoded].
+    // Cardinals delegate to [bindDecoded]; ordinals preserve their own value type.
 
     internal fun bind(
         pada: SankhyaPuranaPada,
-        inferKarakas: (SubantaPada) -> Set<Karaka>,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
-    ) = bindDecoded(
-        pada.sourceText, pada.sup,
-        pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value,
-        inferKarakas, addBinding,
-    )
+    ) = bindOrdinal(pada, inferKarakas, addBinding)
+
+    internal fun bindOrdinal(
+        pada: dev.panini.vyakaranam.ast.SupBearingPada,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
+        addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
+    ) {
+        val value = requireNotNull(dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)) {
+            "Ordinal morphology must resolve to a positive ordinal value."
+        }
+        addBinding(ExecutionExpression.Pada(pada.sourceText, value.samjnas, value = value), inferKarakas(pada))
+    }
 
     internal fun bind(
         pada: KatapayadiPada,

@@ -5,6 +5,11 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Svara
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -32,6 +37,9 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1", "1.1.24")
 ), DerivationSutra {
     private val SHAT_NUMERALS = setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+    private val shatShapes = listOf(PrimitiveSankhya.PANCHAN, PrimitiveSankhya.SHASH,
+        PrimitiveSankhya.SAPTAN, PrimitiveSankhya.ASHTAN, PrimitiveSankhya.NAVAN,
+        PrimitiveSankhya.DASHAN).map { it.pratipadikaVarnas }.toSet() + setOf(listOf(Vyanjana.SSA, Svara.A, Vyanjana.TTA))
 
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
@@ -41,11 +49,12 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         val isShat = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT } ||
-            stem.upadesha in SHAT_NUMERALS || stem.surface in SHAT_NUMERALS
+            stem.upadesha in SHAT_NUMERALS || stem.varnas in shatShapes
 
         if (!isShat) return false
 
-        val isJasOrSas = affix.id in setOf("sup-jas", "sup-sas") || affix.upadesha in setOf("जस्", "शस्")
+        val isJasOrSas = affix.sourceSupAffix in setOf(SupAffix.JAS, SupAffix.SAS) &&
+            affix.sourceSupAffix?.let { affix.hasCurrentAffix(it) } == true
         return isJasOrSas
     }
 

@@ -25,9 +25,12 @@ data class SubantaDerivationRequest(
     val compoundHeadUpadesha: String? = null,
     val samasaType: SamasaType? = null,
     val sourceSuffixUpadeshas: Set<String> = emptySet(),
+    /** Explicit lexical identity of a supplied formed stem; never guessed from its spelling. */
+    val pratipadikaUpadesha: String = pratipadika,
 ) {
     init {
         require(pratipadika.isNotBlank()) { "A prātipadika is required." }
+        require(pratipadikaUpadesha.isNotBlank()) { "A lexical prātipadika identity is required." }
     }
 
     fun initialState(): DerivationState = DerivationState(
@@ -36,6 +39,7 @@ data class SubantaDerivationRequest(
                 "pratipadika",
                 pratipadika,
                 TermKind.PRATIPADIKA,
+                upadesha = pratipadikaUpadesha,
                 itMarkers = stemFormation.retainedItMarkers,
                 establishedBySutras = stemFormation.establishedBySutras,
                 compoundHeadUpadesha = compoundHeadUpadesha,

@@ -87,6 +87,21 @@ object DevanagariParser {
                 continue
             }
 
+            if (character == '\u200D' || character == '\u200C') {
+                // Devanāgarī shaping controls qualify the preceding encoded
+                // dead consonant. Preserve them without inventing a varṇa or
+                // silently stripping arbitrary invisible input characters.
+                require(normalized.getOrNull(index - 1) == Vyanjana.VIRAMA &&
+                    tokens.lastOrNull()?.varna is Vyanjana) {
+                    "Devanāgarī shaping control at Unicode index $index must follow a dead consonant in '$text'."
+                }
+                val sign = if (character == '\u200D') OrthographicSign.ZERO_WIDTH_JOINER
+                    else OrthographicSign.ZERO_WIDTH_NON_JOINER
+                signs += OrthographicSignPlacement(sign, tokens.size)
+                index++
+                continue
+            }
+
             val standaloneMatra = Svara.fromMatra(character)
             if (standaloneMatra != null) {
                 // Transitional derivation terms can be orthographic fragments

@@ -36,19 +36,23 @@ object ListIndexAction : DhatuAction("सूचीस्थानम्", "स�
         }
 
         val indexValues = context.resolveValues(indexExpr)
-        val indexSankhya = indexValues.singleOrNull() as? SanskritValue.Sankhya
+        val position = when (val value = indexValues.singleOrNull()) {
+            is SanskritValue.Sankhya -> value.value
+            is SanskritValue.Purana -> value.value
+            else -> null
+        }
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Index must resolve to exactly one saṅkhyā value."
+                "Index must resolve to exactly one cardinal or ordinal position."
             )
 
-        if (indexSankhya.value !in 1L..listItems.size.toLong()) {
+        if (position !in 1L..listItems.size.toLong()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Index ${indexSankhya.value} out of bounds for list of size ${listItems.size}."
+                "Index $position out of bounds for list of size ${listItems.size}."
             )
         }
-        val index = indexSankhya.value.toInt() - 1
+        val index = position.toInt() - 1
 
         val element = listItems[index]
         return ExecutionResult.Success(

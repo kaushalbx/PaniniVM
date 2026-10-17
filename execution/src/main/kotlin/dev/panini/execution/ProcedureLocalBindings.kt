@@ -39,6 +39,11 @@ class ProcedureLocalBindings private constructor(
             get() = slots.mapValues { it.value.value }.entries
     }
     val names: Set<String> get() = parent?.names.orEmpty() + slots.keys
+    val hasProcedureOwner: Boolean get() = procedureBoundary || parent?.hasProcedureOwner == true
+
+    /** Lexical children may shadow a role; an unrelated dynamic caller must not. */
+    fun isDeclaredInProcedure(name: String): Boolean =
+        name in slots || (!procedureBoundary && parent?.isDeclaredInProcedure(name) == true)
 
     /** Uses the same nearest-binding rule as assignment; aliases share identity. */
     fun identity(name: String): LocalReferentIdentity? = slots[name]?.identity ?: parent?.identity(name)

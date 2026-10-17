@@ -37,6 +37,11 @@ object PrakriyaAstArgumentBinder {
             if (reference.hasOrderingQualifier) protected.addAll(reference.orderingQualifiers)
         }
         val verb = padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
+        if (verb != null && padas.filterIsInstance<dev.panini.vyakaranam.ast.SupBearingPada>().size == 2) {
+            val text = padas.joinToString(" ") { it.sourceText }
+            ProcedureResultStatement.resolve(Invocation(AkhyataVakya(text, padas, verb)))?.value
+                ?.takeIf { it is SankhyaPuranaPada }?.let(protected::add)
+        }
         if (verb != null && knownOperationStems.isNotEmpty()) {
             val text = padas.joinToString(" ") { it.sourceText }
             val ukti = dev.panini.vyakaranam.ast.Ukti(sourceText = text,
@@ -55,7 +60,7 @@ object PrakriyaAstArgumentBinder {
         knownOperationStems: Set<String> = emptySet()): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
         val localNames = mutableSetOf<String>()
-        fun ordinalIndex(pada: Pada): Int? =
+        fun ordinalIndex(pada: Pada): Int? = if (parameters.any { it.participantOrdinal != null }) null else
             (PuranaPratyayaResolver.ordinalValue(pada) ?: NumeralPadaBinder.extractOrdinalValue(pada))
                 ?.takeIf { it in 1L..argumentCount.toLong() }?.let { (it - 1).toInt() }
         fun parameterIndex(pada: SubantaPada): Int? {
@@ -101,13 +106,34 @@ object PrakriyaAstArgumentBinder {
             }
             is SamuccitaSubanta -> {
                 val members = pada.members.map { member ->
-                    parameterIndex(member)?.let { reference(member, it) } ?: member
+                    bindPada(member) as dev.panini.vyakaranam.ast.SupBearingPada
                 }
                 pada.copy(sourceText = members.joinToString(" ") { it.sourceText }, members = members)
             }
             else -> pada
         }
         fun bindPadas(originalPadas: List<Pada>): List<Pada> {
+            if (parameters.any { it.participantOrdinal != null }) {
+                val references = TypedParticipantAnalysis.references(originalPadas, knownOperationStems, localNames)
+                val modifiers = references.mapTo(mutableSetOf()) { it.modifierIndex }
+                val heads = references.associateBy { it.headIndex }
+                return originalPadas.mapIndexedNotNull { index, pada ->
+                    if (index in modifiers) null
+                    else heads[index]?.let { candidate ->
+                        val parameterIndex = parameters.indexOfFirst {
+                            it.type == candidate.slot.type && it.participantOrdinal == candidate.slot.ordinal
+                        }
+                        require(parameterIndex >= 0) { "Typed participant has no declared input slot: ${candidate.slot}." }
+                        reference(pada as SubantaPada, parameterIndex)
+                    } ?: if (pada is SamuccitaSubanta) {
+                        val conjuncts = pada.conjuncts().map { group -> bindPadas(group).map { it as dev.panini.vyakaranam.ast.SupBearingPada } }
+                        val members = conjuncts.flatten()
+                        val source = conjuncts.joinToString(" ") { group -> group.joinToString(" ") { it.sourceText } + " च" }
+                        pada.copy(members = members, sourceText = source,
+                            conjunctSizes = if (pada.conjunctSizes.isEmpty()) emptyList() else conjuncts.map { it.size })
+                    } else pada
+                }
+            }
             // An ordinal modifying a named फल or kāraka selects discourse history, not
             // the corresponding procedure parameter. Preserve that whole relation.
             val protected = protectedParameterPadas(originalPadas, knownOperationStems)
@@ -154,7 +180,11 @@ object PrakriyaAstArgumentBinder {
             override fun visitPipeline(node: Pipeline): ProgramNode {
                 val boundPadas = bindPadas(node.argumentPadas)
                 return node.copy(
-                    arguments = node.arguments.mapIndexed { index, argument ->
+                    arguments = if (parameters.any { it.participantOrdinal != null }) boundPadas.map { pada ->
+                        val originalIndex = node.argumentPadas.indexOfFirst { it === pada }
+                        if (originalIndex >= 0) node.arguments[originalIndex]
+                        else (pada as SubantaPada).pratipadika.semanticKey()
+                    } else node.arguments.mapIndexed { index, argument ->
                         val original = node.argumentPadas.getOrNull(index)
                         val bound = boundPadas.getOrNull(index)
                         if (bound === original) argument

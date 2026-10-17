@@ -486,7 +486,8 @@ class DerivationEngineTest {
         val initial = DerivationState(
             listOf(
                 DerivationTerm("root", "र", TermKind.DHATU),
-                DerivationTerm("marker", "म्", TermKind.PRATYAYA)
+                DerivationTerm("marker", "अर्", TermKind.PRATYAYA,
+                    rutvaOccurrences = listOf(RutvaOccurrence(1, "8.2.66")))
             )
         )
 
@@ -496,6 +497,8 @@ class DerivationEngineTest {
 
         val visibleStateForB = RuleVisibility.view(ruleB, stateAfterA, mapOf("6.4.70" to ruleA, "6.4.60" to ruleB))
         assertTrue(ruleB.matches(visibleStateForB))
+        assertEquals(listOf(RutvaOccurrence(1, "8.2.66")),
+            visibleStateForB.terms.single { it.id == "marker" }.rutvaOccurrences)
 
         val engine = DerivationEngine(listOf(ruleA, ruleB))
         val result = engine.derive(initial)

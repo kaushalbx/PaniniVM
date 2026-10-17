@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.TermKind
+import dev.panini.derivation.isEligibleNonSarvanamasthanaSvadi
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
@@ -32,12 +34,13 @@ object YaciBhamSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
-    blocks = setOf("1.4.14") // Overrides Pada status
+    blocks = setOf("1.4.17") // Overrides the preceding stem's svādi-pada status, not the complete word.
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.kind != TermKind.PRATIPADIKA) return false
 
         // 1. Check if affix starts with 'y' or Ac
         val firstVarna = affix.varnas.firstOrNull() ?: return false
@@ -46,7 +49,7 @@ object YaciBhamSutra : Sutra<DerivationState, DerivationChange>(
         if (!isYOrAc) return false
 
         // 2. Affix must be a 'svadi' affix (sup, etc.)
-        val isSvadi = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
+        val isSvadi = context.isEligibleNonSarvanamasthanaSvadi(affix)
 
         return isSvadi && context.samjnas.none { it.targetId == stem.id && it.samjna == Samjna.BHA }
     }
@@ -56,7 +59,9 @@ object YaciBhamSutra : Sutra<DerivationState, DerivationChange>(
         val assignment = SamjnaAssignment(stem.id, Samjna.BHA)
 
         return DerivationChange(
-            state = context.withSamjnas(setOf(assignment)),
+            state = context.copy(samjnas = context.samjnas.filterNot {
+                it.targetId == stem.id && it.samjna == Samjna.PADA
+            }.toSet()).withSamjnas(setOf(assignment)),
             explanation = "1.4.18 assigns 'bha' संज्ञा to the stem before a y/ac-initial suffix."
         )
     }

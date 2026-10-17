@@ -28,6 +28,10 @@ class ShnaSubstitutionProvenanceTest {
             surface = "आन", itProcessingPhase = ItProcessingPhase.PROCESSED,
             createdBySutra = "3.2.124", establishedBySutras = emptySet(),
         ))
-        assertTrue(AaneMukSutra.matches(participle))
+        assertFalse(AaneMukSutra.matches(participle)) // grah itself is not a-final.
+        val withShap = participle.copy(terms = listOf(participle.terms.first(),
+            DerivationTerm("shap", "अ", TermKind.PRATYAYA, upadesha = "शप्", itProcessingPhase = ItProcessingPhase.PROCESSED),
+            participle.terms[1], participle.terms.last()))
+        assertTrue(AaneMukSutra.matches(withShap))
     }
 }

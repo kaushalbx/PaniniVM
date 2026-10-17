@@ -9,8 +9,23 @@ For planned language additions and their proposed syntax, see the
 [`PVM language enhancement plan`](pvm-language-enhancement-plan.md).
 
 The examples describe syntax implemented by the current repository. Optional
-parameters and explicit early-return statements are not yet part of the
-language.
+parameters are not yet part of the language. Explicit procedure results use a
+nominative `फल … अस्ति` predication inside a procedure, as described below.
+
+Ordinal results use a distinct `SanskritValue.Purana` (पूरण) value: for example,
+`द्वि + तीय` represents position two, not the cardinal number two. Positions are
+positive and one-based. A productive ordinal used as the value in a procedure's
+`फल … अस्ति` statement remains an ordinal through execution, persistence, and
+JVM compilation. Numeric arithmetic does not implicitly accept this value type.
+Collection-member selectors and productive ordinal action operands retain this
+type. List indexing explicitly accepts a cardinal index or an ordinal position;
+this does not make ordinals arithmetic operands. Remaining older numeric
+fallbacks are tracked in the natural-language roadmap.
+
+Procedure arguments also preserve ordinal values. An unbound lexical ordinal
+such as `द्वितीय` cannot satisfy a cardinal-number parameter. A lexical name may
+still resolve to an existing value of that parameter's type; productive ordinal
+literals such as `द्वि + तीय` remain ordinal regardless of same-spelled names.
 
 ## 1. What a `.pvm` file contains
 
@@ -480,6 +495,15 @@ reevaluated before each loop iteration; they are not the bare फल truth short
 An unavailable named result is an error: a missing previous or ordinal result
 does not fall back to the latest result of another action.
 
+An unqualified action noun such as `युज् + ल्युट्` searches completed actions of
+that root family. Explicit prefixes or sanādi affixes make the reference exact:
+`युज् + णिच् + ल्युट् + ङस् फल + अम्` selects a completed causative action,
+not a later plain-root action. `वि + युज् + णिच् + ल्युट्` retains both the
+prefix and causative affix. This distinction applies to result and participant
+references in both backends. Ordering is applied after identity filtering: a
+second or previous qualified action must actually exist. Root-only compatibility
+history cannot supply a missing qualified match.
+
 Interpreted discourse can also refer to a remembered action's participants:
 `युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम्` selects the previous matching
 action's object participants, not its computed result. Ordering modifiers must
@@ -889,6 +913,36 @@ it does not execute a generation action or make a body sentence return early.
 Existing `… प्रक्रिया … अस्ति` headers and body result declarations still work.
 See `examples/control_flow/typed_procedure_header.pvm`.
 
+### Returning a value early
+
+Within a procedure, `फल + सुँ शून्य + सुँ असँ + लट् + तिप्` states
+“the result is zero.” Both the result role and its value are nominative; the
+present copula is third-person singular. This predication finalizes the current
+call. Future tense is not a return alias, and an ordinary assignment does not
+become a return because its destination is named परिणाम.
+
+```pvm
+गणन + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
+फल + सुँ प्रथम + टाप् + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ॥
+द्वि + औट् गणन + टा डुकृञ् + उ + लोट् + सिप् ।
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Return supplies one resolved value, including a collection or record value, and
+terminates the nearest procedure call. It crosses a branch, repetition, while,
+or foreach scope without becoming a loop break. Subsequent body statements and
+loop-completion results are skipped. The declared result contract still applies,
+and the caller resumes after the call. Outside a procedure, this predication
+does not request procedure control transfer. A locally declared parameter named
+फल shadows the result role; a dynamic caller's similarly named parameter does not.
+Returning does not print; use `मुद्र् + णिच्` in the caller when output is wanted.
+Without an explicit return, the body's final produced value remains its normal
+result, including a nominal value selected by a conditional branch.
+
+See `examples/control_flow/procedure_return.pvm`. Its readable `.txt` is generated
+by the CLI; unsupported morphological generation currently remains segmented.
+Suspended enclosing procedure continuations still require further consolidation.
+
 Invoke the declared name in the instrumental with `कृ`. An ordinary noun
 name takes its case suffix directly; do not add `ल्युट्` to it:
 
@@ -942,7 +996,72 @@ a 4096-slot analysis budget. Prefer explicit typed declarations: an ordinal
 identifies a position, not the argument's type. Undeclared positional slots are
 unconstrained unless an existing type guard supplies a constraint. Operations
 still validate their operands; positional syntax does not grant numeric meaning
-to text or collections. General typed-valency inference remains unfinished.
+to text or collections. Calls with declared or inferred positional slots require
+exactly that many arguments: missing and excess inputs fail before the body runs.
+A list is one argument, regardless of its member count. History/member ordinal
+selectors and known procedure names do not create parameter slots. Legacy bodies
+without any declared or positional slots retain their existing unrestricted
+argument behavior; general typed-valency inference remains unfinished.
+
+### Typed participant phrases
+
+A procedure can infer inputs from ordinal adjectives agreeing with type nouns,
+without separate `इति मान` declarations:
+
+```pvm
+परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रथम + टाप् + अम् सङ्ख्या + अम् मुद्र् + णिच् + लोट् + सिप् ।
+फल + सुँ प्रथम + सुँ शब्द + सुँ असँ + लट् + तिप् ॥
+राम + अम् द्वि + औट् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This procedure takes its first number and its first word. Ordinals are counted
+within each type, not across the whole call. The word and number may be supplied
+in either order; order among two numbers or two words remains significant.
+Referencing the second number reserves two numeric input slots even when the
+first is otherwise unused. Actual payload types determine binding: numeric-looking
+text remains text, and a list (including an empty list) is one list input.
+
+Missing inputs, excess inputs, and incorrect per-type counts fail before the body
+runs. Do not mix inferred typed participants and explicit named declarations in
+one procedure. The explicit declaration form below remains supported separately.
+Case, singular number, and known grammatical gender must agree. The analyzer
+rejects competing compatible heads or several ordinals claiming one head; it does
+not use nearest-word guessing. Repeated `च` can explicitly delimit same-case
+phrases, for example:
+
+```pvm
+योग + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रथम + टाप् + अम् सङ्ख्या + अम् च द्वितीय + टाप् + अम् सङ्ख्या + अम् च युज् + णिच् + लोट् + सिप् ॥
+द्वि + औट् त्रि + शस् च योग + टा डुकृञ् + उ + लोट् + सिप् ।
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Here each `च` closes one input phrase. Each phrase contributes one operand,
+not separate adjective and noun values. The same phrases can place their ordinal
+after the noun. Source operand order remains significant for noncommutative
+operations. With several indistinguishable heads and only one final `च`, missing
+phrase boundaries are not manufactured from word proximity. Different case roles,
+such as coordinated agents followed by objects, stay separate. See
+`examples/control_flow/coordinated_typed_inputs.pvm`.
+
+Established collection-member and history roles
+are protected rather than rebound as inputs. Productive ordinals can retain
+an explicit feminine affix, for example `द्वि + तीय + टाप् + अम् सङ्ख्या + अम्`.
+Its position stays two; टाप् supplies feminine morphology, not another input.
+These productive ordinal nodes also work inside native coordinated phrases;
+`प्रथ् + अमच् + टाप्` and `द्वि + तीय + टाप्` retain their derivational segments
+instead of being rewritten as lexical stems. The coordinated-input example uses
+these productive forms, with the same readable sentence and execution result.
+Recognized affix spelling alone does not establish licensing: the existing
+derivation engine must support that combination, preserving the written ordinal
+affix rather than replacing it with a default ordinal of the same numeric value. See
+`examples/control_flow/typed_ordinal_participants.pvm`. General phrase attachment
+and broader derivational licensing remain unfinished. Coordinated phrase members
+currently use the `SubantaPada` representation; combining productive
+`SankhyaPuranaPada` ordinals with these explicit phrase groups still needs a
+general nominal-phrase representation that preserves the ordinal derivation.
 
 Place signature declarations at the beginning of the block:
 

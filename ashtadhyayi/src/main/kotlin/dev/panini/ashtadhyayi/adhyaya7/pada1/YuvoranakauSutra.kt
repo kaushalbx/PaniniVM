@@ -4,7 +4,11 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.YathasamkhyamSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.core.YuvAffixConvention
+import dev.panini.shiksha.*
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,27 +35,28 @@ object YuvoranakauSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     dependencies = setOf("1.3.10")
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        // Matches if any term (usually an affix) contains 'yu' or 'vu'
-        // as its core content (upadeśa or surface).
-        return context.terms.any { it.surface == "यु" || it.surface == "वु" }
+    private fun target(context: DerivationState): DerivationTerm? = context.terms.firstOrNull {
+        it.kind == TermKind.PRATYAYA && it.itProcessingPhase == ItProcessingPhase.PROCESSED &&
+            it.itDesignations.isEmpty() && it.deferredItDesignations.isEmpty() &&
+            when (it.yuvAffixConvention) {
+                YuvAffixConvention.YU -> it.varnas == sources[0]
+                YuvAffixConvention.VU -> it.varnas == sources[1]
+                null -> false
+            }
     }
 
+    override fun matches(context: DerivationState): Boolean = target(context) != null
+
     override fun apply(context: DerivationState): DerivationChange {
-        val target = context.terms.find { it.surface == "यु" || it.surface == "वु" }!!
-        val replacement = requireNotNull(YathasamkhyamSutra.map(target.surface, sources, targets))
+        val target = requireNotNull(target(context))
+        val replacement = requireNotNull(YathasamkhyamSutra.map(target.varnas, sources, targets))
 
         return DerivationChange(
-            state = context.replaceWholeAffix(
-                id = target.id,
-                surface = replacement,
-                sutra = sutra,
-                policy = WholeAffixDesignationPolicy.Consume,
-            ),
-            explanation = "7.1.1: Substituted $replacement for ${target.surface} (Yuvoranākau)."
+            state = context.replaceTermVarnaRange(target.id, 0, target.varnas.size, replacement, emptyMap(), sutra),
+            explanation = "7.1.1 substitutes ana/aka for the conventionally nasalized yaṇ affix (Yuvoranākau)."
         )
     }
 
-    private val sources = listOf("यु", "वु")
-    private val targets = listOf("अन", "अक")
+    private val sources: List<List<Varna>> = listOf(listOf(Vyanjana.YA, Svara.U), listOf(Vyanjana.VA, Svara.U))
+    private val targets: List<List<Varna>> = listOf(listOf(Svara.A, Vyanjana.NA, Svara.A), listOf(Svara.A, Vyanjana.KA, Svara.A))
 }

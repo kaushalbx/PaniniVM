@@ -50,7 +50,7 @@ object ListPopAction : DhatuAction("सूच्युद्धरणम्", "�
         }
 
         val position = if (member?.memberSelection == dev.panini.execution.CollectionMemberSelection.ORDINAL)
-            (member.value as? SanskritValue.Sankhya)?.value else items.size.toLong()
+            (member.value as? SanskritValue.Purana)?.value else items.size.toLong()
         if (position == null || position !in 1L..items.size.toLong()) {
             return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Collection member position is outside the one-based list bounds.")
         }

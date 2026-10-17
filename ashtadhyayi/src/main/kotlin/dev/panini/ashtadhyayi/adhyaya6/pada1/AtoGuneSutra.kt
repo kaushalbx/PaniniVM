@@ -8,6 +8,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.pararupaAtBoundary
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.firstVarna
@@ -40,6 +41,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
+        if (pendingPair(context) != null) return true
         if (context.terms.size < 2) return false
         val pairIndex = targetPairIndex(context) ?: return false
         val stem = context.terms[pairIndex]
@@ -64,22 +66,30 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        pendingPair(context)?.let { term ->
+            val pending = requireNotNull(term.pendingBaseComposition)
+            require(term.varnas.drop(pending.index).take(2) == pending.originalPair) {
+                "Pending base junction changed before composition."
+            }
+            val composed = context.replaceTermVarnaRange(term.id, pending.index, 2,
+                listOf(pending.originalPair[1]), mapOf(0 to 1), sutra)
+            return DerivationChange(composed.replaceTerm(term.id,
+                composed.terms.single { it.id == term.id }.copy(pendingBaseComposition = null)),
+                "6.1.97 composes the pending internal a + guna junction, retaining the following vowel.")
+        }
         val terms = context.terms
         val pairIndex = requireNotNull(targetPairIndex(context))
         val stem = terms[pairIndex]
         val affix = terms[pairIndex + 1]
 
-        val stemVarnas = stem.varnas
         val affixVarnas = affix.varnas
         val replacement = listOf(affixVarnas.first())
-        val newSurface = (stemVarnas.dropLast(1) + replacement + affixVarnas.drop(1)).toDevanagari()
 
         val newSamjnas = context.samjnas.map {
             if (it.targetId == affix.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = stem.id) else it
         }.toSet()
-        val merged = context.mergeTermsByVarnaSubstitution(
-            stem.id, affix.id, newSurface, Svara.A, replacement, sutra,
-        ).copy(stage = DerivationStage.ANGAKARYA, samjnas = newSamjnas)
+        val merged = context.pararupaAtBoundary(stem.id, affix.id, sutra)
+            .copy(stage = DerivationStage.ANGAKARYA, samjnas = newSamjnas)
         val survivingStem = merged.terms.single { it.id == stem.id }
 
         return DerivationChange(
@@ -98,7 +108,11 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         }?.let { return it }
         return context.terms.lastIndex - 1
     }
-
+    private fun pendingPair(context: DerivationState) = context.terms.firstOrNull { term ->
+        term.pendingBaseComposition?.originalPair?.let { pair ->
+            pair[0] == Svara.A && pair[1] in setOf(Svara.A, Svara.E, Svara.O)
+        } == true
+    }
     private fun dev.panini.derivation.DerivationTerm.isPlacedBeginningAugment(context: DerivationState): Boolean =
         kind == TermKind.AGAMA &&
             !mergeIntoAugmentTarget &&

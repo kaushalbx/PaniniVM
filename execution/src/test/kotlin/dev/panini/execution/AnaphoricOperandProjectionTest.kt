@@ -51,7 +51,7 @@ class AnaphoricOperandProjectionTest {
         assertEquals(2, projection.operands.size)
         replacement.members.zip(original.members).forEach { (resolved, source) ->
             assertSame(source.sup, resolved.sup)
-            assertNotEquals(source.pratipadika, resolved.pratipadika)
+            assertNotEquals(assertIs<SubantaPada>(source).pratipadika, assertIs<SubantaPada>(resolved).pratipadika)
         }
         val protected = AnaphoricOperandProjection.project(withResult,
             emptyList<AgreementCandidate<String>>(), protectedPadas = setOf(original))

@@ -17,7 +17,17 @@ value class KriyaId(val value: String) {
 data class KriyaHead(
     val analysis: TingantaAnalysis,
     val dhatu: Dhatu?,
-)
+) {
+    /** Unknown morphological identities must not become a less-specific action. */
+    val actionIdentity: dev.panini.core.ActionIdentity?
+        get() {
+            val lexical = dhatu ?: return null
+            val prefixes = analysis.pada.upasargaIdentities
+            val sanadi = analysis.pada.dhatu.sanadiAffixes
+            if (prefixes.any { it == null } || sanadi.any { it == null }) return null
+            return dev.panini.core.ActionIdentity(lexical.id, prefixes.filterNotNull(), sanadi.filterNotNull())
+        }
+}
 
 sealed interface FrameKarakaResolution {
     data class Resolved(val karaka: Karaka) : FrameKarakaResolution
@@ -108,11 +118,31 @@ enum class FrameDiagnosticCode {
     CONFLICTING_SHARED_AGENT,
 }
 
+enum class FrameDiagnosticSeverity { INFO, WARNING, ERROR }
+
+/** Central policy for whether a grammatical diagnostic may reach execution planning. */
+object FrameDiagnosticPolicy {
+    fun severity(code: FrameDiagnosticCode): FrameDiagnosticSeverity = when (code) {
+        FrameDiagnosticCode.UNKNOWN_DHATU -> FrameDiagnosticSeverity.ERROR
+        FrameDiagnosticCode.UNCLASSIFIED_PADA -> FrameDiagnosticSeverity.INFO
+        FrameDiagnosticCode.AMBIGUOUS_KARAKA,
+        FrameDiagnosticCode.UNASSIGNED_PARTICIPANT,
+        FrameDiagnosticCode.AGREEMENT_MISMATCH,
+        FrameDiagnosticCode.CONFLICTING_SHARED_AGENT,
+        -> FrameDiagnosticSeverity.WARNING
+    }
+
+    fun blocksExecution(diagnostic: FrameDiagnostic): Boolean =
+        severity(diagnostic.code) == FrameDiagnosticSeverity.ERROR
+}
+
 data class FrameDiagnostic(
     val code: FrameDiagnosticCode,
     val message: String,
     val sourceText: String? = null,
-)
+) {
+    val severity: FrameDiagnosticSeverity get() = FrameDiagnosticPolicy.severity(code)
+}
 
 data class KriyaFrame(
     val id: KriyaId,

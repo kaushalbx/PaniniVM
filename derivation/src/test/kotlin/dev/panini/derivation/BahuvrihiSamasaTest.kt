@@ -25,8 +25,15 @@ class BahuvrihiSamasaTest {
         )
         assertEquals("पीताम्बरः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.2.24" })
-        val parasavarna = result.applications.single { it.sutra == "8.4.58" }
-        assertTrue(parasavarna.delta.changedTerms.isNotEmpty())
+        val parasavarna = result.applications.filter { it.sutra == "8.4.58" }
+        // Constituent inflection and completed-compound derivation are separate
+        // Tripādī runs. Each real anusvāra occurrence must still be transformed.
+        assertTrue(parasavarna.isNotEmpty())
+        assertTrue(parasavarna.all { it.delta.changedTerms.isNotEmpty() })
+        val positions = result.applications.indices.filter { result.applications[it].sutra == "8.4.58" }
+        for ((first, second) in positions.zipWithNext()) {
+            assertTrue(result.applications.subList(first + 1, second).any { it.sutra == "8.3.24" })
+        }
     }
 
     @Test

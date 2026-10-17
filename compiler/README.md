@@ -75,6 +75,13 @@ case agreement; chronological ordinals remain fixed while latest references
 reload when a loop condition is evaluated. Unselected branches do not load
 history, and missing reached antecedents fail explicitly.
 
+Explicitly prefixed or sanādi-derived action nouns use structural history
+identity (Dhātupāṭha entry, ordered prefixes, ordered sanādi), retained in compiler
+IR. The JVM indexes the same completed event under both structural and root-family
+identities; ordering is applied after identity filtering. Unqualified action nouns
+retain root-family lookup. Missing qualified matches cannot fall back to unrelated
+same-root events.
+
 Kāraka-history queries such as `युज् + ल्युट् + ङस् कर्मन् + अम्` are a
 different feature: compiled display and assignment preserve remembered
 participants and their order. Assignment expands explicit history-group wrappers,
@@ -145,8 +152,14 @@ explicitly, so generic equality calls do not need runtime name guessing.
 
 Control flow is represented explicitly with `Label`, `Branch`, and `Jump`.
 Fixed repetition and bounded or unbounded loops are lowered to ordinary IR
-back-edges and state operations. Breaks and returns use `RequestBreak`,
-`ConsumeBreak`, `ReturnIfBreak`, and `Return`.
+back-edges and state operations. Loop breaks use `RequestBreak`, `ConsumeBreak`,
+and `ReturnIfBreak`. Procedure result predications (`फल … अस्ति`, with singular
+nominative role and value) lower their value to IR and use `RequestProcedureReturn`. Sequence and loop guards
+propagate that request to the owning procedure's contract exit, without
+publishing loop-completion values. `Return` ends the generated JVM procedure.
+The result contract still applies, lexical foreach frames are unwound, and a
+nested callee's return does not terminate its caller. Outside procedure scope,
+the predication is not interpreted as a return request.
 
 Named calls use explicit procedure instructions:
 
@@ -179,8 +192,9 @@ files named `*mukhya*` are entry points when present, otherwise non-`*_lib`
 files are entry points. Compilation emits `<Module>Program.class` and
 `<module>.pvmmeta`.
 
-Metadata format 2 preserves procedure precedence across separately compiled
-libraries. Regenerate format-1 metadata with the current compiler; it is rejected
+Metadata format 3 preserves procedure precedence and per-type participant
+ordinals across separately compiled libraries. Regenerate format-1/2 metadata
+with the current compiler; it is rejected
 because it cannot represent this dispatch contract.
 
 `BytecodeCompiler.compileModule` accepts an in-memory descriptor, while

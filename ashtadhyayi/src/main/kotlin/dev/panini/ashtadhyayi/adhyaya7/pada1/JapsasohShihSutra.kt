@@ -28,7 +28,9 @@ object JapsasohShihSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
-    nimittaScope = NimittaScope.EXTERNAL
+    nimittaScope = NimittaScope.EXTERNAL,
+    // The neuter prescription supersedes sarvanāma jas → śī (7.1.17).
+    blocks = setOf("7.1.17", "7.3.103"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false

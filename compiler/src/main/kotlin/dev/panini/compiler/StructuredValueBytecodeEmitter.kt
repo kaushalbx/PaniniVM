@@ -13,6 +13,11 @@ import org.objectweb.asm.Opcodes.INVOKESTATIC
 internal object StructuredValueBytecodeEmitter {
     fun emit(mv: MethodVisitor, value: SanskritValue) {
         when (value) {
+            is SanskritValue.Purana -> {
+                mv.visitLdcInsn(value.value)
+                mv.visitLdcInsn(value.word)
+                call(mv, "purana", "(JLjava/lang/String;)Ldev/panini/execution/SanskritValue;")
+            }
             is SanskritValue.Sankhya -> {
                 mv.visitLdcInsn(value.value)
                 mv.visitLdcInsn(value.word)

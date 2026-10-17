@@ -1,12 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -32,7 +37,8 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
     nimittaScope = NimittaScope.EXTERNAL,
-    dependencies = setOf("6.4.1")
+    dependencies = setOf("6.4.1"),
+    blocks = setOf("7.1.23"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
@@ -41,22 +47,20 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.getOrNull(context.terms.size - 2) ?: return false
         val affix = context.terms.last()
 
-        // A consonant without a virāma carries the inherent a; e.g. फल is a-final.
         val endsInA = stem.varnas.lastOrNull() == Svara.A
         return endsInA &&
-            (affix.upadesha == "सुँ" || affix.upadesha == "अम्") &&
-            affix.surface != "म्"
+            affix.itProcessingPhase == ItProcessingPhase.PROCESSED &&
+            listOf(SupAffix.SU, SupAffix.AM).any { affix.sourceSupAffix == it && affix.hasCurrentAffix(it) } &&
+            sutra !in affix.establishedBySutras
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        return DerivationChange(
-            // The aṅga already supplies अ; the visible remainder of अम् is म्.
-            state = context.replaceTerm(
-                affix.id,
-                affix.replaceWholeAffix("म्", "अम्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(itMarkers = emptySet()),
-            ).copy(stage = DerivationStage.FINAL),
-            explanation = "7.1.24: Substituted the visible remainder म् of अम् for neuter सु/अम् after an a-stem."
-        )
+        val changed = context.replaceWholeAffix(affix.id, listOf(Svara.A, Vyanjana.MA), sutra,
+            WholeAffixDesignationPolicy.Consume, upadesha = SupAffix.AM.upadesha)
+        val current = changed.terms.last()
+        return DerivationChange(changed.replaceTerm(current.id,
+            current.copy(establishedBySutras = current.establishedBySutras + sutra)).copy(stage = DerivationStage.ANGAKARYA),
+            "7.1.24 substitutes complete am; 6.1.107 supplies the subsequent vowel coalescence.")
     }
 }

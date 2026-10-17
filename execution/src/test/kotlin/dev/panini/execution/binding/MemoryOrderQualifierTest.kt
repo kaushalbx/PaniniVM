@@ -9,6 +9,45 @@ import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 
 class MemoryOrderQualifierTest {
+    @Test fun `a dative destination alone cannot become history ordering through adjacency`() {
+        for (phrase in listOf("पूर्व + ङे फल + अम्", "फल + अम् पूर्व + ङे")) {
+            val padas = dev.panini.vyakaranam.parser.PaniniParser().parse(
+                "युज् + ल्युट् + ङस् $phrase दा + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas
+            val reference = NamedActionResultReferenceResolver.resolve(padas).single()
+            assertTrue(reference.orderingAgrees)
+            assertFalse(reference.hasOrderingQualifier)
+            assertTrue(reference.orderingQualifiers.isEmpty())
+            assertTrue(NamedActionResultReferenceResolver.operandPadas(padas).any {
+                it is SubantaPada && it.sup.text == "ङे"
+            })
+        }
+    }
+
+    @Test fun `a malformed competing ordinal is not a separate destination`() {
+        for (head in listOf("फल", "कर्मन्")) {
+            for (extra in listOf("प्रथमा + अम्", "द्वि + तीय + शस्", "द्वि + तीय + सुँ")) {
+                val padas = dev.panini.vyakaranam.parser.PaniniParser().parse(
+                    "युज् + ल्युट् + ङस् प्रथम + अम् $head + अम् $extra मुद्र् + णिच् + लोट् + सिप् ।")
+                    .grammaticalVakyas().single().padas
+                if (head == "फल") assertFalse(NamedActionResultReferenceResolver.resolve(padas).single().orderingAgrees)
+                else assertFalse(KarakaReferenceResolver.references(padas).single().orderingValid)
+            }
+        }
+    }
+
+    @Test fun `dative ordering stem remains a result destination rather than consumed qualifier`() {
+        val padas = dev.panini.vyakaranam.parser.PaniniParser().parse(
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् पूर्व + ङे दा + लोट् + सिप् ।")
+            .grammaticalVakyas().single().padas
+        val reference = NamedActionResultReferenceResolver.resolve(padas).single()
+        assertTrue(reference.orderingAgrees)
+        assertEquals(1, reference.orderingQualifiers.size)
+        assertTrue(NamedActionResultReferenceResolver.operandPadas(padas).any {
+            it is SubantaPada && it.sup.text == "ङे"
+        })
+    }
+
     @Test fun `history qualifier agreement uses sup morphology across encoded numeric targets`() {
         val accusative = SupPratyaya("अम्", "अम्")
         val modifier = SubantaPada("प्रथम", MulaPratipadika("प्रथम", "प्रथम"), accusative)
@@ -32,7 +71,9 @@ class MemoryOrderQualifierTest {
         ).body as dev.panini.vyakaranam.ast.Invocation
         val group = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
         val reference = NamedActionResultReferenceResolver.resolve(invocation.vakya.padas).single()
-        kotlin.test.assertSame(group.members.first(), reference.result)
+        assertEquals(listOf(2, 1), group.conjunctSizes)
+        kotlin.test.assertSame(group.conjuncts().first().last(), reference.result)
+        kotlin.test.assertSame(group.conjuncts().first().first(), reference.orderingQualifier)
         assertEquals(1L, reference.ordinalFromOldest)
         val operands = NamedActionResultReferenceResolver.operandPadas(invocation.vakya.padas)
         assertTrue(operands.any { it === reference.result })
@@ -75,13 +116,14 @@ class MemoryOrderQualifierTest {
     }
 
     @Test
-    fun `typed ordinal normalization retains gender for agreement`() {
+    fun `cardinal normalization leaves ordinal identity and gender intact`() {
         val target = subanta("फल", "अम्")
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         for (form in listOf("प्रथमा", "प्रथम + टाप्", "प्रथम")) {
             val original = parser.parse("$form + अम् ।").grammaticalVakyas().single().padas.single() as SubantaPada
             val normalized = NumeralAstNormalizer.normalize(original)
-            kotlin.test.assertIs<dev.panini.vyakaranam.ast.SankhyaPratipadika>(normalized.pratipadika)
+            kotlin.test.assertSame(original, normalized)
+            kotlin.test.assertIs<dev.panini.vyakaranam.ast.MulaPratipadika>(normalized.pratipadika)
             val order = MemoryOrderQualifier(pada = normalized, ordinalNumber = 1L)
             assertEquals(form == "प्रथम", order.agreesWith(target), form)
         }
@@ -223,14 +265,28 @@ class MemoryOrderQualifierTest {
     }
 
     @Test
-    fun `ordinal extraction preserves an already typed semantic value`() {
+    fun `structural rank inspection does not license incomplete history selector morphology`() {
         val pada = dev.panini.vyakaranam.ast.SankhyaPuranaPada(
             sourceText = "typed ordinal", stems = emptyList(), value = 4_294_967_297L,
             sup = SupPratyaya("अम्", "अम्"),
         )
         assertEquals(pada.value, NumeralPadaBinder.extractOrdinalValue(pada))
         val target = subanta("फल", "अम्")
-        assertEquals(pada.value, MemoryOrderQualifierResolver.before(target, listOf(pada, target)).ordinalNumber)
+        val qualifier = MemoryOrderQualifierResolver.before(target, listOf(pada, target))
+        assertEquals(null, qualifier.ordinalNumber)
+        assertTrue(qualifier.unresolvedOrdinal)
+        assertFalse(qualifier.agreesWith(target))
+    }
+
+    @Test fun `unsupported ordinal affix cannot select a remembered result`() {
+        val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(
+            "द्वि + तम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।").body as dev.panini.vyakaranam.ast.Invocation
+        val padas = invocation.vakya.padas
+        val qualifier = MemoryOrderQualifierResolver.from(padas.first())
+        assertTrue(qualifier.isExplicit)
+        assertTrue(qualifier.unresolvedOrdinal)
+        assertFalse(qualifier.agreesWith(padas[1]))
+        assertEquals(null, qualifier.select(listOf("first", "second")))
     }
 
     private fun subanta(stem: String, sup: String) = SubantaPada(

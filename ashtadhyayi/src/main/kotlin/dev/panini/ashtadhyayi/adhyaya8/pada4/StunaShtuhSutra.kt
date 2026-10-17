@@ -68,6 +68,9 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
                 return Match(curr.termIndex, curr.varnaIndex, next.varna)
             }
             if (curr.varna in shtu && next.varna in stu) {
+                if (curr.termIndex != next.termIndex &&
+                    context.isBlockedAtBoundary(sutra, context.terms[curr.termIndex].id,
+                        context.terms[next.termIndex].id)) continue
                 return Match(next.termIndex, next.varnaIndex, curr.varna)
             }
         }

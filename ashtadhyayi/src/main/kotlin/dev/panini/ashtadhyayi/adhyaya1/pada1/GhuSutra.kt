@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -13,13 +14,13 @@ import dev.panini.sutra.SutraType
 
 /**
  * 1.1.20: dādhā ghvadāp.
- * Roots of the form 'dā' and 'dhā' are called 'ghu',
- * excluding the word 'dāp' (to cut).
+ * The six source roots designated as dā/dhā are called ghu,
+ * excluding dāp (cutting) and daip (purifying).
  */
 object GhuSutra : Sutra<DerivationState, DerivationChange>(
     number = "1.1.20",
-    text = "दाधा घ्वदाप",
-    hindiExplanation = "दा और धा स्वरूप वाली धातुओं की 'घु' संज्ञा होती है, 'दाप्' (लवनार्थक) को छोड़कर।",
+    text = "दाधा घ्वदाप्",
+    hindiExplanation = "निर्दिष्ट दा और धा स्वरूप वाली धातुओं की घु संज्ञा होती है; दाप् और दैप् को छोड़कर।",
     type = SutraType.SAMJNA,
     chapter = 1,
     pada = 1,
@@ -32,17 +33,20 @@ object GhuSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.DHATU &&
-            term.surface in ghuRoots &&
-            context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.GHI } // Using GHI as proxy or add GHU
+            term.upadesha in ghuRootUpadeshas &&
+            SamjnaAssignment(term.id, Samjna.GHU) !in context.samjnas
         }
 
     override fun apply(context: DerivationState): DerivationChange {
-        // We'll use a dynamic Samjna assignment. GHU should be added to Samjna enum for full fidelity.
+        val assignments = context.terms.filter {
+            it.kind == TermKind.DHATU && it.upadesha in ghuRootUpadeshas
+        }.mapTo(mutableSetOf()) { SamjnaAssignment(it.id, Samjna.GHU) }
         return DerivationChange(
-            state = context,
-            explanation = "1.1.20 identifies 'ghu' roots for specific verbal transformations."
+            state = context.withSamjnas(assignments),
+            explanation = "1.1.20 assigns घु to the six specified roots, excluding दाप् and दैप्."
         )
     }
 
-    private val ghuRoots = setOf("दा", "धा", "दे", "धेट्")
+    // Lexical upadeśa identities, not a predicate over the mutable phonological shape.
+    private val ghuRootUpadeshas = setOf("डुदाञ्", "दाण्", "दो", "देङ्", "डुधाञ्", "धेट्")
 }

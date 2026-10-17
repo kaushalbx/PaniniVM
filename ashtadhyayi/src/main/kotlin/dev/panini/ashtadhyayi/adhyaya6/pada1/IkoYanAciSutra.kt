@@ -11,6 +11,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermCompositionDomain
 import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.findInternalVowelJunction
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
@@ -45,6 +46,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage !in setOf(DerivationStage.IT_PROCESSED, DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED)) return false
+        if (internalTarget(context) != null) return true
 
         val terms = context.terms
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
@@ -75,6 +77,13 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        internalTarget(context)?.let { (term, index) ->
+            val replacement = requireNotNull(yan[term.varnas[index]])
+            return DerivationChange(
+                context.replaceTermVarna(term.id, index, listOf(replacement), sutra),
+                "6.1.77 substitutes yaṇ for the exact internal ik occurrence before a vowel.",
+            )
+        }
         val terms = context.terms
         val (leftIndex, rightIndex) = requireNotNull(targetPair(context))
         val leftTerm = terms[leftIndex]
@@ -97,6 +106,10 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.77: substituted ${replacement.toDevanagari()} for $leftVowel before vowel and merged terms."
         )
+    }
+
+    private fun internalTarget(context: DerivationState) = context.findInternalVowelJunction { left, right ->
+        left in yan && right is Svara && !Varnamala.areSavarna(left, right)
     }
 
     private fun targetPair(context: DerivationState): Pair<Int, Int>? {

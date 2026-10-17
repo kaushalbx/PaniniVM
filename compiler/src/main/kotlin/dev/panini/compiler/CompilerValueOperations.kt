@@ -87,6 +87,7 @@ internal object CompilerValueOperations {
         val valid = when (CompilerValueKind.valueOf(kind)) {
             CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
             CompilerValueKind.NUMBER -> dev.panini.execution.OperationValueType.NUMBER.accepts(value)
+            CompilerValueKind.ORDINAL -> value is SanskritValue.Purana
             CompilerValueKind.BOOLEAN -> value is SanskritValue.Satya
             CompilerValueKind.TEXT -> value is SanskritValue.Shabda
             CompilerValueKind.LIST -> dev.panini.execution.OperationValueType.COLLECTION.accepts(value)
@@ -250,10 +251,14 @@ internal object CompilerValueOperations {
     @JvmStatic
     fun listIndex(list: SanskritValue, index: SanskritValue): SanskritValue {
         val items = collectionItems(list)
-        val numericIndex = (index as? SanskritValue.Sankhya)?.value
+        val numericIndex = when (index) {
+            is SanskritValue.Sankhya -> index.value
+            is SanskritValue.Purana -> index.value
+            else -> null
+        }
             ?: throw CompiledPaniniExecutionException(
                 ExecutionError.INVALID_VALUE,
-                "Index must be a valid saṅkhyā value.",
+                "Index must be a cardinal or ordinal position.",
             )
         if (numericIndex !in 1L..items.size.toLong()) {
             throw CompiledPaniniExecutionException(

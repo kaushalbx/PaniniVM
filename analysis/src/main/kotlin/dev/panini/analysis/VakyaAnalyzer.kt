@@ -285,26 +285,28 @@ class VakyaAnalyzer(
         }
         // Count only an explicit, fully resolved coordination, not adjacent nouns
         // which may instead be appositions or have different grammatical roles.
-        val expectedVacana = coordination?.members?.sumOf { member ->
-            when (member.sup.vacana) {
-                Vacana.EKAVACANA -> 1
-                Vacana.DVIVACANA -> 2
-                Vacana.BAHUVACANA -> 3
-            }
-        }?.let { count ->
-            when (count) {
-                1 -> Vacana.EKAVACANA
-                2 -> Vacana.DVIVACANA
-                else -> Vacana.BAHUVACANA
-            }
-        } ?: controllerAnalysis.sup.vacana
+        fun Vacana.participantCount(): Int = when (this) {
+            Vacana.EKAVACANA -> 1
+            Vacana.DVIVACANA -> 2
+            Vacana.BAHUVACANA -> 3
+        }
+        fun countVacana(count: Int): Vacana = when (count) {
+            1 -> Vacana.EKAVACANA
+            2 -> Vacana.DVIVACANA
+            else -> Vacana.BAHUVACANA
+        }
+        val expectedVacanas = coordination?.members?.fold(setOf(0)) { counts, member ->
+            val memberCounts = member.supCandidates.mapTo(mutableSetOf()) { it.vacana.participantCount() }
+            counts.flatMapTo(mutableSetOf()) { count -> memberCounts.map { count + it } }
+        }?.mapTo(mutableSetOf(), ::countVacana)
+            ?: controllerAnalysis.supCandidates.mapTo(mutableSetOf()) { it.vacana }
 
-        if (expectedVacana != tinganta.ting.vacana) {
+        if (tinganta.ting.vacana !in expectedVacanas) {
             return listOf(
                 buildString {
                     append(if (controllerKaraka == Karaka.KARMAN)
                         "कर्मक्रियावचनयोः विरोधः: कर्म " else "कर्तृक्रियावचनयोः विरोधः: कर्ता ")
-                    append(expectedVacana)
+                    append(expectedVacanas.joinToString("/"))
                     append(", क्रिया ")
                     append(tinganta.ting.vacana)
                     append('।')

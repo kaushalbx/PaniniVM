@@ -55,8 +55,12 @@ The active `BhoBhagoAghoApurvasyaYoshiSutra` now checks the lexical/a-purva doma
 requires rutva provenance for a final repha, and substitutes only consonantal y.
 Regression tests reject the i/u-final visarga inputs above for this rule. The
 table records the original diagnostic, not the output after that scope correction.
-The external-pada input model still lacks an explicit underlying s/r identity for
-a written visarga; rejecting the incorrect yatva is not a complete derivation.
+At that checkpoint the external-pada input model lacked explicit underlying
+s/r identity for written visarga. The current model now has typed VisargaSource,
+exact rutva occurrences and completed nominal derivation handoff; the shared
+forward nominal index supplies source-backed candidates under a declared lexicon.
+Rejecting incorrect yatva alone was not the completed solution. Unannotated
+string inputs still do not establish a unique source on their own.
 Do not infer a unique historical s/r identity from the
 written sign, add output-specific substitutions, or silently treat these failures
 as covered by the underlying-form benchmarks.
@@ -70,9 +74,10 @@ audit is complete.
 An exact-token replacement/deletion/composition trial for ordinary 6.1.87
 passed the 291 sandhi benchmarks but failed `SubantaNumeralDeclensionTest`:
 deleting the initial vowel of `sup-aut` invalidated a deferred it-designation.
-The trial was withdrawn; ordinary guṇa still uses the legacy merger.
-Before migrating it, establish an explicit exact-position policy for transferring
-or consuming deferred designations during coalescence. Do not bypass the
+That trial was withdrawn at the checkpoint. The later exact-position deferred
+designation transfer implementation is described below and is now active in
+ordinary guṇa; the withdrawn trial is historical evidence, not an open request
+to implement the same migration again. Its lesson remains: do not bypass
 designation checks, add a legacy fallback, or exclude the numeral context.
 Focused vowel-sandhi tests alone do not cover this lifecycle requirement.
 

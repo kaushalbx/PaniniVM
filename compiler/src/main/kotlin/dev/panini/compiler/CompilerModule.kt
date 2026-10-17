@@ -134,7 +134,7 @@ data class PaniniModuleMetadata(
         requireConsistentInheritance(inheritance.toList())
     }
 
-    companion object { const val CURRENT_FORMAT_VERSION = 2 }
+    companion object { const val CURRENT_FORMAT_VERSION = 3 }
 }
 
 object PaniniModuleMetadataCodec {
@@ -143,7 +143,9 @@ object PaniniModuleMetadataCodec {
         appendLine("module=${encoded(metadata.moduleName)}")
         appendLine("class=${encoded(metadata.className)}")
         metadata.procedures.sortedBy(PaniniExportedProcedure::symbol).forEach { procedure ->
-            val parameters = procedure.parameters.joinToString(",") { "${encoded(it.nameStem)}:${it.type.name}" }
+            val parameters = procedure.parameters.joinToString(",") {
+                "${encoded(it.nameStem)}:${it.type.name}:${it.participantOrdinal ?: ""}"
+            }
             appendLine(listOf(
                 "procedure", encoded(procedure.symbol), encoded(procedure.methodName),
                 encoded(procedure.domain.orEmpty()), parameters,
@@ -173,8 +175,10 @@ object PaniniModuleMetadataCodec {
         val procedures = lines.filter { it.startsWith("procedure|") }.map { line ->
             val parts = line.split('|')
             val parameters = parts[4].takeIf(String::isNotEmpty)?.split(',')?.map { parameter ->
-                val pair = parameter.split(':', limit = 2)
-                PrakriyaParameter(decoded(pair[0]), PrakriyaValueType.valueOf(pair[1]))
+                val pair = parameter.split(':')
+                require(pair.size == 3) { "Invalid procedure parameter metadata." }
+                PrakriyaParameter(decoded(pair[0]), PrakriyaValueType.valueOf(pair[1]),
+                    pair[2].takeIf(String::isNotEmpty)?.toLong())
             }.orEmpty()
             PaniniExportedProcedure(
                 decoded(parts[1]), decoded(parts[2]), decoded(parts[3]).ifBlank { null }, parameters,
@@ -281,26 +285,14 @@ internal object PaniniModuleAnalyzer {
         val declared = PrakriyaSignatureCompiler.compile(definition.body, definition.prakriya.declaredResult,
             definition.prakriya.resultPredicate)
         if (declared.parameters.isNotEmpty()) return declared
-        val padas = definition.body.flatMap { sentence ->
-            sentence.ukti?.grammaticalVakyas()?.flatMap { vakya ->
-                val protected = dev.panini.execution.PrakriyaAstArgumentBinder
-                    .protectedParameterPadas(vakya.padas, knownOperationStems)
-                vakya.padas.filter { it !in protected }
-            }.orEmpty()
-        }
-        val ordinalValues = padas.mapNotNull(PuranaPratyayaResolver::ordinalValue).distinct().sorted()
-        val highestPosition = ordinalValues.maxOrNull() ?: 0L
-        // Source ordinals must not trigger an unbounded compiler allocation.
-        require(highestPosition <= 4096L) { "Positional signature inference exceeds the compiler analysis budget of 4096 slots." }
-        val ordinalParameters = (1L..highestPosition).map { value ->
-            val name = when (value) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"
-                else -> dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey((value - 1).toInt()) }
-            PrakriyaParameter(name, declared.argumentType ?: PrakriyaValueType.UNCONSTRAINED)
-        }
+        val ordinalParameters = PrakriyaSignatureCompiler.positionalParameters(
+            definition.body, declared.argumentType, knownOperationStems)
         return declared.copy(parameters = ordinalParameters)
     }
 
-    private fun signatureKey(signature: PrakriyaSignature): String = signature.parameters.joinToString { it.type.name }
+    private fun signatureKey(signature: PrakriyaSignature): String = signature.parameters.joinToString {
+        "${it.type.name}:${it.participantOrdinal ?: ""}"
+    }
     private fun stableMethodSuffix(
         source: String,
         domain: String?,

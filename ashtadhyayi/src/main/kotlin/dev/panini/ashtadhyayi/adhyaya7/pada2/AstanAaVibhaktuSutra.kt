@@ -39,19 +39,21 @@ object AstanAaVibhaktuSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        if (stem.surface != "अष्टन्") return false
+        if (stem.upadesha != "अष्टन्" || stem.varnas != stem.upadeshaVarnas) return false
 
         return affix.sourceSupAffix != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val replacement = listOf(Svara.A, Vyanjana.SSA, Vyanjana.TTA, Svara.AA)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, replacement, Vyanjana.NA, listOf(Svara.AA), sutra)
+            // Single-varṇa ā replaces final n. The preceding a is retained;
+            // its coalescence with ā belongs to 6.1.101, not this rule.
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.AA), sutra,
+                nasalizedReplacement = false)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.84: Substituted 'aṣṭā' for '${stem.surface}' before case affix."
+            explanation = "7.2.84 substitutes plain ā for final n; the preceding a remains for 6.1.101."
         )
     }
 }

@@ -1,9 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
+import dev.panini.shiksha.carStopCounterpart
+
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.firstVarnaAfterTerm
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -46,26 +49,21 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun substituteFor(source: Varna): Varna = when (source) {
-        Vyanjana.JA, Vyanjana.JHA -> Vyanjana.CA
-        Vyanjana.DDA, Vyanjana.DDHA -> Vyanjana.TTA
-        Vyanjana.DA, Vyanjana.DHA -> Vyanjana.TA
-        Vyanjana.GA, Vyanjana.GHA -> Vyanjana.KA
-        Vyanjana.BA, Vyanjana.BHA -> Vyanjana.PA
-        else -> source
-    }
+    private fun substituteFor(source: Varna): Varna = source.carStopCounterpart() ?: source
 
     private fun findTarget(context: DerivationState): Target? {
         val engine = Ashtadhyayi.pratyaharaEngine
-        for (termIndex in 0 until context.terms.lastIndex) {
+        for (termIndex in context.terms.indices) {
             val leftVarnas = context.terms[termIndex].varnas
-            val varnaIndex = leftVarnas.lastIndex
-            val left = leftVarnas.lastOrNull() ?: continue
-            val right = context.terms[termIndex + 1].varnas.firstOrNull() ?: continue
-            if (engine.contains(Pratyahara.JHAL, left) &&
-                engine.contains(Pratyahara.KHAR, right) &&
-                substituteFor(left) != left
-            ) return Target(termIndex, varnaIndex)
+            for (varnaIndex in leftVarnas.indices) {
+                val left = leftVarnas[varnaIndex]
+                val right = leftVarnas.getOrNull(varnaIndex + 1)
+                    ?: context.firstVarnaAfterTerm(context.terms[termIndex].id) ?: continue
+                if (engine.contains(Pratyahara.JHAL, left) &&
+                    engine.contains(Pratyahara.KHAR, right) &&
+                    substituteFor(left) != left
+                ) return Target(termIndex, varnaIndex)
+            }
         }
         return null
     }

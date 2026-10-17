@@ -121,9 +121,9 @@ class MainTest {
             val emitted = runCli(
                 arrayOf("--emit-grantha", input.toString(), output.toString()),
             )
+            assertTrue(emitted.any { it.contains("✓ Emitted 2 sūtra(s)") }, emitted.joinToString("\n"))
             val executed = runCli(arrayOf("--grantha", output.toString()))
 
-            assertTrue(emitted.any { it.contains("✓ Emitted 2 sūtra(s)") })
             assertTrue(executed.any { it.contains("✓ उक्ति-२/योग-1: पञ्चदश") })
         } finally {
             Files.deleteIfExists(output)

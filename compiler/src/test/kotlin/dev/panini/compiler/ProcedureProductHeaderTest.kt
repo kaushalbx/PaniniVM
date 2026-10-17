@@ -47,7 +47,7 @@ class ProcedureProductHeaderTest {
                 assertEquals(result.typedValue,
                     (generated.getMethod("execute").invoke(null) as Map<*, *>)["LastResult"])
             } else {
-                assertFailsWith<IllegalArgumentException>(affix) { PaniniVM().evalScript(source) }
+                assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last(), affix)
                 assertFailsWith<IllegalArgumentException>(affix) {
                     CompilerFrontend.lower(source, "InvalidProductVikarana$index")
                 }
@@ -92,9 +92,11 @@ class ProcedureProductHeaderTest {
         ).withIndex()) {
             val source = header.replace("जन् + णिच् + लट् + तिप्", predicate) +
                 "\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n$call"
-            assertFailsWith<IllegalArgumentException>(predicate) {
-                PaniniVM().evalScript(source)
-            }
+            if (predicate.startsWith("प्र +")) {
+                // A prefixed declaration predicate is rejected during parsing,
+                // before a procedure signature exists to validate at invocation.
+                assertFailsWith<IllegalArgumentException>(predicate) { PaniniVM().evalScript(source) }
+            } else assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last(), predicate)
             assertFailsWith<IllegalArgumentException>(predicate) {
                 CompilerFrontend.lower(source, "InvalidProductionMorphology$index")
             }

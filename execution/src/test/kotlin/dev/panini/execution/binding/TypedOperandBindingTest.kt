@@ -138,9 +138,11 @@ class TypedOperandBindingTest {
         val ctx = BindingContext(null, 0, dev.panini.dhatupatha.juhotyadi.DaDhatu(), frame,
             previousDhatus = emptyList())
         val result = KarakaExtractor.extractKarakas(vakya.padas, ctx)
-        kotlin.test.assertTrue(Karaka.SAMPRADANA in result.bindings)
-        kotlin.test.assertFalse(Karaka.KARANA in result.bindings)
-        assertEquals(emptyList(), result.ambiguous)
+        assertEquals(emptyMap(), result.bindings)
+        assertEquals(
+            setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
+            result.ambiguous.single().candidates,
+        )
     }
 
     @Test

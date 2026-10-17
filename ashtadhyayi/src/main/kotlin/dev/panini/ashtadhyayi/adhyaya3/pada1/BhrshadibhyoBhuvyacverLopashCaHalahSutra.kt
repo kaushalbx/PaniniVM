@@ -9,7 +9,6 @@ import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -49,10 +48,7 @@ object BhrshadibhyoBhuvyacverLopashCaHalahSutra : Sutra<DerivationState, Derivat
             ) {
                 val final = term.varnas.lastOrNull()
                 if (final is Vyanjana) {
-                    val newSurface = term.varnas.dropLast(1).toDevanagari()
-                    state = state.substituteTermSurface(
-                        term.id, newSurface, final, emptyList(), sutra,
-                    )
+                    state = state.deleteTermVarnas(term.id, term.varnas.lastIndex, 1, sutra)
                 }
                 state = state.addTerm(
                     DerivationTerm("${term.id}-kyan", "क्यङ्", TermKind.PRATYAYA, upadesha = "क्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),

@@ -92,6 +92,17 @@ class CompiledProgramRuntime private constructor(
     fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) =
         enterFrame(names, argumentValues, positionalAliases = true)
 
+    fun enterTypedFrame(names: Array<String>, argumentValues: Array<SanskritValue>, types: Array<String>) {
+        val ordered = try {
+            dev.panini.execution.TypedParticipantBinding.orderValues(
+                types.map(dev.panini.execution.PrakriyaValueType::valueOf), argumentValues.toList())
+        } catch (failure: IllegalArgumentException) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure inputs.")
+        }
+        enterFrame(names, ordered.toTypedArray())
+    }
+
     private fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>, positionalAliases: Boolean) {
         require(names.size == argumentValues.size) {
             "Compiled saṃjñā argument values must match its parameter count."
@@ -230,6 +241,13 @@ class CompiledProgramRuntime private constructor(
     /** [dhatuUpadesha] is a canonical lexical identity supplied by the compiler. */
     fun recordActionResult(dhatuUpadesha: String, value: SanskritValue) {
         recordActionFrame(dhatuUpadesha, value, emptyMap())
+    }
+
+    /** Index the same atomic event under its exact morphology, without duplicating root history. */
+    fun indexActionIdentity(dhatuUpadesha: String, identityKey: String) {
+        require(identityKey.startsWith("@action:")) { "Invalid structural action history key." }
+        val event = requireNotNull(actionResults[dhatuUpadesha]?.lastOrNull()) { "No successful action to index." }
+        actionResults.getOrPut(identityKey, ::mutableListOf).add(event)
     }
 
     /** Records one successful action atomically, keeping result and participants aligned. */

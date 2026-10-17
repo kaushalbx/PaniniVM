@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasNutAugmentedGenitivePlural
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -52,6 +53,8 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
             stem.takeIf {
                 isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.varnas.lastOrNull() == Vyanjana.NA &&
                     (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") ||
+                        (context.hasNutAugmentedGenitivePlural(affix) &&
+                            context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.PADA }) ||
                         insideSankhyaCompound || insideSamasa || hasDroppedSup)
             }
         }

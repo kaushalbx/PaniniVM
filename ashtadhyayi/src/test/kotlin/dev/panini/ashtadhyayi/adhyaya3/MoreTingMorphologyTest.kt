@@ -2,7 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya3
 
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GupDhoopVichchhiPaniPanibhyOyaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.KamerNingSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.RtIyIyAnehKyanSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.RterIyangSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.LanSakatayanasyaIvaSutra
 import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationEngine
@@ -36,14 +36,14 @@ class MoreTingMorphologyTest {
     }
 
     @Test
-    fun `derives kyaṅ affix via RtIyIyAnehKyanSutra`() {
+    fun `derives iyang affix via RterIyangSutra`() {
         val state = DerivationState(
-            terms = listOf(DerivationTerm("root", "ऋतीय", TermKind.DHATU, upadesha = "ऋतीय")),
+            terms = listOf(DerivationTerm("root", "ऋत्", TermKind.DHATU, upadesha = "ऋत्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        val result = DerivationEngine(listOf(RtIyIyAnehKyanSutra)).derive(state)
+        val result = DerivationEngine(listOf(RterIyangSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "3.1.29" })
-        assertEquals("क्यङ्", result.final.allEffectiveTerms.last().upadesha)
+        assertEquals("ईयङ्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test

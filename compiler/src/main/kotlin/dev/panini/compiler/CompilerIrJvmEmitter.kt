@@ -36,8 +36,14 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Constant -> StructuredValueBytecodeEmitter.emit(mv, instruction.value)
                 is CompilerInstruction.Load -> emitLoad(instruction.name)
                 is CompilerInstruction.Store -> emitStore(instruction.name)
-                is CompilerInstruction.RecordActionResult -> emitStore(instruction.dhatuUpadesha, "recordActionResult")
-                is CompilerInstruction.RecordActionFrame -> emitRecordActionFrame(instruction)
+                is CompilerInstruction.RecordActionResult -> {
+                    emitStore(instruction.dhatuUpadesha, "recordActionResult")
+                    emitActionIdentityIndex(instruction.dhatuUpadesha, instruction.actionIdentity)
+                }
+                is CompilerInstruction.RecordActionFrame -> {
+                    emitRecordActionFrame(instruction)
+                    emitActionIdentityIndex(instruction.dhatuUpadesha, instruction.actionIdentity)
+                }
                 is CompilerInstruction.CallParticipantGroup -> {
                     mv.visitVarInsn(ALOAD, 0)
                     mv.visitInsn(SWAP)
@@ -63,24 +69,25 @@ internal class CompilerIrJvmEmitter(
                     mv.visitVarInsn(ALOAD, bindings)
                     mv.visitMethodInsn(INVOKEVIRTUAL, "dev/panini/compiler/CompiledProgramRuntime", "executeParticipantGroup",
                         "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;", false)
+                    emitActionIdentityIndex(instruction.dhatuUpadesha, instruction.actionIdentity)
                 }
                 is CompilerInstruction.LoadActionResult -> {
                     mv.visitVarInsn(ALOAD, 0)
-                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.actionIdentity?.compiledHistoryKey() ?: instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.occurrenceFromLatest)
                     mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionResult",
                         "(Ljava/lang/String;I)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.LoadOrdinalActionResult -> {
                     mv.visitVarInsn(ALOAD, 0)
-                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.actionIdentity?.compiledHistoryKey() ?: instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.ordinalFromOldest)
                     mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionResult",
                         "(Ljava/lang/String;J)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.LoadActionParticipants -> {
                     mv.visitVarInsn(ALOAD, 0)
-                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.actionIdentity?.compiledHistoryKey() ?: instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.occurrenceFromLatest)
                     mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
                     mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME,
@@ -89,7 +96,7 @@ internal class CompilerIrJvmEmitter(
                 }
                 is CompilerInstruction.LoadOrdinalActionParticipants -> {
                     mv.visitVarInsn(ALOAD, 0)
-                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.actionIdentity?.compiledHistoryKey() ?: instruction.dhatuUpadesha)
                     mv.visitLdcInsn(instruction.ordinalFromOldest)
                     mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
                     mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME,
@@ -543,6 +550,15 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
+    private fun emitActionIdentityIndex(root: String, identity: dev.panini.core.ActionIdentity?) {
+        if (identity == null) return
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(root)
+        mv.visitLdcInsn(identity.compiledHistoryKey())
+        mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "indexActionIdentity",
+            "(Ljava/lang/String;Ljava/lang/String;)V", false)
+    }
+
     private fun emitRecordActionFrame(instruction: CompilerInstruction.RecordActionFrame) {
         val result = allocateLocal(1)
         mv.visitVarInsn(ASTORE, result)
@@ -581,7 +597,7 @@ internal class CompilerIrJvmEmitter(
         val parameterNames = allocateLocal(1)
         val values = List(call.parameterNames.size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
-        call.parameterKinds.forEachIndexed { index, kind ->
+        call.parameterKinds.takeUnless { call.typedParticipants }.orEmpty().forEachIndexed { index, kind ->
             mv.visitVarInsn(ALOAD, values[index])
             mv.visitLdcInsn(kind.name)
             mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
@@ -599,11 +615,20 @@ internal class CompilerIrJvmEmitter(
             mv.visitVarInsn(ALOAD, local)
             mv.visitInsn(AASTORE)
         }
+        if (call.typedParticipants) {
+            emitStringArray(call.parameterKinds.map { kind -> when (kind) {
+                CompilerValueKind.NUMBER -> "SANKHYA"
+                CompilerValueKind.TEXT -> "SHABDA"
+                CompilerValueKind.LIST -> "SUCHI"
+                else -> error("Unsupported typed participant kind: $kind")
+            } })
+        }
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
-            if (call.scopedBinding) "enterBindingFrame" else "enterFrame",
-            "([Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
+            if (call.typedParticipants) "enterTypedFrame" else if (call.scopedBinding) "enterBindingFrame" else "enterFrame",
+            if (call.typedParticipants) "([Ljava/lang/String;[Ldev/panini/execution/SanskritValue;[Ljava/lang/String;)V"
+            else "([Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
             false,
         )
     }

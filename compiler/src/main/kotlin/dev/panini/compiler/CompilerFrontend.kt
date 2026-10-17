@@ -2,6 +2,7 @@ package dev.panini.compiler
 import dev.panini.execution.binding.referenceKey
 
 import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.expandedInvocations
 
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
@@ -189,13 +190,13 @@ internal object CompilerFrontend {
         private var nextLabel = 0
         var callerSourceFile: String? = null
         private var referents = emptyList<dev.panini.execution.AgreementCandidate<String>>()
+        private var inProcedure = false
+        private var resultRoleShadowed = false
 
         fun setProcedureReferents(parameters: List<PrakriyaParameter>, body: List<PvmScriptStatement.Sentence>) {
-            val declarations = body.mapNotNull { sentence ->
-                PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence)?.let {
-                    it.pratipadika.referenceKey() to it
-                }
-            }.toMap()
+            inProcedure = true
+            resultRoleShadowed = parameters.any { it.nameStem == "फल" }
+            val declarations = dev.panini.execution.PrakriyaParameterDeclarations.resolve(parameters, body)
             referents = parameters.mapIndexed { index, parameter ->
                 dev.panini.execution.AgreementCandidate(dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey(index),
                     dev.panini.execution.ReferentAgreement.fromDeclaration(declarations[parameter.nameStem]))
@@ -269,7 +270,9 @@ internal object CompilerFrontend {
             ) {
                 return lowerPlannedNode(node)
             }
+            val exit = "sequence_return_${nextLabel++}"
             return node.statements.flatMapIndexed { index, statement ->
+                val instructions =
                 if (index == 0) {
                     lower(statement)
                 } else if (statement is Invocation) {
@@ -278,7 +281,9 @@ internal object CompilerFrontend {
                 } else {
                     lower(statement)
                 }
-            }
+                instructions + listOf(CompilerInstruction.IsProcedureReturnRequested,
+                    CompilerInstruction.Branch(exit, whenTrue = true))
+            } + CompilerInstruction.Label(exit)
         }
 
         private fun lowerFieldAccess(access: dev.panini.execution.TaddhitaAttributeAccess): List<CompilerInstruction> = buildList {
@@ -300,6 +305,12 @@ internal object CompilerFrontend {
                 return lowerInvocation(node, exactSource, piped = false, allowDirectStore = allowDirectStore)
             val anaphoric = resolveAnaphors(node)
             if (anaphoric != node) return lowerInvocation(anaphoric, null, piped, allowDirectStore)
+            if (inProcedure) dev.panini.execution.ProcedureResultStatement.resolve(node,
+                roleShadowed = resultRoleShadowed || referents.any { it.identity == "फल" })?.let { result ->
+                val value = dev.panini.execution.NominalResultSemantics.operand(result.value)
+                return listOf(lowerSemanticOperand(value.semantic, value.fallback),
+                    CompilerInstruction.RequestProcedureReturn)
+            }
             node.implicitValuePada?.let { return lowerNominalResult(it) }
             if (node.vakya.padas.any { it is dev.panini.vyakaranam.ast.SamuccitaSubanta }) {
                 val members = node.vakya.padas.flatMap {
@@ -330,7 +341,7 @@ internal object CompilerFrontend {
             dev.panini.execution.ListDeclarationLowering.expand(node)?.let { return lowerSequence(it, null) }
             dev.panini.execution.OrdinalObjectLowering.expand(node)?.let { return lowerSequence(it, null) }
             dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
-            lowerKarakaHistoryInvocation(node)?.let { return it }
+            lowerKarakaHistoryInvocation(node)?.let { return withActionIdentity(it, node) }
             rejectUnsupportedKarakaHistory(node)
             val rendered = exactSource ?: render(node)
             val nominalPadas = node.vakya.padas.filterIsInstance<SubantaPada>()
@@ -361,7 +372,7 @@ internal object CompilerFrontend {
             }
             val source = normalized(rendered)
             val naturalSemantic = NaturalSemanticNormalizer.normalize(node)
-            lowerRangeChoice(node)?.let { return it }
+            lowerRangeChoice(node)?.let { return withActionIdentity(it, node) }
             val consumesPriorResult = piped && !alreadyReferencesResult ||
                 naturalSemantic ==
                 NaturalSemanticNormalizer.Operation.DisplayPriorResult
@@ -377,7 +388,8 @@ internal object CompilerFrontend {
             ) ?: ResolvedLeafPlanner.planAny(
                 node,
                 injectedBindings = injectedBindings,
-            ))?.let { lowerDirect(it) }
+            ) ?: if (consumesPriorResult) ResolvedLeafPlanner.planAny(node) else null
+            )?.let { withActionIdentity(lowerDirect(it), node, it.resolved.invocation.dhatu) }
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
                 )
@@ -479,7 +491,8 @@ internal object CompilerFrontend {
                         add(CompilerInstruction.CheckNumericProhibition)
                     }
                 }
-                add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds))
+                add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds,
+                    typedParticipants = signature.hasTypedParticipants))
                 add(when (target) {
                     is ProcedureTarget.Local -> CompilerInstruction.InvokeProcedure(
                         target.methodName,
@@ -503,17 +516,21 @@ internal object CompilerFrontend {
             argument: ResolvedPrakriyaArgument,
             fallbackValue: dev.panini.execution.SanskritValue?,
         ): CompilerInstruction {
-            val value = argument.argument.value ?: fallbackValue
-            val name = argument.referenceName
-            val literal = argument.argument.pada?.let(PrakriyaValueClassifier::literalValue)
             return when {
                 argument.argument.actionResult != null -> historyLoad(requireNotNull(argument.argument.actionResult))
                 argument.isPriorResult -> CompilerInstruction.LoadLastResult
-                literal != null -> CompilerInstruction.Constant(literal)
-                value != null -> CompilerInstruction.Constant(value)
-                else -> CompilerInstruction.ResolveArgument(name,
-                    argument.argument.pada?.let(PrakriyaValueClassifier::numericFallback))
+                else -> lowerSemanticOperand(argument.semanticOperand(fallbackValue))
             }
+        }
+
+        private fun lowerSemanticOperand(
+            operand: dev.panini.execution.SemanticOperand,
+            referenceFallback: dev.panini.execution.SanskritValue? = null,
+        ): CompilerInstruction = when (operand) {
+            is dev.panini.execution.SemanticOperand.Literal -> CompilerInstruction.Constant(operand.value)
+            is dev.panini.execution.SemanticOperand.Resolved -> CompilerInstruction.Constant(operand.value)
+            is dev.panini.execution.SemanticOperand.Reference ->
+                CompilerInstruction.ResolveArgument(operand.name, referenceFallback ?: operand.fallback)
         }
 
         private fun lowerPipeline(node: Pipeline): List<CompilerInstruction> = buildList {
@@ -560,11 +577,12 @@ internal object CompilerFrontend {
                         val literal = PrakriyaValueClassifier.literalValue(argumentPada)
                         add(literal?.let(CompilerInstruction::Constant)
                             ?: CompilerInstruction.ResolveArgument(argumentPada.pratipadika.referenceKey(),
-                                PrakriyaValueClassifier.numericFallback(argumentPada)))
+                                PrakriyaValueClassifier.fallbackValue(argumentPada)))
                     }
                 }
                 val kinds = parameters.map { it.type.toCompilerValueKind() }
-                add(CompilerInstruction.EnterFrame(parameters.map { it.nameStem }, kinds))
+                add(CompilerInstruction.EnterFrame(parameters.map { it.nameStem }, kinds,
+                    typedParticipants = kriya.signature.hasTypedParticipants))
                 add(when (target) {
                     is ProcedureTarget.Local -> CompilerInstruction.InvokeProcedure(
                         target.methodName,
@@ -641,7 +659,7 @@ internal object CompilerFrontend {
                 as? dev.panini.execution.ExecutionBindingResult.Bound ?: return null
             val invocation = bound.ukti.invocations.singleOrNull() ?: return null
             val candidates = invocation.dhatu.operations.filter { it.trigger.matches(invocation.grammaticalFeatures) }
-            if (candidates.isEmpty() || candidates.any { it.name !in participantGroupOperations } || invocation.ambiguousBindings.isNotEmpty()) return null
+            if (candidates.isEmpty() || candidates.any { it.name !in participantGroupOperations }) return null
             val load = when (val instruction = CompilerIrLowering.lowerKarakaHistory(reference)) {
                 is CompilerInstruction.LoadActionParticipants -> instruction.copy(asGroup = true)
                 is CompilerInstruction.LoadOrdinalActionParticipants -> instruction.copy(asGroup = true)
@@ -676,8 +694,27 @@ internal object CompilerFrontend {
             val projected = node.copy(vakya = sentence.copy(padas = padas.mapNotNull { pada ->
                 (pada as? SubantaPada)?.let(replacements::get) ?: pada.takeUnless { it in protected }
             }))
-            val plan = ResolvedLeafPlanner.planAny(projected) ?: return null
-            val numericAction = plan.resolved.operation.action as? dev.panini.actions.numeric.NumericFoldDhatuAction
+            val plan = ResolvedLeafPlanner.planAny(projected)
+            val symbolicInvocation = if (plan == null) {
+                val conversation = dev.panini.execution.SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+                (dev.panini.execution.binding.VyakaranamExecutionAdapter.bind(
+                    dev.panini.execution.SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", projected.sourceText),
+                    dev.panini.vyakaranam.ast.Ukti(projected.sourceText, body = projected),
+                    conversation,
+                    environment = dev.panini.execution.ValueEnvironment(
+                        constraints = loads.keys.associateWith { dev.panini.execution.SemanticValueConstraint() },
+                    ),
+                ) as? dev.panini.execution.ExecutionBindingResult.Bound)?.ukti?.invocations?.singleOrNull()
+                    ?: return null
+            } else plan.resolved.invocation
+            val operations = symbolicInvocation.dhatu.operations.filter {
+                it.trigger.matches(symbolicInvocation.grammaticalFeatures)
+            }
+            val selectedOperation = plan?.resolved?.operation
+                ?: operations.firstOrNull { it.action is dev.panini.actions.numeric.NumericFoldDhatuAction }
+                ?: operations.singleOrNull()
+                ?: return null
+            val numericAction = selectedOperation.action as? dev.panini.actions.numeric.NumericFoldDhatuAction
             val arithmetic = when (numericAction?.operator) {
                 dev.panini.actions.numeric.NumericFoldOperator.ADD -> ArithmeticOperator.ADD
                 dev.panini.actions.numeric.NumericFoldOperator.MULTIPLY -> ArithmeticOperator.MULTIPLY
@@ -686,11 +723,12 @@ internal object CompilerFrontend {
                 dev.panini.actions.numeric.NumericFoldOperator.MODULO -> ArithmeticOperator.REMAINDER
                 else -> null
             }
-            if (plan.resolved.operation.name != "मूल्यदानम्" && arithmetic == null) return null
-            val destination = plan.resolved.operation.resultBindingKaraka
-                ?.let(plan.resolved.context.bindings::get)?.bindingName()
+            if (selectedOperation.name != "मूल्यदानम्" && arithmetic == null) return null
+            val resolvedBindings = plan?.resolved?.context?.bindings ?: symbolicInvocation.bindings
+            val destination = selectedOperation.resultBindingKaraka
+                ?.let(resolvedBindings::get)?.bindingName()
             if (arithmetic == null && destination == null) return null
-            val participants = plan.resolved.context.bindings.entries.filter { it.key != Karaka.ANIRDHARITA }
+            val participants = resolvedBindings.entries.filter { it.key != Karaka.ANIRDHARITA }
                 .flatMap { (role, expression) ->
                     CompilerIrLowering.lowerParticipantOperands(expression).map { instructions ->
                         var group = false
@@ -707,9 +745,7 @@ internal object CompilerFrontend {
                 }
             val operands = participants.indices.filter { participants[it].first == Karaka.KARMAN }
             if (operands.isEmpty()) return null
-            val candidates = plan.resolved.invocation.dhatu.operations.filter {
-                it.trigger.matches(plan.resolved.invocation.grammaticalFeatures)
-            }
+            val candidates = operations
             val dynamic = arithmetic != null && candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction }
             if (dynamic && (participants.any { it.first !in setOf(Karaka.KARMAN, Karaka.KARTR, Karaka.SAMPRADANA) } ||
                     candidates.any { it.name !in participantGroupOperations })) return null
@@ -723,9 +759,9 @@ internal object CompilerFrontend {
                 val flags = operands.map { participants[it].third }
                 if (dynamic) {
                     add(CompilerInstruction.PackOperands(flags, asGroup = true))
-                    add(CompilerInstruction.CallParticipantGroup(plan.resolved.invocation.dhatu.upadesha,
-                        plan.resolved.invocation.grammaticalFeatures, plan.resolved.invocation.selectedOperation,
-                        plan.resolved.context.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }))
+                    add(CompilerInstruction.CallParticipantGroup(symbolicInvocation.dhatu.upadesha,
+                        symbolicInvocation.grammaticalFeatures, symbolicInvocation.selectedOperation,
+                        resolvedBindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }))
                     add(CompilerInstruction.Store("LastResult"))
                     return@buildList
                 }
@@ -737,7 +773,7 @@ internal object CompilerFrontend {
                 if (destination != null) add(CompilerInstruction.Store(destination))
                 locals.forEach { add(CompilerInstruction.LoadLocal(it)) }
                 add(CompilerInstruction.LoadLastResult)
-                add(CompilerInstruction.RecordActionFrame(plan.resolved.invocation.dhatu.upadesha,
+                add(CompilerInstruction.RecordActionFrame(symbolicInvocation.dhatu.upadesha,
                     participants.map { it.first }, participants.map { it.third }))
             }
         }
@@ -749,9 +785,33 @@ internal object CompilerFrontend {
             }
         }
 
-        private fun historyLoad(history: dev.panini.execution.binding.NamedActionResultReference): CompilerInstruction =
-            history.ordinalFromOldest?.let { CompilerInstruction.LoadOrdinalActionResult(history.dhatuUpadesha, it) }
-                ?: CompilerInstruction.LoadActionResult(history.dhatuUpadesha, if (history.previous) 2 else 1)
+        private fun historyLoad(history: dev.panini.execution.binding.NamedActionResultReference): CompilerInstruction {
+            val identity = history.actionIdentity.takeIf { it.upasargas.isNotEmpty() || it.sanadi.isNotEmpty() }
+            return history.ordinalFromOldest?.let {
+                CompilerInstruction.LoadOrdinalActionResult(history.dhatuUpadesha, it, identity)
+            } ?: CompilerInstruction.LoadActionResult(history.dhatuUpadesha, if (history.previous) 2 else 1, identity)
+        }
+
+        /** Keep ordered source morphology out of set-valued runtime operation features. */
+        private fun withActionIdentity(code: List<CompilerInstruction>, node: Invocation,
+            resolvedDhatu: dev.panini.dhatupatha.Dhatu? = null): List<CompilerInstruction> {
+            val head = node.vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return code
+            fun identity(root: String): dev.panini.core.ActionIdentity {
+                val candidates = dev.panini.dhatupatha.DhatuPatha.all.filter { it.upadesha == root }
+                val lexical = requireNotNull(resolvedDhatu?.takeIf { it.upadesha == root }
+                    ?: candidates.filter { it.operations.isNotEmpty() }.distinctBy { it.id }.singleOrNull()
+                    ?: candidates.distinctBy { it.id }.singleOrNull())
+                require(head.upasargaIdentities.all { it != null } && head.dhatu.sanadiAffixes.all { it != null })
+                return dev.panini.core.ActionIdentity(lexical.id, head.upasargaIdentities.filterNotNull(),
+                    head.dhatu.sanadiAffixes.filterNotNull())
+            }
+            return code.map { instruction -> when (instruction) {
+                is CompilerInstruction.RecordActionFrame -> instruction.copy(actionIdentity = identity(instruction.dhatuUpadesha))
+                is CompilerInstruction.RecordActionResult -> instruction.copy(actionIdentity = identity(instruction.dhatuUpadesha))
+                is CompilerInstruction.CallParticipantGroup -> instruction.copy(actionIdentity = identity(instruction.dhatuUpadesha))
+                else -> instruction
+            } }
+        }
 
         private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> {
             val participants = plan.resolved.context.bindings.entries
@@ -880,14 +940,21 @@ internal object CompilerFrontend {
                 }
             }
             is Conditional -> lowerConditionalIr(node)
-            is Sequence -> buildList {
+            is Sequence -> if (node.statements.all { it is Invocation } &&
+                node.connectorKinds.all { it in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) }) {
+                lowerSequence(node, exactSource = null)
+            } else buildList {
+                val exit = "branch_result_${nextLabel++}"
                 for (statement in node.statements) {
                     addAll(lowerPrimitiveBranchIr(statement) ?: throw CompilerUnsupportedException(
                         CompilerUnsupportedKind.CONDITIONAL,
                         render(statement),
                         "Cannot lower a sequence statement in a conditional branch (${statement::class.simpleName}).",
                     ))
+                    add(CompilerInstruction.IsProcedureReturnRequested)
+                    add(CompilerInstruction.Branch(exit, whenTrue = true))
                 }
+                add(CompilerInstruction.Label(exit))
             }
             is PrakriyaNode -> buildList {
                 for (statement in node.body) {
@@ -981,8 +1048,7 @@ internal object CompilerFrontend {
         private fun lowerNominalResult(pada: dev.panini.vyakaranam.ast.Pada): List<CompilerInstruction> {
             val operand = dev.panini.execution.NominalResultSemantics.operand(pada)
             return listOf(
-                operand.literal?.let { CompilerInstruction.Constant(it) }
-                    ?: CompilerInstruction.ResolveArgument(requireNotNull(operand.reference), operand.fallback),
+                lowerSemanticOperand(operand.semantic, operand.fallback),
                 CompilerInstruction.Store("LastResult"),
             )
         }
@@ -1018,6 +1084,8 @@ internal object CompilerFrontend {
                 add(CompilerInstruction.EnterFrame(listOf(member), scopedBinding = true))
                 addAll(body)
                 add(CompilerInstruction.ExitFrame)
+                add(CompilerInstruction.IsProcedureReturnRequested)
+                add(CompilerInstruction.Branch("${prefix}_done", whenTrue = true))
                 add(CompilerInstruction.ConsumeBreak)
                 add(CompilerInstruction.Branch("${prefix}_done", whenTrue = true))
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
@@ -1046,14 +1114,19 @@ internal object CompilerFrontend {
                     render(node),
                     "Cannot resolve parsed compound node as compiler leaves.",
                 )
-            return plans.flatMap(::lowerDirect)
+            val invocations = node.expandedInvocations()
+            require(plans.size == invocations.size) { "Planned actions must retain their source morphology." }
+            return plans.zip(invocations).flatMap { (plan, invocation) ->
+                withActionIdentity(lowerDirect(plan), invocation, plan.resolved.invocation.dhatu)
+            }
         }
 
         private fun resolveArguments(
             invocation: dev.panini.execution.PrakriyaInvocation,
         ): List<ResolvedPrakriyaArgument> {
             val signature = invocation.kriya.signature
-            val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+            val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
+                registry.all().mapTo(mutableSetOf()) { it.nameStem })
             val resolvedArguments = when (resolution) {
                 is PrakriyaArgumentResolution.Success -> resolution.arguments
                 is PrakriyaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
@@ -1067,7 +1140,17 @@ internal object CompilerFrontend {
                     arguments.size,
                 )
             }
-            signature.parameters.zip(arguments).takeUnless { acceptsCollection }.orEmpty()
+            if (signature.hasTypedParticipants) {
+                val actual = resolvedArguments.map { resolved ->
+                    resolved.argument.value?.let(PrakriyaValueClassifier::classifyValue)
+                        ?: resolved.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
+                        ?: PrakriyaValueType.UNCONSTRAINED
+                }
+                require(dev.panini.execution.TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, actual)) {
+                    "Procedure typed participant mismatch: expected ${signature.parameters.map { it.type }}, received $actual."
+                }
+            }
+            signature.parameters.zip(arguments).takeUnless { acceptsCollection || signature.hasTypedParticipants }.orEmpty()
                 .forEachIndexed { index, (parameter, _) ->
                 val resolved = resolvedArguments[index]
                 val suppliedValue = resolved.argument.value

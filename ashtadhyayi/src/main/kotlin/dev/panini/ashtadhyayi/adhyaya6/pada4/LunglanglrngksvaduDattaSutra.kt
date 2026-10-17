@@ -31,35 +31,9 @@ object LunglanglrngksvaduDattaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
-        val lastTerm = context.terms.lastOrNull() ?: return false
-
-        val isNgLakara = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") || lastTerm.matchesUpadesha("लुङ्")
         val noAgamaYet = context.allEffectiveTerms.none { it.id == "at-agama" }
-
-        return isNgLakara && noAgamaYet
+        return pastAugmentEnvironment(context) && noAgamaYet
     }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val terms = context.terms
-        val dhatuIndex = terms.indexOfFirst { it.kind == TermKind.DHATU }
-        val target = terms.getOrNull(dhatuIndex) ?: terms.first()
-        val augment = DerivationTerm(
-            "at-agama", "अट्", TermKind.AGAMA,
-            upadesha = "अट्", createdBySutra = sutra,
-            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
-            augmentTargetId = target.id, mergeIntoAugmentTarget = false,
-        )
-        val newTerms = if (dhatuIndex >= 0) {
-            terms.take(dhatuIndex) +
-            augment +
-            terms.drop(dhatuIndex)
-        } else {
-            listOf(augment) + terms
-        }
-        return DerivationChange(
-            state = context.copy(terms = newTerms, stage = DerivationStage.IT_PROCESSED),
-            explanation = "6.4.71 introduces raw अट् targeted at the beginning of the verbal root."
-        )
-    }
+    override fun apply(context: DerivationState): DerivationChange = introducePastAugment(context, "अट्", sutra)
 }

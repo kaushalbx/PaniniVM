@@ -25,7 +25,9 @@ class AvyayibhavaSamasaTest {
             SamasaType.AVYAYIBHAVA,
         )
         assertEquals("उपकृष्णम्", result.final.surface)
-        assertTrue(result.applications.map { it.sutra }.containsAll(listOf("2.1.6", "1.1.41", "2.4.18", "2.4.83", "7.1.24")))
+        // 2.4.83 already supplies complete am; 7.1.24 need not manufacture
+        // its visible m remainder. The following operation is ami pūrvaḥ.
+        assertTrue(result.applications.map { it.sutra }.containsAll(listOf("2.1.6", "1.1.41", "2.4.18", "2.4.83", "6.1.107")))
     }
 
     @Test

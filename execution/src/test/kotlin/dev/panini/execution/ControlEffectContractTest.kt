@@ -23,7 +23,8 @@ class ControlEffectContractTest {
     fun `successful action must match its declared control effect`() {
         val signals = listOf(null, ExecutionControlSignal.BREAK_LOOP, ExecutionControlSignal.RETURN_PROCEDURE)
         for (declared in signals) for (actual in signals) {
-            val result = ExecutionRuntime.execute(planning(declared, actual), ExecutionScope())
+            val result = ExecutionRuntime.execute(planning(declared, actual), ExecutionScope(
+                procedureBindings = ProcedureLocalBindings.create(emptyList(), emptyList())))
             if (declared == actual) {
                 assertEquals(actual, assertIs<Phala.Siddha>(result).controlSignal)
             } else {

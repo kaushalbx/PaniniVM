@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.processedNgitAdeshas
+import dev.panini.derivation.integrateNgitAdesha
 import dev.panini.sutra.*
 
 /**
@@ -23,6 +25,10 @@ object NgitScaSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean = false
-    override fun apply(context: DerivationState): DerivationChange = error("Interpretive rule.")
+    override fun matches(context: DerivationState): Boolean = context.processedNgitAdeshas().isNotEmpty()
+    override fun apply(context: DerivationState): DerivationChange {
+        val carrier = context.processedNgitAdeshas().first()
+        return DerivationChange(context.integrateNgitAdesha(carrier.id, sutra),
+            "1.1.53 targets the final occurrence for the explicitly licensed ṅit substitute ${carrier.upadesha}.")
+    }
 }

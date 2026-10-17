@@ -39,9 +39,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
-            if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
             val exactDesignations = term.itDesignations + if (
                 term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
             ) emptyList() else term.deferredItDesignations
@@ -55,6 +53,8 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                     itDesignations = emptyList(),
                     deferredItDesignations = emptyList(),
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
+                    pendingRutvaUpadeshaIndex = null,
+                    itUpadeshaVarnaIndices = null,
                     sthaniProps = dev.panini.derivation.SthaniProperties(
                         upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
                         itMarkers = term.sthaniProps?.itMarkers.orEmpty() + term.itMarkers + designatedMarkers,

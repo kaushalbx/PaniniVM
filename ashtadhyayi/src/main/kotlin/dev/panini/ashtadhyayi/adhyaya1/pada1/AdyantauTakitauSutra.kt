@@ -61,6 +61,14 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                     val targetIndex = terms.indexOfFirst { it.id == targetId }
                     if (targetIndex >= 0) {
                         val target = terms[targetIndex]
+                        term.augmentTargetVarnaIndex?.let { locus ->
+                            require(locus in target.varnas.indices && !isTit && locus == target.varnas.lastIndex) {
+                                "1.1.46 requires the explicitly targeted final occurrence for this kit augment."
+                            }
+                            require(term.augmentTargetVarna == null || target.varnas[locus] == term.augmentTargetVarna) {
+                                "1.1.46 refuses a stale vowel-dependent augment target."
+                            }
+                        }
                         if (!term.mergeIntoAugmentTarget) {
                             val placedAugment = term.copy(
                                 establishedBySutras = term.establishedBySutras + sutra,
@@ -75,11 +83,17 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                                     "retaining the boundary for subsequent operations.",
                             )
                         }
+                        val targetScope = if (target.itProcessingPending)
+                            target.itUpadeshaVarnaIndices ?: target.varnas.indices.toSet() else emptySet()
+                        val augmentScope = term.itUpadeshaVarnaIndices ?: term.varnas.indices.toSet()
+                        val operativeScope = targetScope.map { if (isTit) it + term.varnas.size else it }.toSet() +
+                            augmentScope.map { if (isTit) it else it + target.varnas.size }
                         val merged = target.insertDesignatedTerm(term,
                             if (isTit) 0 else target.varnas.size, preserveMemberBoundary = true).copy(
                             establishedBySutras = target.establishedBySutras +
                                 listOfNotNull(term.createdBySutra),
                             itMarkers = target.itMarkers + term.itMarkers,
+                            itUpadeshaVarnaIndices = operativeScope,
                             itProcessingPhase = when {
                                 target.itDesignations.isNotEmpty() || term.itDesignations.isNotEmpty() ->
                                     ItProcessingPhase.DESIGNATED
@@ -94,7 +108,13 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                         terms[targetIndex] = merged
                         terms.removeAt(terms.indexOfFirst { it.id == term.id })
                         return DerivationChange(
-                            state = context.copy(terms = terms),
+                            state = context.copy(terms = terms, droppedTerms = context.droppedTerms +
+                                dev.panini.derivation.dropTermWithLifecycle(term, sutra).copy(
+                                    mergedIntoTermId = target.id,
+                                    itMarkerProvenance = term.itMarkerProvenance +
+                                        (term.itDesignations + term.deferredItDesignations).map {
+                                            dev.panini.derivation.ItMarkerProvenance(it.marker, it.sutra, it.designatedText)
+                                        })),
                             explanation = "1.1.46 places the ${if (isTit) "ṭit" else "kit"} augment ${term.upadesha} ${if (isTit) "at the beginning" else "at the end"} of ${target.upadesha}.",
                         )
                     }

@@ -6,8 +6,11 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.core.SupAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.isHrasva
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -40,10 +43,14 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if ("7.1.52" in affix.establishedBySutras || context.allEffectiveTerms.any {
+            it.createdBySutra == "7.1.52" && it.augmentTargetId == affix.id
+        }) return false
 
         val governedBySatCatur = stem.upadesha in
             setOf("चतुर्", "षट्", "पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्") ||
-            stem.surface in setOf("चतुर्", "षट्") ||
+            stem.varnas in setOf(listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Vyanjana.RA),
+                listOf(Vyanjana.SSA, Svara.A, Vyanjana.TTA)) ||
             context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT }
         if (governedBySatCatur) return false
 
@@ -51,10 +58,12 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
         val finalVowel = stem.varnas.lastOrNull() as? Svara
         val isShortVowel = finalVowel?.isHrasva == true
         val isApStem = finalVowel == Svara.AA
+        val isNadi = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.NADI }
 
-        return (isShortVowel || isApStem) && affix.upadesha == "आम्" &&
+        return (isShortVowel || isNadi || isApStem) && affix.sourceSupAffix == SupAffix.AM_6 &&
+            affix.hasCurrentAffix(SupAffix.AM_6) &&
             sutra !in affix.establishedBySutras &&
-            context.allEffectiveTerms.none { it.upadesha == "नुँट्" }
+            context.allEffectiveTerms.none { it.upadesha == "नुँट्" && it.augmentTargetId == affix.id }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
-import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -38,29 +37,28 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        if (stem.surface == "अयम्") return false
-        val isTyadadi = listOf(stem.upadesha, stem.surface).any { text ->
-            SarvadiGana.antarGanasContaining(text).any { it.name == "त्यदादिः" }
-        }
-        val hasConsonantEnding = stem.varnas.lastOrNull() is Vyanjana || stem.varnas in setOf(idam, dvi)
+        if (context.substitutions.any { it.targetId == stem.id && it.sutra == "7.2.108" }) return false
+        if (stem.varnas == listOf(Svara.A, Vyanjana.YA, Svara.A, Vyanjana.MA)) return false
+        val isTyadadi = SarvadiGana.antarGanasContaining(stem.upadesha).any { it.name == "त्यदादिः" }
+        // The prescription targets the lexical ending, not any later consonant
+        // (in particular not num newly inserted by 7.1.72).
+        val hasConsonantEnding = stem.varnas.lastOrNull() is Vyanjana &&
+            stem.varnas.lastOrNull() == stem.upadeshaVarnas.lastOrNull() || stem.varnas in setOf(idam, dvi)
         return isTyadadi && hasConsonantEnding &&
             (affix.sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null })
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val result = when (stem.varnas) {
-            idam -> listOf(Svara.I, Vyanjana.MA, Svara.A)
-            // In the feminine derivation, 4.1.4 supplies टाप् after this
-            // substitution; retain its आ so 7.1.18 can operate on द्वा + औ.
-            dvi -> listOf(Vyanjana.DA, Vyanjana.VA, if (context.effectiveContext.rupa.linga == Linga.STRI) Svara.AA else Svara.A)
-            else -> stem.varnas.dropLast(1)
-        }
-
+        val replaced = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.A), sutra)
+        val current = replaced.terms.single { it.id == stem.id }
+        val pending = if (current.varnas.takeLast(2) == listOf(Svara.A, Svara.A))
+            dev.panini.derivation.PendingBaseComposition(current.varnas.lastIndex - 1,
+                current.varnas.takeLast(2), sutra) else null
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, stem.varnas.last(), listOf(Svara.A), sutra)
+            replaced.replaceTerm(stem.id, current.copy(pendingBaseComposition = pending))
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.102 substitutes 'a' for the final letter of tyadādi stem ${stem.surface}."
+            "7.2.102 replaces the exact final occurrence; exposed base composition remains pending.",
         )
     }
 

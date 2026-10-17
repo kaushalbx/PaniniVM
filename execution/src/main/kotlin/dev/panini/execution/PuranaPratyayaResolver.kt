@@ -10,6 +10,29 @@ import dev.panini.vyakaranam.ast.SubantaPada
 
 object PuranaPratyayaResolver {
     private val sankhyaEvaluator = SankhyaEvaluator()
+    private val generator = dev.panini.sankhya.SankhyaGenerator()
+
+    internal fun sourceDerivation(pada: SankhyaPuranaPada, position: Long): dev.panini.derivation.DerivationResult {
+        val sourceRank = typedOrdinalValue(pada.stems)
+        require(sourceRank == null || sourceRank == position) {
+            "Ordinal value evidence disagrees with its source morphology."
+        }
+        if (pada.stems == listOf("प्रथ्", "अमच्") && position == 1L) return generator.ordinal(position)
+        val sourceAffix = pada.stems.lastOrNull()
+        return generator.ordinalVariants(position).firstOrNull { derivation ->
+            derivation.final.terms.any {
+                it.kind == dev.panini.derivation.TermKind.PRATYAYA && it.upadesha == sourceAffix
+            }
+        } ?: throw IllegalArgumentException("No supported ordinal derivation licenses source affix $sourceAffix for $position.")
+    }
+
+    fun semanticValue(pada: Pada): SanskritValue.Purana? = ordinalValue(pada)?.let { position ->
+        val word = if (pada is SankhyaPuranaPada && pada.striAffix != null)
+            OrdinalFeminineDerivation.derive(pada)
+        else if (pada is SankhyaPuranaPada) sourceDerivation(pada, position).final.surface
+        else generator.ordinal(position).final.surface
+        SanskritValue.Purana(position, word)
+    }
     /** Returns the semantic ordinal value of a parsed pada, independent of its surface spelling. */
     fun ordinalValue(pada: Pada): Long? {
         return when (pada) {

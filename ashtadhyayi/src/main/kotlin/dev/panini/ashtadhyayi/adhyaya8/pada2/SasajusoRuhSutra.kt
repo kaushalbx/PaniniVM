@@ -5,14 +5,12 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.derivation.isSvadiAffix
+import dev.panini.derivation.substituteFinalVarnaWithRutva
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.OrthographicSign
-import dev.panini.shiksha.OrthographicSignPlacement
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,39 +37,19 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
             context.stage == DerivationStage.FINAL
         if (!eligibleStage) return false
 
-        val finalVarnas = context.terms.lastOrNull()?.varnas ?: return false
-        return finalVarnas.lastOrNull() == Vyanjana.SA ||
-            finalVarnas.takeLast(sajus.size) == sajus ||
-            internalPadaIndex(context) >= 0
+        val internalIndex = internalPadaIndex(context)
+        val target = context.terms.getOrNull(internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex) ?: return false
+        if (target.itProcessingPhase != dev.panini.derivation.ItProcessingPhase.PROCESSED ||
+            target.itDesignations.isNotEmpty() || target.deferredItDesignations.isNotEmpty()) return false
+        return target.varnas.lastOrNull() == Vyanjana.SA || target.varnas.takeLast(sajus.size) == sajus
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalPadaIndex(context)
         val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
         val source = if (target.varnas.takeLast(sajus.size) == sajus) Vyanjana.SSA else Vyanjana.SA
-        fun withFreshRutva(term: dev.panini.derivation.DerivationTerm): dev.panini.derivation.DerivationTerm {
-            val varnas = term.varnas.dropLast(1) + listOf(Vyanjana.RA, Svara.U)
-            val signs = listOf(OrthographicSignPlacement(OrthographicSign.CHANDRABINDU, varnas.size))
-            val rawRutva = varnas.toDevanagari(signs)
-            return term.replaceWholeAffix(
-                replacementSurface = rawRutva,
-                replacementUpadesha = rawRutva,
-                sutra = number,
-                policy = WholeAffixDesignationPolicy.FreshUpadesha,
-            ).copy(orthographicSigns = signs)
-        }
-        val changed = internalIndex.takeIf { it >= 0 }?.let { index ->
-            val target = context.terms[index]
-            context.copy(terms = context.terms.toMutableList().also {
-                it[index] = withFreshRutva(target)
-            })
-        } ?: context.copy(
-            terms = context.terms.dropLast(1) + context.terms.last()
-                .let(::withFreshRutva)
-        )
         return DerivationChange(
-            changed.addVarnaSubstitution(target.id, source, listOf(Vyanjana.RA, Svara.U), number,
-                listOf(OrthographicSignPlacement(OrthographicSign.CHANDRABINDU, 2))),
+            context.substituteFinalVarnaWithRutva(target.id, number),
             "8.2.66 substitutes रुँ for पद-final ${source}्.",
         )
     }
@@ -83,7 +61,9 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         val bothPadas = context.terms.all { it.kind == TermKind.PRATIPADIKA } &&
             listOf(leftId, rightId).all { id -> context.samjnas.any { it.targetId == id && it.samjna == Samjna.PADA } }
         val bothSankhya = listOf(leftId, rightId).all { id -> context.samjnas.any { it.targetId == id && it.samjna == Samjna.SANKHYA } }
-        bothPadas || bothSankhya
+        val internalSvadiPada = context.terms[index + 1].isSvadiAffix() &&
+            context.samjnas.any { it.targetId == leftId && it.samjna == Samjna.PADA }
+        bothPadas || bothSankhya || internalSvadiPada
     } ?: -1
 
     private val sajus: List<Varna> = listOf(Vyanjana.SA, Svara.A, Vyanjana.JA, Svara.U, Vyanjana.SSA)

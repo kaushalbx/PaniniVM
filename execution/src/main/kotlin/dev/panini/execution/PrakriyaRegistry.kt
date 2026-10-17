@@ -43,6 +43,11 @@ data class Prakriya(
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot {
         it.isNishedha || PrakriyaSignatureDeclarationParser.isDeclaration(it)
     }
+
+    /** Definition-owned analysis; invalidated naturally when a new immutable definition is registered. */
+    val bodyAnalysis: ProcedureBodyAnalysis by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        ProcedureBodyAnalysis.analyze(this)
+    }
 }
 
 /**

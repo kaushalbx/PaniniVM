@@ -8,12 +8,16 @@ object OperationResolver {
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
     ): OperationResolution {
-        return resolveInvocation(invocation, variables)
+        return resolveInvocation(invocation, variables, emptyMap())
     }
+
+    fun resolve(invocation: DhatuInvocation, environment: ValueEnvironment): OperationResolution =
+        resolveInvocation(invocation, environment.values, environment.constraints)
 
     private fun resolveInvocation(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
+        constraints: Map<String, SemanticValueConstraint>,
     ): OperationResolution {
         val dhatu = invocation.dhatu
         val operations = dhatu.operations
@@ -55,7 +59,7 @@ object OperationResolver {
                     ExecutionError.INVALID_VALUE,
                     "Grammatical role analysis exceeded its assignment budget; no assignment was selected.",
                 )
-                val evaluation = evaluate(operation, context)
+                val evaluation = evaluate(operation, context, constraints)
                 evaluations += Triple(operation, context, evaluation)
                 // Two valid assignments already prove ambiguity for this signature.
                 if (evaluation == SignatureEvaluation.Compatible && ++compatibleAssignments == 2) break
@@ -159,7 +163,11 @@ object OperationResolver {
         return strictlyStronger
     }
 
-    private fun evaluate(operation: DhatuOperation, context: ExecutionContext): SignatureEvaluation {
+    private fun evaluate(
+        operation: DhatuOperation,
+        context: ExecutionContext,
+        constraints: Map<String, SemanticValueConstraint>,
+    ): SignatureEvaluation {
         val signature = operation.signature
         val predicate = CopularPredicate.from(context.bindings[Karaka.KARMAN])
         if (predicate != null && signature.copularPredicates.isNotEmpty() && predicate !in signature.copularPredicates) {
@@ -194,38 +202,65 @@ object OperationResolver {
                         "${expectedShape.sanskritName} अपेक्षितम्, ${shape.sanskritName} प्राप्तम्।",
                 )
             }
-            val typedValues = context.resolveValues(expression)
-            if (typedValues.isEmpty()) {
+            val facts = expression.valueFacts(context, constraints)
+            if (facts == null || facts.isEmpty()) {
                 return SignatureEvaluation.Incompatible(
                     "कारकनिर्देशदोषः: ${requirement.karaka.sanskritName} कारकस्य निर्देशः न सिद्धः।",
                 )
             }
-            if (typedValues.size < requirement.minimumMembers) {
+            if (facts.size < requirement.minimumMembers) {
                 return SignatureEvaluation.Incompatible(
                     "कारकसङ्ख्यादोषः: ${requirement.karaka.sanskritName} कारके न्यूनातिन्यूनं " +
                         "${requirement.minimumMembers} पदानि अपेक्षितानि।",
                 )
             }
             val maxMembers = requirement.maximumMembers
-            if (maxMembers != null && typedValues.size > maxMembers) {
+            if (maxMembers != null && facts.size > maxMembers) {
                 return SignatureEvaluation.Incompatible(
                     "कारकसङ्ख्यादोषः: ${requirement.karaka.sanskritName} कारके अधिकात्यधिकं " +
                         "$maxMembers पदानि स्वीक्रियन्ते।",
                 )
             }
-            if (typedValues.any { !it.samjnas.containsAll(requirement.memberSamjnas) }) {
+            if (facts.any { it.samjnas.isNotEmpty() && !it.samjnas.containsAll(requirement.memberSamjnas) }) {
                 return SignatureEvaluation.Incompatible(
                     "कारकसंज्ञादोषः: ${requirement.karaka.sanskritName} कारकस्य प्रत्येकं पदं " +
                         "${requirement.memberSamjnas} संज्ञाः अपेक्षते।",
                 )
             }
-            if (requirement.valueType?.let { type -> typedValues.any { !type.accepts(it) } } == true) {
+            if (requirement.valueType?.let { expected -> facts.any { !it.accepts(expected) } } == true) {
                 return SignatureEvaluation.Incompatible(
                     "कारकमूल्यदोषः: ${requirement.karaka.sanskritName} कारके ${requirement.valueType} मूल्यम् अपेक्षितम्।",
                 )
             }
         }
         return SignatureEvaluation.Compatible
+    }
+
+    private data class ValueFact(
+        val value: SanskritValue? = null,
+        val constraint: SemanticValueConstraint? = null,
+    ) {
+        val samjnas get() = value?.samjnas ?: constraint?.samjnas.orEmpty()
+
+        fun accepts(expected: OperationValueType): Boolean = value?.let(expected::accepts)
+            ?: when (val actual = constraint?.valueType) {
+                null -> true
+                OperationValueType.INTEGER -> expected == OperationValueType.INTEGER || expected == OperationValueType.NUMBER
+                else -> actual == expected
+            }
+    }
+
+    private fun ExecutionExpression.valueFacts(
+        context: ExecutionContext,
+        constraints: Map<String, SemanticValueConstraint>,
+    ): List<ValueFact>? = when (this) {
+        is ExecutionExpression.Pada -> context.resolveValues(this).map { ValueFact(value = it) }
+        is ExecutionExpression.TypedOperand -> context.resolveValues(this).map { ValueFact(value = it) }
+        is ExecutionExpression.Reference -> context.variables[name]?.let { listOf(ValueFact(value = it)) }
+            ?: constraints[name]?.let { listOf(ValueFact(constraint = it)) }
+        is ExecutionExpression.Coordination -> buildList {
+            members.forEach { member -> addAll(member.valueFacts(context, constraints) ?: return null) }
+        }
     }
 
     private sealed interface SignatureEvaluation {

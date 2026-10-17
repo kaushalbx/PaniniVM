@@ -15,8 +15,19 @@ class CopularReferencePlanningTest {
                 put("मान", SanskritValue.Sankhya(2, "द्वि"))
                 if (derived != null) put("प्रथम + टाप्", derived)
             }
-            val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source,
-                scope = ExecutionScope(environment = ValueEnvironment(initial))).last())
+            val actual = PaniniVM().evalScript(source,
+                scope = ExecutionScope(environment = ValueEnvironment(initial))).last()
+            if (derived == null) {
+                // An unbound ordinal is not the cardinal one and cannot borrow
+                // the base variable to participate in numeric ordering.
+                assertIs<ExecutionResult.Failure>(actual)
+                val failure = assertFailsWith<java.lang.reflect.InvocationTargetException> {
+                    generated.getMethod("execute", Map::class.java).invoke(null, initial)
+                }
+                assertIs<CompiledPaniniExecutionException>(failure.cause)
+                continue
+            }
+            val result = assertIs<ExecutionResult.Success>(actual)
             assertEquals(if (derived == null) 2L else 1L,
                 assertIs<SanskritValue.Sankhya>(result.typedValue).value)
             val values = generated.getMethod("execute", Map::class.java).invoke(null, initial) as Map<*, *>
@@ -36,6 +47,14 @@ class CopularReferencePlanningTest {
             }
             val results = PaniniVM().evalScript(source,
                 scope = ExecutionScope(environment = ValueEnvironment(initial)))
+            if (value == null) {
+                assertIs<ExecutionResult.Failure>(results.last())
+                val failure = assertFailsWith<java.lang.reflect.InvocationTargetException> {
+                    generated.getMethod("execute", Map::class.java).invoke(null, initial)
+                }
+                assertIs<CompiledPaniniExecutionException>(failure.cause)
+                continue
+            }
             val result = assertIs<ExecutionResult.Success>(results.last(), results.toString())
             assertEquals(expected, assertIs<SanskritValue.Sankhya>(result.typedValue).value)
             val values = generated.getMethod("execute", Map::class.java).invoke(null, initial) as Map<*, *>

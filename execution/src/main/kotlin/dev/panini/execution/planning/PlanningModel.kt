@@ -17,7 +17,21 @@ data class ExecutionPlan(
     val listener: String,
 )
 
+/** Backend-independent resolved semantics shared by execution and code generation. */
+data class ResolvedSemanticProgram(
+    val source: ExecutionProgram,
+    val plans: List<ExecutionPlan>,
+) {
+    init {
+        require(plans.map { it.invocationId }.distinct().size == plans.size) {
+            "A resolved semantic program cannot contain duplicate invocation identities."
+        }
+    }
+}
+
 sealed interface PlanningResult {
-    data class Planned(val program: ExecutionProgram, val plans: List<ExecutionPlan>) : PlanningResult
+    data class Planned(val program: ExecutionProgram, val plans: List<ExecutionPlan>) : PlanningResult {
+        val resolvedProgram: ResolvedSemanticProgram = ResolvedSemanticProgram(program, plans)
+    }
     data class Failed(val result: ExecutionResult) : PlanningResult
 }

@@ -31,7 +31,7 @@ class OrdinalProcedureArgumentTest {
         assertEquals(result.typedValue,
             (generated.getMethod("execute", Map::class.java).invoke(null, initial) as Map<*, *>)["LastResult"])
     }
-    @Test fun `unbound ordinal argument keeps numeric fallback and bound ordinal uses current value`() {
+    @Test fun `unbound ordinal cannot satisfy cardinal parameter but named cardinal can`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
             "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
             "मूल्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
@@ -39,6 +39,14 @@ class OrdinalProcedureArgumentTest {
         val generated = BytecodeCompiler.compileAndLoad(source, "OrdinalArgumentFallback")
         for ((initial, expected) in listOf(emptyMap<String, SanskritValue>() to 2L,
             mapOf("प्रथम" to SanskritValue.Sankhya(7, "host")) to 8L)) {
+            if (initial.isEmpty()) {
+                assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+                val failure = assertFailsWith<java.lang.reflect.InvocationTargetException> {
+                    generated.getMethod("execute", Map::class.java).invoke(null, initial)
+                }
+                assertIs<CompiledPaniniExecutionException>(failure.cause)
+                continue
+            }
             val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source,
                 scope = ExecutionScope(environment = ValueEnvironment(initial))).last())
             assertEquals(expected, assertIs<SanskritValue.Sankhya>(result.typedValue).value)
@@ -46,7 +54,7 @@ class OrdinalProcedureArgumentTest {
             assertEquals(result.typedValue, values["LastResult"])
         }
     }
-    @Test fun `feminine ordinal argument preserves numeric fallback from parsed morphology`() {
+    @Test fun `feminine ordinal is distinct from cardinal but its named referent remains live`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
             "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
             "मूल्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
@@ -54,6 +62,14 @@ class OrdinalProcedureArgumentTest {
         val generated = BytecodeCompiler.compileAndLoad(source, "FeminineOrdinalArgumentFallback")
         for ((initial, expected) in listOf(emptyMap<String, SanskritValue>() to 2L,
             mapOf("प्रथम + टाप्" to SanskritValue.Sankhya(7, "host")) to 8L)) {
+            if (initial.isEmpty()) {
+                assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+                val failure = assertFailsWith<java.lang.reflect.InvocationTargetException> {
+                    generated.getMethod("execute", Map::class.java).invoke(null, initial)
+                }
+                assertIs<CompiledPaniniExecutionException>(failure.cause)
+                continue
+            }
             val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source,
                 scope = ExecutionScope(environment = ValueEnvironment(initial))).last())
             assertEquals(expected, assertIs<SanskritValue.Sankhya>(result.typedValue).value)

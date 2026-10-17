@@ -16,10 +16,13 @@ class GunaRutvaAnnotationTest {
             val plain = DerivationState(listOf(left, right), stage = DerivationStage.PADA_FORMED)
             assertFalse(AtoRorAplutadSutra.matches(plain))
             assertFalse(HashiCaSutra.matches(plain))
-            val before = plain.addVarnaSubstitution(left.id, Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66")
+            val historyOnly = plain.addVarnaSubstitution(left.id, Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66")
             val ruRule = if (following == "अ") AtoRorAplutadSutra else HashiCaSutra
+            assertFalse(ruRule.matches(historyOnly))
+            val before = historyOnly.replaceTerm(left.id, left.copy(rutvaOccurrences = listOf(RutvaOccurrence(1, "8.2.66"))))
             assertTrue(ruRule.matches(before))
             val intermediate = ruRule.apply(before).state
+            assertTrue(intermediate.terms.first().rutvaOccurrences.isEmpty())
             assertEquals(listOf(Svara.A, Svara.U), intermediate.terms.first().varnas)
             assertTrue(intermediate.terms.first().phonologicalText.effectiveVarnas.first().nasalized)
             assertEquals(1, intermediate.substitutions.last().sourceVarnaIndex)

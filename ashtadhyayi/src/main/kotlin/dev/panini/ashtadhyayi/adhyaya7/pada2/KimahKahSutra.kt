@@ -33,15 +33,15 @@ object KimahKahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val hasSup = context.terms.last().sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null }
-        return hasSup && stem.upadesha == "किम्" && stem.surface == "किम्"
+        return hasSup && stem.upadesha == "किम्" &&
+            stem.varnas == listOf(Vyanjana.KA, Svara.I, Vyanjana.MA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.substituteTermVarnas(
-                stem.id, listOf(Vyanjana.KA, Svara.A), Vyanjana.MA, listOf(Vyanjana.KA), sutra,
-            )
+            state = context.replaceTermVarnaRange(stem.id, 0, stem.varnas.size,
+                listOf(Vyanjana.KA, Svara.A), mapOf(0 to 0, 1 to 1), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.103 substitutes क for किम् before a case affix.",
         )

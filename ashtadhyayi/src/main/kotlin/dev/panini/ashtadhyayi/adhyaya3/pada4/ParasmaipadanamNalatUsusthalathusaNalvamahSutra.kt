@@ -36,7 +36,7 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
         TingAffix.SIP to Replacement("थल्", listOf(Vyanjana.THA, Svara.A, Vyanjana.LA), WholeAffixDesignationPolicy.FreshUpadesha),
         TingAffix.THAS to Replacement("अथुस्", listOf(Svara.A, Vyanjana.THA, Svara.U, Vyanjana.SA)),
         TingAffix.THA to Replacement("अ", listOf(Svara.A)),
-        TingAffix.MIP to Replacement("अ", listOf(Svara.A)),
+        TingAffix.MIP to Replacement("णल्", listOf(Vyanjana.NNA, Svara.A, Vyanjana.LA), WholeAffixDesignationPolicy.FreshUpadesha),
         TingAffix.VAS to Replacement("व", listOf(Vyanjana.VA, Svara.A)),
         TingAffix.MAS to Replacement("म", listOf(Vyanjana.MA, Svara.A)),
     )

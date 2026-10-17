@@ -16,13 +16,17 @@ class SandhiBenchmarkTest {
             val config = DerivationConfig(
                 optionalRulePolicy = OptionalRulePolicy.CUSTOM,
                 optionalRuleSelector = { it !in case.skippedSutras },
+                alternativeChoices = case.alternativeChoices,
             )
-            val result = if (case.leftRupa != null || case.rightRupa != null) {
-                fun pada(id: String, surface: String, rupa: Rupa?) = SandhiEngine.Pada(
-                    DerivationTerm(id, surface, TermKind.PRATIPADIKA), rupa ?: Rupa(),
+            val result = if (case.leftRupa != null || case.rightRupa != null || case.leftUpadesha != null || case.rightUpadesha != null ||
+                case.leftVisargaSource != null || case.rightVisargaSource != null) {
+                fun pada(id: String, surface: String, rupa: Rupa?, upadesha: String?, source: VisargaSource?) = SandhiEngine.Pada(
+                    DerivationTerm(id, surface, TermKind.PRATIPADIKA, upadesha = upadesha ?: surface), rupa ?: Rupa(),
+                    visargaSource = source,
                 )
-                sandhiEngine.join(pada("left", case.left, case.leftRupa), pada("right", case.right, case.rightRupa), config)
-            } else sandhiEngine.join(case.left, case.right, config)
+                sandhiEngine.join(pada("left", case.left, case.leftRupa, case.leftUpadesha, case.leftVisargaSource),
+                    pada("right", case.right, case.rightRupa, case.rightUpadesha, case.rightVisargaSource), config, case.finalBoundary)
+            } else sandhiEngine.join(case.left, case.right, config, case.finalBoundary)
             val appliedSutras = result.applications.mapTo(mutableSetOf()) { it.sutra }
 
             assertEquals(case.expected, sandhiEngine.render(result), "rendered final surface; applied: $appliedSutras")
@@ -76,6 +80,14 @@ class SandhiBenchmarkTest {
             requiredSutras = sutras("requiredSutras"),
             forbiddenSutras = sutras("forbiddenSutras"),
             skippedSutras = (raw["skippedSutras"] as? String).orEmpty().split(',').filterTo(mutableSetOf()) { it.isNotBlank() },
+            alternativeChoices = (raw["alternativeChoices"] as? Map<*, *>).orEmpty().entries.associate {
+                it.key as String to (it.value as Number).toInt()
+            },
+            finalBoundary = (raw["finalBoundary"] as? String)?.let(SpeechBoundary::valueOf) ?: SpeechBoundary.CONTINUATION,
+            leftUpadesha = raw["leftUpadesha"] as? String,
+            rightUpadesha = raw["rightUpadesha"] as? String,
+            leftVisargaSource = (raw["leftVisargaSource"] as? String)?.let(VisargaSource::valueOf),
+            rightVisargaSource = (raw["rightVisargaSource"] as? String)?.let(VisargaSource::valueOf),
         )
     }
 
@@ -90,5 +102,11 @@ class SandhiBenchmarkTest {
         val requiredSutras: Set<String>,
         val forbiddenSutras: Set<String>,
         val skippedSutras: Set<String>,
+        val alternativeChoices: Map<String, Int>,
+        val finalBoundary: SpeechBoundary,
+        val leftUpadesha: String?,
+        val rightUpadesha: String?,
+        val leftVisargaSource: VisargaSource?,
+        val rightVisargaSource: VisargaSource?,
     )
 }

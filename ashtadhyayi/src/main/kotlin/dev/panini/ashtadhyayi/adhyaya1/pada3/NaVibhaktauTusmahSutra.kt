@@ -64,7 +64,8 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
     )
 
     private fun isVibhaktiTerm(context: DerivationState, term: dev.panini.derivation.DerivationTerm): Boolean =
+        term.kind == dev.panini.derivation.TermKind.PRATYAYA && (
         context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } ||
             TingAffix.entries.any { it.upadesha == term.upadesha } ||
-            SupAffix.entries.any { it.upadesha == term.upadesha }
+            SupAffix.entries.any { it.upadesha == term.upadesha })
 }

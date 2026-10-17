@@ -6,6 +6,22 @@ sealed interface TypedAffix {
     val initialSurface: String
     val itMarkers: Set<ItMarker>
     val alternateUpadeshas: Set<String> get() = emptySet()
+    val pronunciationOnlyVarnaIndices: Set<Int> get() = emptySet()
+}
+
+/** Kit augments whose source vowel is pronunciation-only, not a phonological segment. */
+enum class KitAugment(override val upadesha: String, override val pronunciationOnlyVarnaIndices: Set<Int>) : TypedAffix {
+    YUK("युक्", setOf(1)),
+    MUK("मुक्", setOf(1));
+    override val initialSurface: String get() = upadesha
+    override val itMarkers: Set<ItMarker> get() = emptySet()
+}
+
+/** Mit augments retain pronunciation-only material in their source upadeśa. */
+enum class MitAugment(override val upadesha: String, override val pronunciationOnlyVarnaIndices: Set<Int>) : TypedAffix {
+    NUM("नुम्", setOf(1));
+    override val initialSurface: String get() = upadesha
+    override val itMarkers: Set<ItMarker> get() = emptySet()
 }
 
 /** Taddhita source identities; recognition does not imply every derivation rule is implemented. */
@@ -37,7 +53,7 @@ enum class TaddhitaAdesha(override val upadesha: String) : TypedAffix {
 /** Frequency affixes; their pronunciation-only vowels are excluded at term construction. */
 enum class FrequencyAffix(
     override val upadesha: String,
-    val pronunciationOnlyVarnaIndices: Set<Int>,
+    override val pronunciationOnlyVarnaIndices: Set<Int>,
 ) : TypedAffix {
     KRTVASUC("कृत्वसुच्", setOf(6)),
     SUC("सुच्", setOf(1));
@@ -54,6 +70,7 @@ enum class SanadiAffix(
     NIC("णिच्"),
     SAN("सन्"),
     YANG("यङ्"),
+    IYANG("ईयङ्"),
     KYAC("क्यच्"),
     KYANG("क्यङ्"),
     KAMYAC("काम्यच्");
@@ -68,6 +85,7 @@ enum class KrtAffix(
     override val initialSurface: String = upadesha,
     override val itMarkers: Set<ItMarker> = emptySet(),
     override val alternateUpadeshas: Set<String> = emptySet(),
+    override val pronunciationOnlyVarnaIndices: Set<Int> = emptySet(),
 ) : TypedAffix {
     KTA("क्त"),
     KTAVATU("क्तवतुँ"),
@@ -82,7 +100,8 @@ enum class KrtAffix(
     NVUL("ण्वुल्"),
     TRC("तृच्"),
     GHAN("घञ्"),
-    LYUT("ल्युट्");
+    LYUT("ल्युट्"),
+    KVIP("क्विप्", pronunciationOnlyVarnaIndices = setOf(2));
 
     companion object {
         fun fromUpadesha(value: String): KrtAffix? = when (val normalized = value.trim()) {

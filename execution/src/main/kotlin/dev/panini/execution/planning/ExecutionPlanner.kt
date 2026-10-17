@@ -7,7 +7,7 @@ object ExecutionPlanner {
     ): PlanningResult {
         val disposition = DispositionResolver.resolve(program.ukti)
         val plans = mutableListOf<ExecutionPlan>()
-        val symbolicValues = environment.values.toMutableMap()
+        var semanticEnvironment = environment
         val orderedInvocations = order(program) ?: return PlanningResult.Failed(
             ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
@@ -15,7 +15,7 @@ object ExecutionPlanner {
             )
         )
         orderedInvocations.forEach { invocation ->
-            when (val resolution = OperationResolver.resolve(invocation, symbolicValues)) {
+            when (val resolution = OperationResolver.resolve(invocation, semanticEnvironment)) {
                 is OperationResolution.Resolved -> {
                     plans += ExecutionPlan(
                         invocation.id,
@@ -25,9 +25,9 @@ object ExecutionPlanner {
                         program.ukti.speaker,
                         program.ukti.listener,
                     )
-                    symbolicValues[invocation.id] = SanskritValue.Shabda(
-                        "<${invocation.id}>", resolution.value.operation.resultSamjnas,
-                    )
+                    semanticEnvironment = semanticEnvironment.mergedWith(ValueEnvironment(
+                        constraints = mapOf(invocation.id to resolution.value.operation.semanticResultConstraint()),
+                    ))
                 }
                 is OperationResolution.MissingInput -> return PlanningResult.Failed(
                     ExecutionResult.NeedsInput(resolution.karakas, resolution.message),
@@ -70,4 +70,17 @@ object ExecutionPlanner {
         }
         return ordered.takeIf { it.size == program.invocations.size }
     }
+}
+
+/** Static facts about an operation result, without inventing a runtime value. */
+internal fun DhatuOperation.semanticResultConstraint(): SemanticValueConstraint {
+    val type = when {
+        dev.panini.shiksha.Samjna.GANA in resultSamjnas -> OperationValueType.COLLECTION
+        dev.panini.shiksha.Samjna.SATYA in resultSamjnas -> OperationValueType.BOOLEAN
+        dev.panini.shiksha.Samjna.PURANA in resultSamjnas -> OperationValueType.ORDINAL
+        dev.panini.shiksha.Samjna.SANKHYA in resultSamjnas -> OperationValueType.INTEGER
+        dev.panini.shiksha.Samjna.SHABDA in resultSamjnas -> OperationValueType.TEXT
+        else -> null
+    }
+    return SemanticValueConstraint(type, resultSamjnas)
 }

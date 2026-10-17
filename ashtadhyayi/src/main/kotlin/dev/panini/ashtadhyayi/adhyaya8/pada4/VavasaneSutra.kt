@@ -5,9 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.SpeechBoundary
+import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.carStopCounterpart
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varna
-import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -16,7 +17,7 @@ import dev.panini.sutra.SutraType
 
 /**
  * 8.4.56: vāvasāne.
- * At the end of a word (avasāna), a jhal sound is optionally replaced by a car sound (devoiced).
+ * At an explicitly marked pause, a jhal sound is optionally replaced by a car sound (devoiced).
  * This makes the devoicing optional at the end of a sentence or pause.
  */
 object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
@@ -31,23 +32,23 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        // Condition: End of word (Avasāna)
-        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return false
-
-        val lastTerm = context.terms.lastOrNull() ?: return false
-        val finalConsonant = lastTerm.varnas.lastOrNull() ?: return false
-        if (finalConsonant in alreadyDevoiced) return false
-
-        val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, finalConsonant)
+    private fun target(context: DerivationState): DerivationTerm? {
+        if (context.effectiveContext.finalBoundary != SpeechBoundary.AVASANA) return null
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return null
+        val term = context.terms.lastOrNull { it.varnas.isNotEmpty() } ?: return null
+        val source = term.varnas.last()
+        val replacement = source.carStopCounterpart() ?: return null
+        return term.takeIf { replacement != source && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, source) }
     }
 
+    override fun matches(context: DerivationState): Boolean = target(context) != null
+
     override fun apply(context: DerivationState): DerivationChange {
-        val lastTerm = context.terms.last()
+        val lastTerm = requireNotNull(target(context))
         val finalConsonant = lastTerm.varnas.last()
-        val substitute = devoiced(finalConsonant)
+        val substitute = requireNotNull(finalConsonant.carStopCounterpart())
 
         return DerivationChange(
             state = context.replaceTermVarna(lastTerm.id, lastTerm.varnas.lastIndex, listOf(substitute), sutra)
@@ -61,17 +62,4 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         DerivationChange(state, "8.4.56: Declined optional devoicing at avasāna.", applied = false)
     )
 
-    private fun devoiced(source: Varna): Vyanjana = when (source) {
-        Vyanjana.JA, Vyanjana.JHA -> Vyanjana.CA
-        Vyanjana.DDA, Vyanjana.DDHA -> Vyanjana.TTA
-        Vyanjana.DA, Vyanjana.DHA -> Vyanjana.TA
-        Vyanjana.GA, Vyanjana.GHA -> Vyanjana.KA
-        Vyanjana.BA, Vyanjana.BHA -> Vyanjana.PA
-        else -> Vyanjana.TA
-    }
-
-    private val alreadyDevoiced: Set<Varna> = setOf(
-        Vyanjana.CA, Vyanjana.TTA, Vyanjana.TA, Vyanjana.KA, Vyanjana.PA,
-        Vyanjana.SHA, Vyanjana.SSA, Vyanjana.SA, Vyanjana.HA,
-    )
 }

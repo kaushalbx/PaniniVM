@@ -131,6 +131,30 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         vm.executionMetrics.recordAstNode()
         return when (node) {
         is Invocation -> {
+            if (!context.conditionEvaluation && context.scope.procedureBindings?.hasProcedureOwner == true) {
+                val bound = try { LocalAnaphorBinding.resolve(node, context.scope) }
+                    catch (failure: IllegalArgumentException) {
+                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                            failure.message ?: "Invalid procedure result.")).also(context::publish)
+                    }
+                val relation = try { ProcedureResultStatement.resolve(bound.invocation,
+                    roleShadowed = bound.scope.procedureBindings?.isDeclaredInProcedure("फल") == true) }
+                    catch (failure: IllegalArgumentException) {
+                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                            failure.message ?: "Invalid procedure result.")).also(context::publish)
+                    }
+                if (relation != null) {
+                    val value = try { NominalResultSemantics.operand(relation.value).resolve { name ->
+                        bound.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
+                    } } catch (failure: IllegalArgumentException) {
+                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                            failure.message ?: "Invalid procedure result value.")).also(context::publish)
+                    }
+                    vm.retainStructuredResult(context.sessionKey, value, context.speaker, context.listener, context.persistSession)
+                    return listOf(ExecutionResult.Success(value.toDisplayText(), "pvm.procedure-result",
+                        typedValue = value, controlSignal = ExecutionControlSignal.RETURN_PROCEDURE)).also(context::publish)
+                }
+            }
             TaddhitaStructEngine.detectAttributeAccess(node.vakya)?.let { access ->
                 val result = structuredValueExecutor.resolve(access, context.structStore)
                 if (result is ExecutionResult.Success) result.typedValue?.let { value ->

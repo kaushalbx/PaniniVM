@@ -254,7 +254,7 @@ class PrakriyaAstArgumentBinderTest {
         val operands = bound.depthFirst().filterIsInstance<Invocation>().single().vakya.padas
             .flatMap {
                 when (it) {
-                    is dev.panini.vyakaranam.ast.SamuccitaSubanta -> it.members.map { member -> member.pratipadika.sourceText }
+                    is dev.panini.vyakaranam.ast.SamuccitaSubanta -> it.members.map { member -> kotlin.test.assertIs<dev.panini.vyakaranam.ast.SubantaPada>(member).pratipadika.sourceText }
                     is dev.panini.vyakaranam.ast.SubantaPada -> listOf(it.pratipadika.sourceText)
                     else -> emptyList()
                 }

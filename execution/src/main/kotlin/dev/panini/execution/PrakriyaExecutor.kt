@@ -24,19 +24,28 @@ internal class PrakriyaExecutor {
         invocation.resolutionError?.let {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, it))
         }
-        val signature = invocation.kriya.signature
-        val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+        val bodyAnalysis = try { invocation.kriya.bodyAnalysis } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure signature."))
+        }
+        val signature = bodyAnalysis.signature
+        val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
+            request.registry.all().mapTo(mutableSetOf()) { it.nameStem })
         if (argumentResolution is PrakriyaArgumentResolution.Failure) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
         val resolvedArguments = (argumentResolution as PrakriyaArgumentResolution.Success).arguments
         val argTerms = argumentResolution.terms
-        val callFrame = PrakriyaCallFrame.createResolved(
+        val callFrame = try { PrakriyaCallFrame.createResolved(
             invocation,
             resolvedArguments,
             request.scope,
             request.resolveValue,
-        )
+            bodyAnalysis,
+        ) } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                failure.message ?: "Invalid procedure inputs."))
+        }
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }
         validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }
@@ -46,16 +55,15 @@ internal class PrakriyaExecutor {
             ?: invocation.ukti?.grammaticalVakyas()?.firstOrNull()?.padas
                 ?.let(FrequencyExtractor::extractAbhyasaCount)
             ?: 1
+        val knownOperationStems = request.registry.all().mapTo(mutableSetOf()) { it.nameStem }
+        val boundBodies = bodyAnalysis.executableBodies.map { program ->
+            PrakriyaAstArgumentBinder.bind(
+                program, signature.parameters, callFrame.arguments.size, knownOperationStems,
+            )
+        }
         repeat(repetitionCount) {
-            invocation.kriya.vidhiSentences.forEach { sentence ->
+            boundBodies.forEach { boundProgram ->
                 val sourceFile = invocation.kriya.sourceFile ?: request.callerSourceFile
-                val program = requireNotNull(sentence.program) {
-                    "A reusable प्रक्रिया body must contain a parsed Sanskrit program: '${sentence.text}'."
-                }
-                val boundProgram = PrakriyaAstArgumentBinder.bind(
-                    program, signature.parameters, callFrame.arguments.size,
-                    request.registry.all().mapTo(mutableSetOf()) { it.nameStem },
-                )
                 val produced = request.executeBody(boundProgram, callFrame.localScope, sourceFile)
                 results += produced
                 // Failure and suspension are not completed procedure results.

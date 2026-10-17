@@ -51,6 +51,8 @@ class PersistedSanskritValueCodecTest {
     @Test
     fun `round trips every persisted value shape`() {
         val values = listOf(
+            SanskritValue.Purana(2, "द्वितीय"),
+            SanskritValue.Rupa("ordinal", mapOf("position" to SanskritValue.Purana(3, "तृतीय"))),
             SanskritValue.Sankhya(5, "पञ्च"),
             SanskritValue.Rational(1, 2, "अर्ध"),
             SanskritValue.Suchi(listOf(SanskritValue.Rational(1, -2, "negative half")), ListMemberType.NUMBER),

@@ -65,8 +65,15 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
+        val stem = context.terms[context.terms.lastIndex - 1]
+        val state = context.removeTerm(affix.id, sutra)
+        // Deleting the ending does not erase the established pada designation
+        // of the sup/tiṅ-ending whole; its surviving carrier is now the stem.
+        val padaAssignments = context.samjnas.filter {
+            it.targetId == affix.id && it.samjna == dev.panini.shiksha.Samjna.PADA
+        }.map { it.copy(targetId = stem.id) }.toSet()
         return DerivationChange(
-            state = context.removeTerm(affix.id, sutra).copy(stage = DerivationStage.FINAL),
+            state = state.withSamjnas(padaAssignments).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.68: Deleted the single-consonant affix after hal/ī/ā."
         )
     }

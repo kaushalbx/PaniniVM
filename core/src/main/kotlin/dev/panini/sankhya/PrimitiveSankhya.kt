@@ -1,5 +1,8 @@
 package dev.panini.sankhya
 
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
+
 enum class PrimitiveSankhya(
     val value: Long,
     val pratipadika: String,
@@ -61,6 +64,9 @@ enum class PrimitiveSankhya(
         /** Resolves only an explicitly annotated numeral prātipadika, never a surface subanta. */
         fun fromAnnotatedPratipadika(text: String): PrimitiveSankhya? = annotatedPratipadikas[text]
     }
+
+    /** Parsed once at the lexical boundary, never from a changing term surface. */
+    val pratipadikaVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { pratipadika.toVarnas() }
 }
 
 enum class SankhyaInflectionClass {

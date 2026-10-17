@@ -68,8 +68,9 @@ class SandhiPhonologicalTransformationTest {
         assertEquals("रामरुँ", rutva.surface)
         assertEquals("रुँ", rutva.substitutions.single { it.sutra == "8.2.66" }.replacement)
         val rawRutva = rutva.terms.single()
-        assertEquals("रामरुँ", rawRutva.upadesha)
-        assertEquals("8.2.66", rawRutva.createdBySutra)
+        assertEquals("रामस्", rawRutva.upadesha)
+        assertEquals(null, rawRutva.createdBySutra)
+        assertEquals(4, rawRutva.pendingRutvaUpadeshaIndex)
         assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, rawRutva.itProcessingPhase)
         assertEquals("रामस्", rawRutva.sthaniProps?.upadesha)
         assertTrue(!KharavasanayorVisarjaniyahSutra.matches(rutva))
@@ -90,8 +91,9 @@ class SandhiPhonologicalTransformationTest {
         assertTrue(SasajusoRuhSutra.matches(state))
         val rutva = SasajusoRuhSutra.apply(state).state
         assertEquals("सजुरुँ", rutva.surface)
-        assertEquals("सजुरुँ", rutva.terms.single().upadesha)
-        assertEquals("8.2.66", rutva.terms.single().createdBySutra)
+        assertEquals("सजुष्", rutva.terms.single().upadesha)
+        assertEquals(null, rutva.terms.single().createdBySutra)
+        assertEquals(4, rutva.terms.single().pendingRutvaUpadeshaIndex)
         assertEquals("सजुष्", rutva.terms.single().sthaniProps?.upadesha)
         assertEquals('ष', rutva.substitutions.single().source)
         assertEquals("रुँ", rutva.substitutions.single().replacement)
@@ -169,7 +171,8 @@ class SandhiPhonologicalTransformationTest {
             terms = listOf(
                 DerivationTerm("t1", "तत्", TermKind.PRATIPADIKA, upadesha = "तत्"),
                 DerivationTerm("t2", "शिवः", TermKind.PRATIPADIKA, upadesha = "शिवः")
-            )
+            ),
+            samjnas = setOf(dev.panini.derivation.SamjnaAssignment("t1", Samjna.PADA))
         )
         assertTrue(ShashChoAtiSutra.matches(state))
         val change = ShashChoAtiSutra.apply(state)
@@ -190,12 +193,13 @@ class SandhiPhonologicalTransformationTest {
     }
 
     @Test
-    fun `test HaliSarveshamSutra elides y from bhoh before hal`() {
+    fun `test HaliSarveshamSutra elides the y substitute before hal`() {
         val state = DerivationState(
             terms = listOf(
-                DerivationTerm("t1", "भोः", TermKind.PRATIPADIKA, upadesha = "भोः"),
+                DerivationTerm("t1", "भोय्", TermKind.PRATIPADIKA, upadesha = "भोः"),
                 DerivationTerm("t2", "देवाः", TermKind.PRATIPADIKA, upadesha = "देवाः")
-            )
+            ),
+            samjnas = setOf(dev.panini.derivation.SamjnaAssignment("t1", dev.panini.shiksha.Samjna.PADA))
         )
         assertTrue(HaliSarveshamSutra.matches(state))
         val change = HaliSarveshamSutra.apply(state)
@@ -223,7 +227,8 @@ class SandhiPhonologicalTransformationTest {
             terms = listOf(
                 DerivationTerm("t1", "शां", TermKind.PRATIPADIKA, upadesha = "शां"),
                 DerivationTerm("t2", "तम्", TermKind.PRATIPADIKA, upadesha = "तम्")
-            )
+            ),
+            samjnas = setOf(dev.panini.derivation.SamjnaAssignment("t1", dev.panini.shiksha.Samjna.PADA)),
         )
         assertTrue(VaPadantasyaSutra.matches(state))
         val change = VaPadantasyaSutra.apply(state)
@@ -244,15 +249,18 @@ class SandhiPhonologicalTransformationTest {
     }
 
     @Test
-    fun `test BhoBhagoAghoApurvasyaYoshiSutra transforms visarga to y before ash`() {
+    fun `test BhoBhagoAghoApurvasyaYoshiSutra transforms established ru to y before ash`() {
         val state = DerivationState(
             terms = listOf(
-                DerivationTerm("t1", "देवः", TermKind.PRATIPADIKA, upadesha = "देवः"),
+                DerivationTerm("t1", "देवर्", TermKind.PRATIPADIKA, upadesha = "देवस्",
+                    rutvaOccurrences = listOf(dev.panini.derivation.RutvaOccurrence(4, "8.2.66"))),
                 DerivationTerm("t2", "इह", TermKind.PRATIPADIKA, upadesha = "इह")
             )
         )
-        assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(state))
-        val change = BhoBhagoAghoApurvasyaYoshiSutra.apply(state)
+        val withRutva = state.addVarnaSubstitution("t1", dev.panini.shiksha.Vyanjana.SA,
+            listOf(dev.panini.shiksha.Vyanjana.RA), "8.2.66")
+        assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(withRutva))
+        val change = BhoBhagoAghoApurvasyaYoshiSutra.apply(withRutva)
         assertEquals("देवय्", change.state.terms[0].surface)
     }
 

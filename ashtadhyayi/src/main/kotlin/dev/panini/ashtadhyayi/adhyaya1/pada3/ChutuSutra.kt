@@ -41,7 +41,7 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
-            term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
+            term.pendingRutvaUpadeshaIndex == null && term.isItUpadeshaVarna(0) && term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
             (isCu(term.varnas.first()) || isTtu(term.varnas.first())) &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
@@ -51,7 +51,7 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
         val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
             if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
-            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
+            if (term.pendingRutvaUpadeshaIndex == null && term.isItUpadeshaVarna(0) && term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
                 val firstVarna = term.varnas.first()
                 when {
                     isCu(firstVarna) -> designateInitial(term, ItMarker.J)

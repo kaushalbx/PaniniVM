@@ -30,7 +30,7 @@ object DerivationSutraRuntimeAdapter {
         val dependencies = catalogSutra?.dependencies.orEmpty()
         return RuntimeSutra(
             id = id,
-            source = SutraSource.Ashtadhyayi(
+            source = legacy.source ?: SutraSource.Ashtadhyayi(
                 number = legacy.sutra,
                 text = catalogSutra?.text ?: legacy.sutra,
                 segmentedSource = catalogSutra?.segmentedSource,

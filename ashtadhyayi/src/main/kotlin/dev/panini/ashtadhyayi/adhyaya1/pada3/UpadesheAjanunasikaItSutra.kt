@@ -66,6 +66,8 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun nasalVowelDesignations(term: dev.panini.derivation.DerivationTerm): List<ItDesignation> =
         term.phonologicalText.effectiveVarnas.mapIndexedNotNull { index, token ->
+            if (!term.isItUpadeshaVarna(index)) return@mapIndexedNotNull null
+            if (term.pendingRutvaUpadeshaIndex?.let { index != it + 1 } == true) return@mapIndexedNotNull null
             if (token.varna !is Svara || !token.nasalized) return@mapIndexedNotNull null
             val designation = term.designateVarnaIt(index, ItMarker.U, sutra)
             if ((term.itDesignations + term.deferredItDesignations)

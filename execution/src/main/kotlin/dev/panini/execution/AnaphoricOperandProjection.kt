@@ -45,7 +45,7 @@ object AnaphoricOperandProjection {
             if (protectedPadas.any { it === pada }) pada else when (pada) {
                 is SubantaPada -> nominal(pada)
                 is SamuccitaSubanta -> coordinated.getOrPut(pada) {
-                    pada.copy(members = pada.members.map(::nominal))
+                    pada.copy(members = pada.members.map { if (it is SubantaPada) nominal(it) else it })
                 }
                 else -> pada
             }

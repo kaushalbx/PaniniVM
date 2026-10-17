@@ -128,7 +128,7 @@ class WholeAffixReplacementTest {
             id = "affix", surface = "इप्", source = 'अ', replacement = "इ", sutra = "x",
         )
         assertEquals("प्", result.terms.single().itDesignations.single().designatedText)
-        assertEquals(VarnaSubstitution("affix", 'अ', "इ", "x"), result.substitutions.single())
+        assertEquals(VarnaSubstitution("affix", 'अ', "इ", "x", originalRutvaOccurrences = emptyList()), result.substitutions.single())
     }
 
     @Test fun `segment substitution cannot stale an exact designation`() {
@@ -149,7 +149,7 @@ class WholeAffixReplacementTest {
         assertEquals("रामे", result.surface)
         assertEquals(ItProcessingPhase.PROCESSED, result.droppedTerms.single().itProcessingPhase)
         assertEquals("x", result.droppedTerms.single().droppedBySutra)
-        assertEquals(VarnaSubstitution("stem", 'अ', "ए", "x"), result.substitutions.single())
+        assertEquals(VarnaSubstitution("stem", 'अ', "ए", "x", originalRutvaOccurrences = emptyList()), result.substitutions.single())
     }
 
     @Test fun `adjacent redistribution preserves both terms and records one substitution`() {

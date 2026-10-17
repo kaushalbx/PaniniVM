@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /** 3.1.85: व्यत्ययो बहुलम्. Models the attested Vedic मि -> नि variation in LET. */
 object VyatyayoBahulamSutra : Sutra<DerivationState, DerivationChange>(
@@ -27,13 +29,13 @@ object VyatyayoBahulamSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
-            ending.matchesUpadesha("मिप्") && ending.surface == "मि"
+            ending.matchesUpadesha("मिप्") && ending.varnas == listOf(Vyanjana.MA, Svara.I)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, "नि", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceTermVarna(ending.id, 0, listOf(Vyanjana.NA), sutra),
             "3.1.85 permits the Vedic नि ending in place of मि.",
         )
     }

@@ -60,10 +60,9 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val source = stem.varnas.last() as Svara
         val replacement = requireNotNull(Varnamala.getVrddhi(source))
-        val result = stem.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, source, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.115 applies vṛddhi before a ñit/ṇit affix."
         )

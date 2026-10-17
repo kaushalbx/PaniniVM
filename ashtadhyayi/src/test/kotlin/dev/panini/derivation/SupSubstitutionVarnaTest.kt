@@ -74,6 +74,8 @@ class SupSubstitutionVarnaTest {
         assertEquals(ItProcessingPhase.RAW_UPADESHA, ending.itProcessingPhase)
         assertEquals(original.terms.first(), result.terms.first())
         assertFalse(JasahShiSutra.matches(result))
+        // Source case provenance is not an operative jas after a whole-affix substitution.
+        assertFalse(JasahShiSutra.matches(state("अम्", SupAffix.AM.upadesha, SupAffix.JAS)))
         assertFalse(JasahShiSutra.matches(original.replaceTerm(original.terms.last().id, original.terms.last().copy(surface = "ईँऽ"))))
         val unrelated = state("अस्", "substitute")
         assertFalse(JasahShiSutra.matches(unrelated.replaceTerm(unrelated.terms.last().id, unrelated.terms.last().copy(id = "sup-jas"))))

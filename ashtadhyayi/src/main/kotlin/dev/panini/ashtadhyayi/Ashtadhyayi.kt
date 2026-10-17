@@ -54,7 +54,11 @@ object Ashtadhyayi {
     ).flatten()
     val cataloguedSutras: List<Sutra<*, *>> = implementedSutras
 
-    val registry = SutraRegistry(cataloguedSutras)
+    /** Attested extensions have their own source and never inflate canonical pāṭha counts. */
+    val vartikas: List<Sutra<*, *>> = listOf(dev.panini.ashtadhyayi.vartika.ChatvamAmiVartika,
+        dev.panini.ashtadhyayi.vartika.KharpareShariVisargaLopaVartika)
+    val yogavibhagas: List<Sutra<*, *>> = listOf(dev.panini.ashtadhyayi.yogavibhaga.EkaDasaAtvaYogavibhaga)
+    val registry = SutraRegistry(cataloguedSutras + vartikas + yogavibhagas)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
     private val executableSutrasByStage: Map<SutraStage, List<DerivationSutra>> =
         executableSutras.groupBy(DerivationSutra::stage)
@@ -89,11 +93,11 @@ object Ashtadhyayi {
         it is DerivationSutra
     }
 
-    /** Compatibility view; derived from the registry and never maintained separately. */
-    val kriyavatSutras: List<Sutra<*, *>> = executableSutras.map { it as Sutra<*, *> }
+    /** Canonical compatibility view; owned extensions remain in executableSutras. */
+    val kriyavatSutras: List<Sutra<*, *>> = cataloguedSutras.filter { it is DerivationSutra }
     val catalogIssues: List<SutraCatalogIssue> =
-        SutraCatalogValidator.validate(registry) + AshtadhyayiSutraValidator.validate(registry.sutras)
-    val patha = SutraPatha(registry.sutras)
+        SutraCatalogValidator.validate(registry) + AshtadhyayiSutraValidator.validate(cataloguedSutras)
+    val patha = SutraPatha(cataloguedSutras)
     val pathitaCount: Int get() = patha.pathitaCount
     val kriyavatCount: Int get() = patha.kriyavatCount
     val remainingCount: Int get() = expectedSutraCount - pathitaCount

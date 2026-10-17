@@ -19,6 +19,7 @@ import dev.panini.execution.ExecutionNode
 import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
+import dev.panini.execution.WeakIdentityMap
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.VakyaPrayojana
@@ -60,8 +61,7 @@ import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.collections.plusAssign
-import java.util.Collections
-import java.util.WeakHashMap
+import java.util.IdentityHashMap
 
 /**
  * Thin bridge from canonical vyākaraṇa analysis to execution semantics.
@@ -75,7 +75,9 @@ import java.util.WeakHashMap
  */
 object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
-    private val analysisCache = Collections.synchronizedMap(WeakHashMap<Ukti, UktiAnalysis>())
+    // UktiAnalysis frames retain their source AST, so weak keys alone cannot make
+    // this cache collectible. Bound it explicitly while retaining AST identity.
+    private val analysisCache = WeakIdentityMap<Ukti, UktiAnalysis>(maxEntries = 256)
 
     internal fun analyzeForMemory(text: String): UktiAnalysis? {
         val ukti = try {
@@ -110,7 +112,7 @@ object VyakaranamExecutionAdapter {
                         override fun findPratipadika(text: String): PratipadikaEntry? = null
                         override fun findDhatu(text: String): Dhatu? = null
                     },
-                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
+                    sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             ).analyze(vakya, frameId)
         } else {
@@ -122,7 +124,7 @@ object VyakaranamExecutionAdapter {
                         override fun findDhatu(text: String): Dhatu = dhatu
                     },
                     validatePadaCompatibility = false,
-                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
+                    sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             ).analyze(vakya, frameId)
         }
@@ -269,6 +271,12 @@ object VyakaranamExecutionAdapter {
             ))
         }
         val utteranceAnalysis = analyze(executableUkti)
+        utteranceAnalysis.blockingDiagnostics.firstOrNull()?.let { diagnostic ->
+            return AnalyzedExecutionBinding(
+                ExecutionBindingResult.Invalid(diagnostic.message),
+                utteranceAnalysis,
+            )
+        }
 
         val invocations = mutableListOf<DhatuInvocation>()
         val qualificationKinds = utteranceAnalysis.frames
@@ -277,13 +285,16 @@ object VyakaranamExecutionAdapter {
         val prayer = KriyaQualificationKind.COURTESY in qualificationKinds
         val prohibition = KriyaQualificationKind.NEGATION in qualificationKinds
         val localVariables = mutableSetOf<String>()
+        val previousActionIdentities = mutableListOf<dev.panini.core.ActionIdentity?>()
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
-        val normalizedFrequency = normalizeFrequencyAst(executableUkti)
-        val executionBody = if (normalizedFrequency.body != executableUkti.body || executableUkti.body is Repeat) {
-            normalizedFrequency.body
+        val executionBody = if (executableUkti.body is Repeat) {
+            executableUkti.body
         } else lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
+        val framesByVakyaIdentity = IdentityHashMap<Vakya, dev.panini.analysis.KriyaFrame>().apply {
+            utteranceAnalysis.frames.forEach { frame -> put(frame.vakya, frame) }
+        }
         val pipelineKarmanSources = pipelineKarmanSources(executionBody)
 
         executionVakyas.forEachIndexed { index, vakya ->
@@ -300,7 +311,13 @@ object VyakaranamExecutionAdapter {
                         ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha."),
                     )
             }
-            val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
+            val frame = framesByVakyaIdentity[vakya]
+                ?: return AnalyzedExecutionBinding(
+                    ExecutionBindingResult.Invalid(
+                        "Executable clause has no identity-preserving semantic frame: ${vakya.sourceText}",
+                    ),
+                    utteranceAnalysis,
+                )
             val ctx = BindingContext(
                 conversation = conversation,
                 clauseIndex = index,
@@ -311,6 +328,7 @@ object VyakaranamExecutionAdapter {
                 localVariables = localVariables,
                 localVariableInvocationIds = localVariableInvocationIds,
                 environment = environment,
+                previousActionIdentities = previousActionIdentities,
             )
             val invocation = try { buildDhatuInvocation(
                 index = index,
@@ -327,6 +345,7 @@ object VyakaranamExecutionAdapter {
                 return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Missing action result."), utteranceAnalysis)
             }
             invocations += invocation
+            previousActionIdentities += frame.kriya?.actionIdentity
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
             val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()
             if (bindingName != null) {

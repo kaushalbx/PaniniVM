@@ -7,6 +7,13 @@ import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 /** Partial lexical agreement: unknown gender is not evidence of a mismatch. */
 internal object NominalGenderAgreement {
     fun genders(pada: Pada?): Set<Linga> {
+        if (pada is SankhyaPuranaPada) {
+            if (pada.striAffix != null) {
+                dev.panini.execution.OrdinalFeminineDerivation.derive(pada)
+                return setOf(Linga.STRI)
+            }
+            return setOf(Linga.PUMS, Linga.NAPUMSAKA)
+        }
         val stem = (pada as? SubantaPada)?.pratipadika ?: return emptySet()
         val vikaras = when (stem) {
             is MulaPratipadika -> stem.vikaras

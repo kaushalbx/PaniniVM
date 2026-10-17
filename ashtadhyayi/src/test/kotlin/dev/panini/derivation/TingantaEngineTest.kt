@@ -16,6 +16,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TingantaEngineTest {
+    // These paradigms specify the traditional retained-cluster branch.
+    private val retainedClusters = DerivationConfig(optionalRulePolicy = OptionalRulePolicy.CUSTOM,
+        optionalRuleSelector = { it !in setOf("8.4.64", "8.4.65") })
     @Test
     fun `kru imperative derives kuru without renderer substitution`() {
         checkRendererImperative("कृ", DhatuGana.TANADI, "कुरु")
@@ -431,7 +434,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LAT)
                 .assertSurfaces(surfaces)
         }
@@ -453,7 +456,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.ATMANEPADA, Lakara.LAT)
                 .assertSurfaces(surfaces)
         }
@@ -605,7 +608,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LANG)
                 .assertSurfaces(surfaces)
         }
@@ -627,7 +630,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.ATMANEPADA, Lakara.LANG)
                 .assertSurfaces(surfaces)
         }
@@ -649,7 +652,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LOT)
                 .assertSurfaces(surfaces)
         }
@@ -671,7 +674,7 @@ class TingantaEngineTest {
         )
 
         expected.forEach { (root, surfaces) ->
-            TingantaEngine()
+            TingantaEngine(config = retainedClusters)
                 .deriveSupportedParadigm(root, PadaType.ATMANEPADA, Lakara.LOT)
                 .assertSurfaces(surfaces)
         }

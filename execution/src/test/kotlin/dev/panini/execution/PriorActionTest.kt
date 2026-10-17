@@ -131,8 +131,10 @@ class PriorActionTest {
             val sequence = assertIs<Sequence>(PriorActionLowering.lower(PaniniParser().parse(source).body))
             for (statement in sequence.statements) {
                 val sentence = assertIs<AkhyataVakya>(assertIs<Invocation>(statement).vakya)
-                val group = sentence.padas.filterIsInstance<SamuccitaSubanta>().single()
-                assertEquals(listOf("राम", "श्याम"), group.members.map { it.pratipadika.semanticKey() })
+                val group = sentence.padas.filterIsInstance<SamuccitaSubanta>().single { coordination ->
+                    coordination.members.all { it.sup.supports(dev.panini.core.Vibhakti.PRATHAMA) }
+                }
+                assertEquals(listOf("राम", "श्याम"), group.members.map { kotlin.test.assertIs<SubantaPada>(it).pratipadika.semanticKey() })
             }
         }
     }

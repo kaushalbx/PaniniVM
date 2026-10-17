@@ -301,7 +301,7 @@ object TaddhitaStructEngine {
         is KatapayadiPada -> word
         is AryabhatiyaPada -> word
         is BhutasamkhyaPada -> terms.joinToString("+")
-        is SamuccitaSubanta -> members.joinToString("+") { it.pratipadika.semanticKey() }
+        is SamuccitaSubanta -> members.joinToString("+") { it.stemIdentity() }
         is dev.panini.vyakaranam.ast.ParyantaRangePada ->
             "${lowerLimit.stems.joinToString("+")}..${upperLimit.stems.joinToString("+")}"
         is AvyayaPada -> form

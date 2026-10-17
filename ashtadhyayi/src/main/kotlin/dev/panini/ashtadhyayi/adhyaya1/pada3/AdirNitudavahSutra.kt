@@ -37,12 +37,15 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     fun hasSamjnaTarget(state: DerivationState): Boolean =
         (state.stage == DerivationStage.INITIAL || state.terms.any { it.itProcessingPending }) &&
             state.terms.any { term ->
+                (state.terms.none { it.itProcessingPending } || term.itProcessingPending) &&
                 term.kind == TermKind.DHATU && initialMarker(term) != null &&
                     term.itDesignations.none { it.start == 0 }
         }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
             if (term.kind == TermKind.DHATU) {
                 val marker = initialMarker(term) ?: return@map term
                 term.copy(
@@ -62,10 +65,14 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
-    private fun initialMarker(term: DerivationTerm): ItMarker? = when (term.varnas.take(2)) {
-        listOf(Vyanjana.NYA, Svara.I) -> ItMarker.NYIT
-        listOf(Vyanjana.TTA, Svara.U) -> ItMarker.T
-        listOf(Vyanjana.DDA, Svara.U) -> ItMarker.DIT
-        else -> null
+    private fun initialMarker(term: DerivationTerm): ItMarker? = when {
+        term.pendingRutvaUpadeshaIndex != null -> null
+        !term.isItUpadeshaVarna(0) || !term.isItUpadeshaVarna(1) -> null
+        else -> when (term.varnas.take(2)) {
+            listOf(Vyanjana.NYA, Svara.I) -> ItMarker.NYIT
+            listOf(Vyanjana.TTA, Svara.U) -> ItMarker.T
+            listOf(Vyanjana.DDA, Svara.U) -> ItMarker.DIT
+            else -> null
+        }
     }
 }

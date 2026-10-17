@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
+import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
@@ -33,6 +34,7 @@ object NadiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&
+            (term.formedPadaRupa?.linga ?: context.effectiveContext.rupa.linga) == Linga.STRI &&
             term.varnas.lastOrNull() in setOf(Svara.II, Svara.UU) &&
             context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
         }
@@ -40,6 +42,7 @@ object NadiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms
             .filter { it.kind == TermKind.PRATIPADIKA &&
+                      (it.formedPadaRupa?.linga ?: context.effectiveContext.rupa.linga) == Linga.STRI &&
                       it.varnas.lastOrNull() in setOf(Svara.II, Svara.UU) }
             .map { SamjnaAssignment(it.id, Samjna.NADI) }
             .toSet()

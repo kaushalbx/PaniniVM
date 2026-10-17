@@ -94,7 +94,6 @@ object Adhyaya6Pada3 {
         MitreCarsauSutra,
         SamprasaranasyaSutra,
         AnyesamApiDrsyateSutra,
-        EkadishCaikasyaCadukSutra,
         VopasarjanasyaSutra,
         DhralopePurvasyaDirghonahSutra,
     )

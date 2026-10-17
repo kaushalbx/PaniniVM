@@ -43,6 +43,7 @@ class ProgramSutraArthaCodecTest {
 
     @Test fun `named operands preserve provenance independently of payload and case`() {
         for (value in listOf(
+            SanskritValue.Purana(2, "द्वितीय"),
             SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER),
             SanskritValue.Sankhya(1, "एक"),
             SanskritValue.Shabda("सूची"),

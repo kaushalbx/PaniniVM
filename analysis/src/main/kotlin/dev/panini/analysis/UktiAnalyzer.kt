@@ -21,7 +21,10 @@ data class UktiAnalysis(
     val frames: List<KriyaFrame>,
     val links: List<KriyaLink>,
     val diagnostics: List<FrameDiagnostic> = emptyList(),
-)
+) {
+    val blockingDiagnostics: List<FrameDiagnostic>
+        get() = (diagnostics + frames.flatMap { it.diagnostics }).filter(FrameDiagnosticPolicy::blocksExecution)
+}
 
 /**
  * Performs the second, utterance-level stage of analysis.
@@ -83,8 +86,13 @@ class UktiAnalyzer(
                         resolution is FrameKarakaResolution.Unassigned ||
                             resolution is FrameKarakaResolution.Ambiguous && dev.panini.core.Karaka.KARTR in resolution.candidates
                     }
-                    fun identities(padas: List<dev.panini.vyakaranam.ast.SubantaPada>) = padas.map {
-                        it.pratipadika.morphologicalKey() to it.sup.affixCandidates.map { affix -> affix.vacana }.toSet()
+                    fun identities(padas: List<dev.panini.vyakaranam.ast.SupBearingPada>) = padas.map {
+                        val nominalIdentity: Any = when (it) {
+                            is dev.panini.vyakaranam.ast.SubantaPada -> it.pratipadika.morphologicalKey()
+                            is dev.panini.vyakaranam.ast.SankhyaPuranaPada -> Triple(it.stems, it.value, it.striAffix)
+                            else -> it
+                        }
+                        nominalIdentity to it.sup.affixCandidates.map { affix -> affix.vacana }.toSet()
                     }.groupingBy { it }.eachCount()
                     val sourceAgents = agents(source)
                     val targetAgents = agents(target)

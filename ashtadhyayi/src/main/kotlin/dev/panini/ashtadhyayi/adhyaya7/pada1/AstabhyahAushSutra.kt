@@ -4,6 +4,11 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,6 +36,9 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1"),
     blocks = setOf("7.1.22"),
 ), DerivationSutra {
+    private val astaShapes = setOf(PrimitiveSankhya.ASHTAN.pratipadikaVarnas,
+        listOf(Svara.A, Vyanjana.SSA, Vyanjana.TTA, Svara.A),
+        listOf(Svara.A, Vyanjana.SSA, Vyanjana.TTA, Svara.AA))
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
@@ -39,10 +47,11 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (affix.upadesha == "औश्") return false
 
-        val isAsta = stem.upadesha in setOf("अष्टन्", "अष्ट") || stem.surface in setOf("अष्टन्", "अष्टा", "अष्ट")
+        val isAsta = stem.upadesha in setOf("अष्टन्", "अष्ट") || stem.varnas in astaShapes
         if (!isAsta) return false
 
-        val isJasOrSas = affix.id in setOf("sup-jas", "sup-sas") || affix.upadesha in setOf("जस्", "शस्")
+        val isJasOrSas = affix.sourceSupAffix in setOf(SupAffix.JAS, SupAffix.SAS) &&
+            affix.sourceSupAffix?.let { affix.hasCurrentAffix(it) } == true
         return isJasOrSas
     }
 

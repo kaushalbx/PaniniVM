@@ -8,7 +8,6 @@ object Adhyaya3Pada3 {
         UnadayoBahulamSutra,
         KrmyoKahSutra,
         BhaveGhanSutra,
-        EchaIgGhanSutra,
         RadorApsutra,
         ShidbhidadibhyoAngSutra,
         StriyamKtinSutra,

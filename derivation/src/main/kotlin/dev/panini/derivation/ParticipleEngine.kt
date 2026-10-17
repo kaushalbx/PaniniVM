@@ -27,7 +27,8 @@ import dev.panini.shiksha.Samjna
 import dev.panini.core.Lakara
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AcoNnitiSutra
-import dev.panini.ashtadhyayi.adhyaya7.pada3.VatoYukSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada3.AtoYukCinKrtohSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.KrdAtinSutra
 
 /** Request object for Participle and Uṇādi stem derivations. */
 data class ParticipleDerivationRequest(
@@ -72,6 +73,7 @@ class ParticipleEngine(
     ))
     private val unadiEngine = DerivationEngine(listOf(
         UnadayoBahulamSutra,
+        KrdAtinSutra,
         UpadesheAjanunasikaItSutra,
         HalantyamSutra,
         ChutuSutra,
@@ -79,8 +81,8 @@ class ParticipleEngine(
         LasakvataddhiteSutra,
         AdyantauTakitauSutra,
         TasyaLopahSutra,
-        VatoYukSutra,
         AcoNnitiSutra,
+        AtoYukCinKrtohSutra,
     ))
 
     fun derive(request: ParticipleDerivationRequest): DerivationResult {

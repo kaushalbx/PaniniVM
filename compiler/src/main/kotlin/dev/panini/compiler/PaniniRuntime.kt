@@ -12,6 +12,8 @@ import dev.panini.dhatupatha.DhatuPatha
 
 object PaniniRuntime {
     @JvmStatic
+    fun purana(value: Long, word: String): SanskritValue = SanskritValue.Purana(value, word)
+    @JvmStatic
     fun sankhya(value: Long, word: String): SanskritValue {
         return SanskritValue.Sankhya(value, word)
     }

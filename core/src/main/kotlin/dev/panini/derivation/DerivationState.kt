@@ -12,6 +12,7 @@ import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Varna
+import dev.panini.shiksha.VarnaToken
 import dev.panini.shiksha.toDevanagari
 import dev.panini.shiksha.OrthographicSignPlacement
 import dev.panini.shiksha.SanskritText
@@ -41,6 +42,9 @@ class DerivationState(
     val svaraAssignments: List<SvaraAssignment> = emptyList(),
     /** Prohibitions scoped to a particular adjacent pair, not the whole derivation. */
     val boundaryRuleBlocks: Map<BoundaryRuleKey, String> = emptyMap(),
+    /** Exact application indices that retained sounds rather than advancing
+     * the phonological Tripādī frontier. Rule alternatives can differ here. */
+    val nonAdvancingTripadiApplications: Set<Int> = emptySet(),
 ) {
 
     fun isBlockedAtBoundary(sutra: String, leftId: String, rightId: String): Boolean =
@@ -55,6 +59,21 @@ class DerivationState(
 
     /** Validates the it-processing boundary for workflows that have completed migration. */
     fun requireCompleteItProcessing(): DerivationState {
+        require(terms.none { it.feminineTargetId != null }) {
+            "A completed derivation cannot retain an uncomposed owned feminine suffix."
+        }
+        require(terms.none { it.pendingBaseComposition != null }) {
+            "A completed derivation cannot retain pending base composition."
+        }
+        require(terms.none { it.kind == TermKind.ADESHA }) {
+            "A completed derivation cannot retain an unintegrated ādeśa carrier."
+        }
+        require(allEffectiveTerms.none { it.itUpadeshaVarnaIndices != null }) {
+            "A completed derivation cannot retain a pending scoped upadesha."
+        }
+        require(allEffectiveTerms.none { it.pendingRutvaUpadeshaIndex != null }) {
+            "A completed derivation cannot contain a fresh unprocessed ru substitution."
+        }
         require(allEffectiveTerms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
             val incomplete = allEffectiveTerms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
                 .joinToString { "${it.id}:${it.surface}:${it.itProcessingPhase}" }
@@ -140,6 +159,38 @@ class DerivationState(
     fun withSamjnas(additions: Set<SamjnaAssignment>): DerivationState =
         copy(samjnas = samjnas + additions)
 
+    /** Decode an explicitly analyzed completed-pada input at the term boundary.
+     * This is not reverse application of 8.3.15 and must not fabricate a rule trace.
+     * The normal engine subsequently applies actual rutva and sandhi rules. */
+    fun withCompletedPadaVisargaSource(id: String, source: VisargaSource): DerivationState {
+        val term = terms.single { it.id == id }
+        require(term.varnas.lastOrNull() in rutvaCarrierVarnas && term.varnas.lastOrNull() != dev.panini.shiksha.Vyanjana.RA) {
+            "Explicit visarga source requires a visarga-final completed pada: $id"
+        }
+        require(term.completedPadaVisargaInput == null || source == VisargaSource.ESTABLISHED_RU) {
+            "Completed-pada input already decoded: $id"
+        }
+        require(term.itProcessingPhase == ItProcessingPhase.PROCESSED &&
+            term.itDesignations.isEmpty() && term.deferredItDesignations.isEmpty()) {
+            "Visarga-source decoding requires completed it-processing: $id"
+        }
+        val underlying = when (source) {
+            VisargaSource.S -> dev.panini.shiksha.Vyanjana.SA
+            VisargaSource.R -> dev.panini.shiksha.Vyanjana.RA
+            VisargaSource.ESTABLISHED_RU -> {
+                require(term.hasRutvaAt(term.varnas.lastIndex)) {
+                    "Established ru input requires an exact surviving occurrence on $id."
+                }
+                dev.panini.shiksha.Vyanjana.RA
+            }
+        }
+        val decoded = replaceTermVarna(id, term.varnas.lastIndex, listOf(underlying), "completed-pada-input")
+        val operative = decoded.terms.single { it.id == id }
+        return decoded.replaceTerm(id, operative.copy(
+            completedPadaVisargaInput = term.completedPadaVisargaInput ?: CompletedPadaVisargaInput(term.surface, source)
+        )).copy(substitutions = substitutions)
+    }
+
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
 
@@ -151,13 +202,13 @@ class DerivationState(
      */
     fun replaceWholeTermSurface(id: String, surface: String, sutra: String): DerivationState {
         val term = terms.single { it.id == id }
-        require(term.kind != TermKind.PRATYAYA && term.kind != TermKind.AGAMA) {
+        require(term.kind !in itBearingCarrierKinds) {
             "$sutra must use replaceWholeAffix for ${term.kind} term $id."
         }
         require(term.itDesignations.isEmpty() && term.deferredItDesignations.isEmpty()) {
             "$sutra cannot replace $id while exact it-designations remain pending."
         }
-        return replaceTerm(id, term.copy(surface = surface))
+        return replaceTerm(id, term.copy(surface = surface, rutvaOccurrences = emptyList()))
     }
 
     /** Applies a segment-level phonological change and records its sūtra atomically. */
@@ -168,6 +219,9 @@ class DerivationState(
         replacement: String,
         sutra: String,
         sourceVarnaIndex: Int? = null,
+        projectedPadaOrigins: List<Set<String>>? = null,
+        projectedGrammaticalAccents: List<GrammaticalAccent>? = null,
+        projectedRutvaOccurrences: List<RutvaOccurrence>? = null,
     ): DerivationState {
         val term = terms.singleOrNull { it.id == id }
             ?: error("Varṇa substitution $sutra requires exactly one term named $id.")
@@ -194,7 +248,35 @@ class DerivationState(
                     oldTokens[index].sourceSpan == newTokens[index].sourceSpan
             }) { "$sutra would shift a designated varṇa on $id; use an explicit designation remap." }
         }
-        return replaceTerm(id, term.copy(surface = surface))
+        val newTerm = term.copy(surface = surface)
+        val origins = projectedPadaOrigins ?: when {
+            term.completedPadaOrigins.isEmpty() -> emptyList()
+            sourceVarnaIndex != null -> term.projectPadaOrigins(sourceVarnaIndex, 1, replacement.toVarnas().size)
+            newTerm.varnas.size == term.varnas.size -> term.completedPadaOrigins
+            term.completedPadaOrigins.distinct().size == 1 -> List(newTerm.varnas.size) { term.completedPadaOrigins.first() }
+            else -> error("$sutra requires an exact pada-origin projection on $id")
+        }
+        require(origins.isEmpty() || origins.size == newTerm.varnas.size) { "$sutra has an incomplete pada-origin projection" }
+        val accents = projectedGrammaticalAccents ?: when {
+            term.grammaticalAccents.isEmpty() -> emptyList()
+            sourceVarnaIndex != null -> term.projectGrammaticalAccents(sourceVarnaIndex, 1, replacement.toVarnas())
+            newTerm.varnas.size == term.varnas.size -> term.grammaticalAccents
+            else -> error("$sutra requires an exact grammatical-accent projection on $id")
+        }
+        require(accents.all { newTerm.varnas.getOrNull(it.varnaIndex) is dev.panini.shiksha.Svara }) {
+            "$sutra has an invalid grammatical-accent locus on $id"
+        }
+        val rutva = projectedRutvaOccurrences ?: when {
+            term.rutvaOccurrences.isEmpty() -> emptyList()
+            sourceVarnaIndex != null -> term.projectRutvaOccurrences(sourceVarnaIndex, 1, replacement.toVarnas())
+            newTerm.varnas == term.varnas -> term.rutvaOccurrences
+            else -> error("$sutra requires an exact rutva-occurrence projection on $id")
+        }
+        require(rutva.all { newTerm.varnas.getOrNull(it.varnaIndex) in rutvaCarrierVarnas }) {
+            "$sutra has an invalid rutva-occurrence locus on $id"
+        }
+        return replaceTerm(id, newTerm.copy(completedPadaOrigins = origins, grammaticalAccents = accents,
+            rutvaOccurrences = rutva))
             .addSubstitution(
                 VarnaSubstitution(
                     targetId = id,
@@ -203,6 +285,7 @@ class DerivationState(
                     sutra = sutra,
                     originalSurface = term.surface,
                     originalOrthographicSigns = term.orthographicSigns,
+                    originalRutvaOccurrences = term.rutvaOccurrences,
                     sourceVarnaIndex = sourceVarnaIndex,
                 ),
             )
@@ -216,6 +299,9 @@ class DerivationState(
         replacement: List<Varna>,
         sutra: String,
         sourceVarnaIndex: Int? = null,
+        projectedPadaOrigins: List<Set<String>>? = null,
+        projectedGrammaticalAccents: List<GrammaticalAccent>? = null,
+        projectedRutvaOccurrences: List<RutvaOccurrence>? = null,
     ): DerivationState = substituteTermSurface(
         id = id,
         surface = surface,
@@ -223,6 +309,9 @@ class DerivationState(
         replacement = replacement.toDevanagari(),
         sutra = sutra,
         sourceVarnaIndex = sourceVarnaIndex,
+        projectedPadaOrigins = projectedPadaOrigins,
+        projectedGrammaticalAccents = projectedGrammaticalAccents,
+        projectedRutvaOccurrences = projectedRutvaOccurrences,
     )
 
     /** Applies a phonological substitution and renders explicit non-phonological signs at the term boundary. */
@@ -261,26 +350,47 @@ class DerivationState(
         return substituted.replaceTerm(id, term.copy(orthographicSigns = adjustedSigns))
     }
 
+    /** Identity substitution: records a grammatical prescription without rewriting its token or signs. */
+    fun retainTermVarna(id: String, index: Int, expected: Varna, sutra: String): DerivationState {
+        val original = terms.single { it.id == id }
+        require(original.varnas.getOrNull(index) == expected) {
+            "$sutra requires the specified occurrence for an identity substitution."
+        }
+        return replaceTerm(id, original.copy(establishedBySutras = original.establishedBySutras + sutra))
+            .addSubstitution(VarnaSubstitution(id, expected.devanagari.single(),
+                listOf(expected).toDevanagari(), sutra, original.surface,
+                original.orthographicSigns, index, original.rutvaOccurrences))
+    }
+
     /** Replaces one exact occurrence, retaining unaffected annotations and remapping written signs. */
-    fun replaceTermVarna(id: String, index: Int, replacement: List<Varna>, sutra: String): DerivationState {
+    fun replaceTermVarna(
+        id: String, index: Int, replacement: List<Varna>, sutra: String,
+        nasalizedReplacement: Boolean = false,
+        annotationDonor: dev.panini.shiksha.VarnaToken? = null,
+    ): DerivationState {
+        require(!nasalizedReplacement || replacement.singleOrNull() is dev.panini.shiksha.Svara ||
+            replacement.singleOrNull() in dev.panini.shiksha.VarnaToken.nasalizableSemivowels) {
+            "Explicit nasalization requires one vowel or nasalizable semivowel."
+        }
         val original = terms.single { it.id == id }
         val tokens = original.phonologicalText.effectiveVarnas
         require(index in tokens.indices) { "$sutra requires an existing varṇa occurrence on $id." }
         val source = tokens[index]
+        val annotationSource = annotationDonor ?: source
         val nasalVowel = replacement.indexOfFirst { it is dev.panini.shiksha.Svara }
-        val nasalTarget = if (source.varna in dev.panini.shiksha.VarnaToken.nasalizableSemivowels) {
+        val nasalTarget = if (annotationSource.varna in dev.panini.shiksha.VarnaToken.nasalizableSemivowels) {
             replacement.indexOfFirst { it in dev.panini.shiksha.VarnaToken.nasalizableSemivowels }
         } else if (nasalVowel >= 0) nasalVowel
         else replacement.indexOfFirst { it in dev.panini.shiksha.VarnaToken.nasalizableSemivowels }
         val inserted = replacement.mapIndexed { position, varna ->
             dev.panini.shiksha.VarnaToken(id = dev.panini.shiksha.VarnaTokenId("replacement:$id:$index:$sutra:$position"), varna = varna,
-                accent = source.accent.takeIf { position == nasalVowel },
-                nasalized = source.nasalized && position == nasalTarget)
+                accent = annotationSource.accent.takeIf { position == nasalVowel },
+                nasalized = nasalizedReplacement || (annotationSource.nasalized && position == nasalTarget))
         }
         val result = tokens.take(index) + inserted + tokens.drop(index + 1)
         val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { placement ->
             if (placement.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU &&
-                placement.afterVarnaCount == index + 1 && nasalTarget < 0) null
+                placement.afterVarnaCount == index + 1 && (nasalTarget < 0 || annotationDonor != null)) null
             else placement.copy(afterVarnaCount = when {
                 placement.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU && placement.afterVarnaCount == index + 1 ->
                     index + nasalTarget + 1
@@ -308,7 +418,12 @@ class DerivationState(
         val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct()
         val first = replacements.keys.min()
         val rendered = SanskritText(changed).renderWithOrthographicSigns(signs)
-        val substituted = substituteTermSurface(id, rendered, tokens[first].varna, listOf(replacements.getValue(first)), sutra)
+        val substituted = substituteTermSurface(id, rendered, tokens[first].varna, listOf(replacements.getValue(first)), sutra,
+            sourceVarnaIndex = first, projectedGrammaticalAccents = original.grammaticalAccents.filter {
+                (replacements[it.varnaIndex] ?: tokens[it.varnaIndex].varna) is dev.panini.shiksha.Svara
+            }, projectedRutvaOccurrences = original.rutvaOccurrences.filter {
+                (replacements[it.varnaIndex] ?: tokens[it.varnaIndex].varna) in rutvaCarrierVarnas
+            })
         return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
@@ -346,7 +461,9 @@ class DerivationState(
         }
         val rendered = SanskritText(tokens.take(fromIndex) + inserted + tokens.drop(end)).renderWithOrthographicSigns(signs)
         val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, replacement, sutra,
-            sourceVarnaIndex = fromIndex)
+            sourceVarnaIndex = fromIndex, projectedPadaOrigins = original.projectPadaOrigins(fromIndex, count, replacement.size),
+            projectedGrammaticalAccents = original.projectGrammaticalAccents(fromIndex, count, replacement),
+            projectedRutvaOccurrences = original.projectRutvaOccurrences(fromIndex, count, replacement, annotationSources))
         return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
@@ -362,7 +479,12 @@ class DerivationState(
             else sign.copy(afterVarnaCount = sign.afterVarnaCount - indices.count { it < sign.afterVarnaCount })
         }
         val rendered = SanskritText(tokens.filterIndexed { index, _ -> index !in indices }).renderWithOrthographicSigns(signs)
-        val substituted = substituteTermSurface(id, rendered, tokens[indices.min()].varna, emptyList(), sutra)
+        val substituted = substituteTermSurface(id, rendered, tokens[indices.min()].varna, emptyList(), sutra,
+            projectedPadaOrigins = original.completedPadaOrigins.filterIndexed { index, _ -> index !in indices },
+            projectedGrammaticalAccents = original.grammaticalAccents.filter { it.varnaIndex !in indices }
+                .map { it.copy(varnaIndex = it.varnaIndex - indices.count { removed -> removed < it.varnaIndex }) },
+            projectedRutvaOccurrences = original.rutvaOccurrences.filter { it.varnaIndex !in indices }
+                .map { it.copy(varnaIndex = it.varnaIndex - indices.count { removed -> removed < it.varnaIndex }) })
         return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
@@ -404,6 +526,7 @@ class DerivationState(
                 targetId = id, source = tokens[fromIndex].varna.devanagari.single(),
                 replacement = "", sutra = sutra, originalSurface = original.surface,
                 originalOrthographicSigns = original.orthographicSigns, sourceVarnaIndex = fromIndex,
+                originalRutvaOccurrences = original.rutvaOccurrences,
             ))
         }
         val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull {
@@ -416,7 +539,9 @@ class DerivationState(
         }
         val rendered = SanskritText(tokens.take(fromIndex) + tokens.drop(end)).renderWithOrthographicSigns(signs)
         val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, emptyList(), sutra,
-            sourceVarnaIndex = fromIndex)
+            sourceVarnaIndex = fromIndex, projectedPadaOrigins = original.projectPadaOrigins(fromIndex, count, 0),
+            projectedGrammaticalAccents = original.projectGrammaticalAccents(fromIndex, count, emptyList()),
+            projectedRutvaOccurrences = original.projectRutvaOccurrences(fromIndex, count, emptyList()))
         return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
@@ -442,7 +567,10 @@ class DerivationState(
             else it
         }
         val rendered = SanskritText(result).renderWithOrthographicSigns(signs)
-        val substituted = substituteTermSurface(id, rendered, '∅', insertion.toDevanagari(), sutra)
+        val substituted = substituteTermSurface(id, rendered, '∅', insertion.toDevanagari(), sutra,
+            projectedPadaOrigins = term.projectPadaOrigins(beforeVarnaIndex, 0, insertion.size),
+            projectedGrammaticalAccents = term.projectGrammaticalAccents(beforeVarnaIndex, 0, insertion),
+            projectedRutvaOccurrences = term.projectRutvaOccurrences(beforeVarnaIndex, 0, insertion))
         val current = substituted.terms.single { it.id == id }
         return substituted.replaceTerm(id, current.copy(orthographicSigns = signs))
     }
@@ -473,9 +601,19 @@ class DerivationState(
         return replaceTerm(leftId, left.copy(
             surface = SanskritText(leftTokens + rightTokens.take(count)).renderWithOrthographicSigns(leftSigns),
             orthographicSigns = leftSigns,
+            completedPadaOrigins = if (left.completedPadaOrigins.isEmpty() && right.completedPadaOrigins.isEmpty()) emptyList()
+                else left.varnas.indices.map(left::padaOriginsAt) + (0 until count).map(right::padaOriginsAt),
+            grammaticalAccents = left.grammaticalAccents + right.grammaticalAccents.filter { it.varnaIndex < count }
+                .map { it.copy(varnaIndex = it.varnaIndex + left.varnas.size) },
+            rutvaOccurrences = left.rutvaOccurrences + right.rutvaOccurrences.filter { it.varnaIndex < count }
+                .map { it.copy(varnaIndex = it.varnaIndex + left.varnas.size) },
         )).replaceTerm(rightId, right.copy(
             surface = SanskritText(rightTokens.drop(count)).renderWithOrthographicSigns(remainingSigns),
             orthographicSigns = remainingSigns,
+            completedPadaOrigins = right.completedPadaOrigins.drop(count),
+            grammaticalAccents = right.grammaticalAccents.filter { it.varnaIndex >= count }.map { it.copy(varnaIndex = it.varnaIndex - count) },
+            rutvaOccurrences = right.rutvaOccurrences.filter { it.varnaIndex >= count }
+                .map { it.copy(varnaIndex = it.varnaIndex - count) },
         ))
     }
 
@@ -497,7 +635,48 @@ class DerivationState(
             augment.itDesignations.isEmpty() && augment.deferredItDesignations.isEmpty()) {
             "$sutra requires the augment's exact it-processing to be complete."
         }
-        return replaceTerm(targetId, target.insertDesignatedTerm(augment, 0)).removeTerm(augmentId, sutra)
+        // The empty operand is the identity: do not re-render or deduplicate
+        // the already-transformed target when no sound or sign remains to add.
+        val composed = if (augment.varnas.isEmpty() && augment.orthographicSigns.isEmpty() &&
+            augment.phonologicalText.sourceOrthographicSigns.isEmpty()) target
+            else target.insertDesignatedTerm(augment, 0)
+        return replaceTerm(targetId, composed).removeTerm(augmentId, sutra)
+    }
+
+    /** Coalesce a placed a/ā augment with its target's initial vowel. The target
+     * survives and the complete original augment remains in the drop ledger. */
+    fun coalescePrecedingAugmentVowel(targetId: String, augmentId: String,
+        replacement: List<Varna>, sutra: String): DerivationState {
+        val augment = terms.single { it.id == augmentId }
+        val target = terms.single { it.id == targetId }
+        require(augment.varnas.singleOrNull() in setOf(dev.panini.shiksha.Svara.A, dev.panini.shiksha.Svara.AA) &&
+            replacement.isNotEmpty() && target.varnas.firstOrNull() is dev.panini.shiksha.Svara)
+        val changed = if (target.varnas.take(1) == replacement) this
+            else replaceTermVarna(targetId, 0, replacement, sutra)
+        val deleted = changed.deleteTermVarnas(augmentId, 0, 1, sutra)
+        val current = deleted.terms.single { it.id == targetId }
+        val sourceSigns = (augment.orthographicSigns + augment.phonologicalText.sourceOrthographicSigns).distinct()
+        val augmentSigns = sourceSigns.filterNot { it.sign == OrthographicSign.CHANDRABINDU }
+            .map { it.copy(afterVarnaCount = if (it.afterVarnaCount == 0) 0 else replacement.size) }
+        val signs = current.orthographicSigns + augmentSigns
+        val tracked = target.completedPadaOrigins.isNotEmpty() || augment.completedPadaOrigins.isNotEmpty()
+        val origins = if (!tracked) emptyList() else current.varnas.indices.map {
+            current.padaOriginsAt(it) + if (it < replacement.size) augment.padaOriginsAt(0) else emptySet()
+        }
+        val rendered = current.phonologicalText.renderWithOrthographicSigns(signs)
+        require(rendered.toVarnas() == current.varnas) { "$sutra must preserve the graded target's exact phonology." }
+        val prepared = deleted.replaceTerm(targetId, current.copy(surface = rendered,
+            orthographicSigns = signs, completedPadaOrigins = origins,
+            grammaticalAccents = current.grammaticalAccents + augment.grammaticalAccents.filter { it.varnaIndex == 0 }
+                .map { it.copy(varnaIndex = replacement.indexOfFirst { sound -> sound is dev.panini.shiksha.Svara }) }))
+            .replaceTerm(augmentId, deleted.terms.single { it.id == augmentId }.copy(surface = "", orthographicSigns = emptyList()))
+        val composed = prepared.concatenatePrecedingAugment(targetId, augmentId, sutra)
+        return composed.copy(droppedTerms = composed.droppedTerms.map {
+            if (it.id != augmentId) it else it.copy(originalSurfaceBeforeDrop = augment.surface,
+                originalCompletedPadaOriginsBeforeDrop = augment.completedPadaOrigins, orthographicSigns = sourceSigns,
+                originalRutvaOccurrencesBeforeDrop = augment.rutvaOccurrences,
+                originalGrammaticalAccentsBeforeDrop = augment.grammaticalAccents)
+        })
     }
 
     /** Concatenates an already transformed stem and its following processed term.
@@ -520,10 +699,20 @@ class DerivationState(
             "$sutra cannot compose an affix before its exact it-processing is complete."
         }
         val composed = survivor.insertDesignatedTerm(consumed, survivor.varnas.size).copy(
+            itProcessingPhase = if (transferDeferredDesignations && consumed.deferredItDesignations.isNotEmpty())
+                ItProcessingPhase.DESIGNATED else survivor.itProcessingPhase,
+            itUpadeshaVarnaIndices = if (transferDeferredDesignations && consumed.deferredItDesignations.isNotEmpty())
+                emptySet() else survivor.itUpadeshaVarnaIndices,
             sourceSuffixUpadeshas = survivor.sourceSuffixUpadeshas + if (consumed.kind == TermKind.PRATYAYA)
                 consumed.sourceSuffixUpadeshas + consumed.upadesha else emptySet(),
         )
-        val removed = replaceTerm(survivorId, composed).removeTerm(consumedId, sutra)
+        // A sup/tiṅ boundary belongs to the completed combination. Consuming
+        // the suffix must not erase its already established pada designation.
+        val completedPada = consumed.kind == TermKind.PRATYAYA &&
+            samjnas.any { it.targetId == consumedId && it.samjna == Samjna.PADA }
+        val removed = replaceTerm(survivorId, composed).removeTerm(consumedId, sutra).let {
+            if (completedPada) it.withSamjnas(setOf(SamjnaAssignment(survivorId, Samjna.PADA))) else it
+        }
         val suffixVowels = consumed.varnas.count { it is dev.panini.shiksha.Svara }
         return if (consumed.kind != TermKind.PRATYAYA || suffixVowels == 0) removed else removed.copy(
             droppedTerms = removed.droppedTerms.map { term ->
@@ -539,6 +728,7 @@ class DerivationState(
     fun concatenateAfterInitialVowelCoalescence(
         survivorId: String, originalFollowingTerm: DerivationTerm, sutra: String,
         transferDeferredDesignations: Boolean = false,
+        coalescedLeftVarnaIndices: IntRange? = null,
     ): DerivationState {
         val current = terms.single { it.id == originalFollowingTerm.id }
         require(originalFollowingTerm.varnas.firstOrNull() is dev.panini.shiksha.Svara &&
@@ -546,14 +736,82 @@ class DerivationState(
             current.kind == originalFollowingTerm.kind && current.upadesha == originalFollowingTerm.upadesha) {
             "$sutra requires the exact following term after initial-vowel coalescence."
         }
-        val composed = concatenateFollowingTerm(survivorId, current.id, sutra, transferDeferredDesignations)
+        val left = terms.single { it.id == survivorId }
+        val coalesced = coalescedLeftVarnaIndices ?: (left.varnas.lastIndex..left.varnas.lastIndex)
+        require(coalesced.all { it in left.varnas.indices })
+        val tracked = left.completedPadaOrigins.isNotEmpty() || originalFollowingTerm.completedPadaOrigins.isNotEmpty()
+        val enrichedLeft = if (!tracked) left else left.copy(completedPadaOrigins = left.varnas.indices.map {
+            left.padaOriginsAt(it) + if (it in coalesced) originalFollowingTerm.padaOriginsAt(0) else emptySet()
+        })
+        val sharedVowel = coalesced.firstOrNull { enrichedLeft.varnas[it] is dev.panini.shiksha.Svara }
+        val accentEnriched = enrichedLeft.copy(grammaticalAccents = enrichedLeft.grammaticalAccents +
+            originalFollowingTerm.grammaticalAccents.filter { it.varnaIndex == 0 }.map {
+                it.copy(varnaIndex = requireNotNull(sharedVowel) { "$sutra must identify the shared accent vowel" })
+            })
+        val composed = replaceTerm(survivorId, accentEnriched)
+            .concatenateFollowingTerm(survivorId, current.id, sutra, transferDeferredDesignations)
         val vowels = originalFollowingTerm.varnas.count { it is dev.panini.shiksha.Svara }
         return composed.copy(droppedTerms = composed.droppedTerms.map {
             if (it.id != current.id) it else it.copy(
                 originalSurfaceBeforeDrop = originalFollowingTerm.surface,
+                originalCompletedPadaOriginsBeforeDrop = originalFollowingTerm.completedPadaOrigins,
+                originalRutvaOccurrencesBeforeDrop = originalFollowingTerm.rutvaOccurrences,
+                originalGrammaticalAccentsBeforeDrop = originalFollowingTerm.grammaticalAccents,
                 mergedIntoTermId = if (current.kind == TermKind.PRATYAYA) survivorId else it.mergedIntoTermId,
                 mergedAffixVowelFromEnd = if (current.kind == TermKind.PRATYAYA) vowels - 1 else it.mergedAffixVowelFromEnd,
             )
+        })
+    }
+
+    /** Final-varṇa substitution whose replacement incorporates the following affix.
+     * Unlike concatenation, the following affix contributes no additional sounds.
+     * Keep its complete original form in the drop ledger and link its vowel locus.
+     */
+    fun substituteFinalVarnaAndConsumeFollowingTerm(
+        survivorId: String, consumedId: String, replacement: List<Varna>, sutra: String,
+        incorporatedAffixVowelIndex: Int?,
+        annotationDonor: VarnaToken? = null,
+        consumedSignProjection: Map<OrthographicSignPlacement, OrthographicSignPlacement?> = emptyMap(),
+    ): DerivationState {
+        require(incorporatedAffixVowelIndex == null ||
+            replacement.getOrNull(incorporatedAffixVowelIndex) is dev.panini.shiksha.Svara) {
+            "$sutra must explicitly identify the replacement vowel incorporating the affix."
+        }
+        val index = terms.indexOfFirst { it.id == survivorId }
+        require(index >= 0 && terms.getOrNull(index + 1)?.id == consumedId) {
+            "$sutra requires an ordered adjacent pair $survivorId and $consumedId."
+        }
+        val survivor = terms[index]
+        val consumed = terms[index + 1]
+        require(consumed.kind == TermKind.PRATYAYA) { "$sutra requires a following affix." }
+        val consumedSigns = (consumed.orthographicSigns + consumed.phonologicalText.sourceOrthographicSigns).distinct()
+        require(consumedSignProjection.keys == consumedSigns.toSet()) {
+            "$sutra must explicitly project or consume each written sign of $consumedId."
+        }
+        val projectedSigns = consumedSigns.mapNotNull { consumedSignProjection[it] }
+        require(projectedSigns.all { it.afterVarnaCount in 0..replacement.size }) {
+            "$sutra sign projection must use replacement-relative Varna boundaries."
+        }
+        // The whole affix is replaced, not concatenated. removeTerm explicitly
+        // consumes pending/deferred designations and retains their it-status
+        // provenance under this sūtra, including pre-lopa sup substitutions.
+        val transformed = replaceTermVarna(survivorId, survivor.varnas.lastIndex, replacement, sutra,
+            annotationDonor = annotationDonor)
+        val current = transformed.terms.single { it.id == survivorId }
+        val signs = (current.orthographicSigns + projectedSigns.map {
+            it.copy(afterVarnaCount = it.afterVarnaCount + survivor.varnas.lastIndex)
+        })
+        val rendered = current.phonologicalText.renderWithOrthographicSigns(signs)
+        require(rendered.toVarnas() == current.varnas) { "$sutra written-sign projection must not change phonology." }
+        val removed = transformed.replaceTerm(survivorId, current.copy(
+            surface = rendered, orthographicSigns = signs,
+            sourceSuffixUpadeshas = current.sourceSuffixUpadeshas + consumed.sourceSuffixUpadeshas + consumed.upadesha,
+        )).removeTerm(consumedId, sutra)
+        if (incorporatedAffixVowelIndex == null || consumed.varnas.none { it is dev.panini.shiksha.Svara }) return removed
+        val vowelsAfterLocus = replacement.drop(incorporatedAffixVowelIndex + 1).count { it is dev.panini.shiksha.Svara }
+        return removed.copy(droppedTerms = removed.droppedTerms.map {
+            if (it.id == consumedId) it.copy(mergedIntoTermId = survivorId,
+                mergedAffixVowelFromEnd = vowelsAfterLocus) else it
         })
     }
 
@@ -577,6 +835,9 @@ class DerivationState(
         }
         val survivor = terms[survivorIndex]
         val consumed = terms[consumedIndex]
+        require(consumed.completedPadaOrigins.isEmpty()) {
+            "$sutra must use exact composition to retain the consumed completed pada's origins."
+        }
         val consumedAffixVowelIndex = if (consumed.kind == TermKind.PRATYAYA &&
             DevanagariVowelLoci.positions(consumed.surface).isNotEmpty()
         ) DevanagariVowelLoci.positions(combinedSurface(terms.take(consumedIndex))).size else null
@@ -707,7 +968,7 @@ class DerivationState(
     ): DerivationState {
         val term = terms.singleOrNull { it.id == id }
             ?: error("Whole-affix substitution $sutra requires exactly one term named $id.")
-        require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+        require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT || term.kind == TermKind.ADESHA) {
             "Whole-affix substitution $sutra cannot target non-affix term $id."
         }
         val replacementUpadesha = upadesha ?: when (policy) {
@@ -747,13 +1008,16 @@ class DerivationState(
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {
         val term = terms.find { it.id == id } ?: return this
-        require(sutra != null || term.kind !in affixKinds) {
+        require(sutra != null || term.kind !in itBearingCarrierKinds) {
             "Removing affix $id requires a sūtra so its designations can be consumed explicitly."
         }
         return copy(
             terms = terms.filter { it.id != id },
             droppedTerms = droppedTerms + if (sutra == null) {
-                term.copy(surface = "", originalSurfaceBeforeDrop = term.surface)
+                term.copy(surface = "", originalSurfaceBeforeDrop = term.surface,
+                    rutvaOccurrences = emptyList(), originalRutvaOccurrencesBeforeDrop = term.rutvaOccurrences,
+                    completedPadaOrigins = emptyList(), originalCompletedPadaOriginsBeforeDrop = term.completedPadaOrigins,
+                    grammaticalAccents = emptyList(), originalGrammaticalAccentsBeforeDrop = term.grammaticalAccents)
             } else {
                 dropTermWithLifecycle(term, sutra)
             },
@@ -810,8 +1074,10 @@ class DerivationState(
         VarnaSubstitution(targetId, source.devanagari.single(), replacement.toDevanagari(orthographicSigns), sutra),
     )
 
-    fun recordAppliedSutra(sutraNumber: String): DerivationState =
-        copy(appliedSutras = appliedSutras + sutraNumber)
+    fun recordAppliedSutra(sutraNumber: String, advancesTripadiFrontier: Boolean = true): DerivationState =
+        copy(appliedSutras = appliedSutras + sutraNumber,
+            nonAdvancingTripadiApplications = if (advancesTripadiFrontier) nonAdvancingTripadiApplications
+                else nonAdvancingTripadiApplications + appliedSutras.size)
 
     fun assignSvara(vowelIndex: Int, accent: AccentType, sutra: String): DerivationState =
         copy(svaraAssignments = svaraAssignments + SvaraAssignment(vowelIndex, accent, SvaraAssignmentSource.Sutra(sutra)))
@@ -833,6 +1099,7 @@ class DerivationState(
         svaraNimittas: List<SvaraNimitta> = this.svaraNimittas,
         svaraAssignments: List<SvaraAssignment> = this.svaraAssignments,
         boundaryRuleBlocks: Map<BoundaryRuleKey, String> = this.boundaryRuleBlocks,
+        nonAdvancingTripadiApplications: Set<Int> = this.nonAdvancingTripadiApplications,
     ): DerivationState {
         return DerivationState(
             terms = terms,
@@ -848,6 +1115,7 @@ class DerivationState(
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
             appliedSutras = appliedSutras,
+            nonAdvancingTripadiApplications = nonAdvancingTripadiApplications,
             svaraNimittas = svaraNimittas,
             svaraAssignments = svaraAssignments,
             boundaryRuleBlocks = boundaryRuleBlocks,
@@ -870,6 +1138,7 @@ class DerivationState(
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
             && appliedSutras == other.appliedSutras &&
+            nonAdvancingTripadiApplications == other.nonAdvancingTripadiApplications &&
             svaraNimittas == other.svaraNimittas &&
             svaraAssignments == other.svaraAssignments && boundaryRuleBlocks == other.boundaryRuleBlocks
     }
@@ -888,6 +1157,7 @@ class DerivationState(
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
         result = 31 * result + appliedSutras.hashCode()
+        result = 31 * result + nonAdvancingTripadiApplications.hashCode()
         result = 31 * result + svaraNimittas.hashCode()
         result = 31 * result + svaraAssignments.hashCode()
         result = 31 * result + boundaryRuleBlocks.hashCode()
@@ -912,7 +1182,7 @@ sealed interface SvaraAssignmentSource {
 }
 data class SvaraAssignment(val vowelIndex: Int, val accent: AccentType, val source: SvaraAssignmentSource)
 
-private val affixKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)
+private val itBearingCarrierKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT, TermKind.ADESHA)
 
 data class VarnaComparison(
     val leftTermId: String, val rightTermId: String,
@@ -927,7 +1197,13 @@ data class VarnaSubstitution(
     val replacement: String, val sutra: String,
     /** Exact occurrence for positional operations; null for legacy summary-only traces. */
     val sourceVarnaIndex: Int? = null,
+    /** Exact pre-operation occurrence ledger paired with originalSurface; null for legacy summaries. */
+    val originalRutvaOccurrences: List<RutvaOccurrence>? = null,
 ) {
+    /** Cached phonological payload at the trace boundary; rules never inspect
+     * rendered replacement characters to determine grammatical sounds. */
+    val replacementVarnas: List<Varna> by lazy { replacement.toVarnas() }
+    val originalVarnas: List<Varna>? by lazy { originalSurface?.toVarnas() }
     /** Exact pre-operation term boundary used by asiddhavat visibility rollback. */
     var originalSurface: String? = null
         private set
@@ -942,7 +1218,8 @@ data class VarnaSubstitution(
         originalSurface: String?,
         originalOrthographicSigns: List<OrthographicSignPlacement>?,
         sourceVarnaIndex: Int? = null,
-    ) : this(targetId, source, replacement, sutra, sourceVarnaIndex) {
+        originalRutvaOccurrences: List<RutvaOccurrence>? = null,
+    ) : this(targetId, source, replacement, sutra, sourceVarnaIndex, originalRutvaOccurrences?.toList()) {
         this.originalSurface = originalSurface
         this.originalOrthographicSigns = originalOrthographicSigns
     }
@@ -971,6 +1248,9 @@ data class DerivationTerm(
     val nonOperativeUpadeshaSegments: List<NonOperativeUpadeshaSegment> = emptyList(),
     /** Explicit lifecycle of an upadeśa as it moves through 1.3.2–1.3.9. */
     val itProcessingPhase: ItProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
+    /** Exact र् position of a newly introduced रुँ segment. Only its following
+     * nasalized उ is new upadeśa; earlier nasalized vowels remain pronounced. */
+    val pendingRutvaUpadeshaIndex: Int? = null,
     /** Exact spans designated as इत् in the current upadeśa. */
     val itDesignations: List<ItDesignation> = emptyList(),
     /** Exact designations whose lopa waits for intervening substitution rules. */
@@ -979,6 +1259,9 @@ data class DerivationTerm(
     val augmentTargetId: String? = null,
     /** Whether 1.1.46 should fold this āgama into its target immediately. */
     val mergeIntoAugmentTarget: Boolean = true,
+    /** Exact target occurrence for a vowel-dependent augment, not an inferred string offset. */
+    val augmentTargetVarnaIndex: Int? = null,
+    val augmentTargetVarna: Varna? = null,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
     /** Persistent provenance for markers established by exact it-designations. */
@@ -1002,8 +1285,40 @@ data class DerivationTerm(
     val sourceSupAffix: dev.panini.core.SupAffix? = null,
     /** Original tiṅ slot, distinct from the current substitute's upadeśa. */
     val sourceTingAffix: dev.panini.core.TingAffix? = null,
+    /** Original nominal derivational affix; spelling alone cannot distinguish kṛt homonyms. */
+    val sourceTaddhitaAffix: dev.panini.core.TaddhitaAffix? = null,
     val compositionDomain: TermCompositionDomain? = null,
+    /** Exact newly operative upadeśa occurrences after raw material is inserted
+     * into a processed carrier. Null means the whole term is upadeśa. */
+    val itUpadeshaVarnaIndices: Set<Int>? = null,
+    /** One origin set per Varna after completed-pada handoff; empty before handoff. */
+    val completedPadaOrigins: List<Set<String>> = emptyList(),
+    /** Original occurrence ownership paired with originalSurfaceBeforeDrop. */
+    val originalCompletedPadaOriginsBeforeDrop: List<Set<String>> = emptyList(),
+    val grammaticalAccents: List<GrammaticalAccent> = emptyList(),
+    val originalGrammaticalAccentsBeforeDrop: List<GrammaticalAccent> = emptyList(),
+    val completedPadaVisargaInput: CompletedPadaVisargaInput? = null,
+    /** Exact surviving ru occurrences; historical rule applications alone are insufficient. */
+    val rutvaOccurrences: List<RutvaOccurrence> = emptyList(),
+    /** Occurrences paired with originalSurfaceBeforeDrop, never operative on an empty archive. */
+    val originalRutvaOccurrencesBeforeDrop: List<RutvaOccurrence> = emptyList(),
+    val adeshaTarget: AdeshaTarget? = null,
+    val adeshaOrigins: List<AdeshaOrigin> = emptyList(),
+    /** Owner of an explicitly introduced feminine suffix awaiting stem composition. */
+    val feminineTargetId: String? = null,
+    val pendingBaseComposition: PendingBaseComposition? = null,
+    val itMarkerEffects: Map<ItMarker, ItMarkerEffectDecision> = emptyMap(),
 ) {
+    init {
+        require(feminineTargetId == null || (kind == TermKind.PRATYAYA && feminineTargetId.isNotBlank() && feminineTargetId != id)) {
+            "An owned feminine suffix requires a distinct nonblank stem target."
+        }
+        require((kind == TermKind.ADESHA) == (adeshaTarget != null)) {
+            "An ādeśa carrier requires its own explicit target; noncarriers cannot carry a pending target."
+        }
+    }
+
+    fun isItUpadeshaVarna(index: Int): Boolean = itUpadeshaVarnaIndices?.contains(index) ?: true
     /**
      * Cached phonological form of [surface]. During the transition [surface]
      * remains the constructor boundary, but sūtras must reason over this field.
@@ -1014,7 +1329,18 @@ data class DerivationTerm(
     val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) {
         phonologicalText.effectiveVarnas.map { it.varna }
     }
-    val upadeshaVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
+    val upadeshaPhonologicalText by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toSanskritText("upadesha:$id") }
+    val upadeshaVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadeshaPhonologicalText.effectiveVarnas.map { it.varna } }
+    val yuvAffixConvention: dev.panini.core.YuvAffixConvention? by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        if (kind != TermKind.PRATYAYA) null
+        else dev.panini.core.YuvAffixConvention.fromUpadesha(upadesha) ?: when {
+            upadeshaPhonologicalText.effectiveVarnas.any { it.varna == dev.panini.shiksha.Vyanjana.YA && it.nasalized } ->
+                dev.panini.core.YuvAffixConvention.YU
+            upadeshaPhonologicalText.effectiveVarnas.any { it.varna == dev.panini.shiksha.Vyanjana.VA && it.nasalized } ->
+                dev.panini.core.YuvAffixConvention.VU
+            else -> null
+        }
+    }
     val compoundHeadVarnas: List<Varna>? by lazy(LazyThreadSafetyMode.PUBLICATION) {
         compoundHeadUpadesha?.toVarnas()
     }
@@ -1090,9 +1416,23 @@ data class DerivationTerm(
             ItDesignationRemap(designation.start, designation.endExclusive,
                 spans.minOf { it.start }, spans.maxOf { it.endExclusive }, indices)
         }
+        val projectedOrigins = if (completedPadaOrigins.isEmpty()) emptyList() else replacementVarnas.indices.map { target ->
+            val sources = survivingPositions.filterValues { it == target }.keys
+            if (sources.isNotEmpty()) sources.flatMap { padaOriginsAt(it) }.toSet()
+            else requireNotNull(completedPadaOrigins.distinct().singleOrNull()) {
+                "$sutra must explicitly project new occurrences across completed pada origins on $id"
+            }
+        }
         return replaceWholeAffix(replacementSurface, upadesha, sutra,
             WholeAffixDesignationPolicy.PreserveAndRemap(remaps,
-                consumedDesignations.map { ItDesignationConsumption(it.start, it.endExclusive) })).copy(orthographicSigns = signs)
+                consumedDesignations.map { ItDesignationConsumption(it.start, it.endExclusive) })).copy(
+                    orthographicSigns = signs, completedPadaOrigins = projectedOrigins,
+                    grammaticalAccents = grammaticalAccents.mapNotNull { accent -> survivingPositions[accent.varnaIndex]
+                        ?.let { accent.copy(varnaIndex = it) } },
+                    rutvaOccurrences = rutvaOccurrences.mapNotNull { occurrence ->
+                        survivingPositions[occurrence.varnaIndex]?.takeIf { replacementVarnas[it] in rutvaCarrierVarnas }
+                            ?.let { occurrence.copy(varnaIndex = it) }
+                    })
     }
 
     /** Inserts an annotated term at a phonological boundary and reprojects both इत् ledgers.
@@ -1133,7 +1473,18 @@ data class DerivationTerm(
         return copy(
             surface = rendered,
             orthographicSigns = signs,
+            completedPadaOrigins = if (completedPadaOrigins.isEmpty() && insertion.completedPadaOrigins.isEmpty()) emptyList() else {
+                val targetOrigins = varnas.indices.map(::padaOriginsAt)
+                val inherited = targetOrigins.getOrNull(beforeVarnaIndex) ?: targetOrigins.lastOrNull().orEmpty()
+                val insertedOrigins = if (insertion.completedPadaOrigins.isEmpty()) List(insertedTokens.size) { inherited }
+                    else insertion.completedPadaOrigins
+                targetOrigins.take(beforeVarnaIndex) + insertedOrigins + targetOrigins.drop(beforeVarnaIndex)
+            },
             itDesignations = project(itDesignations, ::targetPosition) + project(insertion.itDesignations, ::insertedPosition),
+            grammaticalAccents = grammaticalAccents.map { it.copy(varnaIndex = targetPosition(it.varnaIndex)) } +
+                insertion.grammaticalAccents.map { it.copy(varnaIndex = insertedPosition(it.varnaIndex)) },
+            rutvaOccurrences = rutvaOccurrences.map { it.copy(varnaIndex = targetPosition(it.varnaIndex)) } +
+                insertion.rutvaOccurrences.map { it.copy(varnaIndex = insertedPosition(it.varnaIndex)) },
             deferredItDesignations = project(deferredItDesignations, ::targetPosition) + project(insertion.deferredItDesignations, ::insertedPosition),
         )
     }
@@ -1168,7 +1519,12 @@ data class DerivationTerm(
             }
             append(SanskritText(surviving.subList(start, surviving.size)).render())
         }
-        return copy(surface = rendered, orthographicSigns = signs)
+        return copy(surface = rendered, orthographicSigns = signs,
+            rutvaOccurrences = rutvaOccurrences.filter { it.varnaIndex !in deleted }
+                .map { it.copy(varnaIndex = it.varnaIndex - deleted.count { removed -> removed < it.varnaIndex }) },
+            completedPadaOrigins = completedPadaOrigins.filterIndexed { index, _ -> index !in deleted },
+            grammaticalAccents = grammaticalAccents.filter { it.varnaIndex !in deleted }
+                .map { it.copy(varnaIndex = it.varnaIndex - deleted.count { removed -> removed < it.varnaIndex }) })
     }
 
     /** UTF-16 boundary after the first phonological varṇa in the written upadeśa. */
@@ -1224,7 +1580,7 @@ data class DerivationTerm(
     }
 
     fun hasEffectiveMarker(marker: ItMarker): Boolean =
-        marker in itMarkers || (sthaniProps?.itMarkers?.contains(marker) == true)
+        itMarkerEffects[marker]?.enabled ?: (marker in itMarkers || (sthaniProps?.itMarkers?.contains(marker) == true))
 
     fun matchesUpadesha(value: String): Boolean =
         upadesha == value || sthaniProps?.upadesha == value
@@ -1273,6 +1629,7 @@ data class DerivationTerm(
                 copy(
                     surface = replacementSurface,
                     upadesha = replacementUpadesha,
+                    rutvaOccurrences = emptyList(),
                     itDesignations = remappedActive,
                     deferredItDesignations = remappedDeferred,
                     itProcessingPhase = if (remappedActive.isNotEmpty()) ItProcessingPhase.DESIGNATED else itProcessingPhase,
@@ -1285,18 +1642,23 @@ data class DerivationTerm(
             WholeAffixDesignationPolicy.Consume -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                rutvaOccurrences = emptyList(),
                 nonOperativeUpadeshaSegments = emptyList(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.PROCESSED,
+                itUpadeshaVarnaIndices = null,
                 sthaniProps = inherited,
             )
             WholeAffixDesignationPolicy.FreshUpadesha -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                rutvaOccurrences = emptyList(),
                 nonOperativeUpadeshaSegments = emptyList(),
+                itUpadeshaVarnaIndices = null,
                 itMarkers = emptySet(),
                 itMarkerProvenance = emptySet(),
+                itMarkerEffects = emptyMap(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
@@ -1325,7 +1687,7 @@ fun consumeAffixForDrop(
     sutra: String,
     droppedSurface: String = "",
 ): DerivationTerm {
-    require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+    require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT || term.kind == TermKind.ADESHA) {
         "$sutra cannot consume non-affix term ${term.id}."
     }
     val originalSurface = term.surface
@@ -1337,15 +1699,26 @@ fun consumeAffixForDrop(
     ).copy(
         droppedBySutra = sutra,
         originalSurfaceBeforeDrop = originalSurface,
+        rutvaOccurrences = emptyList(),
+        originalRutvaOccurrencesBeforeDrop = term.rutvaOccurrences,
+        // These spans describe the retained source upadeśa, not the empty operative surface.
+        nonOperativeUpadeshaSegments = term.nonOperativeUpadeshaSegments,
+        completedPadaOrigins = if (droppedSurface.isEmpty()) emptyList() else term.completedPadaOrigins,
+        originalCompletedPadaOriginsBeforeDrop = term.completedPadaOrigins,
+        grammaticalAccents = if (droppedSurface.isEmpty()) emptyList() else term.grammaticalAccents,
+        originalGrammaticalAccentsBeforeDrop = term.grammaticalAccents,
     )
 }
 
 /** Drops a merged term, enforcing explicit designation consumption whenever that term is an affix. */
 fun dropTermWithLifecycle(term: DerivationTerm, sutra: String): DerivationTerm =
-    if (term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+    if (term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT || term.kind == TermKind.ADESHA) {
         consumeAffixForDrop(term, sutra)
     } else {
-        term.copy(surface = "", droppedBySutra = sutra, originalSurfaceBeforeDrop = term.surface)
+        term.copy(surface = "", droppedBySutra = sutra, originalSurfaceBeforeDrop = term.surface,
+            rutvaOccurrences = emptyList(), originalRutvaOccurrencesBeforeDrop = term.rutvaOccurrences,
+            completedPadaOrigins = emptyList(), originalCompletedPadaOriginsBeforeDrop = term.completedPadaOrigins,
+            grammaticalAccents = emptyList(), originalGrammaticalAccentsBeforeDrop = term.grammaticalAccents)
     }
 
 data class ItDesignationRemap(
@@ -1407,7 +1780,7 @@ data class SthaniProperties(
     val itMarkers: Set<ItMarker>
 )
 
-enum class TermKind { DHATU, PRATIPADIKA, PRATYAYA, AGAMA, AUGMENT }
+enum class TermKind { DHATU, PRATIPADIKA, PRATYAYA, AGAMA, AUGMENT, ADESHA }
 enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA, PADA_FORMED, FINAL }
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)

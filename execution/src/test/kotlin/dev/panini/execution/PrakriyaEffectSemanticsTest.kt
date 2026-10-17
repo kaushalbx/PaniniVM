@@ -3,6 +3,14 @@ package dev.panini.execution
 import kotlin.test.*
 
 class PrakriyaEffectSemanticsTest {
+    @Test fun `procedure body analysis is definition owned and reused`() {
+        val prakriya = procedure(PrakriyaValueType.SANKHYA)
+
+        assertSame(prakriya.bodyAnalysis, prakriya.bodyAnalysis)
+        assertEquals(prakriya.signature, prakriya.bodyAnalysis.signature)
+        assertEquals(prakriya.vidhiSentences.mapNotNull { it.program }, prakriya.bodyAnalysis.executableBodies)
+    }
+
     @Test fun `procedure owns return effect and validates its value`() {
         for (value in listOf(SanskritValue.Sankhya(1L, "एक"), SanskritValue.Shabda("text"))) {
             val produced = ExecutionResult.Success(value.toDisplayText(), "return", typedValue = value,
