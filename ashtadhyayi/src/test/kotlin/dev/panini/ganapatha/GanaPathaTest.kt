@@ -356,9 +356,9 @@ class GanaPathaTest {
     }
 
     @Test
-    fun `kandvadibhyo yak introduces yak after an eligible pratipadika`() {
+    fun `kandvadibhyo yak introduces yak after an eligible dhatu not pratipadika`() {
         val state = DerivationState(
-            terms = listOf(DerivationTerm("base", "कण्डूञ्", TermKind.PRATIPADIKA)),
+            terms = listOf(DerivationTerm("base", "कण्डूञ्", TermKind.DHATU)),
         )
 
         assertTrue(KandvadibhyoYakSutra.matches(state))
@@ -368,6 +368,7 @@ class GanaPathaTest {
         assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, result.terms.last().itProcessingPhase)
         assertEquals("3.1.27", result.terms.last().createdBySutra)
         assertFalse(KandvadibhyoYakSutra.matches(result))
+        assertFalse(KandvadibhyoYakSutra.matches(state.copy(terms = listOf(state.terms.single().copy(kind = TermKind.PRATIPADIKA)))))
     }
 
     @Test
@@ -457,9 +458,12 @@ class GanaPathaTest {
 
         val kalyanyadi = apatyaState("कल्याणी")
         val kalyanyadiResult = KalyanyadinamInangSutra.apply(kalyanyadi).state
-        assertEquals("कल्याणिन्", kalyanyadiResult.terms.first().surface)
+        assertEquals("कल्याणी", kalyanyadiResult.terms.first().surface)
+        assertEquals("इनङ्", kalyanyadiResult.terms[1].upadesha)
+        assertEquals(TermKind.ADESHA, kalyanyadiResult.terms[1].kind)
+        assertTrue(kalyanyadiResult.terms[1].itProcessingPending)
         assertEquals("ढक्", kalyanyadiResult.terms.last().upadesha)
-        assertEquals("4.1.126", kalyanyadiResult.substitutions.single().sutra)
+        assertTrue(kalyanyadiResult.substitutions.isEmpty())
 
         val lohitadi = DerivationState(
             listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)),

@@ -1,0 +1,12 @@
+// Explicit opt-in: ordinary tests do not require downloaded external corpora.
+gradle.projectsEvaluated {
+    def target = gradle.rootProject.project(':derivation')
+    target.tasks.named('test') {
+        testLogging.showStandardStreams = true
+        systemProperty 'junit.jupiter.execution.parallel.enabled', 'false'
+        systemProperty 'sandhikosh.evaluation.dir', gradle.startParameter.projectProperties.get('sandhikoshEvaluationDir') ?: 'build/sandhikosh-evaluation'
+        systemProperty 'sandhikosh.alternatives', gradle.startParameter.projectProperties.get('sandhikoshAlternatives') ?: 'false'
+        systemProperty 'sandhikosh.lexical.analysis', gradle.startParameter.projectProperties.get('sandhikoshLexicalAnalysis') ?: 'none'
+        systemProperty 'sandhikosh.final.boundary', gradle.startParameter.projectProperties.get('sandhikoshFinalBoundary') ?: 'CONTINUATION'
+    }
+}

@@ -44,11 +44,15 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
 
         val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
+        val endsInA = stem.varnas.lastOrNull() == Svara.A
 
         if (affix.varnas == listOf(Svara.II) || affix.upadesha == "शी") return false
 
-        return isSarvanama && endsInA && (affix.hasCurrentAffix(SupAffix.JAS) || affix.sourceSupAffix == SupAffix.JAS)
+        // Original jas provenance survives substitution, but does not permit
+        // this rule to reselect the am already prescribed by 7.1.28.
+        val isProcessedJas = affix.sourceSupAffix == SupAffix.JAS &&
+            affix.varnas == listOf(Svara.A, Vyanjana.SA)
+        return isSarvanama && endsInA && (affix.hasCurrentAffix(SupAffix.JAS) || isProcessedJas)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

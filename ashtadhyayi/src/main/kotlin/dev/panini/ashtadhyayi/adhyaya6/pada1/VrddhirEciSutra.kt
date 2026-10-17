@@ -12,6 +12,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.findInternalVowelJunction
 import dev.panini.core.SupAffix
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
@@ -20,10 +21,7 @@ import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.replaceVarna
 import dev.panini.shiksha.Varnamala
-import dev.panini.shiksha.firstVarna
-import dev.panini.shiksha.lastVarna
 import dev.panini.shiksha.toDevanagari
-import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -50,6 +48,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
+        if (internalPair(context) != null) return true
         if (context.terms.size < 2) return false
         if (augmentRootPair(context) != null) return true
         val leftTerm = context.terms[context.terms.size - 2]
@@ -69,6 +68,12 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        internalPair(context)?.let { (term, index) ->
+            val replacement = requireNotNull(Varnamala.getVrddhi(term.varnas[index + 1] as Svara))
+            return DerivationChange(context.replaceTermVarnaRange(term.id, index, 2, replacement,
+                mapOf(0 to 1), sutra).copy(stage = DerivationStage.PADA_FORMED),
+                "6.1.88 coalesces internal a/ā and ec by vṛddhi, retaining the containing term.")
+        }
         val terms = context.terms
         augmentRootPair(context)?.let { index ->
             val augment = terms[index]
@@ -78,11 +83,9 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
             val substitute = requireNotNull(Varnamala.getVrddhi(rootVowel)) {
                 "Unsupported ec vowel in ${root.surface}"
             }
-            val newSurface = (substitute + rootVarnas.drop(1)).toDevanagari()
             return DerivationChange(
-                state = context.mergeTermsByVarnaSubstitution(
-                    root.id, augment.id, newSurface, rootVowel, substitute, sutra,
-                ).copy(stage = DerivationStage.PADA_FORMED),
+                state = context.coalescePrecedingAugmentVowel(root.id, augment.id, substitute, sutra)
+                    .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.88: Vṛddhi substitution (${substitute.toDevanagari()}) for augment अ + ${rootVowel.devanagari}.",
             )
         }
@@ -94,18 +97,20 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         val leftVowel = leftVarnas.last() as Svara
         val rightVowel = rightVarnas.first() as Svara
         val substitute = requireNotNull(Varnamala.getVrddhi(rightVowel))
-        var rightRemainder = rightVarnas.drop(1)
-        if (rightTerm.itMarkers.isNotEmpty() && rightRemainder.lastOrNull() !is Svara) {
-            rightRemainder = rightRemainder.dropLast(1)
-        }
-        val newSurface = (leftVarnas.dropLast(1) + substitute + rightRemainder).toDevanagari()
+        val replaced = context.replaceTermVarna(leftTerm.id, leftVarnas.lastIndex, substitute, sutra)
+        val composed = replaced.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
+            .concatenateAfterInitialVowelCoalescence(leftTerm.id, rightTerm, sutra,
+                transferDeferredDesignations = true,
+                coalescedLeftVarnaIndices = leftVarnas.lastIndex until leftVarnas.lastIndex + substitute.size)
 
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                leftTerm.id, rightTerm.id, newSurface, leftVowel, substitute, sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = composed.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.88: Vṛddhi substitution (${substitute.toDevanagari()}) for ${leftVowel.devanagari} + ${rightVowel.devanagari}."
         )
+    }
+
+    private fun internalPair(context: DerivationState) = context.findInternalVowelJunction { left, right ->
+        left in setOf(Svara.A, Svara.AA) && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, right)
     }
 
     private fun augmentRootPair(context: DerivationState): Int? {
@@ -113,7 +118,9 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         return (0 until context.terms.lastIndex).firstOrNull { index ->
             val left = context.terms[index]
             val right = context.terms[index + 1]
-            left.id == "at-agama" && right.kind == TermKind.DHATU &&
+            left.id == "at-agama" && left.kind == TermKind.AGAMA && left.varnas.singleOrNull() in setOf(Svara.A, Svara.AA) &&
+                left.augmentTargetId == right.id && !left.mergeIntoAugmentTarget &&
+                "1.1.46" in left.establishedBySutras && right.kind == TermKind.DHATU &&
                 right.varnas.firstOrNull()?.let { engine.contains(Pratyahara.EC, it) } == true
         }
     }
@@ -142,21 +149,19 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                     vibhakti = Vibhakti.DVITIYA,
                     vacana = Vacana.BAHUVACANA,
                 ).matches(context) &&
-                context.terms.lastOrNull()?.varnas?.let { varnas ->
+                context.droppedTerms.any { suffix ->
+                    suffix.sourceSupAffix == SupAffix.SAS && suffix.droppedBySutra == "6.1.102" &&
+                        suffix.mergedIntoTermId == context.terms.lastOrNull()?.id
+                } && context.terms.lastOrNull()?.varnas?.let { varnas ->
                     varnas.lastOrNull() == Vyanjana.SA &&
-                        varnas.getOrNull(varnas.lastIndex - 1) in setOf(Svara.AA, Svara.II, Svara.UU)
+                        varnas.getOrNull(varnas.lastIndex - 1) in setOf(Svara.AA, Svara.II, Svara.UU, Svara.RR, Svara.LL)
                 } == true
 
     override fun apply(context: DerivationState): DerivationChange {
         val term = context.terms.last()
         return DerivationChange(
-            state = context.substituteTermVarnas(
-                term.id,
-                term.varnas.replaceVarna(term.varnas.lastIndex, listOf(Vyanjana.NA)),
-                Vyanjana.SA,
-                listOf(Vyanjana.NA),
-                sutra,
-            ).copy(stage = DerivationStage.FINAL),
+            state = context.replaceTermVarna(term.id, term.varnas.lastIndex, listOf(Vyanjana.NA), sutra)
+                .copy(stage = DerivationStage.FINAL),
             explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
         )
     }
@@ -175,13 +180,15 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     stage = SutraStage.SANDHI,
+    blocks = setOf("6.1.77", "6.1.87", "6.1.101", "6.1.102"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PRATYAYA_SELECTED &&
-            context.effectiveContext.rupa.linga != Linga.NAPUMSAKA &&
+        context.stage in setOf(DerivationStage.PRATYAYA_SELECTED, DerivationStage.IT_PROCESSED,
+            DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED) &&
             context.terms.getOrNull(context.terms.size - 2)?.varnas?.lastOrNull() is Svara &&
             context.terms.lastOrNull()?.let {
-                it.hasCurrentAffix(SupAffix.AM) && it.varnas == listOf(Svara.A, Vyanjana.MA)
+                it.hasCurrentAffix(SupAffix.AM) && it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED &&
+                    it.varnas == listOf(Svara.A, Vyanjana.MA)
             } == true
 
     override fun apply(context: DerivationState): DerivationChange {

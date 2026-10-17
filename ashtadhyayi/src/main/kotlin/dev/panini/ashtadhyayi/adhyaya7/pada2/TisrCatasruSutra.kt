@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,6 +33,9 @@ object TisrCatasruSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.BOTH,
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
+    private val tri = listOf(Vyanjana.TA, Vyanjana.RA, Svara.I)
+    private val catur = listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Vyanjana.RA)
+
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         if (context.effectiveContext.rupa.linga != Linga.STRI) return false
@@ -40,22 +45,25 @@ object TisrCatasruSutra : Sutra<DerivationState, DerivationChange>(
 
         // This ādeśa applies to the original surface once. The retained
         // upadeśa must not cause it to reapply after later ṛ-stem operations.
-        if (stem.surface !in setOf("त्रि", "चतुर्")) return false
+        if (stem.varnas != tri && stem.varnas != catur) return false
 
         return affix.sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val replacement = when (stem.surface) {
-            "चतुर्" -> "चतसृ"
-            else -> "तिसृ"
+        val replaced = when (stem.varnas) {
+            catur -> context.replaceTermVarnaRange(stem.id, 3, 2,
+                listOf(Svara.A, Vyanjana.SA, Svara.R), mapOf(0 to 0, 2 to 1), sutra)
+            tri -> context.replaceTermVarnaRange(stem.id, 1, 2,
+                listOf(Svara.I, Vyanjana.SA, Svara.R), mapOf(0 to 1, 2 to 0), sutra)
+            else -> error("7.2.99 requires a current tri or catur stem")
         }
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, replacement, '∅', "स्त्रीआदेश", sutra)
+            state = replaced
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.99: Substituted '$replacement' for '${stem.surface}' in feminine gender."
+            explanation = "7.2.99 substitutes the prescribed feminine numeral allomorph before vibhakti."
         )
     }
 }

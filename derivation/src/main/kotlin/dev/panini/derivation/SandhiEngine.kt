@@ -17,17 +17,50 @@ class SandhiEngine(
     private val engine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras)
 ) {
     /** Explicit completed-word input; spelling alone cannot identify a dual or a vocative. */
-    data class Pada(val term: DerivationTerm, val rupa: Rupa = Rupa(), val samjnas: Set<Samjna> = emptySet())
+    data class Pada(val term: DerivationTerm, val rupa: Rupa = Rupa(), val samjnas: Set<Samjna> = emptySet(),
+        val visargaSource: VisargaSource? = null,
+        val sourceDerivation: DerivationResult? = null)
 
-    fun join(left: Pada, right: Pada, config: DerivationConfig = DerivationConfig()): DerivationResult =
-        engine.derive(padaBoundaryState(left, right), config)
+    /** A completed morphological word may still have several internal term carriers.
+     * Compose their exact tokens at the input boundary and retain the complete source result. */
+    fun padaFromDerivation(result: DerivationResult, id: String): Pada {
+        require(id.isNotBlank())
+        val state = result.final
+        require(state.stage == DerivationStage.FINAL) { "Sandhi requires a completed word derivation." }
+        val rupa = state.effectiveContext.rupa
+        require(rupa.vibhakti != null || rupa.lakara != null) {
+            "A morphological pada is required, not an arbitrary sandhi phrase."
+        }
+        state.requireCompleteItProcessing()
+        val terms = state.terms
+        val rootIndex = terms.indexOfFirst { it.kind == TermKind.DHATU }
+        val headIndex = if (rootIndex >= 0) rootIndex else terms.indexOfFirst { term ->
+            term.kind == TermKind.PRATIPADIKA && state.samjnas.none {
+                it.targetId == term.id && it.samjna == Samjna.UPASARGA
+            }
+        }
+        require(headIndex >= 0) { "A morphological head carrier is required." }
+        var carrier = terms[headIndex]
+        for (prefix in terms.take(headIndex).asReversed()) carrier = carrier.insertDesignatedTerm(prefix, 0)
+        for (suffix in terms.drop(headIndex + 1)) carrier = carrier.insertDesignatedTerm(suffix, carrier.varnas.size)
+        // Internal root/prefix/affix classifications remain in sourceDerivation;
+        // they must not classify the whole completed word as a fresh root or prefix.
+        val samjnas = state.samjnas.filter { it.samjna in setOf(Samjna.PADA, Samjna.PRAGRHYA) }
+            .map { it.samjna }.toSet()
+        return Pada(carrier.copy(id = id, kind = TermKind.PRATIPADIKA, formedPadaRupa = rupa),
+            rupa, samjnas, sourceDerivation = result)
+    }
 
-    fun joinAll(left: Pada, right: Pada): List<DerivationResult> =
-        engine.deriveAll(padaBoundaryState(left, right))
+    fun join(left: Pada, right: Pada, config: DerivationConfig = DerivationConfig(),
+        finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION): DerivationResult =
+        engine.derive(padaBoundaryState(left, right, finalBoundary), config)
+
+    fun joinAll(left: Pada, right: Pada, finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION): List<DerivationResult> =
+        engine.deriveAll(padaBoundaryState(left, right, finalBoundary))
 
     /** Completed padas with unspecified morphology still license external boundary rules. */
-    fun joinAll(left: String, right: String): List<DerivationResult> =
-        joinAll(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right))
+    fun joinAll(left: String, right: String, finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION): List<DerivationResult> =
+        joinAll(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right), finalBoundary)
 
     private fun unspecifiedPada(id: String, surface: String): Pada {
         require(surface.isNotBlank()) { "Two words are required for sandhi." }
@@ -39,21 +72,33 @@ class SandhiEngine(
 
     /** The same orthographic rendering applies to a completed step and the final result. */
     fun render(state: DerivationState): String =
-        if (state.boundaryRuleBlocks.values.any { it in setOf("6.1.125", "8.3.19") })
+        if (state.boundaryRuleBlocks.values.any { it in setOf("6.1.125", "8.3.19", "8.3.20") })
             state.terms.filter { it.surface.isNotEmpty() }.joinToString(" ") { it.surface }
         else state.surface
 
-    private fun padaBoundaryState(left: Pada, right: Pada): DerivationState {
+    private fun padaBoundaryState(left: Pada, right: Pada, finalBoundary: SpeechBoundary): DerivationState {
         require(left.term.id != right.term.id) { "External padas must have distinct term identities." }
         require(left.term.surface.isNotBlank() && right.term.surface.isNotBlank())
         val padas = listOf(left, right)
-        return DerivationState(
-            terms = padas.map { it.term.copy(formedPadaRupa = it.rupa) },
+        val state = DerivationState(
+            terms = padas.map { it.term.copy(formedPadaRupa = it.rupa,
+                completedPadaOrigins = it.term.completedPadaOrigins.ifEmpty { List(it.term.varnas.size) { _ -> setOf(it.term.id) } }) },
             samjnas = padas.flatMap { pada ->
                 (pada.samjnas + Samjna.PADA).map { SamjnaAssignment(pada.term.id, it) }
             }.toSet(),
             stage = DerivationStage.PADA_FORMED,
+            context = DerivationalContext(finalBoundary = finalBoundary),
         )
+        // The left environment is known. Decode the right word only at an
+        // explicit pause; continuation supplies no following sound for it.
+        val active = if (finalBoundary == SpeechBoundary.AVASANA) padas else listOf(left)
+        return active.fold(state) { prepared, pada ->
+            val source = pada.visargaSource ?: VisargaSource.ESTABLISHED_RU.takeIf {
+                pada.term.varnas.lastOrNull() is dev.panini.shiksha.Ayogavaha &&
+                    pada.term.hasRutvaAt(pada.term.varnas.lastIndex)
+            }
+            source?.let { prepared.withCompletedPadaVisargaSource(pada.term.id, it) } ?: prepared
+        }
     }
     /** Apply savarṇa vowel and consonant prefix-boundary sandhi.
      * Completed verbal forms must not undergo a new full derivation. This
@@ -83,10 +128,11 @@ class SandhiEngine(
         left: String,
         right: String,
         config: DerivationConfig = DerivationConfig(),
+        finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION,
     ): DerivationResult {
         require(left.isNotBlank() && right.isNotBlank()) { "Two words are required for sandhi." }
 
-        return join(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right), config)
+        return join(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right), config, finalBoundary)
     }
 
     /** Completed consonant-final compound members: apply only boundary phonology. */
@@ -164,6 +210,7 @@ class SandhiEngine(
                 SamjnaAssignment(rightTerm.id, Samjna.PADA),
             ),
             stage = DerivationStage.PADA_FORMED,
+            context = DerivationalContext(finalBoundary = SpeechBoundary.CONTINUATION),
         )
     }
 }

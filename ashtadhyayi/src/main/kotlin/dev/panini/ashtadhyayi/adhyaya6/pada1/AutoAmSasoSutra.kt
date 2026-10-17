@@ -5,64 +5,60 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.matchesAnyAffix
-import dev.panini.derivation.matchesSupAffix
-import dev.panini.shiksha.Ayogavaha
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.sutra.SutraPriority
 
 /**
  * 6.1.93: auto 'm-śasoḥ.
- * Before 'am' or 'śas', an o-ending stem ('go') merges with the affix into 'ām' (gām, gāḥ).
+ * Final o and the initial vowel of sup-am/śas coalesce as ā.
+ * The stem prefix and the affix's consonants are not substituted by this rule.
  */
 object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.1.93",
     text = "औतोऽम्शसोः",
     hindiExplanation = "ओकारान्त अङ्ग से उत्तर अम् और शस् के परे होने पर पूर्व-पर दोनों के स्थान पर आकार एकादेश होता है (गाम्, गाः)।",
-    type = SutraType.NITYA,
+    type = SutraType.APAVADA,
     chapter = 6,
     pada = 1,
     optional = false,
     kramaValue = 610093,
-    role = SutraRole.Vidhi,
+    role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
-    nimittaScope = NimittaScope.BOTH
+    nimittaScope = NimittaScope.BOTH,
+    priority = SutraPriority.APAVADA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isOStem = stem.upadesha == "गो" || stem.varnas.lastOrNull() in setOf(Svara.O, Svara.AU)
+        val isOStem = stem.varnas.lastOrNull() == Svara.O
         if (!isOStem) return false
 
-        val isAmOrSas = affix.matchesAnyAffix(SupAffix.AM, SupAffix.SAS)
-        return isAmOrSas
+        return affix.sourceSupAffix in setOf(SupAffix.AM, SupAffix.SAS) &&
+            listOf(SupAffix.AM, SupAffix.SAS).any(affix::hasCurrentAffix) &&
+            affix.itProcessingPhase == ItProcessingPhase.PROCESSED && affix.varnas.firstOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val replacement = if (affix.matchesSupAffix(SupAffix.AM)) {
-            listOf(Vyanjana.GA, Svara.AA, Vyanjana.MA)
-        } else {
-            listOf(Vyanjana.GA, Svara.AA, Ayogavaha.VISARGA)
-        }
-        val newSurface = replacement.toDevanagari()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, newSurface, Svara.O, replacement, sutra,
-            ).copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "6.1.93: Merged o-stem with '${affix.surface}' into '$newSurface'."
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.AA), sutra)
+                .deleteTermVarnas(affix.id, 0, 1, sutra)
+                .concatenateAfterInitialVowelCoalescence(stem.id, affix, sutra, transferDeferredDesignations = true)
+                .copy(stage = DerivationStage.PADA_FORMED),
+            explanation = "6.1.93 coalesces final o and the am/śas vowel as ā, retaining the stem and affix consonants."
         )
     }
 }

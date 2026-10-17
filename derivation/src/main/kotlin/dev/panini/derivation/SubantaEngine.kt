@@ -30,6 +30,16 @@ class SubantaEngine(
         }
     }
 
+    /** Preserve distinct grammatical alternatives and validate every returned derivation. */
+    fun deriveAll(request: SubantaDerivationRequest): List<DerivationResult> {
+        val plan = requireNotNull(SubantaFormPlans.find(request.vibhakti, request.vacana)) {
+            "No complete downstream plan exists for ${SupAffix.select(request.vibhakti, request.vacana).upadesha}."
+        }
+        return engine.deriveAll(request.initialState()).onEach {
+            it.verifyDerivation("4.1.2", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
+        }
+    }
+
     private fun pluralNumeral(
         nominativeAccusative: String,
         instrumental: String,

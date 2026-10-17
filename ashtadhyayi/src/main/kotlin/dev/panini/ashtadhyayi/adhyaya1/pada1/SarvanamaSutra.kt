@@ -19,7 +19,7 @@ import dev.panini.sutra.SutraType
  */
 object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
     number = "1.1.27",
-    text = "सर्वादीनी सर्वनामानि",
+    text = "सर्वादीनि सर्वनामानि",
     hindiExplanation = "सर्व आदि शब्दों की सर्वनाम संज्ञा होती है।",
     type = SutraType.SAMJNA,
     chapter = 1,
@@ -33,7 +33,7 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&
-            GanaPatha.isEligibleMember(1, term.surface, term.lexicalUses) &&
+            GanaPatha.isEligibleMember(1, term.upadesha, term.lexicalUses) &&
             context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.SARVANAMA }
         }
 
@@ -41,7 +41,7 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
         val assignments = context.terms
             .filter {
                 it.kind == TermKind.PRATIPADIKA &&
-                    GanaPatha.isEligibleMember(1, it.surface, it.lexicalUses)
+                    GanaPatha.isEligibleMember(1, it.upadesha, it.lexicalUses)
             }
             .map { SamjnaAssignment(it.id, Samjna.SARVANAMA) }
             .toSet()

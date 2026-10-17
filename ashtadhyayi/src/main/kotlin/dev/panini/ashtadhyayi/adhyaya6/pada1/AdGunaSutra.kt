@@ -131,7 +131,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             context.replaceTermVarna(leftTerm.id, leftVarnas.lastIndex, substitute, sutra)
         val composed = replaced.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
             .concatenateAfterInitialVowelCoalescence(leftTerm.id, rightTerm, sutra,
-                transferDeferredDesignations = true)
+                transferDeferredDesignations = true,
+                coalescedLeftVarnaIndices = leftVarnas.lastIndex until leftVarnas.lastIndex + substitute.size)
 
         return DerivationChange(
             state = composed.copy(stage = DerivationStage.PADA_FORMED),

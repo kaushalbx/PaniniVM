@@ -116,7 +116,8 @@ class DerivationPipeline(
                 explanation = change.explanation,
             )
             return copy(
-            state = change.state.recordAppliedSutra(sutra.sutra),
+            state = change.state.recordAppliedSutra(sutra.sutra,
+                sutra.advancesTripadiFrontier && change.advancesTripadiFrontier),
                 applications = applications + application,
                 events = events + DerivationEvent.RuleApplied(
                     sutra.sutra,

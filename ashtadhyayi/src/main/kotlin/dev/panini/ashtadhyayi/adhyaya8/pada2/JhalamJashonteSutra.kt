@@ -84,14 +84,15 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun getFinalConsonant(term: dev.panini.derivation.DerivationTerm): Vyanjana? = term.varnas.lastOrNull() as? Vyanjana
 
-    /** Completed external padas before aś; khar environments are resolved by 8.4.55. */
+    /** Pada-final jaś precedes later khar devoicing too; intervening rules such
+     * as 8.3.29 inspect the voiced occurrence before 8.4.55 applies. */
     private fun externalPadaTarget(context: DerivationState) = context.terms.zipWithNext().firstOrNull { (left, right) ->
         val final = getFinalConsonant(left)
         left.formedPadaRupa != null && right.formedPadaRupa != null &&
             context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA } &&
             final != null && final != Vyanjana.SA && final !in jash &&
             Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, final) &&
-            right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, it) } == true
+            right.varnas.isNotEmpty()
     }?.first
 
     private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->

@@ -1,9 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.GrammaticalAccent
+import dev.panini.derivation.AccentType
+import dev.panini.derivation.hasSarvanamasthanaSupIdentity
+import dev.panini.derivation.HasMorphosyntax
+import dev.panini.core.Linga
+import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -20,7 +28,7 @@ import dev.panini.sutra.SutraType
  */
 object CaturanuduhorAmSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.1.98",
-    text = "चतुरनडुहोराम्",
+    text = "चतुरनडुहोरामुदात्तः",
     hindiExplanation = "सर्वनामस्थाने विभक्तौ परे चतुर् और अनडुह् अङ्गों को आम् (आ) आगम होता है।",
     type = SutraType.NITYA,
     chapter = 7,
@@ -42,38 +50,35 @@ object CaturanuduhorAmSutra : Sutra<DerivationState, DerivationChange>(
 
         // A later feminine substitution retains the lexical upadeśa, but it
         // is no longer the चतुर् aṅga to which this augment applies.
-        if (stem.varnas !in eligibleStems) return false
+        if (stem.kind != TermKind.PRATIPADIKA || stem.varnas !in eligibleStems) return false
 
         // Sarvanāmasthāna affixes for catur: jas (7.1.20 shi in neuter!), su, au, etc.
-        val isSarvanamasthana = affix.id in setOf("sup-jas", "sup-su", "sup-au", "sup-aut", "sup-am") ||
-            affix.upadesha in setOf("जस्", "सुँ", "औ", "औट्", "अम्", "शी", "शि") ||
-            affix.varnas in sarvanamasthanaSurfaces
+        val isSarvanamasthana = context.samjnas.any {
+            it.targetId == affix.id && it.samjna == Samjna.SARVANAMASTHANA
+        } || (affix.kind == TermKind.PRATYAYA && affix.upadesha == "शि") ||
+            (affix.hasSarvanamasthanaSupIdentity() &&
+            !HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context))
 
-        return isSarvanamasthana
+        return isSarvanamasthana && context.allEffectiveTerms.none {
+            it.createdBySutra == sutra && it.augmentTargetId == stem.id
+        }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val result = requireNotNull(replacements[stem.varnas])
+        require(matches(context))
+        val augment = DerivationTerm("am-augment:${stem.id}", "आम्", TermKind.AGAMA,
+            upadesha = "आम्", createdBySutra = sutra, augmentTargetId = stem.id,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            grammaticalAccents = listOf(GrammaticalAccent(0, AccentType.UDATTA, sutra)))
 
         return DerivationChange(
-            state = context.substituteTermVarnas(
-                stem.id, result, Svara.U, listOf(Vyanjana.VA, Svara.AA), sutra,
-            )
-                .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.1.98: Added 'ām' augment before sarvanāmasthāna."
+            state = context.addTerm(augment),
+            explanation = "7.1.98 introduces raw m-it ām with udātta for independent placement."
         )
     }
 
     private val catur: List<Varna> = listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Vyanjana.RA)
     private val anaduh: List<Varna> = listOf(Svara.A, Vyanjana.NA, Svara.A, Vyanjana.DDA, Svara.U, Vyanjana.HA)
     private val eligibleStems = setOf(catur, anaduh)
-    private val replacements: Map<List<Varna>, List<Varna>> = mapOf(
-        catur to listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Vyanjana.VA, Svara.AA, Vyanjana.RA),
-        anaduh to listOf(Svara.A, Vyanjana.NA, Svara.A, Vyanjana.DDA, Vyanjana.VA, Svara.AA, Vyanjana.HA),
-    )
-    private val sarvanamasthanaSurfaces: Set<List<Varna>> = setOf(
-        listOf(Svara.I), listOf(Vyanjana.SHA, Svara.II),
-        listOf(Svara.A, Vyanjana.SA), listOf(Vyanjana.JA, Svara.A, Vyanjana.SA),
-    )
 }

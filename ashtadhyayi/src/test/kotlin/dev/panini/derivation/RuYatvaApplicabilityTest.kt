@@ -23,8 +23,10 @@ class RuYatvaApplicabilityTest {
         }
     }
 
-    private fun state(left: String, right: String = "अत्र") = DerivationState(listOf(
-        DerivationTerm("left", left, TermKind.PRATIPADIKA),
+    private fun state(left: String, right: String = "अत्र", rutva: Boolean = false) = DerivationState(listOf(
+        DerivationTerm("left", left, TermKind.PRATIPADIKA).let { term ->
+            if (rutva) term.copy(rutvaOccurrences = listOf(RutvaOccurrence(term.varnas.lastIndex, "8.2.66"))) else term
+        },
         DerivationTerm("right", right, TermKind.PRATIPADIKA),
     ))
 
@@ -38,21 +40,29 @@ class RuYatvaApplicabilityTest {
     @Test fun `a aa and exact lexical bases receive consonantal y without an extra vowel`() {
         for ((left, expected) in listOf("देवः" to "देवय्", "देवाः" to "देवाय्",
             "भोः" to "भोय्", "भगोः" to "भगोय्", "अघोः" to "अघोय्")) {
-            val original = state(left)
+            val original = state(left, rutva = true).addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66")
             assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(original), left)
             val result = BhoBhagoAghoApurvasyaYoshiSutra.apply(original).state
             assertEquals(expected, result.terms.first().surface)
             assertEquals(Vyanjana.YA, result.terms.first().varnas.last())
             assertEquals(original.terms.first().varnas.size, result.terms.first().varnas.size)
-            assertEquals(original.terms.first().varnas.lastIndex, result.substitutions.single().sourceVarnaIndex)
+            assertEquals(original.terms.first().varnas.lastIndex, result.substitutions.last().sourceVarnaIndex)
         }
     }
 
     @Test fun `r from rutva is eligible but native r is not`() {
         val original = state("देवार्")
         assertFalse(BhoBhagoAghoApurvasyaYoshiSutra.matches(original))
-        val withRutva = original.addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66")
+        val historyOnly = original.addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66")
+        assertFalse(BhoBhagoAghoApurvasyaYoshiSutra.matches(historyOnly))
+        val withRutva = state("देवार्", rutva = true)
         assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(withRutva))
         assertEquals("देवाय्", BhoBhagoAghoApurvasyaYoshiSutra.apply(withRutva).state.terms.first().surface)
+    }
+
+    @Test fun `unanalysed visarga and untransformed s are not silently treated as ru`() {
+        for (left in listOf("रामः", "देवाः", "भोः", "अस्")) {
+            assertFalse(BhoBhagoAghoApurvasyaYoshiSutra.matches(state(left)), left)
+        }
     }
 }

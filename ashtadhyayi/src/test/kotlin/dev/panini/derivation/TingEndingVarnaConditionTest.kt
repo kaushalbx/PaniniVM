@@ -57,7 +57,7 @@ class TingEndingVarnaConditionTest {
         val rule = ParasmaipadanamNalatUsusthalathusaNalvamahSutra
         for ((affix, expected) in listOf(TingAffix.TIP to "णल्", TingAffix.TAS to "अतुस्",
             TingAffix.JHI to "उस्", TingAffix.SIP to "थल्", TingAffix.THAS to "अथुस्",
-            TingAffix.THA to "अ", TingAffix.MIP to "अ", TingAffix.VAS to "व", TingAffix.MAS to "म")) {
+            TingAffix.THA to "अ", TingAffix.MIP to "णल्", TingAffix.VAS to "व", TingAffix.MAS to "म")) {
             val original = state(affix.upadesha, affix.upadesha, Lakara.LIT)
             assertTrue(rule.matches(original))
             val result = rule.apply(original).state
@@ -67,7 +67,7 @@ class TingEndingVarnaConditionTest {
             assertEquals(original.terms.last().id, ending.id)
             assertEquals(original.terms.first(), result.terms.first())
             assertEquals(affix.upadesha, ending.sthaniProps?.upadesha)
-            assertEquals(if (affix in setOf(TingAffix.TIP, TingAffix.SIP)) ItProcessingPhase.RAW_UPADESHA
+            assertEquals(if (affix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)) ItProcessingPhase.RAW_UPADESHA
                 else ItProcessingPhase.PROCESSED, ending.itProcessingPhase)
             assertFalse(rule.matches(result))
             assertFalse(rule.matches(state(expected + "ऽ", affix.upadesha, Lakara.LIT)))

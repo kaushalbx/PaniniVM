@@ -11,6 +11,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasCompletedPadaBoundaryBetweenTerms
+import dev.panini.derivation.areInSameCompletedPada
+import dev.panini.derivation.isPadaFinalVarna
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
@@ -47,7 +50,8 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val positions = phonologicalPositions(context)
 
         // 8.4.37: padāntasya blocks retroflexion at the end of a word (ending in 'न्')
-        if (target.targetPosition == positions.lastIndex) return false
+        if (target.targetPosition == positions.lastIndex ||
+            (target.term.formedPadaRupa != null && context.isPadaFinalVarna(target.term, target.varnaIndex))) return false
 
         // 8.4.39: kṣubhnādiṣu ca blocks ṇatva for kṣubhnādi gaṇa words (e.g. bhuvana, kṣubdha)
         val allVarnas = positions.map { it.varna }
@@ -103,6 +107,8 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
             if (targetPosition < 0) return null
             val triggerPosition = (targetPosition - 1 downTo 0).firstOrNull { positions[it].varna in triggers } ?: return null
             val owned = positions[targetPosition]
+            if (!context.areInSameCompletedPada(positions[triggerPosition].term, positions[triggerPosition].varnaIndex,
+                    owned.term, owned.varnaIndex)) return null
             return Target(owned.term, owned.varnaIndex, triggerPosition, targetPosition)
         }
         val triggerPosition = positions.indexOfLast { it.varna in triggers }
@@ -110,6 +116,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val targetPosition = (triggerPosition + 1..positions.lastIndex).firstOrNull { positions[it].varna == Vyanjana.NA } ?: return null
         val triggerOwned = positions[triggerPosition]
         val targetOwned = positions[targetPosition]
+        if (!context.areInSameCompletedPada(triggerOwned.term, triggerOwned.varnaIndex, targetOwned.term, targetOwned.varnaIndex)) return null
 
         // Guard: if the r/ṣ trigger is inside a DHATU term but the target न is in a
         // *different* (non-DHATU / suffix) term, the dhātu's internal r/ṣ cannot serve

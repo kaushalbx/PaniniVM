@@ -37,17 +37,21 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
         if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
 
         return state.terms.any { term ->
-            term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() && isLaShaKu(term.varnas.first()) &&
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
+            term.pendingRutvaUpadeshaIndex == null && term.isItUpadeshaVarna(0) && term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() && isLaShaKu(term.varnas.first()) &&
                 state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA } &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
-            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
+            if (term.pendingRutvaUpadeshaIndex == null && term.isItUpadeshaVarna(0) && term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
                 state.samjnas.none { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.TADDHITA }) {
                 val firstVarna = term.varnas.first()
                 if (isLaShaKu(firstVarna)) {

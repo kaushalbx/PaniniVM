@@ -4,6 +4,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.core.SupAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
@@ -32,29 +36,27 @@ object TadohSahSauAnantyayohSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.BOTH,
     dependencies = setOf("6.4.1"),
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        val stem = context.terms[context.terms.size - 2]
-        val affix = context.terms.last()
-        val isTadOrEtad = stem.upadesha in setOf("तद्", "एतद्") || stem.surface in setOf("तद्", "त", "एतद्", "एत")
-        val beginsWithTad = stem.varnas.firstOrNull() == Vyanjana.TA ||
-            stem.varnas.take(2) == listOf(Svara.E, Vyanjana.TA)
-        return isTadOrEtad && affix.id == "sup-su" && beginsWithTad
+    private fun target(context: DerivationState): Pair<DerivationTerm, Int>? {
+        val suffix = context.terms.lastOrNull()
+        val stem = if (suffix?.sourceSupAffix == SupAffix.SU && suffix.hasCurrentAffix(SupAffix.SU))
+            context.terms.getOrNull(context.terms.lastIndex - 1)
+        else context.terms.firstOrNull { "7.2.107" in it.establishedBySutras }?.takeIf {
+            context.droppedTerms.any { dropped -> dropped.sourceSupAffix == SupAffix.SU && dropped.droppedBySutra == "7.2.107" }
+        }
+        if (stem == null || stem.kind != TermKind.PRATIPADIKA || stem.upadesha !in setOf("तद्", "एतद्", "अदस्")) return null
+        val index = stem.varnas.indices.firstOrNull { it < stem.varnas.lastIndex && stem.varnas[it] in setOf(Vyanjana.TA, Vyanjana.DA) } ?: return null
+        return stem to index
     }
 
+    override fun matches(context: DerivationState): Boolean = target(context) != null
+
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
-        val (locus, replacement) = if (stem.varnas.take(2) == listOf(Svara.E, Vyanjana.TA)) {
-            1 to Vyanjana.SSA
-        } else {
-            0 to Vyanjana.SA
-        }
-        val result = stem.varnas.take(locus) + replacement + stem.varnas.drop(locus + 1)
+        val (stem, locus) = requireNotNull(target(context))
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, Vyanjana.TA, listOf(replacement), sutra)
+            state = context.replaceTermVarna(stem.id, locus, listOf(Vyanjana.SA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.106: Replaced non-final 't' with 's' before 'su'."
+            explanation = "7.2.106 replaces non-final t/d with s under the retained su condition; ṣatva is separate."
         )
     }
 }

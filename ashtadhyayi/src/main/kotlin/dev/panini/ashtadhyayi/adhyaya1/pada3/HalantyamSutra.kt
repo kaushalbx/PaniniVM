@@ -45,7 +45,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             // These āgamas are already resolved to their effective surfaces;
             // their surviving final consonants are not new it-markers.
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@any false
-            term.varnas.lastOrNull() is Vyanjana &&
+            term.isItUpadeshaVarna(term.varnas.lastIndex) && term.varnas.lastOrNull() is Vyanjana &&
                 (term.itDesignations + term.deferredItDesignations).none { term.varnas.lastIndex in it.varnaIndices }
         }
     }
@@ -60,6 +60,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             if (term.id in state.halantyamExemptTermIds) return@map term
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
             val last = term.varnas.lastOrNull()
+            if (!term.isItUpadeshaVarna(term.varnas.lastIndex)) return@map term
             if (last is Vyanjana) {
                 val isUndesignated = (term.itDesignations + term.deferredItDesignations).none { term.varnas.lastIndex in it.varnaIndices }
                 if (isUndesignated) {

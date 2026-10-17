@@ -2,7 +2,7 @@
 
 # Step 1: Struct Method Definition on class 'गुणवत्' (Adds 1st arg and 2nd arg using pure Pāṇinian पूरण-प्रत्ययाः: अमच्, तीय)
 गुणवतः वर्धनम् इति प्रक्रिया अस्ति ।
-प्रथमं द्वितीयं च युन्ग्धि ।
+प्रथमं द्वितीयं च युङ्ग्धि ।
 मुद्रय फलम् ॥
 
 # Step 2: Invoke method 'वृध् + ल्युट्' (वर्द्धनम्) on struct instance 'गुणवत्' with parameters 5 (पञ्च) and 2 (द्वि):

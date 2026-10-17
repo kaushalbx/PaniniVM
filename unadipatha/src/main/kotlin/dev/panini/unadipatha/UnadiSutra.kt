@@ -34,7 +34,7 @@ abstract class UnadiSutra(
 ) {
     val sutraId: SutraId get() = SutraId(number)
 
-    val source: SutraSource get() = SutraSource.Ashtadhyayi(number, text)
+    val source: SutraSource get() = SutraSource.Unadipatha(number, text)
 
     val artha: SutraArtha by lazy {
         SutraArtha(

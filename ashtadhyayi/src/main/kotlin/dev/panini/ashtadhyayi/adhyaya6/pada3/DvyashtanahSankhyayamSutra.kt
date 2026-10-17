@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SamasaType
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,31 +29,22 @@ object DvyashtanahSankhyayamSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
+        if (context.effectiveContext.samasaType == SamasaType.BAHUVRIHI) return false
         val purvapada = context.terms.firstOrNull() ?: return false
         val uttarapada = context.terms.getOrNull(1) ?: return false
 
-        val purvaMatch = purvapada.surface in setOf("द्वि", "अष्टन्")
+        val purvaMatch = purvapada.compoundNumeralStem() in setOf(CompoundNumeralStem.DVI, CompoundNumeralStem.ASTAN)
         val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } &&
-            uttarapada.surface in setOf("दश", "विंशति", "त्रिंशत्")
-        val notAshiti = uttarapada.surface != "अशीति"
+            uttarapada.compoundNumeralUttara()?.optional == false
 
-        return purvaMatch && isUttaraSankhya && notAshiti
+        return purvaMatch && isUttaraSankhya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val purvapada = context.terms.first()
-        val replacement = when (purvapada.surface) {
-            "द्वि" -> "द्वा"
-            "अष्टन्" -> "अष्टा"
-            else -> when (purvapada.upadesha) {
-                "द्वि" -> "द्वा"
-                "अष्टन्" -> "अष्टा"
-                else -> purvapada.surface
-            }
-        }
         return DerivationChange(
-            state = context.substituteTermSurface(purvapada.id, replacement, '∅', "आ", sutra),
-            explanation = "$text: ${purvapada.surface} -> $replacement"
+            state = context.substituteCompoundNumeral(purvapada, sutra),
+            explanation = "6.3.47 replaces the specified numeral's ending with ā."
         )
     }
 }

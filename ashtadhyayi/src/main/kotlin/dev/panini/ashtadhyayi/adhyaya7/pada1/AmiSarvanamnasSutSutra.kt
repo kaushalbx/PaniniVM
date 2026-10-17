@@ -32,7 +32,8 @@ object AmiSarvanamnasSutSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.AGAMA,
     scope = SutraScope.DERIVATION,
     nimittaScope = NimittaScope.EXTERNAL,
-    dependencies = setOf("6.4.1", "1.1.27", "1.1.46")
+    dependencies = setOf("6.4.1", "1.1.27", "1.1.46"),
+    blocks = setOf("7.1.54"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
@@ -49,20 +50,26 @@ object AmiSarvanamnasSutSutra : Sutra<DerivationState, DerivationChange>(
         val endsInA = stem.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
 
         // 3. Affix must be 'ām' and 'suṭ' not already added
-        return endsInA && affix.upadesha == "आम्" && context.allEffectiveTerms.none { it.upadesha == "सुट्" }
+        return endsInA && affix.sourceSupAffix == dev.panini.core.SupAffix.AM_6 &&
+            affix.upadesha == "आम्" && "7.1.52" !in affix.establishedBySutras &&
+            context.allEffectiveTerms.none { it.createdBySutra == sutra && it.augmentTargetId == affix.id }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         // 1.1.46: Tit (marked with T) goes to the beginning (Adi) of the term it is attached to.
         val sutAugment = DerivationTerm(
             id = "sut-augment",
-            surface = "स्", // 's' remains after it-processing (1.3.3, 1.3.2, 1.3.9)
+            surface = "सुँट्",
             kind = TermKind.AGAMA,
-            upadesha = "सुट्"
+            upadesha = "सुँट्",
+            createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = context.terms.last().id,
+            mergeIntoAugmentTarget = true,
         )
 
         // Insert 'sut' before 'am'
-        val newTerms = context.terms.dropLast(1) + sutAugment + context.terms.last()
+        val newTerms = context.terms + sutAugment
 
         return DerivationChange(
             state = context.copy(terms = newTerms),

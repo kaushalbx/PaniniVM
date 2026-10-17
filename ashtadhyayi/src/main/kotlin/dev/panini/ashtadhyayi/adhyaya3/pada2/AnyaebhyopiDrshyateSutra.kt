@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.rawTerm
+import dev.panini.core.KrtAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -26,7 +28,7 @@ object AnyaebhyopiDrshyateSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क्विप्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kvip = DerivationTerm("kvip", "क्विप्", TermKind.PRATYAYA, upadesha = "क्विप्", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val kvip = KrtAffix.KVIP.rawTerm("kvip", sutra)
         return DerivationChange(
             state = context.addTerm(kvip),
             explanation = "3.2.178 prescribes क्विप् zero-affix diversely.",

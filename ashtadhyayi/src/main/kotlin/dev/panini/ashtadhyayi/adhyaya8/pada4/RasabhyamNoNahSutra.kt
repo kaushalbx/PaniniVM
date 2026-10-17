@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.hasCompletedPadaBoundaryBetweenTerms
+import dev.panini.derivation.areInSameCompletedPada
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -60,6 +62,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
             val trigger = triggerTerm.varnas[triggerIndex]
             if (trigger !in triggers) continue
             val (targetTerm, targetIndex) = positions[i + 1]
+            if (!context.areInSameCompletedPada(triggerTerm, triggerIndex, targetTerm, targetIndex)) continue
             if (targetTerm.varnas[targetIndex] == Vyanjana.NA) return Target(targetTerm, targetIndex, trigger)
         }
         return null

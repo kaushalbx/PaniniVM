@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.ItMarker
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -47,15 +50,18 @@ object NeramNadyaPoNibhyahSutra : Sutra<DerivationState, DerivationChange>(
         if (!isNadi && !isAp && stem.varnas != listOf(Vyanjana.NA, Svara.II)) return false
 
         // 2. Affix must be 'ṅi' (Locative Singular)
-        return affix.upadesha == "ङि" &&
-            affix.varnas != listOf(Svara.AA, Vyanjana.MA) &&
-            affix.varnas.take(2) != listOf(Vyanjana.YA, Svara.AA)
+        return affix.sourceSupAffix == SupAffix.NGI && affix.hasCurrentAffix(SupAffix.NGI) &&
+            affix.itProcessingPhase == ItProcessingPhase.PROCESSED && sutra !in affix.establishedBySutras &&
+            "7.3.117" !in affix.establishedBySutras
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
+        val replaced = context.replaceWholeAffix(affix.id, listOf(Svara.AA, Vyanjana.MA), sutra,
+            dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+        val current = replaced.terms.single { it.id == affix.id }
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, "आम्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+            state = replaced.replaceTerm(affix.id, current.copy(establishedBySutras = current.establishedBySutras + sutra))
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.116: Replaced Locative Singular 'ṅi' with 'ām'."
         )

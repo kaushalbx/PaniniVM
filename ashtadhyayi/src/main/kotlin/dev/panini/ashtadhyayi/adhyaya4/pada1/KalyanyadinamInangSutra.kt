@@ -8,11 +8,11 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.AdeshaPlacement
+import dev.panini.derivation.introduceRawAdesha
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,7 +27,8 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     private fun bases(context: DerivationState) = context.terms.filter {
-        it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(63, it.surface, it.lexicalUses)
+        it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(63, it.upadesha, it.lexicalUses) &&
+            sutra !in it.establishedBySutras
     }
 
     override fun matches(context: DerivationState): Boolean =
@@ -37,15 +38,8 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         var state = context
         bases(context).forEach { term ->
-            val source = term.varnas.last()
-            val replacement = listOf(Svara.I, Vyanjana.NA)
-            state = state.substituteTermSurface(
-                term.id,
-                term.varnas.replaceVarna(term.varnas.lastIndex, replacement).toDevanagari(),
-                source,
-                replacement,
-                sutra,
-            )
+            state = state.introduceRawAdesha(term.id, listOf(Svara.I, Vyanjana.NA, Svara.A, Vyanjana.NGA),
+                AdeshaPlacement.NGIT_FINAL, sutra, "inang:${term.id}")
         }
         return DerivationChange(
             state
@@ -55,7 +49,7 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
                 ))
                 .copy(stage = DerivationStage.PRATYAYA_SELECTED),
-            "4.1.126 replaces the final with इनङ् and introduces ढक् after an eligible कल्याण्यादि term.",
+            "4.1.126 prescribes raw इनङ् and ढक्; it processing and final-only targeting remain independent.",
         )
     }
 }

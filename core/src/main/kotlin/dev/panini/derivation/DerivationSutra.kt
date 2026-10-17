@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
 
 interface DerivationSutra {
+    /** Noncanonical source ownership must be explicit; null retains canonical catalogue ownership. */
+    val source: dev.panini.sutra.runtime.SutraSource? get() = null
     val sutra: String
     val krama: Int
     val type: SutraType
@@ -21,7 +23,12 @@ interface DerivationSutra {
     val priority: SutraPriority
     val visibility: SutraVisibility
     val optional: Boolean
+    /** Includes prescribed alternatives where neither outcome declines the rule. */
+    val hasAlternatives: Boolean get() = optional
     val blocks: Set<String>
+    /** An identity-retention guard protects its own boundary but creates no
+     * later phonological state to hide still-pending work on other boundaries. */
+    val advancesTripadiFrontier: Boolean get() = true
     val traceTemplate: String?
     fun matches(context: DerivationState): Boolean
     fun apply(context: DerivationState): DerivationChange
@@ -53,4 +60,7 @@ data class DerivationChange(
     val explanation: String,
     /** False means an optional branch deliberately declined this sutra. */
     val applied: Boolean = true,
+    /** A retained-sound alternative protects grammar without hiding independent
+     * earlier phonological work. Other alternatives of the same rule may advance. */
+    val advancesTripadiFrontier: Boolean = true,
 )

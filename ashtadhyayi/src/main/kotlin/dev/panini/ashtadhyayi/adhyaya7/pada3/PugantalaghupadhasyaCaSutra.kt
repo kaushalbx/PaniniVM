@@ -15,6 +15,7 @@ import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.matchesAnyAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
@@ -45,7 +46,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
         val hasNic = context.terms.any { it.matchesAffix(SanadiAffix.NIC) }
-        val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
+        val ending = TingAffix.entries.firstOrNull { context.terms.lastOrNull()?.hasCurrentAffix(it) == true }
         val isAdadiStrong = ending != null && dhatu.gana == DhatuGana.ADADI && when (context.effectiveContext.rupa.lakara) {
             Lakara.LAT -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             Lakara.LOT -> ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP

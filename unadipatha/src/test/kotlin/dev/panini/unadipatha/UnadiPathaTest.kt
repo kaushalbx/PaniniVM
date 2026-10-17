@@ -13,6 +13,24 @@ import kotlin.test.assertTrue
 class UnadiPathaTest {
 
     @Test
+    fun `all unadi blueprints preserve their own collection ownership`() {
+        for (sutra in UnadiPatha.sutras) {
+            val blueprint = sutra.toBlueprint()
+            val source = kotlin.test.assertIs<dev.panini.sutra.runtime.SutraSource.Unadipatha>(blueprint.source)
+            assertEquals(sutra.number, source.number)
+            assertEquals(sutra.text, source.text)
+            assertEquals(sutra.sutraId, blueprint.id)
+            val encoded = kotlin.test.assertIs<dev.panini.sutra.runtime.SutraBlueprintTextEncoding.Success>(
+                dev.panini.sutra.runtime.SutraBlueprintTextCodec.encode(blueprint),
+            )
+            val decoded = kotlin.test.assertIs<dev.panini.sutra.runtime.SutraBlueprintTextDecoding.Success>(
+                dev.panini.sutra.runtime.SutraBlueprintTextCodec.decode(encoded.text),
+            )
+            assertEquals(blueprint, decoded.blueprint)
+        }
+    }
+
+    @Test
     fun testForwardPratyayaLookup() {
         val matches = UnadiPatha.findPratyaya(KruDhatu())
         assertTrue(matches.isNotEmpty(), "KruDhatu should match Uṇādi sūtras")

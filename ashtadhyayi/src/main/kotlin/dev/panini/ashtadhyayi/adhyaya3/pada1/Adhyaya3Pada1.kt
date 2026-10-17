@@ -18,7 +18,7 @@ object Adhyaya3Pada1 {
         DhatorEkayacoHaladerKriyasamabhihareYangSutra,
         HetumatiCaSutra,
         GupDhoopVichchhiPaniPanibhyOyaSutra,
-        RtIyIyAnehKyanSutra,
+        RterIyangSutra,
         KamerNingSutra,
         SanadyantaDhatavahSutra,
         KasPratyayadAmAmantreLitSutra,

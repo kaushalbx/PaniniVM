@@ -16,7 +16,7 @@ import dev.panini.sutra.SutraType
 object KandvadibhyoYakSutra : Sutra<DerivationState, DerivationChange>(
     number = "3.1.27",
     text = "कण्ड्वादिभ्यो यक्",
-    hindiExplanation = "कण्ड्वादि गण के प्रातिपदिकों के बाद यक् प्रत्यय होता है।",
+    hindiExplanation = "कण्ड्वादि गण के धातुओं के बाद यक् प्रत्यय होता है, प्रातिपदिकों के बाद नहीं।",
     type = SutraType.UTSARGA,
     chapter = 3,
     pada = 1,
@@ -26,20 +26,16 @@ object KandvadibhyoYakSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.terms.any { term ->
-            term.kind == TermKind.PRATIPADIKA &&
-                GanaPatha.isEligibleMember(35, term.surface, term.lexicalUses) &&
-                context.terms.none { it.id == "${term.id}-yak" }
-        }
+    private fun eligible(context: DerivationState, term: DerivationTerm): Boolean =
+        term.kind == TermKind.DHATU &&
+            GanaPatha.isEligibleMember(35, term.upadesha, term.lexicalUses) &&
+            context.allEffectiveTerms.none { it.id == "${term.id}-yak" }
+
+    override fun matches(context: DerivationState): Boolean = context.terms.any { eligible(context, it) }
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms.flatMap { term ->
-            if (
-                term.kind == TermKind.PRATIPADIKA &&
-                GanaPatha.isEligibleMember(35, term.surface, term.lexicalUses) &&
-                context.terms.none { it.id == "${term.id}-yak" }
-            ) {
+            if (eligible(context, term)) {
                 listOf(term, DerivationTerm("${term.id}-yak", "यक्", TermKind.PRATYAYA, upadesha = "यक्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             } else listOf(term)
         }

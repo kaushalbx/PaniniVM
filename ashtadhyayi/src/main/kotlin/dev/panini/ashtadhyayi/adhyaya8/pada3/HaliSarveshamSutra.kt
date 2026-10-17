@@ -5,8 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -18,12 +18,12 @@ import dev.panini.sutra.SutraType
 
 /**
  * 8.3.22: hali sarveṣām.
- * The 'y' following bhoḥ, bhagoḥ, aghoḥ or ā-pūrva is elided before any consonant (hal).
+ * Pada-final y following bhoḥ, bhagoḥ, aghoḥ or a/ā is elided before hal within inherited aś.
  */
 object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
     number = "8.3.22",
     text = "हलि सर्वेषाम्",
-    hindiExplanation = "भोः, भगोः, अघोः तथा आकार पूर्व वाले य्-कार का हल् परे होने पर लोप होता है (उदा. भो देवाः, देवा हसन्ति)।",
+    hindiExplanation = "भोः, भगोः, अघोः तथा अ/आ पूर्व वाले पदान्त य् का अश् में आने वाले हल् परे लोप होता है।",
     type = SutraType.NITYA,
     chapter = 8,
     pada = 3,
@@ -33,6 +33,7 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.LOPA,
     scope = SutraScope.PADA_BOUNDARY,
     stage = SutraStage.SANDHI,
+    blocks = setOf("8.3.19", "8.3.20"),
 ), DerivationSutra {
 
     override fun matches(context: DerivationState): Boolean {
@@ -40,8 +41,10 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
         return (0 until context.terms.size - 1).any { i ->
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@any false
-            eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
+            context.samjnas.any { it.targetId == context.terms[i].id && it.samjna == Samjna.PADA } &&
+                eligibleFinal(curr) != null && next is Vyanjana &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next) &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next)
         }
     }
 
@@ -49,30 +52,23 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
         val targetIndex = (0 until context.terms.size - 1).first { i ->
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@first false
-            eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
+            context.samjnas.any { it.targetId == context.terms[i].id && it.samjna == Samjna.PADA } &&
+                eligibleFinal(curr) != null && next is Vyanjana &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next) &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next)
         }
 
         val targetTerm = context.terms[targetIndex]
-        val dropCount = requireNotNull(eligibleFinal(targetTerm.varnas)).first
-
         return DerivationChange(
-            state = context.deleteTermVarnas(targetTerm.id, targetTerm.varnas.size - dropCount, dropCount, sutra),
+            state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, emptyList(), sutra),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         )
     }
 
-    private fun eligibleFinal(varnas: List<Varna>): Pair<Int, Varna>? {
-        val hasEligibleBase = eligiblePrefixes.any { prefix -> varnas.take(prefix.size) == prefix } ||
-            varnas.dropLast(if (varnas.takeLast(2) == listOf(Vyanjana.YA, Svara.A)) 2 else 1).lastOrNull() == Svara.AA
-        if (!hasEligibleBase) return null
-        return when {
-            varnas.takeLast(2) == listOf(Vyanjana.YA, Svara.A) -> 2 to Vyanjana.YA
-            varnas.lastOrNull() == Vyanjana.YA -> 1 to Vyanjana.YA
-            varnas.lastOrNull() == Ayogavaha.VISARGA -> 1 to Ayogavaha.VISARGA
-            varnas.lastOrNull() == Vyanjana.SA -> 1 to Vyanjana.SA
-            else -> null
-        }
+    private fun eligibleFinal(varnas: List<Varna>): Vyanjana? {
+        if (varnas.lastOrNull() != Vyanjana.YA) return null
+        val base = varnas.dropLast(1)
+        return Vyanjana.YA.takeIf { base in eligiblePrefixes || base.lastOrNull() in setOf(Svara.A, Svara.AA) }
     }
 
     private val eligiblePrefixes: List<List<Varna>> = listOf(

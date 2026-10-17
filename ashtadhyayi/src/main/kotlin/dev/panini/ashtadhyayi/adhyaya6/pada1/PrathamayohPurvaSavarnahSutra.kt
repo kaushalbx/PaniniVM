@@ -50,11 +50,14 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
 
         val leftPhoneme = stem.varnas.lastOrNull() as? Svara ?: return false
 
-        // Short i/u duals take purvasavarna, not yan. Other ik domains
-        // require their own exceptions and are not broadened here.
+        // Śas licenses the full ik domain, including already-long vowels.
+        // 6.1.105 excludes long vowels before jas/ic, not before śas-a.
+        // Dual and jas behavior is kept separate from that śas domain.
+        val ikSas = suffix.sourceSupAffix == SupAffix.SAS && suffix.hasCurrentAffix(SupAffix.SAS) &&
+            leftPhoneme in setOf(Svara.I, Svara.II, Svara.U, Svara.UU, Svara.R, Svara.RR, Svara.L, Svara.LL)
         val shortIkDual = leftPhoneme in setOf(Svara.I, Svara.U) &&
             listOf(SupAffix.AU, SupAffix.AUT).any(suffix::hasCurrentAffix)
-        if (leftPhoneme !in setOf(Svara.A, Svara.AA) && !shortIkDual) return false
+        if (leftPhoneme !in setOf(Svara.A, Svara.AA) && !shortIkDual && !ikSas) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
         if (!engine.contains(Pratyahara.AK, leftPhoneme)) return false

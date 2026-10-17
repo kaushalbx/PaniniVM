@@ -8,6 +8,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasApFormation
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -35,30 +36,38 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
+    private fun followsPronominalSubstitution(context: DerivationState, stemId: String): Boolean =
+        context.terms.any { it.sourceSupAffix != null } && context.substitutions.any {
+            it.targetId == stemId && it.sutra in setOf("7.2.102", "7.2.103")
+        }
+
     override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        if ("4.1.4" in stem.establishedBySutras) return false
+        val late = followsPronominalSubstitution(context, stem.id)
+        if (!late && context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (stem.hasApFormation()) return false
         val isAjadiMember = GanaPatha.isEligibleMember(45, stem.surface, stem.lexicalUses)
         val endsInA = stem.varnas.lastOrNull() == Svara.A &&
             (stem.compoundHeadVarnas?.lastOrNull() ?: Svara.A) == Svara.A
         val processedAng = context.terms.firstOrNull {
             it.kind == TermKind.PRATYAYA && it.upadesha == "अङ्" &&
-                it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED && it.surface == "अ"
+                it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED && it.varnas == listOf(Svara.A)
         }
 
         val feminineRequested = context.effectiveContext.rupa.linga == Linga.STRI
         val isTapRequested = feminineRequested && (
                 (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA)) ||
-                processedAng != null
+                processedAng != null || (late && endsInA)
             )
         val hasFemininePratyaya = context.terms.any {
-            it.kind == TermKind.PRATYAYA && it.upadesha != "अङ्"
+            it.kind == TermKind.PRATYAYA && it.upadesha != "अङ्" && !(late && it.sourceSupAffix != null)
         }
         return isTapRequested && !hasFemininePratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms.first { it.kind == TermKind.PRATIPADIKA }
+        val late = followsPronominalSubstitution(context, stem.id)
         val tapTerm = DerivationTerm(
             id = "tap_pratyaya",
             surface = "टाप्",
@@ -66,11 +75,14 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
             upadesha = "टाप्",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+            feminineTargetId = stem.id.takeIf { late },
         )
         return DerivationChange(
             state = context.copy(
-                terms = context.terms + tapTerm,
-                stage = DerivationStage.PRATYAYA_SELECTED,
+                terms = if (late) context.terms.indexOf(stem).plus(1).let { boundary ->
+                    context.terms.take(boundary) + tapTerm + context.terms.drop(boundary)
+                } else context.terms + tapTerm,
+                stage = if (late) DerivationStage.ANGAKARYA else DerivationStage.PRATYAYA_SELECTED,
             ),
             explanation = "4.1.4 introduces feminine suffix टाप् (आ)."
         )

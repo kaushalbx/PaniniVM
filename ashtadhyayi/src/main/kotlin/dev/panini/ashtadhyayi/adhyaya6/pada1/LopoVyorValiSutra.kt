@@ -11,14 +11,13 @@ import dev.panini.derivation.matchesAffix
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/** 6.1.66: lopo vyor vali. Deletes final व् or य् before a consonant. */
+/** 6.1.66: lopo vyor vali. Deletes eligible व् or य् before val (not y). */
 object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.1.66",
     text = "लोपो व्योर्वलि",
@@ -59,7 +58,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             ) continue
             val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
             if (leftTerm.varnas.lastOrNull() in setOf(Vyanjana.VA, Vyanjana.YA) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.VAL, right)
             ) return true
         }
         return false
@@ -92,13 +91,11 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
             val source = left.varnas.lastOrNull()
             if (source in setOf(Vyanjana.VA, Vyanjana.YA) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.VAL, right)
             ) {
                 return DerivationChange(
-                    context.substituteTermSurface(
-                        left.id, left.varnas.dropLast(1).toDevanagari(), requireNotNull(source), emptyList(), sutra,
-                    ),
-                    "6.1.66 deletes the final ${source.devanagari} before val.",
+                    context.deleteTermVarnas(left.id, left.varnas.lastIndex, 1, sutra),
+                    "6.1.66 deletes the final ${requireNotNull(source).devanagari} before val.",
                 )
             }
         }

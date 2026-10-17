@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.core.ItMarker
 import dev.panini.core.SupAffix
 import dev.panini.shiksha.Accent
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.SutraStage
 
 data class AccentedVowel(val vowel: Char, val accent: AccentType, val positionIndex: Int)
@@ -47,6 +48,13 @@ data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
                     add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = prefixVowels))
                 }
                 val lexicalVowelIndex = term.lexicalAccentVowelIndex
+                term.grammaticalAccents.filter { it.accent == AccentType.UDATTA }.forEach { accent ->
+                    require(term.varnas.getOrNull(accent.varnaIndex) is Svara) { "A grammatical accent must name an operative vowel" }
+                    val prefix = state.terms.takeWhile { it.id != term.id }.sumOf { it.varnas.count { sound -> sound is Svara } }
+                    add(SvaraTrigger(SvaraTriggerKind.EXPLICIT_UDATTA, term.id,
+                        designationSutra = accent.sutra,
+                        vowelIndex = prefix + term.varnas.take(accent.varnaIndex).count { it is Svara }))
+                }
                 if (term.lexicalAccent == Accent.UDATTA && lexicalVowelIndex != null) {
                     add(SvaraTrigger(
                         SvaraTriggerKind.EXPLICIT_UDATTA,
@@ -100,12 +108,14 @@ object SvaraEngine {
     fun derive(state: DerivationState, context: SvaraContext = SvaraContext.from(state)): SvaraDerivation {
         val positions = DevanagariVowelLoci.positions(state.surface)
         if (positions.isEmpty()) return SvaraDerivation(state, emptyList(), emptyList(), null)
-        val explicit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA }
+        val explicit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA && it.designationSutra != null }
+            ?: context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA }
         val prepared = state.copy(
             svaraNimittas = context.triggers.map { SvaraNimitta(SvaraNimittaKind.valueOf(it.kind.name), it.termId, it.vowelIndex) },
             svaraAssignments = explicit?.let {
                 val index = requireNotNull(it.vowelIndex) { "An explicit udātta trigger requires a vowel index." }
-                listOf(SvaraAssignment(index, AccentType.UDATTA, SvaraAssignmentSource.Lexical(it.lexicalSource ?: it.termId)))
+                listOf(SvaraAssignment(index, AccentType.UDATTA, it.designationSutra?.let(SvaraAssignmentSource::Sutra)
+                    ?: SvaraAssignmentSource.Lexical(it.lexicalSource ?: it.termId)))
             }.orEmpty(),
         )
         val derivation = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutrasAt(SutraStage.SVARA))

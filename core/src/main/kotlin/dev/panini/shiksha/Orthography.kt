@@ -4,6 +4,9 @@ package dev.panini.shiksha
 enum class OrthographicSign(val devanagari: String) {
     AVAGRAHA("ऽ"),
     CHANDRABINDU("ँ"),
+    /** Unicode glyph-shaping requests after a dead consonant, not sounds. */
+    ZERO_WIDTH_JOINER("\u200D"),
+    ZERO_WIDTH_NON_JOINER("\u200C"),
 }
 
 /** Places [sign] after [afterVarnaCount] phonological tokens. */

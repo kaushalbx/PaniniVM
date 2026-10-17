@@ -9,6 +9,7 @@ import dev.panini.shiksha.Svara
 import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.hasApFormation
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -43,10 +44,11 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.hasApFormation()) return false
 
         val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
+        val endsInA = stem.varnas.lastOrNull() == Svara.A
 
         if (affix.varnas in targets) return false
 

@@ -6,9 +6,10 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.core.SupAffix
+import dev.panini.core.SamasaType
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,7 +22,7 @@ import dev.panini.sutra.SutraType
  */
 object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.1.55",
-    text = "षट्-चतुर्भ्यश्च",
+    text = "षट्चतुर्भ्यश्च",
     hindiExplanation = "षट् संज्ञक शब्दों और 'चतुर्' के बाद आम् को नुट् आगम होता है।",
     type = SutraType.NITYA,
     chapter = 7,
@@ -40,22 +41,18 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isCaturOrShat = stem.upadesha in setOf("चतुर्", "षट्", "पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्") ||
-            stem.surface in setOf("चतुर्", "षट्") ||
+        if (context.effectiveContext.samasaType == SamasaType.BAHUVRIHI) return false
+        val isCaturOrShat = stem.upadesha == "चतुर्" || stem.compoundHeadUpadesha == "चतुर्" ||
             context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT }
 
-        return isCaturOrShat && affix.upadesha == "आम्" &&
+        return isCaturOrShat && affix.sourceSupAffix == SupAffix.AM_6 && affix.hasCurrentAffix(SupAffix.AM_6) &&
+            affix.itProcessingPhase == ItProcessingPhase.PROCESSED &&
             sutra !in affix.establishedBySutras &&
-            context.allEffectiveTerms.none { it.upadesha == "नुँट्" }
+            context.allEffectiveTerms.none { it.upadesha == "नुँट्" && it.augmentTargetId == affix.id }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val lengthenedVarnas = if (stem.varnas.lastOrNull() == Vyanjana.NA) {
-            val withoutFinalN = stem.varnas.dropLast(1)
-            if (Svara.AA in withoutFinalN) withoutFinalN else withoutFinalN + Svara.AA
-        } else stem.varnas
         val nut = DerivationTerm(
             id = "${affix.id}-nut",
             surface = "नुँट्",
@@ -68,9 +65,7 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
         )
 
         return DerivationChange(
-            state = (if (lengthenedVarnas != stem.varnas) {
-                context.substituteTermVarnas(stem.id, lengthenedVarnas, Vyanjana.NA, listOf(Svara.AA), sutra)
-            } else context).addTerm(nut),
+            state = context.addTerm(nut),
             explanation = "7.1.55 introduces raw नुँट् before आम् after catur/ṣaṭ."
         )
     }

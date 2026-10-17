@@ -18,6 +18,8 @@ object Adhyaya1Pada1 {
         UranRaparahSutra,
         NgitScaSutra,
         PragrhyaSutra,
+        AdasoMatSutra,
+        GhuSutra,
         PratyayalopePratyayalaksanamSutra,
         TarapTamapGhahSutra,
         TatiSankhyaSutra,

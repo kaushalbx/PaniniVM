@@ -23,6 +23,7 @@ object Adhyaya6Pada1 {
         SarvatraVibhashaGohSutra,
         VantoYiPratyayeSutra,
         VrddhirEciSutra,
+        AtashCaSutra,
         EngiPararupamSutra,
         AtoGuneSutra,
         EngahPadantadatiSutra,
@@ -36,6 +37,7 @@ object Adhyaya6Pada1 {
         HalngyabbhyoSutra,
         AdGunaSutra,
         NasiNgasoshCaSutra,
+        RtaUtSutra,
         EtattadohSulopoKoAnanjparoHaliSutra,
         AutoAmSasoSutra
     )

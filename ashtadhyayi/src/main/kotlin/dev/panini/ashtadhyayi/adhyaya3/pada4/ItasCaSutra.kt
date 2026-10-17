@@ -5,12 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.ItDesignationRemap
-import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.lastVarna
-import dev.panini.shiksha.toDevanagari
-import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -71,28 +66,9 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val newSurface = lastTerm.varnas.dropLast(1).toDevanagari()
-        val replaced = if (lastTerm.kind == TermKind.PRATYAYA) {
-            val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
-                ItDesignationRemap(
-                    oldStart = designation.start,
-                    oldEndExclusive = designation.endExclusive,
-                    newStart = designation.start,
-                    newEndExclusive = designation.endExclusive,
-                    newVarnaIndices = designation.varnaIndices,
-                )
-            }
-            context.replaceWholeAffix(
-                lastTerm.id,
-                newSurface,
-                sutra,
-                dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
-            ).addVarnaSubstitution(lastTerm.id, Svara.I, emptyList(), sutra)
-        } else {
-            // When 7.1.3 has already joined the jhi outcome to the aṅga,
-            // this is a varṇa operation on that aṅga rather than an affix replacement.
-            context.substituteTermSurface(lastTerm.id, newSurface, Svara.I, emptyList(), sutra)
-        }
+        // The same exact operation applies to the affix or its joined aṅga
+        // carrier, without rebuilding either term's annotated surface.
+        val replaced = context.deleteTermVarnas(lastTerm.id, lastTerm.varnas.lastIndex, 1, sutra)
         return DerivationChange(
             state = replaced.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.100: Dropped final short 'i' of Parasmaipada suffix."

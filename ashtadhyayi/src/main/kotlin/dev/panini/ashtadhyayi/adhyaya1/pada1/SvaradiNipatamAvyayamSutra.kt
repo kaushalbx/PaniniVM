@@ -28,13 +28,15 @@ object SvaradiNipatamAvyayamSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
-            GanaPatha.isEligibleMember(2, term.surface, term.lexicalUses, term.sourceSuffixUpadeshas) &&
+            term.kind == dev.panini.derivation.TermKind.PRATIPADIKA &&
+                GanaPatha.isEligibleMember(2, term.upadesha, term.lexicalUses, term.sourceSuffixUpadeshas) &&
                 SamjnaAssignment(term.id, Samjna.AVYAYA) !in context.samjnas
         }
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms
-            .filter { GanaPatha.isEligibleMember(2, it.surface, it.lexicalUses, it.sourceSuffixUpadeshas) }
+            .filter { it.kind == dev.panini.derivation.TermKind.PRATIPADIKA &&
+                GanaPatha.isEligibleMember(2, it.upadesha, it.lexicalUses, it.sourceSuffixUpadeshas) }
             .map { SamjnaAssignment(it.id, Samjna.AVYAYA) }
             .toSet() - context.samjnas
         return DerivationChange(

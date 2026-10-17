@@ -23,6 +23,35 @@ sealed interface SutraSource {
         val segmentedSource: String? = null,
     ) : SutraSource
 
+    /** Uṇādipāṭha numbering belongs to its own collection, not the Aṣṭādhyāyī. */
+    data class Unadipatha(
+        val number: String,
+        override val text: String,
+    ) : SutraSource
+
+    /** An attested extension, not another numbered Aṣṭādhyāyī sūtra. */
+    data class Vartika(
+        val parentSutra: String,
+        override val text: String,
+        val referenceUrl: String,
+    ) : SutraSource {
+        init {
+            require(parentSutra.isNotBlank() && text.isNotBlank() && referenceUrl.isNotBlank())
+        }
+    }
+
+    /** An attested division of a sūtra in commentary, not a new canonical sūtra. */
+    data class Yogavibhaga(
+        val parentSutra: String,
+        override val text: String,
+        val commentary: String,
+        val referenceUrl: String,
+    ) : SutraSource {
+        init {
+            require(listOf(parentSutra, text, commentary, referenceUrl).all { it.isNotBlank() })
+        }
+    }
+
     data class Vakya(
         val uktiId: String,
         val vakyaIndex: Int,

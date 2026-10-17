@@ -57,10 +57,9 @@ object VantoYiPratyayeSutra : Sutra<DerivationState, DerivationChange>(
             Svara.AU -> listOf(Svara.AA, Vyanjana.VA)
             else -> error("6.1.79 matched a non-ec stem")
         }
-        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.79: Substituted '${replacement.toDevanagari()}' for '$source' before y-initial affix."
         )

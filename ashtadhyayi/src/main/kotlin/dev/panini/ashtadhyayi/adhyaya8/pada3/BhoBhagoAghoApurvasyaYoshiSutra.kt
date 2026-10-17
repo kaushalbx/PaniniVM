@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya8.pada3
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
+import dev.panini.derivation.hasRutvaAt
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
@@ -18,7 +19,7 @@ import dev.panini.sutra.SutraType
 
 /**
  * 8.3.17: bho-bhago-agho-apūrvasya yo'śi.
- * The sound 'ru' (s/ḥ) following bhoḥ, bhagoḥ, aghoḥ, or a short/long 'a' (a-pūrva / ā-pūrva)
+ * The established ru occurrence following bhoḥ, bhagoḥ, aghoḥ, or a short/long 'a' (a-pūrva / ā-pūrva)
  * is replaced by 'y' before an aś sound (vowels + voiced consonants).
  */
 object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange>(
@@ -60,9 +61,9 @@ object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange
     private fun eligible(context: DerivationState, index: Int): Boolean {
         val term = context.terms[index]
         val final = term.varnas.lastOrNull()
-        if (final !in setOf(Vyanjana.SA, Ayogavaha.VISARGA, Vyanjana.RA)) return false
-        // A native lexical r is not ru: prātar/punar are explicit counterexamples.
-        if (final == Vyanjana.RA && context.substitutions.none { it.targetId == term.id && it.sutra == "8.2.66" }) return false
+        if (final !in setOf(Ayogavaha.VISARGA, Vyanjana.RA)) return false
+        // Native repha and unrelated historical rutva are not this ru occurrence.
+        if (!term.hasRutvaAt(term.varnas.lastIndex)) return false
         val base = term.varnas.dropLast(1)
         return base.lastOrNull() in setOf(Svara.A, Svara.AA) || base in lexicalBases
     }

@@ -11,6 +11,7 @@ import dev.panini.derivation.TermCompositionDomain
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.findInternalVowelJunction
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Svara
@@ -44,6 +45,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
+        if (internalPair(context) != null) return true
         if (context.terms.size < 2) return false
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
         if (context.isBlockedAtBoundary(sutra, context.terms[leftIndex].id, context.terms[rightIndex].id)) return false
@@ -68,6 +70,13 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        internalPair(context)?.let { (term, index) ->
+            val vowel = term.varnas[index] as Svara
+            val replacement = if (vowel in setOf(Svara.L, Svara.LL)) Svara.RR else vowel.toDirgha()
+            return DerivationChange(context.replaceTermVarnaRange(term.id, index, 2, listOf(replacement),
+                mapOf(0 to 0), sutra).copy(stage = DerivationStage.PADA_FORMED),
+                "6.1.101 coalesces adjacent internal savarṇa vowels, preserving the containing term.")
+        }
         val terms = context.terms
         val (leftIndex, rightIndex) = requireNotNull(targetPair(context))
         val leftTerm = terms[leftIndex]
@@ -103,8 +112,19 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
+    private fun internalPair(context: DerivationState): Pair<dev.panini.derivation.DerivationTerm, Int>? {
+        val engine = Ashtadhyayi.pratyaharaEngine
+        return context.findInternalVowelJunction { left, right ->
+            engine.contains(Pratyahara.AK, left) && engine.contains(Pratyahara.AK, right) && Varnamala.areSavarna(left, right)
+        }
+    }
+
     private fun targetPair(context: DerivationState): Pair<Int, Int>? {
         if (context.terms.size < 2) return null
+        context.terms.indices.firstOrNull { index ->
+            index > 0 && context.terms[index].feminineTargetId == context.terms[index - 1].id &&
+                context.terms[index].varnas == listOf(Svara.AA) && !context.terms[index].itProcessingPending
+        }?.let { return it - 1 to it }
         context.terms.indices.firstOrNull { index ->
             if (index == context.terms.lastIndex) return@firstOrNull false
             val augment = context.terms[index + 1]

@@ -23,6 +23,8 @@ data class DerivationApplication(
     val after: DerivationState,
     val explanation: String,
     val conflictTrace: List<String> = emptyList(),
+    /** Explicit noncanonical ownership remains available without interpreting the trace ID. */
+    val source: dev.panini.sutra.runtime.SutraSource? = null,
 ) {
     val delta: DerivationDelta = DerivationDelta.between(before, after)
 }
@@ -62,6 +64,7 @@ internal data class RuleCandidate(
     val sutra: DerivationSutra,
     val change: DerivationChange,
     val delta: DerivationDelta,
+    val addedBoundaryBlocks: Set<BoundaryRuleKey> = emptySet(),
 ) {
     val changedTargetIds: Set<String> = buildSet {
         addAll(delta.changedTerms.map { it.after.id })
@@ -95,13 +98,33 @@ internal object RuleConflictResolver {
     }.distinctBy { it.loser.sutra.sutra to it.winner.sutra.sutra }
 
     private fun competes(a: RuleCandidate, b: RuleCandidate): Boolean =
-        a.sutra.sutra in b.sutra.blocks ||
-            b.sutra.sutra in a.sutra.blocks ||
-            (a.delta.addedSamjnas.intersect(b.delta.addedSamjnas).isNotEmpty())
+        explicitlyBlocks(b, a) || explicitlyBlocks(a, b) ||
+            // Composition may transfer the same already-established boundary
+            // in several possible sound changes. That bookkeeping does not
+            // make the transformations grammatical alternatives of each other.
+            (a.sutra.role == SutraRole.Samjna && b.sutra.role == SutraRole.Samjna &&
+                a.delta.addedSamjnas.intersect(b.delta.addedSamjnas).isNotEmpty())
+
+    private fun explicitlyBlocks(blocker: RuleCandidate, blocked: RuleCandidate): Boolean {
+        if (blocked.sutra.sutra !in blocker.sutra.blocks) return false
+        val scoped = blocker.addedBoundaryBlocks.filter { it.sutra == blocked.sutra.sutra }
+        if (scoped.isEmpty()) return true
+        return scoped.any { boundary ->
+            boundary.leftId in blocked.changedTargetIds ||
+                // Some boundary rules operate on the following initial sound,
+                // not the preceding final sound. Do not block unrelated
+                // internal occurrences in that same following carrier term.
+                blocked.change.state.substitutions.lastOrNull()?.let {
+                    it.sutra == blocked.sutra.sutra && it.targetId == boundary.rightId && it.sourceVarnaIndex == 0
+                } == true || blocked.addedBoundaryBlocks.any {
+                it.leftId == boundary.leftId && it.rightId == boundary.rightId
+            }
+        }
+    }
 
     private fun preferred(a: RuleCandidate, b: RuleCandidate): RuleCandidate = when {
-        b.sutra.sutra in a.sutra.blocks -> a
-        a.sutra.sutra in b.sutra.blocks -> b
+        explicitlyBlocks(a, b) -> a
+        explicitlyBlocks(b, a) -> b
         isApavadaOf(a, b) -> a
         isApavadaOf(b, a) -> b
         isNishedha(a) && !isNishedha(b) -> a
@@ -118,7 +141,7 @@ internal object RuleConflictResolver {
         candidate.sutra.role == SutraRole.Nishedha || candidate.sutra.type == SutraType.NISHEDHA
 
     private fun reason(winner: RuleCandidate, loser: RuleCandidate): String = when {
-        loser.sutra.sutra in winner.sutra.blocks -> "Explicit niṣedha/apavāda relation"
+        explicitlyBlocks(winner, loser) -> "Explicit niṣedha/apavāda relation"
         isApavadaOf(winner, loser) -> "Apavāda overrides its wider alternative"
         isNishedha(winner) -> "Niṣedha prevents the competing operation"
         winner.sutra.isTripadi() && loser.sutra.isTripadi() -> "Tripādī textual order (pūrvatrāsiddham regime)"
@@ -202,6 +225,7 @@ object RuleVisibility {
                 // Restore the original surface
                 val restored = dropped.copy(
                     surface = dropped.originalSurfaceBeforeDrop ?: "",
+                    rutvaOccurrences = dropped.originalRutvaOccurrencesBeforeDrop,
                     droppedBySutra = null,
                     originalSurfaceBeforeDrop = null
                 )
@@ -216,11 +240,21 @@ object RuleVisibility {
                     if (term.id == sub.targetId) {
                         val originalSurface = sub.originalSurface
                         if (originalSurface != null) {
+                            val originalRutva = sub.originalRutvaOccurrences ?: run {
+                                require(term.rutvaOccurrences.isEmpty()) {
+                                    "Visibility rollback requires an exact ru snapshot for ${term.id}."
+                                }
+                                emptyList()
+                            }
                             term.copy(
                                 surface = originalSurface,
                                 orthographicSigns = sub.originalOrthographicSigns ?: term.orthographicSigns,
+                                rutvaOccurrences = originalRutva,
                             )
                         } else {
+                            require(term.rutvaOccurrences.isEmpty()) {
+                                "Legacy text rollback cannot project exact ru occurrences on ${term.id}."
+                            }
                             val index = term.surface.lastIndexOf(sub.replacement)
                             if (index >= 0) {
                                 val newSurface = term.surface.substring(0, index) + sub.source + term.surface.substring(index + sub.replacement.length)
@@ -256,6 +290,8 @@ data class DerivationConfig(
     val validateFinalItProcessing: Boolean = true,
     /** Prevents recursive svara completion when this engine is itself executing the SVARA stage. */
     val computeSvara: Boolean = true,
+    /** Explicit zero-based choice among a rule's prescribed outcomes. */
+    val alternativeChoices: Map<String, Int> = emptyMap(),
 )
 
 class DerivationEngine(
@@ -284,41 +320,50 @@ class DerivationEngine(
     fun derive(initial: DerivationState, config: DerivationConfig, maxSteps: Int = 100): DerivationResult =
         deriveInternal(initial, emptySet(), config, maxSteps)
 
-    /** Produces both outcomes for each optional sūtra instead of silently choosing one. */
+    /** Enumerates prescribed outcomes, including optional application/decline. */
     fun deriveAll(initial: DerivationState, maxSteps: Int = 100): List<DerivationResult> =
         deriveAll(initial, DerivationConfig(), maxSteps)
 
     fun deriveAll(initial: DerivationState, config: DerivationConfig, maxSteps: Int = 100): List<DerivationResult> {
-        val pending = ArrayDeque<Set<String>>().apply { add(emptySet()) }
-        val visitedSuppressions = mutableSetOf<Set<String>>()
-        val branchedSutras = linkedSetOf<String>()
+        val pending = ArrayDeque<Map<RuleAlternativeKey, Int>>().apply { add(emptyMap()) }
+        val visitedChoices = mutableSetOf<Map<RuleAlternativeKey, Int>>()
+        val branchedSutras = linkedMapOf<String, Int>()
         val results = mutableListOf<DerivationResult>()
         while (pending.isNotEmpty()) {
-            val suppressed = pending.removeFirst()
-            if (!visitedSuppressions.add(suppressed)) continue
+            val choices = pending.removeFirst()
+            if (!visitedChoices.add(choices)) continue
+            val decisions = mutableListOf<RuleAlternativeDecision>()
 
             val result = deriveInternal(
                 initial = initial,
-                suppressed = suppressed,
-                config = config.copy(optionalRulePolicy = OptionalRulePolicy.APPLY_ALL),
+                suppressed = emptySet(),
+                config = config.copy(optionalRulePolicy = OptionalRulePolicy.APPLY_ALL, alternativeChoices = emptyMap()),
                 maxSteps = maxSteps,
+                alternativePlan = choices,
+                encounteredChoices = decisions,
             )
             results += result
 
-            result.applications
-                .asSequence()
-                .mapNotNull { application -> sutraMap[application.sutra]?.takeIf { it.optional }?.sutra }
-                .forEach { optionalSutra ->
-                    branchedSutras += optionalSutra
-                    pending += suppressed + optionalSutra
+            decisions.forEachIndexed { index, decision ->
+                branchedSutras[decision.key.sutra] = maxOf(branchedSutras[decision.key.sutra] ?: 0, decision.count)
+                // Changing an earlier choice invalidates later context-dependent
+                // decisions. Replay only the established prefix, never stale indices.
+                val prefix = decisions.take(index).filter { it.selected != 0 }.associate { it.key to it.selected }
+                for (choice in 0 until decision.count) {
+                    if (choice == decision.selected) continue
+                    pending += if (choice == 0) prefix else prefix + (decision.key to choice)
                 }
+            }
         }
 
-        val branchEvents = branchedSutras.map { DerivationEvent.BranchCreated(it, 2) }
+        val branchEvents = branchedSutras.map { (sutra, count) -> DerivationEvent.BranchCreated(sutra, count) }
         return results
-            .distinctBy { it.final to it.applications.map(DerivationApplication::sutra) }
+            .distinctBy { it.final to it.applications.map { application -> application.sutra to application.explanation } }
             .map { result -> result.copy(events = branchEvents + result.events) }
     }
+
+    private data class RuleAlternativeKey(val sutra: String, val occurrence: Int)
+    private data class RuleAlternativeDecision(val key: RuleAlternativeKey, val count: Int, val selected: Int)
 
     private fun deriveInternal(
         initial: DerivationState,
@@ -326,13 +371,16 @@ class DerivationEngine(
         config: DerivationConfig = DerivationConfig(),
         maxSteps: Int,
         firstChange: DerivationChange? = null,
+        alternativePlan: Map<RuleAlternativeKey, Int> = emptyMap(),
+        encounteredChoices: MutableList<RuleAlternativeDecision>? = null,
     ): DerivationResult {
         var current = initial
         var preselectedChange = firstChange
         val applications = mutableListOf<DerivationApplication>()
         val events = mutableListOf<DerivationEvent>()
-        val visited = mutableSetOf(initial.copy(substitutions = emptyList(), appliedSutras = emptyList()))
+        val visited = mutableSetOf(cycleKey(initial))
         val suppressedRules = suppressed.toMutableSet()
+        val occurrences = mutableMapOf<String, Int>()
 
         repeat(maxSteps) {
             current = completeUndesignatedRawTerms(current)
@@ -363,23 +411,32 @@ class DerivationEngine(
                 return completed(initial, current, applications, events, config)
             }
 
-            val shouldApply = if (candidate.sutra.optional) {
-                when (config.optionalRulePolicy) {
-                    OptionalRulePolicy.APPLY_ALL -> true
-                    OptionalRulePolicy.SKIP_ALL -> false
-                    OptionalRulePolicy.CUSTOM -> config.optionalRuleSelector(candidate.sutra.sutra)
+            val change = if (candidate.sutra.hasAlternatives) {
+                val alternatives = candidate.sutra.applyAll(current)
+                require(alternatives.isNotEmpty()) { "Rule ${candidate.sutra.sutra} has no alternatives." }
+                val occurrence = occurrences.getOrDefault(candidate.sutra.sutra, 0)
+                occurrences[candidate.sutra.sutra] = occurrence + 1
+                val key = RuleAlternativeKey(candidate.sutra.sutra, occurrence)
+                val policyChoice = if (!candidate.sutra.optional) 0 else when (config.optionalRulePolicy) {
+                    OptionalRulePolicy.APPLY_ALL -> 0
+                    OptionalRulePolicy.SKIP_ALL -> alternatives.lastIndex
+                    OptionalRulePolicy.CUSTOM -> if (config.optionalRuleSelector(candidate.sutra.sutra)) 0 else alternatives.lastIndex
                 }
-            } else {
-                true
-            }
-
-            if (!shouldApply) {
+                val selected = alternativePlan[key] ?: config.alternativeChoices[key.sutra] ?: policyChoice
+                require(selected in alternatives.indices) { "Invalid alternative $selected for ${key.sutra}." }
+                encounteredChoices?.add(RuleAlternativeDecision(key, alternatives.size, selected))
+                alternatives[selected]
+            } else preselectedChange ?: candidate.change
+            preselectedChange = null
+            if (!change.applied) {
+                require(candidate.sutra.optional) { "A prescribed alternative cannot decline a mandatory rule." }
+                require(change.state == current) { "A declined optional rule cannot mutate the state." }
                 suppressedRules.add(candidate.sutra.sutra)
                 return@repeat
             }
-
-            val change = preselectedChange ?: candidate.change
-            preselectedChange = null
+            if (!candidate.sutra.advancesTripadiFrontier || !change.advancesTripadiFrontier) {
+                require(change.state.terms == current.terms) { "An identity-retention alternative cannot change terms." }
+            }
             require(change.applied) { "Non-branching derivation cannot decline selected sutra ${candidate.sutra.sutra}." }
             require(change.state != current) { "Selected sutra ${candidate.sutra.sutra} performed no grammatical operation." }
 
@@ -387,12 +444,14 @@ class DerivationEngine(
                 candidate.sutra.sutra, candidate.sutra.role, candidate.sutra.action, candidate.sutra.scope,
                 candidate.sutra.renderTrace(), current, change.state, change.explanation,
                 selection.conflicts.filter { it.winner == candidate }.map { "Blocked ${it.loser.sutra.sutra}: ${it.reason}" },
+                source = candidate.sutra.source,
             )
             applications += application
             events += DerivationEvent.RuleApplied(application.sutra, current, change.state, change.explanation)
 
-            val stateWithApplication = change.state.recordAppliedSutra(candidate.sutra.sutra)
-            val nextStateKey = stateWithApplication.copy(substitutions = emptyList(), appliedSutras = emptyList())
+            val stateWithApplication = change.state.recordAppliedSutra(candidate.sutra.sutra,
+                candidate.sutra.advancesTripadiFrontier && change.advancesTripadiFrontier)
+            val nextStateKey = cycleKey(stateWithApplication)
             if (nextStateKey in visited) {
                 val nextSelection = select(stateWithApplication, suppressedRules)
                 require(nextSelection.selected == null) {
@@ -471,11 +530,21 @@ class DerivationEngine(
         )
     }
 
+    private fun tripadiFrontier(state: DerivationState): Int =
+        state.appliedSutras.mapIndexedNotNull { index, number ->
+            if (index in state.nonAdvancingTripadiApplications) null
+            else sutraMap[number]?.takeIf { rule -> rule.advancesTripadiFrontier }?.krama
+        }
+            .filter { it >= 820000 }.maxOrNull() ?: 0
+
+    // Restoring a spelling after advancing through Tripādī is not a cycle:
+    // the earlier rules are now invisible. Do not retain the whole application
+    // history, which would conceal genuine cycles within the same frontier.
+    private fun cycleKey(state: DerivationState) =
+        state.copy(substitutions = emptyList(), appliedSutras = emptyList(), nonAdvancingTripadiApplications = emptySet()) to tripadiFrontier(state)
+
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
-        val tripadiKramasApplied = state.appliedSutras.mapNotNull { applied ->
-            sutraMap[applied]?.krama
-        }.filter { it >= 820000 }
-        val maxTripadiKrama = tripadiKramasApplied.maxOrNull() ?: 0
+        val maxTripadiKrama = tripadiFrontier(state)
         val hasPendingItProcessing = state.terms.any { it.itProcessingPending }
 
         val evaluated = sutras.asSequence()
@@ -502,6 +571,11 @@ class DerivationEngine(
                 } else {
                     maxTripadiKrama == 0 ||
                         (it.stage == SutraStage.IT_PROCESSING && state.terms.any { term -> term.itProcessingPending }) ||
+                        // 1.1.12 specifically sees adas mutva despite pūrvatrāsiddham
+                        // (Kāśikā/Nyāsa on adaso māt: vacanasāmarthya).
+                        (it.sutra == "1.1.12" && state.substitutions.any { change ->
+                            change.sutra in setOf("8.2.80", "8.2.81")
+                        }) ||
                         (it.sutra in setOf("6.1.113", "6.1.114") && "8.2.66" in state.appliedSutras) ||
                         (it.sutra == "6.3.111" && state.substitutions.any { deletion ->
                             deletion.sutra in setOf("8.3.13", "8.3.14") && deletion.replacement.isEmpty()
@@ -524,22 +598,58 @@ class DerivationEngine(
             }
             .map { sutra ->
                 val change = sutra.apply(state)
-                RuleCandidate(sutra, change, DerivationDelta.between(state, change.state))
+                val delta = DerivationDelta.between(state, change.state)
+                require(sutra.advancesTripadiFrontier ||
+                    (delta.changedTerms.isEmpty() && delta.addedTerms.isEmpty() && delta.removedTerms.isEmpty())) {
+                    "An identity-retention guard must not change phonological terms: ${sutra.sutra}."
+                }
+                RuleCandidate(sutra, change, delta,
+                    change.state.boundaryRuleBlocks.keys - state.boundaryRuleBlocks.keys)
             }
             .toList()
-        val candidates = evaluated.filter { it.change.state != state }
+        val pendingFeminine = state.terms.filter { it.feminineTargetId != null }
+        val pendingAdeshas = state.terms.filter { it.adeshaTarget != null }
+        val pendingBases = state.terms.filter { it.pendingBaseComposition != null }
+        val feminineIntroductions = evaluated.filter { candidate ->
+            candidate.change.state.terms.any { suffix -> suffix.feminineTargetId != null &&
+                state.terms.none { it.id == suffix.id } }
+        }
+        // An owned feminine suffix must finish it-processing and compose with
+        // its owner before case operations can treat it as an independent stem.
+        val permitted = evaluated.filter { candidate ->
+            if (pendingAdeshas.isNotEmpty()) candidate.sutra.stage == SutraStage.IT_PROCESSING ||
+                pendingAdeshas.any { carrier ->
+                    candidate.change.state.terms.none { it.id == carrier.id } &&
+                        candidate.change.state.droppedTerms.any {
+                            it.id == carrier.id && it.mergedIntoTermId == carrier.adeshaTarget?.termId
+                        }
+                }
+            else if (pendingBases.isNotEmpty()) pendingBases.all { base ->
+                candidate.change.state.terms.any { it.id == base.id && it.pendingBaseComposition == null }
+            }
+            else if (feminineIntroductions.isNotEmpty()) candidate in feminineIntroductions
+            else pendingFeminine.isEmpty() ||
+                candidate.sutra.stage == SutraStage.IT_PROCESSING || pendingFeminine.any { suffix ->
+                    candidate.change.state.terms.none { it.id == suffix.id } &&
+                        candidate.change.state.droppedTerms.any {
+                            it.id == suffix.id && it.mergedIntoTermId == suffix.feminineTargetId
+                        }
+                }
+        }
+        val candidates = permitted.filter { it.change.state != state }
         val conflicts = RuleConflictResolver.resolve(candidates)
         val losers = conflicts.mapTo(mutableSetOf()) { it.loser }
-        val selected = candidates.filterNot { it in losers }.minWithOrNull(candidateOrder(state)) ?: evaluated.firstOrNull()
+        val selected = candidates.filterNot { it in losers }.minWithOrNull(candidateOrder(state)) ?: permitted.firstOrNull()
         return RuleSelection(candidates, conflicts, selected)
     }
 
     private fun isDerivationEligible(sutra: DerivationSutra, state: DerivationState): Boolean {
         if (deferTripadiUntilPada && sutra.isTripadi() && state.stage < DerivationStage.PADA_FORMED) return false
         val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
-            state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
+            state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA } &&
+            state.terms.none { it.kind == TermKind.ADESHA }
         if (isPadaBoundaryDerivation && sutra.stage !in SutraStage.sandhiPhases &&
-            sutra.sutra != "1.1.11" && // Pragṛhya designation is a prerequisite of external sandhi.
+            sutra.sutra !in setOf("1.1.11", "1.1.12") && // Licensed pragṛhya prerequisites of external sandhi.
             !(sutra.stage == SutraStage.IT_PROCESSING && state.terms.any { it.itProcessingPending })
         ) return false
         if (!isPadaBoundaryDerivation && sutra.scope == SutraScope.PADA_BOUNDARY) return false
@@ -581,6 +691,9 @@ class DerivationEngine(
         fun agendaDomain(sutra: DerivationSutra): Int = when {
             sutra.role == SutraRole.Samjna || sutra.role is SutraRole.Paribhasha || sutra.role == SutraRole.Atidesha -> 0
             sutra.role is SutraRole.Adhikara || sutra.role == SutraRole.Anuvrtti -> 1
+            // Competing apavādas are resolved above. An unrelated later
+            // Tripādī apavāda must not jump ahead and hide earlier work.
+            sutra.isTripadi() -> 3
             sutra.role == SutraRole.Nishedha || sutra.role == SutraRole.Niyama || sutra.role == SutraRole.Apavada -> 2
             else -> 3
         }
@@ -614,7 +727,11 @@ fun DerivationResult.verifyDerivation(
         "$selectionSutra selected $selectedAffix, but $expectedAffixUpadesha was required. Recent rules: $recent."
     }
     val appliedSutras = applications.mapTo(mutableSetOf()) { it.sutra }
-    require(requiredSutras.all { it in appliedSutras }) {
+    // The vowel-initial apavāda legitimately replaces the plan's general aṭ requirement.
+    val completedAat = "6.4.72" in appliedSutras && "6.1.90" in appliedSutras &&
+        final.allEffectiveTerms.any { it.kind == TermKind.AGAMA && it.upadesha == "आट्" &&
+            it.createdBySutra == "6.4.72" && it.droppedBySutra == "6.1.90" }
+    require(requiredSutras.all { it in appliedSutras || (it == "6.4.71" && completedAat) }) {
         val recentApplications = applications.takeLast(15).joinToString { "${it.sutra} (${it.before} -> ${it.after})" }
         "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}. Recent rules: $recentApplications."
     }

@@ -27,7 +27,7 @@ class LitEndingSutrasTest {
         val expected = mapOf(
             "तिप्" to "णल्", "तस्" to "अतुस्", "झि" to "उस्",
             "सिप्" to "थल्", "थस्" to "अथुस्", "थ" to "अ",
-            "मिप्" to "अ", "वस्" to "व", "मस्" to "म",
+            "मिप्" to "णल्", "वस्" to "व", "मस्" to "म",
         )
 
         expected.forEach { (upadesha, surface) ->

@@ -58,6 +58,9 @@ class SutraBlueprintTextCodecTest {
     fun `all portable sources and roles round trip`() {
         val sources = listOf(
             SutraSource.Ashtadhyayi("1.1.1", "वृद्धिरादैच्"),
+            SutraSource.Unadipatha("1.1", "कृवापाजिमिस्वदिसाध्यशूभ्य उण्"),
+            SutraSource.Vartika("8.4.63", "छत्वममि", "https://ashtadhyayi.com/sutraani/8/4/63"),
+            SutraSource.Yogavibhaga("6.3.46", "आत्", "न्यास", "https://sa.wikisource.org/wiki/काशिकाविवरणपञ्जिका/षष्ठोऽध्यायः/तृतीयः_पादः"),
             SutraSource.Vakya("उक्ति", 2, "युज्"),
             SutraSource.Program("grantha", "3:4", "rule"),
         )

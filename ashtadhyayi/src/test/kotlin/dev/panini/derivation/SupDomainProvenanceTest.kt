@@ -6,7 +6,6 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Linga
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AstanAaVibhaktuSutra
-import dev.panini.ashtadhyayi.adhyaya7.pada2.YusmadAsmadSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.TyadadinamAhSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.TisrCatasruSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.KimahKahSutra
@@ -27,7 +26,6 @@ class SupDomainProvenanceTest {
     fun `pronominal and numeral rules use sup origin rather than names`() {
         val predicates: List<Pair<String, (DerivationState) -> Boolean>> = listOf(
             "अष्टन्" to AstanAaVibhaktuSutra::matches,
-            "युष्मद्" to YusmadAsmadSutra::matches,
             "तद्" to TyadadinamAhSutra::matches,
             "त्रि" to TisrCatasruSutra::matches,
             "किम्" to KimahKahSutra::matches,

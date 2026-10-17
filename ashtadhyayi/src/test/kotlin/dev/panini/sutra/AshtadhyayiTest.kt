@@ -67,7 +67,7 @@ class AshtadhyayiTest {
         assertTrue(Ashtadhyayi.sandhiSutras.isNotEmpty())
         assertTrue(Ashtadhyayi.sandhiSutras.all { it.stage in SutraStage.sandhiPhases })
 
-        assertTrue(Ashtadhyayi.sankhyaSutras.any { it.sutra == "6.3.76" })
+        assertTrue(Ashtadhyayi.sankhyaSutras.any { it.sutra == "6.3.47" })
         assertTrue(Ashtadhyayi.puranaSankhyaSutras.any { it.sutra == "5.2.48" })
         assertTrue(Ashtadhyayi.krdantaSutras.any { it.sutra == "7.2.35" })
         assertTrue(

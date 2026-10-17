@@ -16,6 +16,7 @@ object Adhyaya8Pada2 {
         RatSasyaSutra,
         HaliCaSutra,
         AdoAserAsiDoMahSutra,
+        EtaIdBahuvacaneSutra,
         VasransudhvasvanaduhamDahSutra,
     )
 }

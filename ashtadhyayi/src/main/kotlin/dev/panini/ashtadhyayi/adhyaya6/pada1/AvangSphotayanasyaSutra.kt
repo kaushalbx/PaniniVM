@@ -8,6 +8,7 @@ internal fun goVowelBoundary(context: DerivationState, blockedRule: String? = nu
     (0 until context.terms.lastIndex).firstOrNull { index ->
         val left = context.terms[index]
         left.varnas == listOf(Vyanjana.GA, Svara.O) &&
+            context.terms.none { it.adeshaTarget?.termId == left.id } &&
             context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA } &&
             context.terms[index + 1].varnas.firstOrNull() is Svara &&
             (blockedRule == null || !context.isBlockedAtBoundary(blockedRule, left.id, context.terms[index + 1].id))
@@ -15,10 +16,10 @@ internal fun goVowelBoundary(context: DerivationState, blockedRule: String? = nu
 
 internal fun applyAvang(context: DerivationState, index: Int, sutra: String): DerivationChange {
     val left = context.terms[index]
-    val ava: List<Varna> = listOf(Svara.A, Vyanjana.VA, Svara.A)
     return DerivationChange(
-        context.substituteTermVarnas(left.id, left.varnas.dropLast(1) + ava, Svara.O, ava, sutra),
-        "$sutra substitutes अव for the final ओ of पदसंज्ञक गो, retaining the following vowel boundary.",
+        context.introduceRawAdesha(left.id, listOf(Svara.A, Vyanjana.VA, Svara.A, Vyanjana.NGA),
+            AdeshaPlacement.NGIT_FINAL, sutra, "avang:${left.id}"),
+        "$sutra introduces raw अवङ्; इत् processing and 1.1.53 target only the final ओ of पदसंज्ञक गो.",
     )
 }
 

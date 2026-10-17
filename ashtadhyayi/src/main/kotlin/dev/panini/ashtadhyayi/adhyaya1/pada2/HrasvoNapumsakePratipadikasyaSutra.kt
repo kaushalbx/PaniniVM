@@ -4,8 +4,6 @@ import dev.panini.core.Linga
 import dev.panini.derivation.*
 import dev.panini.shiksha.isDirgha
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.shiksha.toHrasva
 import dev.panini.sutra.*
 
@@ -20,17 +18,16 @@ object HrasvoNapumsakePratipadikasyaSutra : Sutra<DerivationState, DerivationCha
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
             context.terms.any {
-                it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it)
+                it.kind == TermKind.PRATIPADIKA && it.varnas == it.upadeshaVarnas && longFinal(it)
             }
 
     override fun apply(context: DerivationState): DerivationChange {
         val term = context.terms.first {
-            it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it)
+            it.kind == TermKind.PRATIPADIKA && it.varnas == it.upadeshaVarnas && longFinal(it)
         }
         val final = term.varnas.last() as Svara
-        val surface = term.varnas.replaceVarna(term.varnas.lastIndex, listOf(final.toHrasva())).toDevanagari()
         return DerivationChange(
-            context.replaceWholeTermSurface(term.id, surface, sutra),
+            context.replaceTermVarna(term.id, term.varnas.lastIndex, listOf(final.toHrasva()), sutra),
             "1.2.47 shortens the final vowel of a neuter prātipadika.",
         )
     }

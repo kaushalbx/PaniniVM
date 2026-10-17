@@ -10,6 +10,7 @@ object Adhyaya7Pada2 {
         GamerItParasmaipadesuSutra, SiciVrddhihParasmaipadesuSutra, AtaUpadhayahSutra,
         TyadadinamAhSutra, KimahKahSutra, TadohSahSauAnantyayohSutra, IdoAyamSutra, TisrCatasruSutra, AciRaRtahSutra,
         AstanAaVibhaktuSutra, AaneMukSutra,
-        AdasAuSulopascaSutra, YusmadAsmadSutra
+        AdasAuSuLopahSutra, IdamoMahSutra, DasCaSutra, YahSauSutra, AnapyakahSutra, HaliLopahSutra,
+        MaparyantasyaSutra, TvahauSauSutra, YuyavayauJasiSutra, SheseLopahSutra,
     )
 }

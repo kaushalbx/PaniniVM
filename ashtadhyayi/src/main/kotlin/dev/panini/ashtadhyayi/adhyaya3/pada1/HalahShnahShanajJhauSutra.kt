@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.derivation.*
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.*
 
 /** 3.1.83: consonant-final root + śnā becomes śānac before hi. */
@@ -18,7 +19,7 @@ object HalahShnahShanajJhauSutra : Sutra<DerivationState, DerivationChange>(
         if (index < 0) return false
         return context.terms[index].varnas.lastOrNull() is Vyanjana &&
             context.terms.getOrNull(index + 1)?.matchesUpadesha("श्ना") == true &&
-            context.terms.getOrNull(index + 2)?.surface == "हि" &&
+            context.terms.getOrNull(index + 2)?.varnas == listOf(Vyanjana.HA, Svara.I) &&
             sutra !in context.appliedSutras
     }
 

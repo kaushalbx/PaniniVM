@@ -5,9 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.isPadaFinalVarna
+import dev.panini.derivation.firstVarnaAfterTerm
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
-import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -36,27 +37,25 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
-        return context.terms.zipWithNext().any { (left, right) ->
-            val isBoundaryTerm = context.samjnas.any {
-                it.targetId == left.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
-            }
-            isBoundaryTerm && left.varnas.lastOrNull() == Vyanjana.MA &&
-                right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
-        }
+        return context.terms.any { eligible(context, it) }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val left = context.terms.zipWithNext().first { (candidate, right) ->
-            context.samjnas.any { it.targetId == candidate.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA) } &&
-                candidate.varnas.lastOrNull() == Vyanjana.MA &&
-                right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
-        }.first
+        val left = context.terms.first { eligible(context, it) }
         val replacement = listOf(Ayogavaha.ANUSVARA)
 
         return DerivationChange(
             state = context.replaceTermVarna(left.id, left.varnas.lastIndex, replacement, sutra),
             explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
         )
+    }
+
+    private fun eligible(context: DerivationState, left: dev.panini.derivation.DerivationTerm): Boolean {
+        if (!context.isPadaFinalVarna(left, left.varnas.lastIndex) || left.varnas.lastOrNull() != Vyanjana.MA) return false
+        val index = context.terms.indexOfFirst { it.id == left.id }
+        val right = context.terms.drop(index + 1).firstOrNull { it.varnas.isNotEmpty() } ?: return false
+        return !context.isBlockedAtBoundary(sutra, left.id, right.id) &&
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right.varnas.first())
     }
 }
 
@@ -97,15 +96,16 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun target(context: DerivationState): Pair<Int, Int>? {
-        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return null
+        // A retained grammatical affix is not a pada boundary. Only unfinished
+        // it-processing prevents inspection of its operative phonemes.
+        if (context.terms.any { it.itProcessingPending || it.itDesignations.isNotEmpty() ||
+                it.deferredItDesignations.isNotEmpty() }) return null
         context.terms.forEachIndexed { termIndex, term ->
             term.varnas.forEachIndexed { index, varna ->
                 if (varna in setOf(Vyanjana.NA, Vyanjana.MA)) {
-                    val padaFinal = index == term.varnas.lastIndex && context.samjnas.any {
-                        it.targetId == term.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
-                    }
+                    val padaFinal = context.isPadaFinalVarna(term, index)
                     val next = term.varnas.getOrNull(index + 1)
-                        ?: context.terms.getOrNull(termIndex + 1)?.varnas?.firstOrNull()
+                        ?: context.firstVarnaAfterTerm(term.id)
                     if (!padaFinal && next != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, next)) {
                         return termIndex to index
                     }

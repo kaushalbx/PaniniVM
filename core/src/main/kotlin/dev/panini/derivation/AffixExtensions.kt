@@ -9,6 +9,20 @@ import dev.panini.shiksha.toSanskritText
 
 /** Projects pronunciation-only upadesha occurrences once, at the term boundary, not in a rule. */
 fun FrequencyAffix.rawTerm(id: String, createdBySutra: String): DerivationTerm {
+    return rawTerm(id, createdBySutra, pronunciationOnlyVarnaIndices, TermKind.PRATYAYA)
+}
+
+fun dev.panini.core.MitAugment.rawTerm(id: String, createdBySutra: String): DerivationTerm =
+    rawTerm(id, createdBySutra, pronunciationOnlyVarnaIndices, TermKind.AGAMA)
+
+fun dev.panini.core.KitAugment.rawTerm(id: String, createdBySutra: String): DerivationTerm =
+    rawTerm(id, createdBySutra, pronunciationOnlyVarnaIndices, TermKind.AGAMA)
+
+fun dev.panini.core.KrtAffix.rawTerm(id: String, createdBySutra: String): DerivationTerm =
+    rawTerm(id, createdBySutra, pronunciationOnlyVarnaIndices, TermKind.PRATYAYA)
+
+private fun TypedAffix.rawTerm(id: String, createdBySutra: String?,
+    pronunciationOnlyVarnaIndices: Set<Int>, kind: TermKind): DerivationTerm {
     val tokens = upadesha.toSanskritText().effectiveVarnas
     require(pronunciationOnlyVarnaIndices.all { it in tokens.indices })
     val segments = pronunciationOnlyVarnaIndices.sorted().map { index ->
@@ -19,7 +33,7 @@ fun FrequencyAffix.rawTerm(id: String, createdBySutra: String): DerivationTerm {
     }
     return DerivationTerm(id,
         SanskritText(tokens.filterIndexed { index, _ -> index !in pronunciationOnlyVarnaIndices }).render(),
-        TermKind.PRATYAYA, upadesha = upadesha, createdBySutra = createdBySutra,
+        kind, upadesha = upadesha, createdBySutra = createdBySutra,
         nonOperativeUpadeshaSegments = segments, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
 }
 
@@ -29,9 +43,14 @@ fun SupAffix.term(): DerivationTerm = DerivationTerm(id, initialSurface, TermKin
 /** Matches a typed sup identity, including identity retained through sthānin substitution. */
 fun DerivationTerm.matchesSupAffix(affix: SupAffix): Boolean = matchesUpadesha(affix.upadesha)
 
-fun TypedAffix.term(id: String): DerivationTerm =
-    DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha,
-        sourceSupAffix = this as? SupAffix, sourceTingAffix = this as? TingAffix)
+fun TypedAffix.term(id: String): DerivationTerm {
+    val kind = if (this is dev.panini.core.KitAugment || this is dev.panini.core.MitAugment) TermKind.AGAMA else TermKind.PRATYAYA
+    if (pronunciationOnlyVarnaIndices.isNotEmpty())
+        return rawTerm(id, null, pronunciationOnlyVarnaIndices, kind)
+    return DerivationTerm(id, initialSurface, kind, itMarkers, upadesha,
+        sourceSupAffix = this as? SupAffix, sourceTingAffix = this as? TingAffix,
+        sourceTaddhitaAffix = this as? dev.panini.core.TaddhitaAffix)
+}
 
 fun DerivationTerm.matchesAffix(affix: TypedAffix): Boolean =
     matchesUpadesha(affix.upadesha) || affix.alternateUpadeshas.any(::matchesUpadesha)

@@ -37,6 +37,9 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 2, pada = 4, optional = false, kramaValue = 240082,
     role = SutraRole.Vidhi, action = SutraAction.LOPA, scope = SutraScope.DERIVATION,
     stage = SutraStage.PADA_FORMATION,
+    // The indeclinable's sup-luk governs the boundary independently of any
+    // incidental neuter gender; do not replace it with nominal singular luk.
+    blocks = setOf("7.1.23", "6.1.107"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
@@ -66,6 +69,7 @@ object NavyayibhavadAtoAmtvapancamyahSutra : Sutra<DerivationState, DerivationCh
     type = SutraType.APAVADA, chapter = 2, pada = 4, optional = false, kramaValue = 240083,
     role = SutraRole.Apavada, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
     stage = SutraStage.PADA_FORMATION,
+    blocks = setOf("7.1.23", "7.1.24"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false

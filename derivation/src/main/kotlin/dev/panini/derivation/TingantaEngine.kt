@@ -6,7 +6,10 @@ import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
 import dev.panini.dhatupatha.DhatuPatha
 
-class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
+class TingantaEngine(
+    private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
+    private val config: DerivationConfig = DerivationConfig(),
+) {
 
     fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean {
         val type = sanadiPratyayas.firstOrNull() ?: return false
@@ -43,7 +46,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
-        return engine.derive(request.initialState(dhatu)).apply {
+        return engine.derive(request.initialState(dhatu), config).apply {
             verifyDerivation("3.4.78", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
         }
     }

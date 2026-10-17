@@ -31,13 +31,13 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.terms.any { term ->
-        term.kind == TermKind.PRATYAYA && term.augmentTargetId != null &&
+        term.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA) && term.augmentTargetId != null &&
             sutra !in term.establishedBySutras && terminalMitDesignation(term) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val insertion = context.terms.first { term ->
-            term.kind == TermKind.PRATYAYA && term.augmentTargetId != null &&
+            term.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA) && term.augmentTargetId != null &&
                 sutra !in term.establishedBySutras && terminalMitDesignation(term) != null
         }
         val targetIndex = context.terms.indexOfFirst { it.id == insertion.augmentTargetId }
@@ -59,13 +59,14 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
                     else -> term
                 } },
                 droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(insertion, sutra)
-                    .copy(establishedBySutras = insertion.establishedBySutras + sutra),
+                    .copy(establishedBySutras = insertion.establishedBySutras + sutra,
+                        mergedIntoTermId = target.id),
                 // The target's own final consonant was never part of the raw
                 // augment upadeśa. Only the remapped augment designations are
                 // eligible for this IT-processing cycle.
                 halantyamExemptTermIds = context.halantyamExemptTermIds + target.id,
             ),
-            explanation = "1.1.47 places the mit श्नम् after the last vowel of ${target.surface}, preserving its exact designations.",
+            explanation = "1.1.47 places the m-it insertion ${insertion.upadesha} after the target's last vowel, preserving its exact designations.",
         )
     }
 

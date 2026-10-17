@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,17 +30,19 @@ object VisarjaniyasyaSahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
     stage = dev.panini.sutra.SutraStage.SIBILANT_SANDHI,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2]
-        val next = context.terms.last().varnas.firstOrNull() as? Vyanjana ?: return false
-        return left.varnas.lastOrNull() == Ayogavaha.VISARGA &&
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
+    private fun target(context: DerivationState): VisargaBoundary? = visargaBoundaries(context).firstOrNull { boundary ->
+        !context.isBlockedAtBoundary(sutra, boundary.left.id, boundary.right.id) &&
+            // Both 8.3.37 outcomes exclude s, independently of which one is chosen.
+            kupuVisargaAllophone(boundary.following.first()) == null &&
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, boundary.following.first())
     }
 
+    override fun matches(context: DerivationState): Boolean = target(context) != null
+
     override fun apply(context: DerivationState): DerivationChange {
-        val leftTerm = context.terms[context.terms.size - 2]
-        val next = context.terms.last().varnas.first()
+        val boundary = requireNotNull(target(context))
+        val leftTerm = boundary.left
+        val next = boundary.following.first()
 
         return DerivationChange(
             state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, listOf(Vyanjana.SA), sutra),

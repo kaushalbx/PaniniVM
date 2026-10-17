@@ -15,6 +15,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.ItStatus
@@ -84,8 +85,10 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
         // In LIṬ, tip is first replaced by fresh ṇal (3.4.82); its ṇ-it
         // designation must govern the stronger 7.2.115 vṛddhi before guṇa is considered.
-        if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.matchesUpadesha("तिप्")) return false
-        if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT &&
+            (affix.hasCurrentAffix(TingAffix.TIP) || affix.hasCurrentAffix(TingAffix.MIP))) return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT &&
+            (affix.itProcessingPending || affix.itDesignations.isNotEmpty() || affix.deferredItDesignations.isNotEmpty())) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LUNG && stem.matchesUpadesha("भू")) return false
 

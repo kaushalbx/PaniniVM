@@ -24,6 +24,8 @@ enum class DerivationalEnvironment {
 }
 
 enum class PhonologicalRequest { GUNA, VRDDHI }
+/** A completed expression is not necessarily followed by a pause. */
+enum class SpeechBoundary { CONTINUATION, AVASANA }
 enum class LetAugment { AT, AAT }
 enum class LetFormation { PRESENT_STEM, SIP_AORIST }
 enum class LetEOption { E, AI }
@@ -57,6 +59,9 @@ data class DerivationalContext(
     val rupa: Rupa = Rupa(),
     /** Compound class established by the samāsa derivation, when applicable. */
     val samasaType: SamasaType? = null,
+    /** Standalone derivations retain their historical pause-ending convention;
+     * external sandhi supplies its own explicit endpoint. */
+    val finalBoundary: SpeechBoundary = SpeechBoundary.AVASANA,
 ) {
     fun has(environment: DerivationalEnvironment): Boolean = environment in environments
 }

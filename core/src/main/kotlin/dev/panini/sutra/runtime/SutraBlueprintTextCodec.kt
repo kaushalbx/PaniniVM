@@ -153,6 +153,24 @@ object SutraBlueprintTextCodec {
                 }
             },
         )
+        is SutraSource.Unadipatha -> record(
+            "kind" to symbol("unadipatha"),
+            "number" to text(source.number),
+            "text" to text(source.text),
+        )
+        is SutraSource.Vartika -> record(
+            "kind" to symbol("vartika"),
+            "parentSutra" to text(source.parentSutra),
+            "text" to text(source.text),
+            "referenceUrl" to text(source.referenceUrl),
+        )
+        is SutraSource.Yogavibhaga -> record(
+            "kind" to symbol("yogavibhaga"),
+            "parentSutra" to text(source.parentSutra),
+            "text" to text(source.text),
+            "commentary" to text(source.commentary),
+            "referenceUrl" to text(source.referenceUrl),
+        )
         is SutraSource.Vakya -> record(
             "kind" to symbol("vakya"),
             "uktiId" to text(source.uktiId),
@@ -174,6 +192,13 @@ object SutraBlueprintTextCodec {
                 source.text("number"),
                 source.text("text"),
                 (source["segmentedSource"] as? SutraArthaValue.Text)?.value,
+            )
+            "unadipatha" -> SutraSource.Unadipatha(source.text("number"), source.text("text"))
+            "vartika" -> SutraSource.Vartika(
+                source.text("parentSutra"), source.text("text"), source.text("referenceUrl"),
+            )
+            "yogavibhaga" -> SutraSource.Yogavibhaga(
+                source.text("parentSutra"), source.text("text"), source.text("commentary"), source.text("referenceUrl"),
             )
             "vakya" -> SutraSource.Vakya(
                 source.text("uktiId"),

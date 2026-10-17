@@ -9,6 +9,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.isPadaFinalVarna
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -84,6 +85,20 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val engine = Ashtadhyayi.pratyaharaEngine
+        // An ādeśa s can be inside the stem, not only inside a pratyaya.
+        // Require an exact recorded s-substitution at this current occurrence.
+        for (term in context.terms.filter { it.kind != TermKind.PRATYAYA &&
+            it.itProcessingPhase == ItProcessingPhase.PROCESSED && it.itDesignations.isEmpty() && it.deferredItDesignations.isEmpty() }) {
+            for (index in 1 until term.varnas.size) {
+                if (term.varnas[index] != Vyanjana.SA || context.isPadaFinalVarna(term, index)) continue
+                val substitutedS = context.substitutions.any {
+                    it.targetId == term.id && it.sourceVarnaIndex == index && it.replacementVarnas == listOf(Vyanjana.SA)
+                }
+                val preceding = term.varnas[index - 1]
+                if (substitutedS && (engine.contains(Pratyahara.IN, preceding) || preceding in ku))
+                    return RetroflexTarget(term, index)
+            }
+        }
         for (i in 0 until context.terms.size) {
             val term = context.terms[i]
             if (term.kind != TermKind.PRATYAYA) continue

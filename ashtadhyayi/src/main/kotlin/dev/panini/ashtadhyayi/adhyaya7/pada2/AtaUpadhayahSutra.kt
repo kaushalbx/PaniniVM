@@ -49,9 +49,8 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val stem = context.terms[stemIndex]
         val locus = requireNotNull(penultimateAIndex(stem.varnas))
-        val result = stem.varnas.take(locus) + Svara.AA + stem.varnas.drop(locus + 1)
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, Svara.A, listOf(Svara.AA), sutra)
+            state = context.replaceTermVarna(stem.id, locus, listOf(Svara.AA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.116: Lengthened penultimate 'अ' in ${stem.surface} to 'आ' before ñit/ṇit suffix."
         )

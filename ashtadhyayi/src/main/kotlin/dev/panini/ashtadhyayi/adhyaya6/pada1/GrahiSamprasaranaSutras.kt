@@ -14,14 +14,13 @@ object GrahijyaSamprasaranaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
-        if (index < 0 || context.terms[index].surface != "ग्रह्") return false
+        if (index < 0 || context.terms[index].varnas != listOf(Vyanjana.GA, Vyanjana.RA, Svara.A, Vyanjana.HA)) return false
         return context.terms.getOrNull(index + 1)?.matchesUpadesha("श्ना") == true
     }
     override fun apply(context: DerivationState): DerivationChange {
         val root = context.terms.first { it.kind == TermKind.DHATU }
-        return DerivationChange(context.substituteTermVarnas(root.id,
-            root.varnas.map { if (it == Vyanjana.RA) Svara.R else it },
-            Vyanjana.RA, listOf(Svara.R), sutra), "6.1.16 gives samprasāraṇa to grah before ṅ-it śnā.")
+        return DerivationChange(context.replaceTermVarna(root.id, 1, listOf(Svara.R), sutra),
+            "6.1.16 gives samprasāraṇa to grah before ṅ-it śnā.")
     }
 }
 
@@ -31,17 +30,26 @@ object SamprasaranacCaSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 6, pada = 1, optional = false, kramaValue = 610108,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DHATU,
 ), DerivationSutra {
-    private fun target(context: DerivationState) = context.terms.firstOrNull { term ->
-        context.substitutions.any { it.targetId == term.id && it.sutra == "6.1.16" } &&
-            term.varnas.zipWithNext().any { (a, b) -> a == Svara.R && b is Svara }
+    // This executable branch follows the implemented grah operation above.
+    // A bare vocalic ṛ elsewhere is not proof of samprasāraṇa.
+    private fun target(context: DerivationState): Pair<DerivationTerm, Int>? {
+        for (term in context.terms) {
+            if (term.kind != TermKind.DHATU) continue
+            for (change in context.substitutions.asReversed()) {
+                if (change.targetId != term.id || change.sutra != "6.1.16" ||
+                    change.replacementVarnas != listOf(Svara.R)) continue
+                val index = change.sourceVarnaIndex ?: continue
+                if (term.varnas.getOrNull(index) == Svara.R && term.varnas.getOrNull(index + 1) is Svara)
+                    return term to index
+            }
+        }
+        return null
     }
     override fun matches(context: DerivationState) = target(context) != null
     override fun apply(context: DerivationState): DerivationChange {
-        val root = requireNotNull(target(context))
-        val index = root.varnas.indexOfFirst { it == Svara.R } + 1
-        val removed = root.varnas[index]
-        return DerivationChange(context.substituteTermVarnas(root.id,
-            root.varnas.filterIndexed { i, _ -> i != index }, removed, emptyList(), sutra),
+        val (root, index) = requireNotNull(target(context))
+        return DerivationChange(context.replaceTermVarnaRange(root.id, index, 2,
+            listOf(Svara.R), mapOf(0 to 0), sutra),
             "6.1.108 retains the samprasāraṇa vowel as the pūrvarūpa of the vowel pair.")
     }
 }

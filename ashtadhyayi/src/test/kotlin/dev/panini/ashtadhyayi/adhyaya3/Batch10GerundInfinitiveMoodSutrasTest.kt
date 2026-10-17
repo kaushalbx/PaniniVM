@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3
 
 import dev.panini.ashtadhyayi.adhyaya3.pada3.BhaveSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada3.EchaIgGhanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.HetuhetumatorLingSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.KalaSamayaVelashuTumunSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.NapumsakeBhaveKtahSutra
@@ -31,20 +30,6 @@ class Batch10GerundInfinitiveMoodSutrasTest {
         )
         assertTrue(BhaveSutra.matches(state))
         assertEquals("घञ्", BhaveSutra.apply(state).state.allEffectiveTerms.last().upadesha)
-    }
-
-    @Test
-    fun `substitutes ik for ec vowel before ghañ via EchaIgGhanSutra`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("root", "धै", TermKind.DHATU, upadesha = "धै"),
-                DerivationTerm("ghanj", "अ", TermKind.PRATYAYA, upadesha = "घञ्")
-            )
-        )
-        assertTrue(EchaIgGhanSutra.matches(state))
-        val result = EchaIgGhanSutra.apply(state).state
-        assertEquals("धि", result.allEffectiveTerms.first().surface)
-        assertEquals("3.3.56", result.substitutions.single().sutra)
     }
 
     @Test

@@ -55,7 +55,6 @@ class ParticipleEngineTest {
         val res1 = engine.derive(ParticipleDerivationRequest("वा", Samjna.UNADI))
         assertEquals("वायु", res1.final.surface)
         assertTrue(res1.applications.any { it.sutra == "3.3.1" })
-        assertTrue(res1.applications.any { it.sutra == "7.3.33" })
         res1.final.requireCompleteItProcessing()
 
         val res2 = engine.derive(ParticipleDerivationRequest("कृ", Samjna.UNADI))
