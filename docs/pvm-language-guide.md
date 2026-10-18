@@ -43,8 +43,22 @@ action.
 The execution path is:
 
 ```text
-segmented Sanskrit → grammatical AST → kāraka binding → operation selection → runtime
+segmented Sanskrit
+    → grammatical AST and occurrence evidence
+    → kāraka candidates and typed semantic operands
+    → operation-specific resolution
+    → resolved semantic program
+    → interpreter or JVM compiler
 ```
+
+The grammatical AST is parsed once and retained as evidence. Syncretic endings
+remain candidates until the selected operation can resolve them; the binder does
+not discard an otherwise valid interpretation merely because another operation
+uses a different kāraka. Literal values, named references, action history, member
+selectors, and procedure arguments cross this boundary as typed semantic
+operands. Unknown references remain symbolic constraints during planning instead
+of being replaced with invented numbers, words, or collections. A diagnostic is
+blocking only when its structured severity says execution would be unsafe.
 
 PaniniVM does not treat a `.pvm` file as free-form surface Sanskrit. Case and
 verbal suffixes are part of the program and carry executable meaning.
@@ -168,6 +182,39 @@ in English while keeping executable sentences in Sanskrit.
 # Print the computed result.
 फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
 ```
+
+### 2.4 Multiple ways to express the same goal
+
+PVM deliberately supports more than one grammatical route for several common
+tasks. Choose the form that makes the intended relation clearest; these are
+supported alternatives, not a license to ignore case or agreement.
+
+| Goal | Concise form | More explicit or reusable form |
+|---|---|---|
+| Use the preceding result | `ततः` supplies the missing object of the next stage | Write `फल` as the next action's object |
+| Use an older result | Qualify `फल` with `पूर्व` or an ordinal | Assign the result to a named location and use that name later |
+| Print a preceding result | Use an objectless display stage after `ततः` or a prior action | Write `फल + अम्` explicitly |
+| Supply procedure arguments | Place values positionally in declaration order | Pair each locative parameter name with its accusative value |
+| Feed a procedure from a pipeline | Let the prior result fill one missing parameter | Supply all arguments explicitly at the call site |
+| Name a procedure | Use `इति प्रक्रिया … अस्ति` | Use the preferred `नाम प्रक्रिया … अस्ति` form |
+| Name a list declaration | Put a nominative name before `इति` | Put the nominative name immediately before `नाम` inside the declaration |
+| Read a collection member | Use a genitive whole with an agreeing ordinal object | Use an ablative source with a locative numeric or ordinal position |
+| Build a collection | Use a copular `… सूची अस्ति` declaration | Request collection formation with the supported `सम् + ग्रहँ` action |
+
+For example, both of these print the immediately preceding sum:
+
+```pvm
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+The first is one pipeline; the second is two sentences joined through discourse
+history. Likewise, positional and named procedure calls can compute the same
+value, but the named form is clearer when a procedure has several parameters.
+Compatibility forms documented later remain accepted, while the natural forms
+shown first in each section are preferred for new programs.
 
 ## 3. Grammatical roles used by programs
 
@@ -489,9 +536,11 @@ Inside a procedure body, an ordinal qualifying a named फल remains a history
 selector; it is not rebound as a positional procedure parameter.
 Interpreted procedure overloads rank named-result arguments by their resolved
 value type. Equivalent compiled overload dispatch remains incomplete.
-Multiple named results in ordinary action leaves and conditions are not yet
-supported by the compiler. Named history conditions are
-reevaluated before each loop iteration; they are not the bare फल truth shorthand.
+The compiler does preserve distinct named-result occurrences in procedure
+arguments and supports named-result display and comparison conditions, including
+ordered references such as `पूर्व` and productive ordinals. Named history
+conditions are reevaluated before each loop iteration; they are not the bare फल
+truth shorthand.
 An unavailable named result is an error: a missing previous or ordinal result
 does not fall back to the latest result of another action.
 
@@ -721,7 +770,7 @@ boundary it chooses the assimilated variant licensed by
 `ह्` after a stop may take the corresponding fourth consonant of that class.
 The underlying segmented source remains `उद् + हृ`.
 
-### 7.5 Summing number members
+### 7.7 Summing number members
 
 For member summation, make the collection/member relation explicit:
 
@@ -1316,6 +1365,27 @@ Compile a file to a JVM class:
 ```sh
 ./cli/build/install/cli/bin/cli --compile path/to/mukhya.pvm ProgramName
 ```
+
+Render the segmented source as readable Sanskrit without executing it:
+
+```sh
+./cli/build/install/cli/bin/cli --render-readable path/to/mukhya.pvm
+```
+
+Portable sūtra-grantha source has a separate compile, validation, and execution
+workflow:
+
+```sh
+./cli/build/install/cli/bin/cli --emit-grantha path/to/mukhya.pvm path/to/mukhya.sutra
+./cli/build/install/cli/bin/cli --check-grantha path/to/mukhya.sutra
+./cli/build/install/cli/bin/cli --grantha path/to/mukhya.sutra
+```
+
+`--emit-grantha` compiles every executable source line without executing it.
+References from a later line to an earlier result keep the earlier operation's
+symbolic result type while planning. They are not guessed from a display label
+or represented by a fabricated placeholder value. `--check-grantha` validates
+the emitted source, and `--grantha` executes it.
 
 The interactive REPL is useful for one complete utterance at a time. Save
 multi-sentence definitions and loops in a `.pvm` file.
