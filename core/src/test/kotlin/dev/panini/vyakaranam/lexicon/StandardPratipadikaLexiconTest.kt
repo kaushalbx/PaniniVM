@@ -9,7 +9,12 @@ class StandardPratipadikaLexiconTest {
     @Test fun `participant type nouns retain grammatical gender`() {
         assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सङ्ख्या")?.linga)
         assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सूची")?.linga)
-        assertEquals(setOf(dev.panini.core.Linga.PUMS), StandardPratipadikaLexicon.findPratipadika("शब्द")?.linga)
+        for (text in listOf("शब्द", "घट", "पुत्र", "दोष", "गुरु", "हेतु", "विजय",
+            "ऋषि", "राशि", "ध्वनि", "कपि", "गज", "दूत", "अन्त", "कफ",
+            "मठ", "मणि", "गन्ध", "अमित्र", "छात्र", "मन्त्र", "उष्ट्र")) {
+            assertEquals(emptySet(), StandardPratipadikaLexicon.findPratipadika(text)?.linga)
+        }
+        assertEquals("अच्", StandardPratipadikaLexicon.findPratipadika("विजय")?.lingaPratyaya)
     }
     @Test
     fun `ordinal numeric identity does not erase feminine stem gender`() {

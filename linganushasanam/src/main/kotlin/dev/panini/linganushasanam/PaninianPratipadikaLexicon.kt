@@ -13,7 +13,9 @@ object PaninianPratipadikaLexicon : PratipadikaLexicon {
         val normalized = text.trim()
         val base = StandardPratipadikaLexicon.findPratipadika(normalized)
         val ganas = GanaPatha.ganasContaining(normalized)
-        val linga = lingaEngine.resolveOrNull(LingaRuleContext(normalized))
+        val linga = lingaEngine.resolveOrNull(LingaRuleContext(normalized,
+            pratyaya = base?.lingaPratyaya,
+            semanticClasses = base?.lingaSemanticClasses.orEmpty()))
         if (base == null && ganas.isEmpty() && linga == null) return null
 
         return (base ?: PratipadikaEntry(normalized, emptySet())).copy(
@@ -22,4 +24,8 @@ object PaninianPratipadikaLexicon : PratipadikaLexicon {
             lingaRuleIds = base?.lingaRuleIds.orEmpty() + listOfNotNull(linga?.ruleId),
         )
     }
+
+    /** Declared stems enriched with Liṅgānuśāsanam and sourced lexical gender. */
+    fun declaredPratipadikas(): List<PratipadikaEntry> =
+        StandardPratipadikaLexicon.declaredPratipadikas().map { requireNotNull(findPratipadika(it.text)) }
 }

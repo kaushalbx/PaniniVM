@@ -13,6 +13,7 @@ import dev.panini.sutra.SutraType
 import dev.panini.ganapatha.SarvadiGana
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
+import dev.panini.core.TaddhitaAffix
 
 /**
  * 7.2.102: tyadādīnām aḥ.
@@ -45,7 +46,12 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val hasConsonantEnding = stem.varnas.lastOrNull() is Vyanjana &&
             stem.varnas.lastOrNull() == stem.upadeshaVarnas.lastOrNull() || stem.varnas in setOf(idam, dvi)
         return isTyadadi && hasConsonantEnding &&
-            (affix.sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null })
+            (affix.sourceSupAffix != null ||
+                affix.sourceTaddhitaAffix in setOf(TaddhitaAffix.TASIL, TaddhitaAffix.TRAL) ||
+                context.droppedTerms.any {
+                    it.sourceSupAffix != null ||
+                        it.sourceTaddhitaAffix in setOf(TaddhitaAffix.TASIL, TaddhitaAffix.TRAL)
+                })
     }
 
     override fun apply(context: DerivationState): DerivationChange {

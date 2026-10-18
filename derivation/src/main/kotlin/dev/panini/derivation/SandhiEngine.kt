@@ -28,8 +28,13 @@ class SandhiEngine(
         val state = result.final
         require(state.stage == DerivationStage.FINAL) { "Sandhi requires a completed word derivation." }
         val rupa = state.effectiveContext.rupa
-        require(rupa.vibhakti != null || rupa.lakara != null) {
-            "A morphological pada is required, not an arbitrary sandhi phrase."
+        val carriers = state.terms + state.droppedTerms
+        val trace = result.applications.mapTo(mutableSetOf()) { it.sutra }
+        val isDerivedAvyayaPada = carriers.any { it.sourceTaddhitaAffix != null } &&
+            "1.1.38" in trace && "1.4.14" in trace
+        require(rupa.vibhakti != null || rupa.lakara != null || isDerivedAvyayaPada) {
+            "A morphological pada is required, not an arbitrary sandhi phrase; " +
+                "carriers=${carriers.map { it.upadesha to it.sourceTaddhitaAffix }} trace=$trace"
         }
         state.requireCompleteItProcessing()
         val terms = state.terms

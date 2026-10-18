@@ -6,6 +6,7 @@ import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.NominalCategory
 import dev.panini.analysis.SemanticRelation
 import dev.panini.derivation.NominalStemFormation
+import dev.panini.core.LingaSemanticClass
 
 data class PratipadikaEntry(
     val text: String,
@@ -15,6 +16,10 @@ data class PratipadikaEntry(
     val lingaRuleIds: Set<String> = emptySet(),
     val categories: Set<NominalCategory> = emptySet(),
     val semanticRelations: Set<SemanticRelation> = emptySet(),
+    /** Independently sourced meaning classes consumed by Liṅgānuśāsana rules. */
+    val lingaSemanticClasses: Set<LingaSemanticClass> = emptySet(),
+    /** Independently established derivational affix used by Liṅgānuśāsana. */
+    val lingaPratyaya: String? = null,
     /** Declared morphology, independent of the spelling or gender. */
     val stemFormation: NominalStemFormation = NominalStemFormation.UNSPECIFIED,
     val upadesha: String = text,
@@ -43,7 +48,7 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         // Technical category and grammatical gender are independent metadata.
         put("सङ्ख्या", getValue("सङ्ख्या").copy(linga = setOf(Linga.STRI), stemFormation = NominalStemFormation.AP))
         put("सूची", PratipadikaEntry("सूची", setOf(Linga.STRI)))
-        put("शब्द", PratipadikaEntry("शब्द", setOf(Linga.PUMS)))
+        put("शब्द", PratipadikaEntry("शब्द", emptySet()))
         // Independently attested masculine nominal examples, not corpus output aliases:
         // Kāśikā 6.1.113 (vṛkṣa/plakṣa), 6.1.114 (puruṣa), and
         // Siddhāntakaumudī/Bālamanoramā on those rules (Śiva).
@@ -52,16 +57,45 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         }
         // Kāśikā 6.1.113 independently attests अग्निरत्र (not preceding अ).
         put("अग्नि", PratipadikaEntry("अग्नि", setOf(Linga.PUMS)))
-        // Independently attested masculine dictionary entries: Śabdakalpadruma
-        // kapi (also Amarakośa 2.5.4), and Vācaspatyam udadhi.
-        listOf("कपि", "उदधि").forEach { text ->
-            put(text, PratipadikaEntry(text, setOf(Linga.PUMS)))
-        }
+        // Independently attested masculine dictionary entry: Vācaspatyam udadhi.
+        // Kapi belongs to the exact Liṅgānuśāsana 109 enumeration below.
+        put("उदधि", PratipadikaEntry("उदधि", setOf(Linga.PUMS)))
         // Siddhāntakaumudī 187ff. (Rāma); Śabdamañjarī, nominal table p.15 (deva).
         // These are lexical stems; their case forms are generated with full proofs.
         listOf("राम", "देव").forEach { text ->
             put(text, PratipadikaEntry(text, setOf(Linga.PUMS)))
         }
+        // Masculine nominal stems explicitly attested by Amarakośa:
+        // ghaṭa 2.9.32, putra 2.6.27, doṣa 3.3.226, guru 1.3.24/2.7.7,
+        // and hetu 1.4.28. Admit stems, never corpus surface forms; gender is
+        // attached by the Liṅgānuśāsanam-layer PaninianPratipadikaLexicon.
+        listOf("घट", "पुत्र", "दोष", "गुरु", "हेतु").forEach { text ->
+            put(text, PratipadikaEntry(text, emptySet()))
+        }
+        // Amarakośa 1.11.518–520 enumerates these as ocean synonyms.
+        // Gender is assigned by Liṅgānuśāsana 43, not stored lexically.
+        listOf("सागर", "रत्नाकर").forEach { text ->
+            put(text, PratipadikaEntry(text, emptySet(),
+                lingaSemanticClasses = setOf(LingaSemanticClass.SAMUDRA_ABHIDHANA)))
+        }
+        // Amarakośa 2.8.1152 attests विजयः; its vi-√ji-ac formation is in the
+        // domain of Liṅgānuśāsana 37. Gender remains assigned by that rule.
+        put("विजय", PratipadikaEntry("विजय", emptySet(), lingaPratyaya = "अच्"))
+        // Independently selected prātipadika identities from the exact
+        // Liṅgānuśāsana 109, 110, 111, 114, 116, and 158 enumerations. Gender
+        // is intentionally absent here and is supplied only by the registered
+        // LinganushasanaSutra. The rule objects retain the complete lists.
+        // Source text:
+        // https://sanskritdocuments.org/doc_z_misc_major_works/lingAnushAsanam.pdf
+        // Their complete paradigms are generated; no corpus surface is entered.
+        listOf(
+            "ऋषि", "राशि", "ध्वनि", "रवि", "कवि", "कपि", "मुनि",
+            "ध्वज", "गज",
+            "हस्त", "अन्त", "दूत", "सूत", "मुहूर्त",
+            "ह्रद", "कुन्द", "शब्द",
+            "कफ", "मठ", "मणि", "गन्ध", "स्कन्ध", "मृदङ्ग", "सङ्ग",
+            "अमित्र", "छात्र", "मन्त्र", "उष्ट्र",
+        ).forEach { text -> put(text, PratipadikaEntry(text, emptySet())) }
         // Śabdakalpadruma's Indra entry and Amarakośa's svargavarga synonym list.
         // Admit stems, never completed visarga spellings or guessed sources.
         listOf("इन्द्र", "शक्र").forEach { text ->

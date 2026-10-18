@@ -5,10 +5,56 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.Vacana
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
-import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
+import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import kotlin.test.*
 
 class DerivedVisargaLexiconTest {
+    private fun assertParadigm(stem: String, expected: List<String>) {
+        for ((index, suffix) in SupAffix.entries.withIndex()) {
+            val result = SubantaEngine().derive(SubantaDerivationRequest(stem, suffix.vibhakti, suffix.vacana, Linga.PUMS))
+            assertEquals(expected[index], result.final.surface, "$stem $suffix")
+            result.final.requireCompleteItProcessing()
+        }
+    }
+
+    @Test fun `attested masculine ghata paradigm is forward verified`() {
+        val expected = listOf("घटः", "घटौ", "घटाः", "घटम्", "घटौ", "घटान्", "घटेन", "घटाभ्याम्", "घटैः",
+            "घटाय", "घटाभ्याम्", "घटेभ्यः", "घटात्", "घटाभ्याम्", "घटेभ्यः", "घटस्य", "घटयोः", "घटानाम्", "घटे", "घटयोः", "घटेषु")
+        assertParadigm("घट", expected)
+        val index = DerivedVisargaLexicon.build(listOf(PratipadikaEntry("घट", setOf(Linga.PUMS))))
+        assertTrue(index.failures.isEmpty(), index.failures.toString())
+        assertTrue(index.unresolvedSources.isEmpty(), index.unresolvedSources.toString())
+        val candidate = assertNotNull(index.candidates("घटः").firstOrNull())
+        assertEquals(VisargaSource.ESTABLISHED_RU, candidate.source)
+        assertTrue(candidate.derivation.applications.any { it.sutra == "8.2.66" })
+        val right = SandhiEngine.Pada(DerivationTerm("right", "अस्ति", TermKind.PRATIPADIKA))
+        assertEquals("घटोऽस्ति", SandhiEngine().render(SandhiEngine().join(candidate.pada, right)))
+    }
+
+    @Test fun `amarakosha masculine a and u stems are forward verified`() {
+        val paradigms = mapOf(
+            "पुत्र" to listOf("पुत्रः", "पुत्रौ", "पुत्राः", "पुत्रम्", "पुत्रौ", "पुत्रान्", "पुत्रेण", "पुत्राभ्याम्", "पुत्रैः",
+                "पुत्राय", "पुत्राभ्याम्", "पुत्रेभ्यः", "पुत्रात्", "पुत्राभ्याम्", "पुत्रेभ्यः", "पुत्रस्य", "पुत्रयोः", "पुत्राणाम्", "पुत्रे", "पुत्रयोः", "पुत्रेषु"),
+            "दोष" to listOf("दोषः", "दोषौ", "दोषाः", "दोषम्", "दोषौ", "दोषान्", "दोषेण", "दोषाभ्याम्", "दोषैः",
+                "दोषाय", "दोषाभ्याम्", "दोषेभ्यः", "दोषात्", "दोषाभ्याम्", "दोषेभ्यः", "दोषस्य", "दोषयोः", "दोषाणाम्", "दोषे", "दोषयोः", "दोषेषु"),
+            "गुरु" to listOf("गुरुः", "गुरू", "गुरवः", "गुरुम्", "गुरू", "गुरून्", "गुरुणा", "गुरुभ्याम्", "गुरुभिः",
+                "गुरवे", "गुरुभ्याम्", "गुरुभ्यः", "गुरोः", "गुरुभ्याम्", "गुरुभ्यः", "गुरोः", "गुर्वोः", "गुरूणाम्", "गुरौ", "गुर्वोः", "गुरुषु"),
+            "हेतु" to listOf("हेतुः", "हेतू", "हेतवः", "हेतुम्", "हेतू", "हेतून्", "हेतुना", "हेतुभ्याम्", "हेतुभिः",
+                "हेतवे", "हेतुभ्याम्", "हेतुभ्यः", "हेतोः", "हेतुभ्याम्", "हेतुभ्यः", "हेतोः", "हेत्वोः", "हेतूनाम्", "हेतौ", "हेत्वोः", "हेतुषु"),
+        )
+        paradigms.forEach(::assertParadigm)
+        val index = DerivedVisargaLexicon.build(paradigms.keys.map { PratipadikaEntry(it, setOf(Linga.PUMS)) })
+        assertTrue(index.failures.isEmpty(), index.failures.toString())
+        assertTrue(index.unresolvedSources.isEmpty(), index.unresolvedSources.toString())
+        for ((word, expected) in listOf("पुत्रः" to "पुत्रोऽस्ति", "दोषः" to "दोषोऽस्ति", "गुरुः" to "गुरुरस्ति", "हेतुः" to "हेतुरस्ति")) {
+            val candidate = assertNotNull(index.candidates(word).firstOrNull(), word)
+            assertEquals(VisargaSource.ESTABLISHED_RU, candidate.source)
+            assertTrue(candidate.derivation.applications.any { it.sutra == "8.2.66" })
+            val right = SandhiEngine.Pada(DerivationTerm("right", "अस्ति", TermKind.PRATIPADIKA))
+            assertEquals(expected, SandhiEngine().render(SandhiEngine().join(candidate.pada, right)))
+        }
+    }
+
     @Test fun `indra and shakra paradigms have forward derived visarga proof`() {
         val forms = mapOf(
             "इन्द्र" to listOf("इन्द्रः", "इन्द्रौ", "इन्द्राः", "इन्द्रम्", "इन्द्रौ", "इन्द्रान्", "इन्द्रेण", "इन्द्राभ्याम्", "इन्द्रैः",
@@ -87,7 +133,7 @@ class DerivedVisargaLexiconTest {
         }
     }
     companion object {
-        private val standard by lazy { DerivedVisargaLexicon.build(StandardPratipadikaLexicon.declaredPratipadikas()) }
+        private val standard by lazy { DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas()) }
     }
 
     @Test fun `declared lexical forms reproduce inputs and retain full derivation evidence`() {

@@ -12,7 +12,9 @@ import java.text.Normalizer
 class DerivedVisargaLexicon private constructor(
     private val bySurface: Map<String, List<Candidate>>,
     private val nominalBySurface: Map<String, List<NominalCandidate>>,
+    private val avyayaBySurface: Map<String, List<AvyayaCandidate>>,
     val failures: List<Failure>,
+    val avyayaFailures: List<AvyayaFailure>,
     val entriesWithoutGender: List<PratipadikaEntry>,
     val unresolvedSources: List<UnresolvedSource>,
 ) {
@@ -21,7 +23,11 @@ class DerivedVisargaLexicon private constructor(
     /** A complete forward nominal proof. Non-visarga words have no visarga source. */
     data class NominalCandidate(val entry: PratipadikaEntry, val request: SubantaDerivationRequest,
         val derivation: DerivationResult, val pada: SandhiEngine.Pada)
+    data class AvyayaCandidate(val request: TaddhitaDerivationRequest,
+        val derivation: DerivationResult, val pada: SandhiEngine.Pada, val source: String)
+    data class PadaCandidate(val derivation: DerivationResult, val pada: SandhiEngine.Pada)
     data class Failure(val request: SubantaDerivationRequest, val errorType: String, val message: String?)
+    data class AvyayaFailure(val request: TaddhitaDerivationRequest, val errorType: String, val message: String?)
     data class UnresolvedSource(val request: SubantaDerivationRequest, val derivation: DerivationResult)
 
     /** Homographic cases/genders retain separate derivations; no first-match source guess. */
@@ -29,15 +35,24 @@ class DerivedVisargaLexicon private constructor(
     val surfaces: Set<String> get() = bySurface.keys.toSet()
     fun nominalCandidates(surface: String): List<NominalCandidate> = nominalBySurface[normalized(surface)].orEmpty()
     val nominalSurfaces: Set<String> get() = nominalBySurface.keys.toSet()
+    fun avyayaCandidates(surface: String): List<AvyayaCandidate> = avyayaBySurface[normalized(surface)].orEmpty()
+    val avyayaSurfaces: Set<String> get() = avyayaBySurface.keys.toSet()
+    fun padaCandidates(surface: String): List<PadaCandidate> =
+        nominalCandidates(surface).map { PadaCandidate(it.derivation, it.pada) } +
+            avyayaCandidates(surface).map { PadaCandidate(it.derivation, it.pada) }
 
     companion object {
         private fun normalized(text: String) = Normalizer.normalize(text, Normalizer.Form.NFC)
 
         fun build(entries: Collection<PratipadikaEntry>,
-            nominalEngine: SubantaEngine = SubantaEngine(), sandhiEngine: SandhiEngine = SandhiEngine()): DerivedVisargaLexicon {
+            nominalEngine: SubantaEngine = SubantaEngine(), sandhiEngine: SandhiEngine = SandhiEngine(),
+            avyayaRequests: Collection<TaddhitaDerivationRequest> = emptyList(),
+            taddhitaEngine: TaddhitaEngine = TaddhitaEngine()): DerivedVisargaLexicon {
             val index = mutableMapOf<String, MutableList<Candidate>>()
             val nominalIndex = mutableMapOf<String, MutableList<NominalCandidate>>()
+            val avyayaIndex = mutableMapOf<String, MutableList<AvyayaCandidate>>()
             val failures = mutableListOf<Failure>()
+            val avyayaFailures = mutableListOf<AvyayaFailure>()
             val unresolved = mutableListOf<UnresolvedSource>()
             for (entry in entries.distinct()) {
                 for (linga in entry.linga) for (affix in SupAffix.entries) {
@@ -73,8 +88,20 @@ class DerivedVisargaLexicon private constructor(
                     }
                 }
             }
+            for (request in avyayaRequests.distinct()) {
+                try {
+                    val result = taddhitaEngine.derive(request)
+                    val pada = sandhiEngine.padaFromDerivation(result, "avyaya-${request.pratipadika}")
+                    avyayaIndex.getOrPut(normalized(pada.term.surface)) { mutableListOf() } +=
+                        AvyayaCandidate(request, result, pada, DeclaredAvyayaDerivations.source)
+                } catch (error: RuntimeException) {
+                    avyayaFailures += AvyayaFailure(request,
+                        error::class.simpleName ?: "RuntimeException", error.message)
+                }
+            }
             return DerivedVisargaLexicon(index.mapValues { it.value.toList() },
-                nominalIndex.mapValues { it.value.toList() }, failures.toList(),
+                nominalIndex.mapValues { it.value.toList() }, avyayaIndex.mapValues { it.value.toList() },
+                failures.toList(), avyayaFailures.toList(),
                 entries.filter { it.linga.isEmpty() }.distinct(), unresolved.toList())
         }
     }

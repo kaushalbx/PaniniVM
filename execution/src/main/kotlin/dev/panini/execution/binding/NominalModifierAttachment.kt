@@ -18,13 +18,12 @@ object NominalModifierAttachment {
     fun analyze(modifier: Pada, heads: List<Pada>): NominalAttachmentAnalysis {
         val modifierSup = (modifier as? SupBearingPada)?.sup
             ?: return NominalAttachmentAnalysis(emptyList(), NominalAttachmentDiagnostic.MISSING_SUP)
-        val modifierGenders = NominalGenderAgreement.genders(modifier)
         val candidates = heads.mapIndexedNotNull { index, head ->
             val headSup = (head as? SupBearingPada)?.sup ?: return@mapIndexedNotNull null
             val common = modifierSup.affixCandidates.toSet().intersect(headSup.affixCandidates.toSet())
             if (common.isEmpty() || !NominalGenderAgreement.compatible(modifier, head)) return@mapIndexedNotNull null
-            NominalAttachmentCandidate(index, common, modifierGenders.isNotEmpty() &&
-                NominalGenderAgreement.genders(head).isNotEmpty())
+            NominalAttachmentCandidate(index, common, NominalGenderAgreement.knownGenders(modifier).isNotEmpty() &&
+                NominalGenderAgreement.knownGenders(head).isNotEmpty())
         }
         val diagnostic = when (candidates.size) {
             0 -> NominalAttachmentDiagnostic.NO_COMPATIBLE_HEAD

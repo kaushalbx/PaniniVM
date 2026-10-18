@@ -1,6 +1,7 @@
 package dev.panini.linganushasanam
 
 import dev.panini.core.SamasaType
+import dev.panini.core.LingaSemanticClass
 
 /**
  * Grammatical context for evaluating Pāṇinian Liṅgānuśāsana rules.
@@ -15,4 +16,5 @@ data class LingaRuleContext(
     val pratyaya: String? = null,
     val padas: List<String> = emptyList(),
     val samasaType: SamasaType? = null,
+    val semanticClasses: Set<LingaSemanticClass> = emptySet(),
 )

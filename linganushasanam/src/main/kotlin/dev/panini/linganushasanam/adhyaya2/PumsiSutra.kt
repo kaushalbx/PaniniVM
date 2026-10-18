@@ -6,12 +6,12 @@ import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
 
 /**
- * Liṅgānuśāsanam 2.1: पुंसि.
+ * Liṅgānuśāsanam 35: पुमान्.
  * Adhikāra sūtra for masculine gender rules.
  */
 object PumsiSutra : LinganushasanaSutra(
-    number = "2.1",
-    text = "पुंसि",
+    number = "35",
+    text = "पुमान्",
     hindiExplanation = "यहाँ से आगे पुंलिङ्ग का अधिकार चलता है।",
     section = LinganushasanaSection.PUMLINGA,
     targetLinga = Linga.PUMS,

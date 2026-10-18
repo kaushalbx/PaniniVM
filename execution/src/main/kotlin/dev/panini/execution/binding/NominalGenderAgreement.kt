@@ -1,6 +1,7 @@
 package dev.panini.execution.binding
 
 import dev.panini.core.Linga
+import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 
@@ -30,6 +31,15 @@ internal object NominalGenderAgreement {
             else -> return emptySet()
         }
         return StandardPratipadikaLexicon.findPratipadika(lexicalForm)?.linga.orEmpty()
+    }
+
+    /** Authoritative gender evidence; unlike [genders], this is not used to narrow legacy attachment candidates. */
+    fun knownGenders(pada: Pada?): Set<Linga> {
+        val standard = genders(pada)
+        if (standard.isNotEmpty()) return standard
+        val stem = (pada as? SubantaPada)?.pratipadika as? MulaPratipadika ?: return emptySet()
+        if (stem.vikaras.isNotEmpty()) return emptySet()
+        return PaninianPratipadikaLexicon.findPratipadika(stem.text)?.linga.orEmpty()
     }
 
     fun compatible(modifier: Pada?, head: Pada): Boolean {

@@ -995,7 +995,8 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives Ang aorist for pus`() {
         val result = TingantaEngine().derive(
-            TingantaDerivationRequest("पुष्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUNG)
+            TingantaDerivationRequest("पुष्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUNG,
+                gana = DhatuGana.DIVADI)
         )
         assertTrue(result.applications.any { it.sutra == "3.1.55" })
     }

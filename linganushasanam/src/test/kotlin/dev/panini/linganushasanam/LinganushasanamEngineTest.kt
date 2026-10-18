@@ -1,6 +1,7 @@
 package dev.panini.linganushasanam
 
 import dev.panini.core.Linga
+import dev.panini.core.LingaSemanticClass
 import dev.panini.core.SamasaType
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,24 +39,24 @@ class LinganushasanamEngineTest {
     }
 
     @Test
-    fun `test masculine gender sutra 2 2 Ghajantah`() {
-        val res = engine.resolve(LingaRuleContext("पाक"))
+    fun `test masculine gender sutra 36 requires ghan and bhava provenance`() {
+        val context = LingaRuleContext("पाक", pratyaya = "घञ्",
+            semanticClasses = setOf(LingaSemanticClass.BHAVA))
+        val res = engine.resolve(context)
         assertEquals(Linga.PUMS, res.linga)
-        assertEquals("2.2", res.ruleId)
+        assertEquals("36", res.ruleId)
+        assertEquals(null, engine.resolveOrNull(LingaRuleContext("पाक", pratyaya = "घञ्")))
+        assertEquals(null, engine.resolveOrNull(LingaRuleContext("पाक",
+            semanticClasses = setOf(LingaSemanticClass.BHAVA))))
     }
 
     @Test
-    fun `test masculine gender sutra 2 4 Erachantah`() {
-        val res = engine.resolve(LingaRuleContext("जय"))
+    fun `test masculine gender sutra 37 requires exact affix provenance`() {
+        val res = engine.resolve(LingaRuleContext("जय", pratyaya = "अच्"))
         assertEquals(Linga.PUMS, res.linga)
-        assertEquals("2.4", res.ruleId)
-    }
-
-    @Test
-    fun `test masculine gender sutra 2 5 Nranah`() {
-        val res = engine.resolve(LingaRuleContext("पुरुष"))
-        assertEquals(Linga.PUMS, res.linga)
-        assertEquals("2.5", res.ruleId)
+        assertEquals("37", res.ruleId)
+        assertEquals(null, engine.resolveOrNull(LingaRuleContext("जय")))
+        assertEquals(null, engine.resolveOrNull(LingaRuleContext("जय", pratyaya = "घञ्")))
     }
 
     @Test
@@ -95,5 +96,6 @@ class LinganushasanamEngineTest {
     fun `test default masculine gender rules`() {
         val res = engine.resolve(LingaRuleContext("राम"))
         assertEquals(Linga.PUMS, res.linga)
+        assertEquals("LINGA_DEFAULT", res.ruleId)
     }
 }

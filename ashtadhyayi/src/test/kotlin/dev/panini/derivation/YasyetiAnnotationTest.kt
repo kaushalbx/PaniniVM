@@ -25,7 +25,9 @@ class YasyetiAnnotationTest {
         )) {
             val stem = DerivationTerm("stem", "गँर्गँऽ", TermKind.PRATIPADIKA, upadesha = "गर्ग", createdBySutra = "fixture")
             val affix = DerivationTerm("affix", surface, TermKind.PRATYAYA, upadesha = upadesha)
-            val before = DerivationState(listOf(stem, affix), activeAdhikaras = setOf("6.4.1"))
+            val before = DerivationState(listOf(stem, affix),
+                samjnas = setOf(SamjnaAssignment(stem.id, Samjna.BHA)),
+                activeAdhikaras = setOf("6.4.1"))
             assertTrue(YasyetiCaSutra.matches(before))
             val result = YasyetiCaSutra.apply(before).state
             val changed = result.terms.single()
@@ -45,8 +47,9 @@ class YasyetiAnnotationTest {
     @Test fun `normalization explicitly consumes an it designation retaining marker provenance`() {
         val raw = DerivationTerm("affix", "इञ्", TermKind.PRATYAYA, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
         val designated = HalantyamSutra.apply(DerivationState(listOf(raw))).state.terms.single()
-        val before = DerivationState(listOf(DerivationTerm("stem", "गर्ग", TermKind.PRATIPADIKA), designated),
-            activeAdhikaras = setOf("6.4.1"))
+        val stem = DerivationTerm("stem", "गर्ग", TermKind.PRATIPADIKA)
+        val before = DerivationState(listOf(stem, designated),
+            samjnas = setOf(SamjnaAssignment(stem.id, Samjna.BHA)), activeAdhikaras = setOf("6.4.1"))
         val after = YasyetiCaSutra.apply(before).state
         val dropped = after.droppedTerms.single()
         assertEquals("इञ्", dropped.originalSurfaceBeforeDrop)

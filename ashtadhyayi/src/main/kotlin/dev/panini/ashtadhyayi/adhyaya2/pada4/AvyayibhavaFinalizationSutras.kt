@@ -44,6 +44,7 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         val sup = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
+        if (sup.sourceSupAffix == null) return false
         val isAvyaya = SamjnaAssignment(stem.id, Samjna.AVYAYA) in context.samjnas
         val neuterHrasvaPending = context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
             stem.varnas.lastOrNull { it is Svara } in setOf(Svara.AA, Svara.II, Svara.UU, Svara.RR, Svara.LL)

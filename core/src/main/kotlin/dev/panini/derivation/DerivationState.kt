@@ -1308,6 +1308,10 @@ data class DerivationTerm(
     val feminineTargetId: String? = null,
     val pendingBaseComposition: PendingBaseComposition? = null,
     val itMarkerEffects: Map<ItMarker, ItMarkerEffectDecision> = emptyMap(),
+    /** Stable Dhātupāṭha identity retained after the root surface changes. */
+    val sourceDhatuId: String? = null,
+    /** Source sequence within its gaṇa; used only with [gana] to identify attested subgroups. */
+    val sourceDhatuKrama: Int? = null,
 ) {
     init {
         require(feminineTargetId == null || (kind == TermKind.PRATYAYA && feminineTargetId.isNotBlank() && feminineTargetId != id)) {
@@ -1576,6 +1580,8 @@ data class DerivationTerm(
             lexicalAccentVowelIndex = DevanagariVowelLoci.positions(dhatu.derivationalSurface)
                 .takeIf { it.size == 1 }
                 ?.let { 0 },
+            sourceDhatuId = dhatu.id,
+            sourceDhatuKrama = dhatu.krama,
         )
     }
 

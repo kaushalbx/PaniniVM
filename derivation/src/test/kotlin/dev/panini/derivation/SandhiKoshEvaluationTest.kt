@@ -18,8 +18,10 @@ class SandhiKoshEvaluationTest {
         val lexicalPolicy = System.getProperty("sandhikosh.lexical.analysis", "none")
         require(lexicalPolicy in setOf("none", "declared")) { "Unknown lexical analysis policy: $lexicalPolicy" }
         val lexicon = if (lexicalPolicy == "declared") DerivedVisargaLexicon.build(
-            dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.declaredPratipadikas()) else null
-        check(lexicon == null || (lexicon.failures.isEmpty() && lexicon.unresolvedSources.isEmpty())) {
+            dev.panini.linganushasanam.PaninianPratipadikaLexicon.declaredPratipadikas(),
+            avyayaRequests = DeclaredAvyayaDerivations.requests) else null
+        check(lexicon == null || (lexicon.failures.isEmpty() && lexicon.avyayaFailures.isEmpty() &&
+            lexicon.unresolvedSources.isEmpty())) {
             "Declared lexical analysis has incomplete derivations; not silently continuing"
         }
         val evaluator = SandhiSequenceEvaluator(lexicon = lexicon)
@@ -48,7 +50,7 @@ class SandhiKoshEvaluationTest {
                     status = "SKIPPED"; skipped++
                 } else {
                     try {
-                        val analyzed = parts.count { lexicon?.nominalCandidates(it)?.isNotEmpty() == true }
+                        val analyzed = parts.count { lexicon?.padaCandidates(it)?.isNotEmpty() == true }
                         if (analyzed > 0) analyzedRows++
                         analyzedWordOccurrences += analyzed
                         val outcomes = evaluator.evaluate(parts, alternatives, finalBoundary = endpoint)

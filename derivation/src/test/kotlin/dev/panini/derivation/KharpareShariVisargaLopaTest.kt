@@ -4,7 +4,7 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.vartika.KharpareShariVisargaLopaVartika
 import dev.panini.sutra.runtime.SutraSource
 import dev.panini.shiksha.*
-import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
+import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import kotlin.test.*
 
 class KharpareShariVisargaLopaTest {
@@ -52,7 +52,7 @@ class KharpareShariVisargaLopaTest {
         assertTrue(Ashtadhyayi.cataloguedSutras.none { it.number == rule.sutra })
         assertEquals("8.3.36", assertIs<SutraSource.Vartika>(rule.source).parentSutra)
         val outcomes = SandhiSequenceEvaluator(lexicon = DerivedVisargaLexicon.build(
-            StandardPratipadikaLexicon.declaredPratipadikas()))
+            PaninianPratipadikaLexicon.declaredPratipadikas()))
             .evaluate(listOf("सः", "शक्रः", "शक्रः", "इति"), alternatives = true)
         assertTrue(outcomes.none { it.surface.filterNot(Char::isWhitespace) == "सशक्रशक्रइति" })
         assertTrue(outcomes.all { it.steps.flatMap { step -> step.applications }.none { application -> application.sutra == rule.sutra } })

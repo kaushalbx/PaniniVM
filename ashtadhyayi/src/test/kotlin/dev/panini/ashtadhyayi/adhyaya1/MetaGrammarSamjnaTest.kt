@@ -2,7 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya1
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AloAntyatPurvaUpadhaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AnuditSavarnasyaCapratyayahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.SnatSatSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada2.TauSatSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.SvamRupamSabdasyasabdasamjnaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TarapTamapGhahSutra
 import dev.panini.derivation.DerivationState
@@ -26,9 +26,9 @@ class MetaGrammarSamjnaTest {
     }
 
     @Test
-    fun testSnatSatSutra() {
+    fun testTauSatSutra() {
         val state = DerivationState(terms = listOf(DerivationTerm("affix", "शतृँ", TermKind.PRATYAYA, upadesha = "शतृँ")))
-        assertTrue(SnatSatSutra.matches(state))
+        assertTrue(TauSatSutra.matches(state))
     }
 
     @Test

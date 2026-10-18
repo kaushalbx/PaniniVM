@@ -52,6 +52,7 @@ class TaddhitaEngineTest {
                 DerivationTerm(
                     "phak", "फक्", TermKind.PRATYAYA, upadesha = "फक्",
                     itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                    sourceTaddhitaAffix = dev.panini.core.TaddhitaAffix.PHAK,
                 )
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
@@ -71,6 +72,7 @@ class TaddhitaEngineTest {
                 DerivationTerm(
                     "dhak", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
                     itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                    sourceTaddhitaAffix = dev.panini.core.TaddhitaAffix.DHAK,
                 )
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
@@ -99,7 +101,8 @@ class TaddhitaEngineTest {
     fun `test PancamyasTasilSutra prescribes tasil affix`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("pratipadika", "तद्", TermKind.PRATIPADIKA, upadesha = "तद्")),
-            context = DerivationalContext(requestedMeaning = DerivationalMeaning.APADANA)
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.APADANA),
+            activeAdhikaras = setOf("4.1.76", "5.3.1", "5.3.2"),
         )
         assertTrue(PancamyasTasilSutra.matches(state))
         val change = PancamyasTasilSutra.apply(state)
@@ -125,7 +128,8 @@ class TaddhitaEngineTest {
     fun `test SaptamyasTralSutra prescribes tral affix`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("pratipadika", "सर्व", TermKind.PRATIPADIKA, upadesha = "सर्व")),
-            context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA)
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA),
+            activeAdhikaras = setOf("4.1.76", "5.3.1", "5.3.2"),
         )
         assertTrue(SaptamyasTralSutra.matches(state))
         val change = SaptamyasTralSutra.apply(state)

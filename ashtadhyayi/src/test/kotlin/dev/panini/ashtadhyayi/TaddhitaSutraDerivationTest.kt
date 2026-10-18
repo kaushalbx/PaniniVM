@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.NonOperativeUpadeshaFunction
+import dev.panini.derivation.DerivationalContext
+import dev.panini.derivation.DerivationalMeaning
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -29,7 +31,9 @@ class TaddhitaSutraDerivationTest {
     @Test
     fun `test PancamyasTasilSutra prescribes tasil affix`() {
         val state = DerivationState(
-            terms = listOf(DerivationTerm("pratipadika", "तद्", TermKind.PRATIPADIKA, upadesha = "तद्"))
+            terms = listOf(DerivationTerm("pratipadika", "तद्", TermKind.PRATIPADIKA, upadesha = "तद्")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.APADANA),
+            activeAdhikaras = setOf("4.1.76", "5.3.1", "5.3.2"),
         )
         assertTrue(PancamyasTasilSutra.matches(state))
         val change = PancamyasTasilSutra.apply(state)
@@ -45,7 +49,9 @@ class TaddhitaSutraDerivationTest {
     @Test
     fun `test SaptamyasTralSutra prescribes tral affix`() {
         val state = DerivationState(
-            terms = listOf(DerivationTerm("pratipadika", "सर्व", TermKind.PRATIPADIKA, upadesha = "सर्व"))
+            terms = listOf(DerivationTerm("pratipadika", "सर्व", TermKind.PRATIPADIKA, upadesha = "सर्व")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA),
+            activeAdhikaras = setOf("4.1.76", "5.3.1", "5.3.2"),
         )
         assertTrue(SaptamyasTralSutra.matches(state))
         val change = SaptamyasTralSutra.apply(state)

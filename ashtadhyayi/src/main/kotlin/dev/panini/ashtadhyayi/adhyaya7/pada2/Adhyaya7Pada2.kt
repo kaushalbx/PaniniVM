@@ -8,7 +8,7 @@ object Adhyaya7Pada2 {
         LingasSalopoAnantyasyaSutra, KrsrbhrvrstudrusrusruvoLitiSutra, AtoYeyahSutra,
         AtoNgitahSutra, AcoNnitiSutra, ArdhadhatukasyedValadehSutra, LingsicorAtmanepadesuSutra,
         GamerItParasmaipadesuSutra, SiciVrddhihParasmaipadesuSutra, AtaUpadhayahSutra,
-        TyadadinamAhSutra, KimahKahSutra, TadohSahSauAnantyayohSutra, IdoAyamSutra, TisrCatasruSutra, AciRaRtahSutra,
+        TyadadinamAhSutra, KimahKahSutra, KuTihohSutra, TadohSahSauAnantyayohSutra, IdoAyamSutra, TisrCatasruSutra, AciRaRtahSutra,
         AstanAaVibhaktuSutra, AaneMukSutra,
         AdasAuSuLopahSutra, IdamoMahSutra, DasCaSutra, YahSauSutra, AnapyakahSutra, HaliLopahSutra,
         MaparyantasyaSutra, TvahauSauSutra, YuyavayauJasiSutra, SheseLopahSutra,

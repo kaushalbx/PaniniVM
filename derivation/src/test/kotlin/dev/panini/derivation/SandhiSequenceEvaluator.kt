@@ -55,7 +55,7 @@ internal class SandhiSequenceEvaluator(private val engine: SandhiEngine = Sandhi
                 throw InvalidPadaInput(index, word, failure)
             }
             val id = "corpus_pada_$index"
-            val candidates = lexicon?.nominalCandidates(word).orEmpty()
+            val candidates = lexicon?.padaCandidates(word).orEmpty()
             if (candidates.isEmpty()) listOf(SandhiEngine.Pada(DerivationTerm(id, word, TermKind.PRATIPADIKA, upadesha = word)))
             else candidates.map { candidate ->
                 engine.padaFromDerivation(candidate.derivation, id).copy(visargaSource = candidate.pada.visargaSource)

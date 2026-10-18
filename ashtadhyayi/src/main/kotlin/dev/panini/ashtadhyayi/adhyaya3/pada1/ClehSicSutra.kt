@@ -28,8 +28,8 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.none { it.upadesha == "च्लि" }) return false
         if (ShalIgupadhadAnitahKsahSutra.matches(context)) return false
-        if (NishriDruSruBhyahKarthariChaSutra.matches(context)) return false
-        if (PusAdiDyutAdyLdtahParasmaipadesuSutra.matches(context)) return false
+        if (NiShriDruSruBhyahKartariChangSutra.matches(context)) return false
+        if (PusAdiDyutAdyLrditahParasmaipadesuSutra.matches(context)) return false
         if (ChinKarmaniChaSutra.matches(context)) return false
         return true
     }

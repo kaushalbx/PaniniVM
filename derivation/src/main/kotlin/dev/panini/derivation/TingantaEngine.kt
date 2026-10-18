@@ -46,7 +46,9 @@ class TingantaEngine(
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
-        return engine.derive(request.initialState(dhatu), config).apply {
+        // The resolved lexical pada is grammatical input to pada-conditioned
+        // rules even when the caller did not need to disambiguate it explicitly.
+        return engine.derive(request.copy(pada = targetPada).initialState(dhatu), config).apply {
             verifyDerivation("3.4.78", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
         }
     }

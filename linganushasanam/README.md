@@ -23,9 +23,8 @@ linganushasanam/
     │   └── TtalantahSutra.kt            # 1.6 तल्-ता-अन्ताः
     ├── adhyaya2/                        # अथ पुंलिङ्गम्
     │   ├── PumsiSutra.kt                # 2.1 पुंसि (अधिकार)
-    │   ├── GhajantahSutra.kt            # 2.2 घञन्ताः
-    │   ├── ErachantahSutra.kt           # 2.4 इर्-अच्-अन्ताः
-    │   └── NranahSutra.kt               # 2.5 नराख्याः
+    │   ├── GhanAbantahSutra.kt          # 36 घञबन्तः
+    │   └── GhajantashCaSutra.kt         # 37 घाजन्तश्च
     ├── adhyaya3/                        # अथ नपुंसकलिङ्गम्
     │   ├── NapumsakeSutra.kt            # 3.1 नपुंसके (अधिकार)
     │   ├── LyudadyantahSutra.kt         # 3.2 ल्युडाद्यन्तः

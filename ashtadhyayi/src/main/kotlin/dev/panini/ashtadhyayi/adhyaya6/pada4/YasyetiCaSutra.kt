@@ -45,6 +45,7 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         if (affix.kind != TermKind.PRATYAYA) return false
+        if (context.samjnas.none { it.targetId == stem.id && it.samjna == Samjna.BHA }) return false
 
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
             affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्")

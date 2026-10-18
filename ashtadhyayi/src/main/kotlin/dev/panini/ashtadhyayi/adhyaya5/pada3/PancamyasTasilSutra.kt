@@ -8,6 +8,8 @@ import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.NonOperativeUpadeshaFunction
 import dev.panini.derivation.NonOperativeUpadeshaSegment
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.DerivationalMeaning
+import dev.panini.core.TaddhitaAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,13 +23,14 @@ import dev.panini.sutra.SutraType
 object PancamyasTasilSutra : Sutra<DerivationState, DerivationChange>(
     number = "5.3.7", text = "पञ्चम्यास्तसिल्",
     hindiExplanation = "पञ्चम्यन्त समर्थ पद से 'तसिल्' (तस्) अव्ययतद्धित प्रत्यय होता है।",
-    type = SutraType.NITYA, chapter = 5, pada = 3, optional = false, kramaValue = 530007,
+    type = SutraType.VIBHASHA, chapter = 5, pada = 3, optional = true, kramaValue = 530007,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.effectiveContext.rupa.lakara == null &&
+        context.context.requestedMeaning == DerivationalMeaning.APADANA &&
+        "5.3.1" in context.activeAdhikaras && "5.3.2" in context.activeAdhikaras &&
         context.allEffectiveTerms.any { it.kind == TermKind.PRATIPADIKA } &&
-        context.allEffectiveTerms.none { it.upadesha == "तसिल्" }
+        context.allEffectiveTerms.none { it.sourceTaddhitaAffix == TaddhitaAffix.TASIL }
 
     override fun apply(context: DerivationState): DerivationChange {
         val tasilTerm = DerivationTerm(
@@ -42,6 +45,7 @@ object PancamyasTasilSutra : Sutra<DerivationState, DerivationChange>(
                 NonOperativeUpadeshaSegment(2, 3, "ि", NonOperativeUpadeshaFunction.UCCARANARTHA),
             ),
             itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            sourceTaddhitaAffix = TaddhitaAffix.TASIL,
         )
         return DerivationChange(
             state = context.addTerm(tasilTerm),
