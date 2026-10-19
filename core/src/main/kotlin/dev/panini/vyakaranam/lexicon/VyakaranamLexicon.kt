@@ -67,9 +67,9 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         }
         // Masculine nominal stems explicitly attested by Amarakośa:
         // ghaṭa 2.9.32, putra 2.6.27, doṣa 3.3.226, guru 1.3.24/2.7.7,
-        // and hetu 1.4.28. Admit stems, never corpus surface forms; gender is
+        // hetu 1.4.28, and prabhu 3.1.23. Admit stems, never corpus surface forms; gender is
         // attached by the Liṅgānuśāsanam-layer PaninianPratipadikaLexicon.
-        listOf("घट", "पुत्र", "दोष", "गुरु", "हेतु").forEach { text ->
+        listOf("घट", "पुत्र", "दोष", "गुरु", "हेतु", "प्रभु").forEach { text ->
             put(text, PratipadikaEntry(text, emptySet()))
         }
         // Amarakośa 1.11.518–520 enumerates these as ocean synonyms.
@@ -82,7 +82,7 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         // domain of Liṅgānuśāsana 37. Gender remains assigned by that rule.
         put("विजय", PratipadikaEntry("विजय", emptySet(), lingaPratyaya = "अच्"))
         // Independently selected prātipadika identities from the exact
-        // Liṅgānuśāsana 109, 110, 111, 114, 116, and 158 enumerations. Gender
+        // Liṅgānuśāsana 109–117 and 158 enumerations. Gender
         // is intentionally absent here and is supplied only by the registered
         // LinganushasanaSutra. The rule objects retain the complete lists.
         // Source text:
@@ -92,10 +92,18 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
             "ऋषि", "राशि", "ध्वनि", "रवि", "कवि", "कपि", "मुनि",
             "ध्वज", "गज",
             "हस्त", "अन्त", "दूत", "सूत", "मुहूर्त",
+            "मुण्ड", "वंश", "अंश", "पुरोडाश",
             "ह्रद", "कुन्द", "शब्द",
+            "पथि", "पूग",
             "कफ", "मठ", "मणि", "गन्ध", "स्कन्ध", "मृदङ्ग", "सङ्ग",
+            "सारथि", "अतिथि", "कुक्षि", "पाणि", "अञ्जलि",
             "अमित्र", "छात्र", "मन्त्र", "उष्ट्र",
         ).forEach { text -> put(text, PratipadikaEntry(text, emptySet())) }
+        // Exact identities in Liṅgānuśāsana 145 and 183. Gender is supplied by
+        // those registered rules; the complete enumerations remain in that module.
+        listOf("मूल", "बाल", "शूल", "दण्ड", "शव").forEach { text ->
+            put(text, PratipadikaEntry(text, emptySet()))
+        }
         // Śabdakalpadruma's Indra entry and Amarakośa's svargavarga synonym list.
         // Admit stems, never completed visarga spellings or guessed sources.
         listOf("इन्द्र", "शक्र").forEach { text ->

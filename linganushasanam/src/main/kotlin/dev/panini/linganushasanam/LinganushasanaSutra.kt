@@ -21,6 +21,8 @@ abstract class LinganushasanaSutra(
     override val priority: Int = 10,
 ) : LinganushasanamRule {
 
+    open val targetLingas: Set<Linga> get() = setOf(targetLinga)
+
     override val ruleId: String get() = number
     override val description: String get() = "$number ($text): $hindiExplanation"
 
@@ -29,6 +31,7 @@ abstract class LinganushasanaSutra(
             linga = targetLinga,
             ruleId = number,
             explanation = "Sūtra $number ($text) matched for '${context.pratipadika}'.",
+            lingas = targetLingas,
         )
     }
 }

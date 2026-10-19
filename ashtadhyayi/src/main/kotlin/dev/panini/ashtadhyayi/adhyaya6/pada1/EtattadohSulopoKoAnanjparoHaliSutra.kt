@@ -10,7 +10,6 @@ import dev.panini.core.Linga
 import dev.panini.core.Vibhakti
 import dev.panini.core.Vacana
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -82,11 +81,6 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
             term.hasRutvaAt(varnas.lastIndex) && varnas in setOf(
                 listOf(Vyanjana.SA, Svara.A, Vyanjana.RA),
                 listOf(Svara.E, Vyanjana.SSA, Svara.A, Vyanjana.RA))
-        return establishedSuRu || varnas in setOf(
-        listOf(Vyanjana.SA, Svara.A, Ayogavaha.VISARGA),
-        listOf(Svara.E, Vyanjana.SSA, Svara.A, Ayogavaha.VISARGA),
-        listOf(Vyanjana.SA, Svara.A, Vyanjana.SA),
-        listOf(Svara.E, Vyanjana.SSA, Svara.A, Vyanjana.SA),
-        )
+        return establishedSuRu
     }
 }

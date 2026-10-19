@@ -18,10 +18,16 @@ import dev.panini.linganushasanam.adhyaya2.DhvajaGajaMunjaPunjaSutra
 import dev.panini.linganushasanam.adhyaya2.HastaKuntaAntaVataVrataDutaSutra
 import dev.panini.linganushasanam.adhyaya2.HradaKandaKundaBudbudaSabdaSutra
 import dev.panini.linganushasanam.adhyaya2.PallavaPalvalaKapharephaSutra
+import dev.panini.linganushasanam.adhyaya2.SandaMandaKarandaSutra
+import dev.panini.linganushasanam.adhyaya2.VamsaAmsaPurodasaSutra
+import dev.panini.linganushasanam.adhyaya2.ArghaPathiMathiRbhuksiSutra
+import dev.panini.linganushasanam.adhyaya2.SarathiAtithiKuksiSutra
 import dev.panini.linganushasanam.adhyaya3.AsunIsunUsunantahSutra
 import dev.panini.linganushasanam.adhyaya3.LyudadyantahSutra
 import dev.panini.linganushasanam.adhyaya3.NapumsakeSutra
 import dev.panini.linganushasanam.adhyaya3.BhrtrAmitraChatraPutraSutra
+import dev.panini.linganushasanam.adhyaya3.SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra
+import dev.panini.linganushasanam.adhyaya3.DandaMandaKhandaSavaSaindhavaParsvaSutra
 import dev.panini.linganushasanam.adhyaya4.VisesyanighnaSutra
 import dev.panini.linganushasanam.adhyaya5.AnehamAnyapadartheSutra
 import dev.panini.linganushasanam.adhyaya5.ParavallingamDvandvaTatpurusayohSutra
@@ -49,14 +55,20 @@ object LinganushasanamRegistry {
         RsiRasiDrtiGranthiKrimiDhvaniSutra,
         DhvajaGajaMunjaPunjaSutra,
         HastaKuntaAntaVataVrataDutaSutra,
+        SandaMandaKarandaSutra,
+        VamsaAmsaPurodasaSutra,
         HradaKandaKundaBudbudaSabdaSutra,
+        ArghaPathiMathiRbhuksiSutra,
         PallavaPalvalaKapharephaSutra,
+        SarathiAtithiKuksiSutra,
         GhanAbantahSutra,
         GhajantashCaSutra,
 
         // Chapter 3: Napuṃsakaliṅgam
         NapumsakeSutra,
         BhrtrAmitraChatraPutraSutra,
+        SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra,
+        DandaMandaKhandaSavaSaindhavaParsvaSutra,
         LyudadyantahSutra,
         AsunIsunUsunantahSutra,
 

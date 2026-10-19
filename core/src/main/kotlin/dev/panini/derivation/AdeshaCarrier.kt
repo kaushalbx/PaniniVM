@@ -28,7 +28,8 @@ data class AdeshaOrigin(
 
 /** Introduce raw ādeśa material without pretending it is a pratyaya or āgama. */
 fun DerivationState.introduceRawAdesha(targetId: String, rawVarnas: List<Varna>,
-    placement: AdeshaPlacement, sutra: String, carrierId: String): DerivationState {
+    placement: AdeshaPlacement, sutra: String, carrierId: String,
+    upadesha: String = rawVarnas.toDevanagari()): DerivationState {
     val target = terms.single { it.id == targetId }
     require(!target.itProcessingPending && target.itDesignations.isEmpty() && target.deferredItDesignations.isEmpty())
     require(target.kind != TermKind.ADESHA && target.varnas.isNotEmpty())
@@ -44,7 +45,7 @@ fun DerivationState.introduceRawAdesha(targetId: String, rawVarnas: List<Varna>,
         }
     }
     val rawSurface = rawVarnas.toDevanagari()
-    val carrier = DerivationTerm(carrierId, rawSurface, TermKind.ADESHA, upadesha = rawSurface,
+    val carrier = DerivationTerm(carrierId, rawSurface, TermKind.ADESHA, upadesha = upadesha,
         createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
         adeshaTarget = AdeshaTarget(targetId, target.varnas.toList(), placement))
     val index = terms.indexOf(target) + 1

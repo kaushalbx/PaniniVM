@@ -12,9 +12,15 @@ import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 
 class SandhiSequenceEvaluatorTest {
+    companion object {
+        private val declaredLexicon by lazy {
+            DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        }
+    }
+
     @Test
     fun `explicit Liṅgānuśāsana enumerations retain nominal proofs through sandhi`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val cases = listOf(
             Triple("गजः", "वा", "गजोवा"),
             Triple("सूतः", "उवाच", "सूतउवाच"),
@@ -36,7 +42,7 @@ class SandhiSequenceEvaluatorTest {
 
     @Test
     fun `rule 37 vijaya provenance is forward declined before sandhi`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val candidate = assertNotNull(index.candidates("विजयः").singleOrNull())
         assertEquals("अच्", candidate.entry.lingaPratyaya)
         assertEquals(setOf("37"), candidate.entry.lingaRuleIds)
@@ -54,7 +60,7 @@ class SandhiSequenceEvaluatorTest {
 
     @Test
     fun `samudra meaning provenance supplies nominal and sandhi traces`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         assertTrue(index.failures.isEmpty(), index.failures.joinToString())
         for ((surface, right, expected) in listOf(
             Triple("सागरः", "अद्य", "सागरोऽद्य"),
@@ -100,7 +106,7 @@ class SandhiSequenceEvaluatorTest {
     private val evaluator = SandhiSequenceEvaluator()
 
     @Test fun `uoh ghata rows use an attested forward nominal proof`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val outcomes = SandhiSequenceEvaluator(lexicon = index).evaluate(listOf("घटः", "अस्ति"), alternatives = true)
         assertTrue(outcomes.any { it.surface == "घटोऽस्ति" })
         for (outcome in outcomes) {
@@ -112,7 +118,7 @@ class SandhiSequenceEvaluatorTest {
     }
 
     @Test fun `uoh attested noun cluster carries forward rutva proofs`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val evaluator = SandhiSequenceEvaluator(lexicon = index)
         for ((word, right, expected) in listOf(
             Triple("पुत्रः", "अस्ति", "पुत्रोऽस्ति"),
@@ -130,8 +136,7 @@ class SandhiSequenceEvaluatorTest {
     }
 
     @Test fun `uoh indra and shakra failures use nominal source proofs`() {
-        val analyzed = SandhiSequenceEvaluator(lexicon = DerivedVisargaLexicon.build(
-            PaninianPratipadikaLexicon.declaredPratipadikas()))
+        val analyzed = SandhiSequenceEvaluator(lexicon = declaredLexicon)
         for ((word, expected) in listOf("इन्द्रः" to "इन्द्रोवा", "शक्रः" to "शक्रोवा")) {
             assertEquals(word + "वा", evaluator.evaluate(listOf(word, "वा")).single().surface)
             val outcomes = analyzed.evaluate(listOf(word, "वा"))
@@ -148,7 +153,7 @@ class SandhiSequenceEvaluatorTest {
     }
 
     @Test fun `uoh rama hanuman ca uses attested lexical proof and prescribed nasal alternatives`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val outcomes = SandhiSequenceEvaluator(lexicon = index)
             .evaluate(listOf("रामः", "हनुमान्", "च"), alternatives = true)
         val selected = outcomes.firstOrNull { it.surface.filterNot(Char::isWhitespace) == "रामोहनुमांश्च" }
@@ -218,7 +223,7 @@ class SandhiSequenceEvaluatorTest {
     }
 
     @Test fun `declared lexical mode supplies actual rutva proof without changing baseline`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = declaredLexicon
         val analyzed = SandhiSequenceEvaluator(lexicon = index)
         val words = listOf("प्रथमः", "अङ्कः")
         assertEquals("प्रथमःअङ्कः", evaluator.evaluate(words).single().surface)

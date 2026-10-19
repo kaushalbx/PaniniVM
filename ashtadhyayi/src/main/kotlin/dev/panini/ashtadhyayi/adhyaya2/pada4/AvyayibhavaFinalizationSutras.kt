@@ -39,7 +39,7 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.PADA_FORMATION,
     // The indeclinable's sup-luk governs the boundary independently of any
     // incidental neuter gender; do not replace it with nominal singular luk.
-    blocks = setOf("7.1.23", "6.1.107"),
+    blocks = setOf("7.1.23", "6.1.68", "6.1.107"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
@@ -54,10 +54,13 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms.first { it.kind == TermKind.PRATIPADIKA }
         val sup = context.terms.last { it.kind == TermKind.PRATYAYA }
+        val withoutSup = context.removeTerm(sup.id, sutra)
         return DerivationChange(
-            context.removeTerm(sup.id, sutra).copy(stage = DerivationStage.FINAL),
-            "2.4.82 applies luk to sup after the indeclinable.",
+            withoutSup.withSamjnas(setOf(SamjnaAssignment(stem.id, Samjna.PADA)))
+                .copy(stage = DerivationStage.FINAL),
+            "2.4.82 applies luk to sup after the indeclinable and retains the resulting pada designation on the survivor.",
         )
     }
 

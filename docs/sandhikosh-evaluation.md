@@ -15,7 +15,7 @@ malformed input, and row identifiers.
 .\gradlew.bat -I scripts/sandhikosh-evaluation.init.gradle `
   -PsandhikoshEvaluationDir=build/sandhikosh-evaluation `
   -PsandhikoshLexicalAnalysis=declared `
-  :derivation:test --tests '*SandhiKoshEvaluationTest' --no-parallel
+  :derivation:sandhiKoshEvaluation --no-parallel
 ```
 
 Use `build/sandhikosh-uoh-evaluation` for UoH and add
@@ -36,37 +36,37 @@ Use `build/sandhikosh-uoh-evaluation` for UoH and add
   require independent evidence and successful forward derivation.
 - Empty/unusable records are explicit skips; exceptions remain errors.
 
-## Verified checkpoint — 2026-10-18
+## Verified checkpoint — 2026-10-19
 
 | Corpus and mode | Pass | Fail | Errors | Skipped | Exact |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Aṣṭādhyāyī default | 887 | 1,808 | 4 | 1 | 618 |
-| Aṣṭādhyāyī alternatives | 1,168 | 1,527 | 4 | 1 | 639 |
-| UoH default | 5,052 | 4,312 | 0 | 4 | 4,491 |
-| UoH alternatives | 5,857 | 3,507 | 0 | 4 | 4,554 |
+| Aṣṭādhyāyī default | 890 | 1,805 | 4 | 1 | 621 |
+| Aṣṭādhyāyī alternatives | 1,172 | 1,523 | 4 | 1 | 643 |
+| UoH default | 5,203 | 4,161 | 0 | 4 | 4,614 |
+| UoH alternatives | 6,015 | 3,349 | 0 | 4 | 4,677 |
 
-Declared coverage is 235 Aṣṭādhyāyī rows/267 occurrences and 2,349 UoH
-rows/2,637 occurrences. The complete 77-task suite and `git diff --check` pass.
+Declared coverage is 252 Aṣṭādhyāyī rows/285 occurrences and 2,583 UoH
+rows/2,936 occurrences. The complete 77-task suite and `git diff --check` pass.
 
 ## Current delta
 
-- Raw āgama/ādeśa carriers retain इत् and target provenance; ś-it whole
-  substitution executes through 1.1.55.
-- Prāgdiśīya derivation covers 5.3.1–3, 5.3.7, 5.3.10, and 7.2.102/104,
-  deriving `ततः`, `यतः`, `कुतः`, and `इतः`. Rule 5.3.2 consumes the existing
-  `SarvadiGana` and its canonical द्व्यादि tail; no synthetic gaṇa is registered.
-  Sources: [5.3.2](https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/5/5.3.2.htm),
-  [5.3.3](https://www.premabase.com/siddhanta-kaumudi/p40/textbook/index.html),
-  [5.3.7](https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/5/5.3.7.htm),
-  [7.2.104](https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/7/7.2.104.htm).
-- Gender comes from registered `LinganushasanaSutra`s over gender-free core
-  stems: authentic rules 35–37, 43, 51, 64, 93, 109–111, 114, 116, and 158.
-  The complete enumerations of 109–111, 114, 116, and 158 are declared as
-  executable rules; independently selected members are declared as gender-free
-  identities for forward lexical analysis. Fabricated legacy registrations were removed.
-  Semantic rules require explicit meaning provenance before forward declension.
-- Rules 3.1.48 and 3.1.55 use exact `cli` substitution and retained derivational
-  or Dhātupāṭha provenance, not spelling-based gaṇa guesses.
+- Exact āgama/ādeśa and `cli` operations retain target, इत्, Dhātupāṭha, and
+  derivational provenance. Prāgdiśīya forms derive through registered rules and
+  the existing `SarvadiGana`, without synthetic gaṇas.
+- Gender is supplied by registered `LinganushasanaSutra`s over gender-free stems;
+  rules 145 and 183 preserve both licensed masculine/neuter readings. Semantic
+  rules still require meaning provenance.
+- Correct 6.4.11 and 7.1.94 replace the former misnumbered shortcut. Selected
+  s/r-final `SvaradiGana` members derive through 1.1.37/2.4.82; सुप्-luk retains
+  pada identity and exact 8.3.15 repha provenance; 8.3.36 retains both śar
+  branches. Cumulative gain from these gaṇa forms: Aṣṭādhyāyī +1 default/+2
+  alternatives and UoH +105 default/+111 alternatives.
+- Rule 6.1.132 now requires a forward-derived `तद्`/`एतद्` masculine nominative
+  singular and its exact `सुँ`→`रुँ` provenance; bare `सः`/`एषः` spelling is not
+  treated as proof. No benchmark row depended on the removed shortcut.
+- Amarakośa 3.1.23 supplies `प्रभु`; registered Liṅgānuśāsana 51 supplies its
+  gender. Five UoH rows now pass in each mode; undeclared shape matches remain
+  excluded from the corpus lexicon.
 
 ## Remaining failures
 
@@ -83,10 +83,3 @@ rows/2,637 occurrences. The complete 77-task suite and `git diff --check` pass.
 Largest clusters remain unresolved visarga provenance, multipart metalinguistic
 input, optional anusvāra/parasavarṇa spelling, editorial avagraha, and missing
 verbal or nominal context. Generated reports contain row-level evidence.
-
-## Batch gate
-
-Verify primary sources; add sourced positive, negative, optional, and trace
-tests; run focused tests; evaluate both corpora in both modes; run
-`.\gradlew.bat test --no-parallel`; run `git diff --check`; and record affected
-rows, count deltas, modeling changes, and remaining categories.

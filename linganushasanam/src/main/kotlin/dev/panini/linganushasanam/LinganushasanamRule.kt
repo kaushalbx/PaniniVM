@@ -10,6 +10,7 @@ sealed interface LingaRuleResult {
         val linga: Linga,
         val ruleId: String,
         val explanation: String,
+        val lingas: Set<Linga> = setOf(linga),
     ) : LingaRuleResult
 
     object Unmatched : LingaRuleResult

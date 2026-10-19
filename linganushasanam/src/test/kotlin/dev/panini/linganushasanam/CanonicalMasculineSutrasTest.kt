@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 
 class CanonicalMasculineSutrasTest {
     @Test fun `51 assigns short u stems and rejects its exclusive exceptions`() {
-        for (stem in listOf("गुरु", "हेतु")) assertTrue(UkarantahSutra.matches(LingaRuleContext(stem)), stem)
+        for (stem in listOf("गुरु", "हेतु", "प्रभु")) assertTrue(UkarantahSutra.matches(LingaRuleContext(stem)), stem)
         for (stem in listOf("धेनु", "श्मश्रु", "वस्तु")) assertFalse(UkarantahSutra.matches(LingaRuleContext(stem)), stem)
         assertEquals(Linga.PUMS, UkarantahSutra.apply(LingaRuleContext("गुरु")).let { it as LingaRuleResult.Matched }.linga)
     }

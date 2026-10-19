@@ -1,11 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada4
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.hasSarvanamasthanaSupIdentity
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -14,13 +13,16 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 6.4.11: ṛduśanas-purudaṃso 'nehasāṃ ca.
- * Lengthens penultimate vowel of ṛ-stems (becoming 'ār') before nominative singular 'su', yielding 'pita', 'mata', etc. after r-lopa.
+ * 6.4.11: aptṛntṛcsvasaṛnaptṛneṣṭṛtvaṣṭṛkṣattṛhotṛpotṛpraśāstṝṇām.
+ * Lengthens the penultimate vowel of the enumerated stems before a non-vocative
+ * sarvanāmasthāna ending. General ऋ-final nominative singular formation belongs
+ * to 7.1.94 followed by 6.4.8 and 8.2.7, not to this rule.
+ * Source: https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/6/6.4.11.htm
  */
-object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
+object ApTrnTrcSvasrNaptrNestrTvastrKsattrHotrPotrPrasastrnamSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.4.11",
-    text = "ऋदुशनस्पुरुदंसोऽनेहसां च",
-    hindiExplanation = "ऋदन्त अङ्ग की उपधा का दीर्घ होता है असम्बुद्धौ सौ विभक्तौ परे (पितार् -> पिता)।",
+    text = "अप्तृन्तृच्स्वसृनप्तृनेष्टृत्वष्टृक्षत्तृहोतृपोतृप्रशास्तॄणाम्",
+    hindiExplanation = "असम्बुद्धि सर्वनामस्थान परे निर्दिष्ट अङ्गों की उपधा दीर्घ होती है।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 4,
@@ -39,26 +41,22 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        if (stem.varnas.lastOrNull() == Svara.AA) return false
-        val isArStem = stem.upadeshaVarnas.lastOrNull() == Svara.R ||
-            stem.varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA)
-        if (!isArStem) return false
-
-        val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ"
-        return isSu
+        if (stem.upadesha !in explicitlyEnumerated || stem.varnas.size < 2) return false
+        if (!affix.hasSarvanamasthanaSupIdentity() || affix.sourceSupAffix == dev.panini.core.SupAffix.SU) return false
+        val penultimate = stem.varnas.lastIndex - 1
+        return stem.varnas.getOrNull(penultimate) == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val source = if (stem.varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA)) Vyanjana.RA else Svara.R
-        val result = if (source == Vyanjana.RA) stem.varnas.dropLast(2) + Svara.AA else stem.varnas.dropLast(1) + Svara.AA
+        val penultimate = stem.varnas.lastIndex - 1
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, source, listOf(Svara.AA), sutra)
-                .removeTerm(affix.id, sutra = sutra)
-                .copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.4.11 & 8.2.7 derives the lengthened ṛ-stem before nominative singular su."
+            state = context.replaceTermVarna(stem.id, penultimate, listOf(Svara.AA), sutra),
+            explanation = "6.4.11 lengthens the exact penultimate a of the enumerated stem."
         )
     }
+
+    private val explicitlyEnumerated = setOf("स्वसृ", "नप्तृ", "नेष्टृ", "त्वष्टृ", "क्षत्तृ", "होतृ", "पोतृ", "प्रशास्तृ")
 }

@@ -9,9 +9,11 @@ class StandardPratipadikaLexiconTest {
     @Test fun `participant type nouns retain grammatical gender`() {
         assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सङ्ख्या")?.linga)
         assertEquals(setOf(dev.panini.core.Linga.STRI), StandardPratipadikaLexicon.findPratipadika("सूची")?.linga)
-        for (text in listOf("शब्द", "घट", "पुत्र", "दोष", "गुरु", "हेतु", "विजय",
+        for (text in listOf("शब्द", "घट", "पुत्र", "दोष", "गुरु", "हेतु", "प्रभु", "विजय",
             "ऋषि", "राशि", "ध्वनि", "कपि", "गज", "दूत", "अन्त", "कफ",
-            "मठ", "मणि", "गन्ध", "अमित्र", "छात्र", "मन्त्र", "उष्ट्र")) {
+            "मठ", "मणि", "गन्ध", "मुण्ड", "अंश", "पुरोडाश", "पथि", "पूग",
+            "सारथि", "अतिथि", "कुक्षि", "पाणि", "अञ्जलि",
+            "अमित्र", "छात्र", "मन्त्र", "उष्ट्र")) {
             assertEquals(emptySet(), StandardPratipadikaLexicon.findPratipadika(text)?.linga)
         }
         assertEquals("अच्", StandardPratipadikaLexicon.findPratipadika("विजय")?.lingaPratyaya)

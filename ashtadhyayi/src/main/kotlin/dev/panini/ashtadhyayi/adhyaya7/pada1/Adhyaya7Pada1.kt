@@ -12,6 +12,7 @@ object Adhyaya7Pada1 {
         SarvanamnasSmaiSutra, NasinyohSmatsminauSutra, JasahShiSutra, AunapahSutra,
         AmiSarvanamnasSutSutra, JapsasohShihSutra, NapumsakaccaSutra, NapumsakasyaJhalacahSutra,
         SamaseAnanpurveKtvoLyapSutra, AtomSutra, TrestrayahSutra, SatCaturbhyascaSutra, CaturanuduhorAmSutra,
-        SadbhyoLukSutra, SvamorNapumsakatSutra, AstabhyahAushSutra, GotoNitSutra, NalUttamoVaSutra
+        SadbhyoLukSutra, SvamorNapumsakatSutra, AstabhyahAushSutra, GotoNitSutra, NalUttamoVaSutra,
+        RdusanasPurudamsoAnehasamCaSutra,
     )
 }

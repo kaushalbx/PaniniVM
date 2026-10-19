@@ -23,7 +23,7 @@ class DerivedVisargaLexicon private constructor(
     /** A complete forward nominal proof. Non-visarga words have no visarga source. */
     data class NominalCandidate(val entry: PratipadikaEntry, val request: SubantaDerivationRequest,
         val derivation: DerivationResult, val pada: SandhiEngine.Pada)
-    data class AvyayaCandidate(val request: TaddhitaDerivationRequest,
+    data class AvyayaCandidate(val upadesha: String,
         val derivation: DerivationResult, val pada: SandhiEngine.Pada, val source: String)
     data class PadaCandidate(val derivation: DerivationResult, val pada: SandhiEngine.Pada)
     data class Failure(val request: SubantaDerivationRequest, val errorType: String, val message: String?)
@@ -47,6 +47,7 @@ class DerivedVisargaLexicon private constructor(
         fun build(entries: Collection<PratipadikaEntry>,
             nominalEngine: SubantaEngine = SubantaEngine(), sandhiEngine: SandhiEngine = SandhiEngine(),
             avyayaRequests: Collection<TaddhitaDerivationRequest> = emptyList(),
+            ganaAvyayaUpadeshas: Collection<String> = emptyList(),
             taddhitaEngine: TaddhitaEngine = TaddhitaEngine()): DerivedVisargaLexicon {
             val index = mutableMapOf<String, MutableList<Candidate>>()
             val nominalIndex = mutableMapOf<String, MutableList<NominalCandidate>>()
@@ -93,10 +94,37 @@ class DerivedVisargaLexicon private constructor(
                     val result = taddhitaEngine.derive(request)
                     val pada = sandhiEngine.padaFromDerivation(result, "avyaya-${request.pratipadika}")
                     avyayaIndex.getOrPut(normalized(pada.term.surface)) { mutableListOf() } +=
-                        AvyayaCandidate(request, result, pada, DeclaredAvyayaDerivations.source)
+                        AvyayaCandidate(request.pratipadika, result, pada, DeclaredAvyayaDerivations.source)
                 } catch (error: RuntimeException) {
                     avyayaFailures += AvyayaFailure(request,
                         error::class.simpleName ?: "RuntimeException", error.message)
+                }
+            }
+            for (upadesha in ganaAvyayaUpadeshas.distinct()) {
+                require(dev.panini.ganapatha.SvaradiGana.contains(upadesha)) {
+                    "$upadesha is not an attested member of the existing svarādi gaṇa."
+                }
+                val request = SubantaDerivationRequest(upadesha, dev.panini.core.Vibhakti.PRATHAMA,
+                    dev.panini.core.Vacana.EKAVACANA, dev.panini.core.Linga.PUMS,
+                    pratipadikaUpadesha = upadesha)
+                try {
+                    val result = nominalEngine.derive(request)
+                    require(result.applications.map { it.sutra }.containsAll(listOf("1.1.37", "2.4.82")))
+                    val rawPada = sandhiEngine.padaFromDerivation(result, "svaradi-$upadesha")
+                    val tail = result.final.terms.last { it.varnas.isNotEmpty() }
+                    val finalChange = result.final.substitutions.lastOrNull { it.targetId == tail.id }
+                    val source = VisargaSource.R.takeIf {
+                        rawPada.term.varnas.lastOrNull() == Ayogavaha.VISARGA &&
+                            finalChange?.sutra == "8.3.15" &&
+                            finalChange.sourceVarnaIndex == tail.varnas.lastIndex &&
+                            finalChange.originalVarnas?.getOrNull(tail.varnas.lastIndex) == Vyanjana.RA &&
+                            finalChange.replacementVarnas == listOf(Ayogavaha.VISARGA)
+                    }
+                    val pada = rawPada.copy(visargaSource = source)
+                    avyayaIndex.getOrPut(normalized(pada.term.surface)) { mutableListOf() } +=
+                        AvyayaCandidate(upadesha, result, pada, DeclaredSvaradiAvyayas.source)
+                } catch (error: RuntimeException) {
+                    failures += Failure(request, error::class.simpleName ?: "RuntimeException", error.message)
                 }
             }
             return DerivedVisargaLexicon(index.mapValues { it.value.toList() },

@@ -22,3 +22,12 @@ tasks.withType<Test> {
     // and can exhaust the fixed test-worker heap.
     systemProperty("junit.jupiter.execution.parallel.enabled", "false")
 }
+
+tasks.register<JavaExec>("sandhiKoshEvaluation") {
+    group = "verification"
+    description = "Runs the explicitly configured external SandhiKosh corpus benchmark."
+    dependsOn(tasks.named("testClasses"))
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("dev.panini.derivation.SandhiKoshEvaluationRunner")
+    workingDir = rootDir
+}

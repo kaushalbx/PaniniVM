@@ -19,7 +19,7 @@ object PaninianPratipadikaLexicon : PratipadikaLexicon {
         if (base == null && ganas.isEmpty() && linga == null) return null
 
         return (base ?: PratipadikaEntry(normalized, emptySet())).copy(
-            linga = base?.linga.orEmpty() + listOfNotNull(linga?.linga),
+            linga = base?.linga.orEmpty() + linga?.lingas.orEmpty(),
             ganaNames = base?.ganaNames.orEmpty() + ganas.map { it.name },
             lingaRuleIds = base?.lingaRuleIds.orEmpty() + listOfNotNull(linga?.ruleId),
         )

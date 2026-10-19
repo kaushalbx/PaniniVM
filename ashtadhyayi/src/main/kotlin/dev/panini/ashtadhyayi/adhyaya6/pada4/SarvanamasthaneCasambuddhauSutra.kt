@@ -33,7 +33,8 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
     nimittaScope = NimittaScope.BOTH,
-    dependencies = setOf("6.4.1")
+    dependencies = setOf("6.4.1"),
+    blocks = setOf("1.4.14"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false

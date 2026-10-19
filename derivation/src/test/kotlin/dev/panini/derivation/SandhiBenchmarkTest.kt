@@ -2,6 +2,7 @@ package dev.panini.derivation
 
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.core.Linga
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import kotlin.test.assertEquals
@@ -20,10 +21,23 @@ class SandhiBenchmarkTest {
             )
             val result = if (case.leftRupa != null || case.rightRupa != null || case.leftUpadesha != null || case.rightUpadesha != null ||
                 case.leftVisargaSource != null || case.rightVisargaSource != null) {
-                fun pada(id: String, surface: String, rupa: Rupa?, upadesha: String?, source: VisargaSource?) = SandhiEngine.Pada(
-                    DerivationTerm(id, surface, TermKind.PRATIPADIKA, upadesha = upadesha ?: surface), rupa ?: Rupa(),
-                    visargaSource = source,
-                )
+                fun pada(id: String, surface: String, rupa: Rupa?, upadesha: String?, source: VisargaSource?): SandhiEngine.Pada {
+                    if (upadesha in setOf("तद्", "एतद्") && rupa?.linga != null &&
+                        rupa.vibhakti != null && rupa.vacana != null) {
+                        val derivation = SubantaEngine().derive(SubantaDerivationRequest(
+                            upadesha!!, requireNotNull(rupa.vibhakti), requireNotNull(rupa.vacana),
+                            requireNotNull(rupa.linga)))
+                        val derived = sandhiEngine.padaFromDerivation(derivation, id)
+                        require(derived.term.surface == surface) {
+                            "Declared benchmark form $surface does not follow from $upadesha and $rupa"
+                        }
+                        return derived
+                    }
+                    return SandhiEngine.Pada(
+                        DerivationTerm(id, surface, TermKind.PRATIPADIKA, upadesha = upadesha ?: surface), rupa ?: Rupa(),
+                        visargaSource = source,
+                    )
+                }
                 sandhiEngine.join(pada("left", case.left, case.leftRupa, case.leftUpadesha, case.leftVisargaSource),
                     pada("right", case.right, case.rightRupa, case.rightUpadesha, case.rightVisargaSource), config, case.finalBoundary)
             } else sandhiEngine.join(case.left, case.right, config, case.finalBoundary)
@@ -61,8 +75,9 @@ class SandhiBenchmarkTest {
         fun rupa(name: String): Rupa? {
             val value = raw[name] ?: return null
             val fields = value as? Map<*, *> ?: error("'$name' must be a Rupa object")
-            require(fields.keys.all { it in setOf("vibhakti", "vacana", "isVocative") }) { "Unknown Rupa field: $fields" }
+            require(fields.keys.all { it in setOf("linga", "vibhakti", "vacana", "isVocative") }) { "Unknown Rupa field: $fields" }
             return Rupa(
+                linga = fields["linga"]?.let { Linga.valueOf(it as String) },
                 vibhakti = fields["vibhakti"]?.let { Vibhakti.valueOf(it as String) },
                 vacana = fields["vacana"]?.let { Vacana.valueOf(it as String) },
                 isVocative = fields["isVocative"]?.let { it as Boolean } ?: false,

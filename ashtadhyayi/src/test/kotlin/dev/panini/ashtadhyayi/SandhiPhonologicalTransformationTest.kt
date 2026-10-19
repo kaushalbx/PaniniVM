@@ -22,6 +22,7 @@ import dev.panini.derivation.SandhiEngine
 import dev.panini.derivation.DerivationEngine
 import dev.panini.shiksha.Samjna
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -180,16 +181,14 @@ class SandhiPhonologicalTransformationTest {
     }
 
     @Test
-    fun `test EtattadohSulopoKoAnanjparoHaliSutra elides visarga from sah and eshah before hal`() {
+    fun `test EtattadohSulopoKoAnanjparoHaliSutra rejects an unanalyzed sah spelling`() {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("t1", "सः", TermKind.PRATIPADIKA, upadesha = "सः"),
                 DerivationTerm("t2", "गच्छति", TermKind.PRATIPADIKA, upadesha = "गच्छति")
             )
         )
-        assertTrue(EtattadohSulopoKoAnanjparoHaliSutra.matches(state))
-        val change = EtattadohSulopoKoAnanjparoHaliSutra.apply(state)
-        assertEquals("स", change.state.terms[0].surface)
+        assertFalse(EtattadohSulopoKoAnanjparoHaliSutra.matches(state))
     }
 
     @Test

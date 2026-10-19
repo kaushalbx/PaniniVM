@@ -2,24 +2,25 @@ package dev.panini.derivation
 
 import java.io.File
 import java.text.Normalizer
-import kotlin.test.Test
-import org.junit.jupiter.api.Assumptions.assumeTrue
 
-class SandhiKoshEvaluationTest {
+/** Explicit corpus benchmark runner; deliberately not part of the JUnit test suite. */
+object SandhiKoshEvaluationRunner {
     private fun normalized(value: String) = Normalizer.normalize(value.trim(), Normalizer.Form.NFC)
     private fun compact(value: String) = normalized(value).filterNot { it.isWhitespace() }
     private fun csv(value: Any?) = "\"" + value.toString().replace("\"", "\"\"") + "\""
 
-    @Test fun evaluateCorpus() {
+    @JvmStatic
+    fun main(args: Array<String>) {
         val basePath = System.getProperty("sandhikosh.evaluation.dir")
-        assumeTrue(basePath != null, "External corpus evaluation requires sandhikosh.evaluation.dir")
+            ?: error("External corpus evaluation requires sandhikosh.evaluation.dir")
         val base = File(requireNotNull(basePath))
         val records = TestJsonParser.parse(File(base, "cases.json").readText()) as List<*>
         val lexicalPolicy = System.getProperty("sandhikosh.lexical.analysis", "none")
         require(lexicalPolicy in setOf("none", "declared")) { "Unknown lexical analysis policy: $lexicalPolicy" }
         val lexicon = if (lexicalPolicy == "declared") DerivedVisargaLexicon.build(
             dev.panini.linganushasanam.PaninianPratipadikaLexicon.declaredPratipadikas(),
-            avyayaRequests = DeclaredAvyayaDerivations.requests) else null
+            avyayaRequests = DeclaredAvyayaDerivations.requests,
+            ganaAvyayaUpadeshas = DeclaredSvaradiAvyayas.upadeshas) else null
         check(lexicon == null || (lexicon.failures.isEmpty() && lexicon.avyayaFailures.isEmpty() &&
             lexicon.unresolvedSources.isEmpty())) {
             "Declared lexical analysis has incomplete derivations; not silently continuing"

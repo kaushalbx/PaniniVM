@@ -48,7 +48,8 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
             // A compound's non-final pada may acquire n through a substitute such as ānaṅ.
             // Do not extend this early compound operation to a newly n-final compound head:
             // that member still has its own inflectional lifecycle (e.g. vidvas -> vidvān).
-            val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA || insideSamasa
+            val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA || insideSamasa ||
+                stem.adeshaOrigins.any { it.prescribingSutra == "7.1.94" }
 
             stem.takeIf {
                 isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.varnas.lastOrNull() == Vyanjana.NA &&
