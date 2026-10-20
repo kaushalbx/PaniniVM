@@ -234,7 +234,7 @@ internal object CanonicalLinganushasanamCorpus {
             "21" -> feminineAndNeuter
 
             "38", "44", "50", "54", "55", "58", "62", "65", "68", "71", "75", "78",
-            "81", "84", "87", "90", "91", "94", "97", "102" -> setOf(Linga.NAPUMSAKA)
+            "81", "84", "87", "90", "91", "94", "97", "99", "102" -> setOf(Linga.NAPUMSAKA)
             "40", "45", "52", "72", "101", "105" -> setOf(Linga.STRI)
             "42", "46" -> feminineAndMasculine
             "47", "56", "59", "63", "66", "69", "73", "76", "79", "82", "85", "88",

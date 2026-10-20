@@ -17,6 +17,18 @@ class CanonicalCorpusCompletenessTest {
     }
 
     @Test
+    fun `dedicated implementations preserve canonical metadata exactly`() {
+        CanonicalLinganushasanamCorpus.entries.zip(LinganushasanamRegistry.canonicalSutras)
+            .forEach { (entry, sutra) ->
+                assertEquals(entry.number, sutra.number, "number for canonical entry ${entry.number}")
+                assertEquals(entry.text, sutra.text, "text for canonical sūtra ${entry.number}")
+                assertEquals(entry.section, sutra.section, "section for canonical sūtra ${entry.number}")
+                assertEquals(entry.kind, sutra.kind, "kind for canonical sūtra ${entry.number}")
+                assertEquals(entry.lingas, sutra.targetLingas, "gender scope for canonical sūtra ${entry.number}")
+            }
+    }
+
+    @Test
     fun `normalized source numbering preserves the two corrected positions`() {
         assertEquals("क्तिन्नन्तः ।", LinganushasanamRegistry.require("9").text)
         assertEquals("ईकारान्तश्च ।", LinganushasanamRegistry.require("10").text)
