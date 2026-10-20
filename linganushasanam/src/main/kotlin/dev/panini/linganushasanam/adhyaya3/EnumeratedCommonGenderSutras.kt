@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Complete transmitted enumerations:
@@ -22,7 +23,7 @@ object SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra : LinganushasanaSutra(
         "शील", "मूल", "मङ्गल", "साल", "कमल", "तल", "मुसल", "कुण्डल", "पलल",
         "मृणाल", "बाल", "निगल", "पलाल", "बिडाल", "खिल", "शूल",
     )
-    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika in members
+    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika.phonologicallyIn(members)
 }
 
 object DandaMandaKhandaSavaSaindhavaParsvaSutra : LinganushasanaSutra(
@@ -37,5 +38,5 @@ object DandaMandaKhandaSavaSaindhavaParsvaSutra : LinganushasanaSutra(
     private val members = setOf(
         "दण्ड", "मण्ड", "खण्ड", "शव", "सैन्धव", "पार्श्व", "काश", "कुश", "अङ्कुश", "कुलिश",
     )
-    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika in members
+    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika.phonologicallyIn(members)
 }

@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
 
 /** Liṅgānuśāsanam 158: भृत्रामित्रच्छात्रपुत्रमन्त्रवृत्रमेढ्रोष्ट्राः पुंसि. */
 object BhrtrAmitraChatraPutraSutra : LinganushasanaSutra(
@@ -15,5 +16,5 @@ object BhrtrAmitraChatraPutraSutra : LinganushasanaSutra(
     priority = 40,
 ) {
     private val members = setOf("भृत्र", "अमित्र", "छात्र", "पुत्र", "मन्त्र", "वृत्र", "मेढ्र", "उष्ट्र")
-    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika in members
+    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika.phonologicallyIn(members)
 }

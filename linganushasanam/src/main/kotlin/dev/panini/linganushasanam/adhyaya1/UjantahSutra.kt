@@ -4,6 +4,8 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.endsWithVarnas
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Liṅgānuśāsanam 1.5: ऊजन्ताः.
@@ -22,7 +24,7 @@ object UjantahSutra : LinganushasanaSutra(
     override fun matches(context: LingaRuleContext): Boolean {
         val stem = context.pratipadika
         if (context.pratyaya == "ऊङ्") return true
-        if (stem in UNG_STEMS) return true
-        return stem.endsWith("ऊ") || stem.endsWith("ू")
+        if (stem.phonologicallyIn(UNG_STEMS)) return true
+        return stem.endsWithVarnas("ऊ")
     }
 }

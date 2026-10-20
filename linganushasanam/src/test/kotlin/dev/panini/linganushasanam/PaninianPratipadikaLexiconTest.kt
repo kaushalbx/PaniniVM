@@ -33,8 +33,8 @@ class PaninianPratipadikaLexiconTest {
             "घट" to "64",
             "पुत्र" to "158",
             "दोष" to "93",
-            "गुरु" to "51",
-            "हेतु" to "51",
+            "गुरु" to "57",
+            "हेतु" to "57",
         )) {
             val entry = requireNotNull(PaninianPratipadikaLexicon.findPratipadika(text))
             assertEquals(setOf(Linga.PUMS), entry.linga)

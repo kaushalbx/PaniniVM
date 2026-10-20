@@ -9,7 +9,16 @@ class LinganushasanamEngine(
     private val sutras: List<LinganushasanaSutra> = LinganushasanamRegistry.sutras
 ) {
     fun resolveOrNull(context: LingaRuleContext): LingaRuleResult.Matched? {
+        // Explicit grammatical provenance is more specific than heuristic or
+        // surface-form matching and must win over legacy compatibility rules.
+        sutras.firstOrNull {
+            it.kind == LinganushasanaRuleKind.VIDHI && it.number in context.applicableSutraNumbers
+        }?.let { sutra ->
+            return sutra.apply(context) as? LingaRuleResult.Matched
+        }
+
         for (sutra in sutras) {
+            if (sutra.kind == LinganushasanaRuleKind.ADHIKARA) continue
             if (sutra.matches(context)) {
                 val result = sutra.apply(context)
                 if (result is LingaRuleResult.Matched) return result

@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.endsWithVarnas
 
 /**
  * Liṅgānuśāsanam 1.6: तल्-ता-अन्ताः.
@@ -20,6 +21,6 @@ object TtalantahSutra : LinganushasanaSutra(
     override fun matches(context: LingaRuleContext): Boolean {
         val stem = context.pratipadika
         if (context.pratyaya in setOf("तल्", "ता")) return true
-        return stem.endsWith("ता") || stem.endsWith("ताम्")
+        return stem.endsWithVarnas("ता") || stem.endsWithVarnas("ताम्")
     }
 }

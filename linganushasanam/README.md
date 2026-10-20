@@ -6,7 +6,16 @@ The **`:linganushasanam`** module implements Pāṇini's *Liṅgānuśāsanam* (
 
 ## 🏛️ Sūtra-by-Sūtra Architecture
 
-Every rule is implemented as an individual `LinganushasanaSutra` object in its own file under the corresponding chapter (*adhyāya*) directory:
+The registry contains the complete, normalized 191-sūtra canonical text. Rules
+whose grammatical conditions are represented directly by `LingaRuleContext` use
+dedicated matchers. Every other canonical rule is executable through the
+`applicableSutraNumbers` provenance supplied by an upstream lexical or
+derivational analysis; it does not guess unsafe conditions from surface spelling.
+
+The canonical numbering is continuous from 1 through 191. The source edition's
+duplicated 10 and 102 labels are normalized to 9/10 and 101/102 by sequence.
+
+Existing executable rules are organized under the corresponding module directories:
 
 ```
 linganushasanam/
@@ -14,6 +23,7 @@ linganushasanam/
     ├── LinganushasanaSutra.kt          # Abstract Sūtra base class
     ├── LinganushasanamRegistry.kt       # Sūtra catalog & lookup
     ├── LinganushasanamEngine.kt         # Evaluates gender rules
+    ├── CanonicalLinganushasanamCorpus.kt # complete sūtra text (1–191)
     ├── adhyaya1/                        # अथ स्त्रीलिङ्गम्
     │   ├── SwangebhyahSutra.kt          # 1.1 स्वाङ्गेभ्यः
     │   ├── AbantahSutra.kt              # 1.2 आबन्ताः

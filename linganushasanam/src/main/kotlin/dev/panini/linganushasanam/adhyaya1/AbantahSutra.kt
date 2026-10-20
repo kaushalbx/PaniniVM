@@ -4,6 +4,8 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.endsWithVarnas
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Liṅgānuśāsanam 1.2: आबन्ताः.
@@ -22,7 +24,7 @@ object AbantahSutra : LinganushasanaSutra(
     override fun matches(context: LingaRuleContext): Boolean {
         val stem = context.pratipadika
         if (context.pratyaya in setOf("टाप्", "डाप्", "चाप्", "आप्")) return true
-        if (stem in STRI_STEMS) return true
-        return stem.endsWith("आ") || stem.endsWith("ा")
+        if (stem.phonologicallyIn(STRI_STEMS)) return true
+        return stem.endsWithVarnas("आ")
     }
 }

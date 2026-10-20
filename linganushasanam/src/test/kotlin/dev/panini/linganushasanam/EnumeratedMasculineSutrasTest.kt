@@ -25,7 +25,7 @@ class EnumeratedMasculineSutrasTest {
             "हस्त" to "111", "कुन्त" to "111", "अन्त" to "111", "वात" to "111",
             "व्रात" to "111", "दूत" to "111", "धूर्त" to "111", "सूत" to "111",
             "चूत" to "111", "मुहूर्त" to "111",
-            "षण्ड" to "112", "मण्ड" to "112", "करण्ड" to "112", "भरण्ड" to "112",
+            "षण्ड" to "112", "मण्ड" to "183", "करण्ड" to "112", "भरण्ड" to "112",
             "वरण्ड" to "112", "तुण्ड" to "112", "गण्ड" to "112", "मुण्ड" to "112",
             "पाषण्ड" to "112", "शिखण्ड" to "112",
             "वंश" to "113", "अंश" to "113", "पुरोडाश" to "113",
@@ -43,8 +43,13 @@ class EnumeratedMasculineSutrasTest {
         )
         for ((stem, rule) in expected) {
             val entry = PaninianPratipadikaLexicon.findPratipadika(stem)!!
-            assertEquals(setOf(Linga.PUMS), entry.linga, stem)
-            assertEquals(setOf(rule), entry.lingaRuleIds, stem)
+            val expectedLingas = when (stem) {
+                "मण्ड" -> setOf(Linga.PUMS, Linga.NAPUMSAKA)
+                "मणि", "बस्ति" -> setOf(Linga.STRI, Linga.PUMS)
+                else -> setOf(Linga.PUMS)
+            }
+            assertEquals(expectedLingas, entry.linga, stem)
+            assertEquals(setOf(if (stem in setOf("मणि", "बस्ति")) "174" else rule), entry.lingaRuleIds, stem)
         }
     }
 

@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
 
 abstract class EnumeratedMasculineSutra(
     number: String,
@@ -17,7 +18,7 @@ abstract class EnumeratedMasculineSutra(
     targetLinga = Linga.PUMS,
     priority = 50,
 ) {
-    final override fun matches(context: LingaRuleContext): Boolean = context.pratipadika in stems
+    final override fun matches(context: LingaRuleContext): Boolean = context.pratipadika.phonologicallyIn(stems)
 }
 
 // Primary transmitted text for the numbered enumerations below:

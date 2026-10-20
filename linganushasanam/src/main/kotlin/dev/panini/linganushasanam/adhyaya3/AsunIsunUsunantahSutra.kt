@@ -4,6 +4,8 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.endsWithVarnas
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Liṅgānuśāsanam 3.3: असुन्-इसुन्-उसुन्-अन्तः.
@@ -22,7 +24,7 @@ object AsunIsunUsunantahSutra : LinganushasanaSutra(
     override fun matches(context: LingaRuleContext): Boolean {
         val stem = context.pratipadika
         if (context.pratyaya in setOf("असुन्", "इसुन्", "उसुन्")) return true
-        if (stem in ASUN_STEMS) return true
-        return stem.endsWith("स्") && (stem.endsWith("अस्") || stem.endsWith("इस्") || stem.endsWith("उस्"))
+        if (stem.phonologicallyIn(ASUN_STEMS)) return true
+        return stem.endsWithVarnas("अस्") || stem.endsWithVarnas("इस्") || stem.endsWithVarnas("उस्")
     }
 }

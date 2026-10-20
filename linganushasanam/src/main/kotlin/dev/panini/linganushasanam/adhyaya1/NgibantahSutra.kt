@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.endsWithVarnas
 
 /**
  * Liṅgānuśāsanam 1.3: ङीबन्ताः.
@@ -20,6 +21,6 @@ object NgibantahSutra : LinganushasanaSutra(
     override fun matches(context: LingaRuleContext): Boolean {
         val stem = context.pratipadika
         if (context.pratyaya in setOf("ङीप्", "ङीष्", "ङीन्")) return true
-        return stem.endsWith("ई") || stem.endsWith("ी")
+        return stem.endsWithVarnas("ई")
     }
 }

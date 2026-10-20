@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Liṅgānuśāsanam 1.1: स्वाङ्गेभ्यः.
@@ -20,6 +21,6 @@ object SwangebhyahSutra : LinganushasanaSutra(
     private val SWANGA_STEMS = setOf("अङ्गुली", "जङ्घा", "नासिका", "ग्रीवा", "रसना", "जिह्वा")
 
     override fun matches(context: LingaRuleContext): Boolean {
-        return context.pratipadika in SWANGA_STEMS
+        return context.pratipadika.phonologicallyIn(SWANGA_STEMS)
     }
 }

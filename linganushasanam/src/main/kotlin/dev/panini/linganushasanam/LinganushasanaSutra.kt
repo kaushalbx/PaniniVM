@@ -19,6 +19,7 @@ abstract class LinganushasanaSutra(
     val section: LinganushasanaSection,
     val targetLinga: Linga,
     override val priority: Int = 10,
+    val kind: LinganushasanaRuleKind = LinganushasanaRuleKind.VIDHI,
 ) : LinganushasanamRule {
 
     open val targetLingas: Set<Linga> get() = setOf(targetLinga)
@@ -27,8 +28,9 @@ abstract class LinganushasanaSutra(
     override val description: String get() = "$number ($text): $hindiExplanation"
 
     override fun apply(context: LingaRuleContext): LingaRuleResult {
+        val resolvedLinga = context.governingLinga?.takeIf { it in targetLingas } ?: targetLinga
         return LingaRuleResult.Matched(
-            linga = targetLinga,
+            linga = resolvedLinga,
             ruleId = number,
             explanation = "Sūtra $number ($text) matched for '${context.pratipadika}'.",
             lingas = targetLingas,

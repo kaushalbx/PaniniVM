@@ -3,6 +3,7 @@ package dev.panini.linganushasanam.adhyaya2
 import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
+import dev.panini.linganushasanam.LinganushasanaRuleKind
 import dev.panini.linganushasanam.LinganushasanaSutra
 
 /**
@@ -16,6 +17,7 @@ object PumsiSutra : LinganushasanaSutra(
     section = LinganushasanaSection.PUMLINGA,
     targetLinga = Linga.PUMS,
     priority = 1,
+    kind = LinganushasanaRuleKind.ADHIKARA,
 ) {
     override fun matches(context: LingaRuleContext): Boolean = false
 }

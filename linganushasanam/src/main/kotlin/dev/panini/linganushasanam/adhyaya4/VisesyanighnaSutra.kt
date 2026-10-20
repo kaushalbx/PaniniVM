@@ -4,6 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.linganushasanam.LingaRuleContext
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
 
 /**
  * Liṅgānuśāsanam 4.1: विशेष्यनिघ्नम्.
@@ -18,6 +19,6 @@ object VisesyanighnaSutra : LinganushasanaSutra(
     priority = 10,
 ) {
     override fun matches(context: LingaRuleContext): Boolean {
-        return context.pratipadika in setOf("सुन्दर", "महत्", "प्रिय", "शुभ", "उत्तम")
+        return context.pratipadika.phonologicallyIn(setOf("सुन्दर", "महत्", "प्रिय", "शुभ", "उत्तम"))
     }
 }

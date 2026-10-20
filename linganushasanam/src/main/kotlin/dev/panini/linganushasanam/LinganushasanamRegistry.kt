@@ -37,8 +37,8 @@ import dev.panini.linganushasanam.adhyaya5.SaNapumsakamSutra
  * Catalog of authentic Pāṇinian Liṅgānuśāsana Sūtras.
  */
 object LinganushasanamRegistry {
-    val sutras: List<LinganushasanaSutra> = listOf(
-        // Chapter 1: Strīliṅgam
+    private val legacyExecutableSutras: List<LinganushasanaSutra> = listOf(
+        // Earlier module-local numbering retained for API compatibility.
         SwangebhyahSutra,
         AbantahSutra,
         NgibantahSutra,
@@ -46,7 +46,6 @@ object LinganushasanamRegistry {
         UjantahSutra,
         TtalantahSutra,
 
-        // Chapter 2: Puṃliṅgam
         PumsiSutra,
         DevasuratmaSvargaGiriSamudraSutra,
         UkarantahSutra,
@@ -64,7 +63,6 @@ object LinganushasanamRegistry {
         GhanAbantahSutra,
         GhajantashCaSutra,
 
-        // Chapter 3: Napuṃsakaliṅgam
         NapumsakeSutra,
         BhrtrAmitraChatraPutraSutra,
         SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra,
@@ -72,14 +70,39 @@ object LinganushasanamRegistry {
         LyudadyantahSutra,
         AsunIsunUsunantahSutra,
 
-        // Chapter 4: Viśeṣyanighnaliṅgam
         VisesyanighnaSutra,
 
-        // Chapter 5: Samāsaliṅgam
         SaNapumsakamSutra,
         AnehamAnyapadartheSutra,
         ParavallingamDvandvaTatpurusayohSutra,
-    ).sortedByDescending { it.priority }
+    )
+
+    private val canonicalImplementationsByNumber = legacyExecutableSutras
+        .filterNot { '.' in it.number }
+        .associateBy { it.number }
+
+    internal val dedicatedCanonicalNumbers: Set<String> get() = canonicalImplementationsByNumber.keys
+
+    /** All 191 canonical numbered sūtras, in textual order. */
+    val canonicalSutras: List<LinganushasanaSutra> = CanonicalLinganushasanamCorpus.entries.map { entry ->
+        canonicalImplementationsByNumber[entry.number]
+            ?: CanonicalDeclarativeSutra(
+                number = entry.number,
+                text = entry.text,
+                section = entry.section,
+                prescribedLingas = entry.lingas,
+                kind = entry.kind,
+            )
+    }
+
+    /**
+     * Complete canonical corpus plus the module's historical dotted-number
+     * executable rules. Runtime evaluation remains priority ordered.
+     */
+    val sutras: List<LinganushasanaSutra> =
+        (canonicalSutras + legacyExecutableSutras.filter { '.' in it.number })
+            .sortedWith(compareByDescending<LinganushasanaSutra> { it.priority }
+                .thenByDescending { it.number.substringBefore('.').toIntOrNull() ?: 0 })
 
     fun require(number: String): LinganushasanaSutra =
         sutras.firstOrNull { it.number == number } ?: error("Liṅgānuśāsana Sūtra $number not found in registry.")

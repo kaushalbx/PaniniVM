@@ -14,7 +14,7 @@ class LinganushasanamEngineTest {
     fun `test feminine gender sutra 1 1 Swangebhyah`() {
         val res = engine.resolve(LingaRuleContext("अङ्गुली"))
         assertEquals(Linga.STRI, res.linga)
-        assertEquals("1.1", res.ruleId)
+        assertEquals("10", res.ruleId)
     }
 
     @Test
@@ -35,7 +35,7 @@ class LinganushasanamEngineTest {
     fun `test feminine gender sutra 1 6 Ttalantah`() {
         val res = engine.resolve(LingaRuleContext("देवता"))
         assertEquals(Linga.STRI, res.linga)
-        assertEquals("1.6", res.ruleId)
+        assertEquals("17", res.ruleId)
     }
 
     @Test
@@ -45,9 +45,9 @@ class LinganushasanamEngineTest {
         val res = engine.resolve(context)
         assertEquals(Linga.PUMS, res.linga)
         assertEquals("36", res.ruleId)
-        assertEquals(null, engine.resolveOrNull(LingaRuleContext("पाक", pratyaya = "घञ्")))
-        assertEquals(null, engine.resolveOrNull(LingaRuleContext("पाक",
-            semanticClasses = setOf(LingaSemanticClass.BHAVA))))
+        assertEquals("61", engine.resolveOrNull(LingaRuleContext("पाक", pratyaya = "घञ्"))?.ruleId)
+        assertEquals("61", engine.resolveOrNull(LingaRuleContext("पाक",
+            semanticClasses = setOf(LingaSemanticClass.BHAVA)))?.ruleId)
     }
 
     @Test
@@ -55,15 +55,15 @@ class LinganushasanamEngineTest {
         val res = engine.resolve(LingaRuleContext("जय", pratyaya = "अच्"))
         assertEquals(Linga.PUMS, res.linga)
         assertEquals("37", res.ruleId)
-        assertEquals(null, engine.resolveOrNull(LingaRuleContext("जय")))
-        assertEquals(null, engine.resolveOrNull(LingaRuleContext("जय", pratyaya = "घञ्")))
+        assertEquals("86", engine.resolveOrNull(LingaRuleContext("जय"))?.ruleId)
+        assertEquals("86", engine.resolveOrNull(LingaRuleContext("जय", pratyaya = "घञ्"))?.ruleId)
     }
 
     @Test
     fun `test neuter gender sutra 3 3 AsunIsunUsunantah`() {
         val res = engine.resolve(LingaRuleContext("हविस्"))
         assertEquals(Linga.NAPUMSAKA, res.linga)
-        assertEquals("3.3", res.ruleId)
+        assertEquals("136", res.ruleId)
     }
 
     @Test
@@ -76,7 +76,7 @@ class LinganushasanamEngineTest {
             )
         )
         assertEquals(Linga.NAPUMSAKA, res.linga)
-        assertEquals("5.2", res.ruleId)
+        assertEquals("124", res.ruleId)
     }
 
     @Test
@@ -96,6 +96,6 @@ class LinganushasanamEngineTest {
     fun `test default masculine gender rules`() {
         val res = engine.resolve(LingaRuleContext("राम"))
         assertEquals(Linga.PUMS, res.linga)
-        assertEquals("LINGA_DEFAULT", res.ruleId)
+        assertEquals("83", res.ruleId)
     }
 }
