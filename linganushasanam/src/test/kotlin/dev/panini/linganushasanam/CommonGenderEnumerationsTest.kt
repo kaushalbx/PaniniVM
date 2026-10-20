@@ -1,18 +1,18 @@
 package dev.panini.linganushasanam
 
 import dev.panini.core.Linga
-import dev.panini.linganushasanam.adhyaya3.DandaMandaKhandaSavaSaindhavaParsvaSutra
-import dev.panini.linganushasanam.adhyaya3.SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra
+import dev.panini.linganushasanam.sutras.DandaMandaKhandaSavaSaindhavaParsvaSutra
+import dev.panini.linganushasanam.sutras.SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertSame
 
 class CommonGenderEnumerationsTest {
-    @Test fun `rules 145 and 183 preserve both licensed genders`() {
+    @Test fun `rules 143 and 181 preserve both licensed genders`() {
         for ((rule, words) in listOf(
-            SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra to listOf("मूल", "बाल", "शूल"),
-            DandaMandaKhandaSavaSaindhavaParsvaSutra to listOf("दण्ड", "शव"),
+            SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra to listOf("मूल", "वाल", "शूल"),
+            DandaMandaKhandaSavaSaindhavaParsvaSutra to listOf("दण्ड", "खम", "आकाश"),
         )) {
             assertSame(rule, LinganushasanamRegistry.require(rule.number))
             for (word in words) {

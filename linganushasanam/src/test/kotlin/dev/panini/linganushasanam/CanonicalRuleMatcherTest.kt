@@ -20,21 +20,17 @@ class CanonicalRuleMatcherTest {
             LingaRuleContext("कृत", pratyaya = "क्त", semanticClasses = setOf(LingaSemanticClass.BHAVA)),
         )
         assertRule("121", Linga.NAPUMSAKA, LingaRuleContext("गुरुत्व", pratyaya = "त्व"))
-        assertRule("189", Linga.STRI, LingaRuleContext("कर्तव्य", pratyaya = "तव्य", governingLinga = Linga.STRI))
+        assertRule("187", Linga.STRI, LingaRuleContext("कर्तव्य", pratyaya = "तव्य", governingLinga = Linga.STRI))
     }
 
     @Test
     fun `canonical compound and semantic rules resolve directly`() {
         assertRule(
             "124", Linga.NAPUMSAKA,
-            LingaRuleContext("उपकृष्ण", samasaType = SamasaType.AVYAYIBHAVA),
-        )
-        assertRule(
-            "125", Linga.NAPUMSAKA,
             LingaRuleContext("पाणिपाद", samasaType = SamasaType.DVANDVA, vacana = Vacana.EKAVACANA),
         )
         assertRule(
-            "190", Linga.STRI,
+            "188", Linga.STRI,
             LingaRuleContext(
                 "करण",
                 pratyaya = "ल्युट्",
@@ -53,7 +49,7 @@ class CanonicalRuleMatcherTest {
         assertEquals(setOf(Linga.STRI, Linga.PUMS), LinganushasanamRegistry.require("5").targetLingas)
         assertEquals(setOf(Linga.STRI, Linga.NAPUMSAKA), LinganushasanamRegistry.require("21").targetLingas)
         assertEquals(setOf(Linga.PUMS, Linga.NAPUMSAKA), LinganushasanamRegistry.require("47").targetLingas)
-        assertEquals(Linga.entries.toSet(), LinganushasanamRegistry.require("176").targetLingas)
+        assertEquals(Linga.entries.toSet(), LinganushasanamRegistry.require("174").targetLingas)
     }
 
     private fun assertRule(number: String, linga: Linga, context: LingaRuleContext) {

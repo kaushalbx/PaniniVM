@@ -2,7 +2,7 @@ package dev.panini.linganushasanam
 
 import dev.panini.core.Linga
 import dev.panini.core.LingaSemanticClass
-import dev.panini.linganushasanam.adhyaya2.DevasuratmaSvargaGiriSamudraSutra
+import dev.panini.linganushasanam.sutras.DevasuratmaSvargaGiriSamudraSutra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

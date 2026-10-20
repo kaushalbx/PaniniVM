@@ -11,29 +11,17 @@ class CanonicalCorpusCompletenessTest {
     fun `registry contains every canonical sutra exactly once`() {
         val sutras = LinganushasanamRegistry.canonicalSutras
 
-        assertEquals(191, sutras.size)
-        assertEquals((1..191).map(Int::toString), sutras.map { it.number })
+        assertEquals(189, sutras.size)
+        assertEquals((1..189).map(Int::toString), sutras.map { it.number })
         sutras.forEach { assertSame(it, LinganushasanamRegistry.require(it.number)) }
     }
 
     @Test
-    fun `dedicated implementations preserve canonical metadata exactly`() {
-        CanonicalLinganushasanamCorpus.entries.zip(LinganushasanamRegistry.canonicalSutras)
-            .forEach { (entry, sutra) ->
-                assertEquals(entry.number, sutra.number, "number for canonical entry ${entry.number}")
-                assertEquals(entry.text, sutra.text, "text for canonical sūtra ${entry.number}")
-                assertEquals(entry.section, sutra.section, "section for canonical sūtra ${entry.number}")
-                assertEquals(entry.kind, sutra.kind, "kind for canonical sūtra ${entry.number}")
-                assertEquals(entry.lingas, sutra.targetLingas, "gender scope for canonical sūtra ${entry.number}")
-            }
-    }
-
-    @Test
-    fun `normalized source numbering preserves the two corrected positions`() {
-        assertEquals("क्तिन्नन्तः ।", LinganushasanamRegistry.require("9").text)
-        assertEquals("ईकारान्तश्च ।", LinganushasanamRegistry.require("10").text)
-        assertEquals("दीधितिः स्त्रियाम् ।", LinganushasanamRegistry.require("101").text)
-        assertEquals("दिनाहनी नपुंसके ।", LinganushasanamRegistry.require("102").text)
+    fun `source numbering follows the Ashtadhyayi com edition`() {
+        assertEquals("क्तिन्नन्तः", LinganushasanamRegistry.require("9").text)
+        assertEquals("ईकारान्तश्च", LinganushasanamRegistry.require("10").text)
+        assertEquals("द्वन्द्वैकत्वम्", LinganushasanamRegistry.require("124").text)
+        assertEquals("सर्वादीनि सर्वनामानि", LinganushasanamRegistry.require("189").text)
     }
 
     @Test
@@ -42,17 +30,17 @@ class CanonicalCorpusCompletenessTest {
             "1" to LinganushasanaSection.STRILINGA,
             "35" to LinganushasanaSection.PUMLINGA,
             "118" to LinganushasanaSection.NAPUMSAKALINGA,
-            "173" to LinganushasanaSection.STRIPUMSALINGA,
-            "178" to LinganushasanaSection.PUMNAPUMSAKALINGA,
-            "185" to LinganushasanaSection.AVISISHTALINGA,
+            "171" to LinganushasanaSection.STRIPUMSALINGA,
+            "176" to LinganushasanaSection.PUMNAPUMSAKALINGA,
+            "183" to LinganushasanaSection.AVISISHTALINGA,
         )
 
         boundaries.forEach { (number, section) ->
             assertEquals(section, LinganushasanamRegistry.require(number).section)
         }
-        assertEquals(setOf(Linga.STRI, Linga.PUMS), LinganushasanamRegistry.require("174").targetLingas)
-        assertEquals(setOf(Linga.PUMS, Linga.NAPUMSAKA), LinganushasanamRegistry.require("179").targetLingas)
-        assertEquals(Linga.entries.toSet(), LinganushasanamRegistry.require("191").targetLingas)
+        assertEquals(setOf(Linga.STRI, Linga.PUMS), LinganushasanamRegistry.require("172").targetLingas)
+        assertEquals(setOf(Linga.PUMS, Linga.NAPUMSAKA), LinganushasanamRegistry.require("177").targetLingas)
+        assertEquals(Linga.entries.toSet(), LinganushasanamRegistry.require("189").targetLingas)
     }
 
     @Test
@@ -80,7 +68,7 @@ class CanonicalCorpusCompletenessTest {
         val adhikaras = LinganushasanamRegistry.canonicalSutras
             .filter { it.kind == LinganushasanaRuleKind.ADHIKARA }
 
-        assertEquals(setOf("1", "2", "35", "60", "118", "127", "173", "178", "185"), adhikaras.map { it.number }.toSet())
+        assertEquals(setOf("1", "2", "35", "60", "118", "126", "171", "176", "183"), adhikaras.map { it.number }.toSet())
         adhikaras.forEach { sutra ->
             assertEquals(
                 null,
@@ -93,6 +81,6 @@ class CanonicalCorpusCompletenessTest {
 
     @Test
     fun `every canonical sutra has a dedicated implementation`() {
-        assertEquals((1..191).map(Int::toString).toSet(), LinganushasanamRegistry.dedicatedCanonicalNumbers)
+        assertEquals((1..189).map(Int::toString).toSet(), LinganushasanamRegistry.dedicatedCanonicalNumbers)
     }
 }

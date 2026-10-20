@@ -6,16 +6,15 @@ The **`:linganushasanam`** module implements Pāṇini's *Liṅgānuśāsanam* (
 
 ## 🏛️ Sūtra-by-Sūtra Architecture
 
-The registry contains the complete, normalized 191-sūtra canonical text. Rules
-whose grammatical conditions are represented directly by `LingaRuleContext` use
-dedicated matchers. Every other canonical rule is executable through the
-`applicableSutraNumbers` provenance supplied by an upstream lexical or
-derivational analysis; it does not guess unsafe conditions from surface spelling.
+The registry contains all 189 dedicated, semantically named sūtra implementations from the
+[Ashtadhyayi.com Liṅgānuśāsanam](https://ashtadhyayi.com/linganushasanam) edition.
+Each object owns the source text and its complete `targetLingas` set. Phonological rules use
+the shared varṇa model, while semantic and derivational rules consume explicit
+`LingaRuleContext` provenance instead of guessing from surface spelling.
 
-The canonical numbering is continuous from 1 through 191. The source edition's
-duplicated 10 and 102 labels are normalized to 9/10 and 101/102 by sequence.
+The edition's numbering is continuous from 1 through 189.
 
-Existing executable rules are organized under the corresponding module directories:
+Canonical rules are organized by the traditional section in which they occur:
 
 ```
 linganushasanam/
@@ -23,28 +22,10 @@ linganushasanam/
     ├── LinganushasanaSutra.kt          # Abstract Sūtra base class
     ├── LinganushasanamRegistry.kt       # Sūtra catalog & lookup
     ├── LinganushasanamEngine.kt         # Evaluates gender rules
-    ├── CanonicalLinganushasanamCorpus.kt # complete sūtra text (1–191)
-    ├── adhyaya1/                        # अथ स्त्रीलिङ्गम्
-    │   ├── SwangebhyahSutra.kt          # 1.1 स्वाङ्गेभ्यः
-    │   ├── AbantahSutra.kt              # 1.2 आबन्ताः
-    │   ├── NgibantahSutra.kt            # 1.3 ङीबन्ताः
-    │   ├── KtinantahSutra.kt            # 1.4 क्तिन्नन्ताः
-    │   ├── UjantahSutra.kt              # 1.5 ऊजन्ताः
-    │   └── TtalantahSutra.kt            # 1.6 तल्-ता-अन्ताः
-    ├── adhyaya2/                        # अथ पुंलिङ्गम्
-    │   ├── PumsiSutra.kt                # 2.1 पुंसि (अधिकार)
-    │   ├── GhanAbantahSutra.kt          # 36 घञबन्तः
-    │   └── GhajantashCaSutra.kt         # 37 घाजन्तश्च
-    ├── adhyaya3/                        # अथ नपुंसकलिङ्गम्
-    │   ├── NapumsakeSutra.kt            # 3.1 नपुंसके (अधिकार)
-    │   ├── LyudadyantahSutra.kt         # 3.2 ल्युडाद्यन्तः
-    │   └── AsunIsunUsunantahSutra.kt    # 3.3 असुन्-इसुन्-उसुन्-अन्तः
-    ├── adhyaya4/                        # अथ विशेष्यनिघ्नलिङ्गम्
-    │   └── VisesyanighnaSutra.kt        # 4.1 विशेष्यनिघ्नम्
-    └── adhyaya5/                        # अथ समासलिङ्गम्
-        ├── ParavallingamDvandvaTatpurusayohSutra.kt # 5.1 परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः
-        ├── SaNapumsakamSutra.kt        # 5.2 स नपुंसकम्
-        └── AnehamAnyapadartheSutra.kt   # 5.3 अनेकमन्यपदार्थे
+    └── sutras/                          # one implementation file per sūtra
+
+Sections: 1–34 स्त्री, 35–117 पुं, 118–170 नपुंसक, 171–175 स्त्रीपुंस,
+176–182 पुंनपुंसक, and 183–189 अविशिष्टलिङ्ग.
 ```
 
 ---
@@ -52,4 +33,5 @@ linganushasanam/
 ## ⚡ Integration
 
 - **`SubantaEngine`**: Uses `LinganushasanamEngine` to assign grammatical gender for un-annotated nominal stems.
-- **`SamasaEngine`**: Delegates final compound gender determination to Sūtras 5.1, 5.2, and 5.3 during compound derivation.
+- **Compound rules**: Canonical compound conditions are represented by sūtras
+  123–133 and explicit compound metadata in `LingaRuleContext`.

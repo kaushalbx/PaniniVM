@@ -2,6 +2,7 @@ package dev.panini.derivation
 
 import dev.panini.core.Linga
 import dev.panini.linganushasanam.PaninianPratipadikaLexicon
+import dev.panini.linganushasanam.sutras.UkarantahSutra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -37,7 +38,8 @@ class LinganushasanaUkarantaProvenanceTest {
 
     @Test fun `rule 51 exceptions and undeclared prefixed spelling are not admitted`() {
         for (stem in listOf("धेनु", "श्मश्रु", "वस्तु")) {
-            assertFalse(dev.panini.linganushasanam.adhyaya2.UkarantahSutra.matches(
+            assertFalse(
+                UkarantahSutra.matches(
                 dev.panini.linganushasanam.LingaRuleContext(stem)), stem)
         }
         assertFalse(PaninianPratipadikaLexicon.declaredPratipadikas().any { it.text == "अप्रभु" })

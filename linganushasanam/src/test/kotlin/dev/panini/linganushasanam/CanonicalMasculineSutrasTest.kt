@@ -1,10 +1,10 @@
 package dev.panini.linganushasanam
 
 import dev.panini.core.Linga
-import dev.panini.linganushasanam.adhyaya2.ShopadhahSutra
-import dev.panini.linganushasanam.adhyaya2.TopadhahSutra
-import dev.panini.linganushasanam.adhyaya2.UkarantahSutra
-import dev.panini.linganushasanam.adhyaya3.BhrtrAmitraChatraPutraSutra
+import dev.panini.linganushasanam.sutras.ShopadhahSutra
+import dev.panini.linganushasanam.sutras.TopadhahSutra
+import dev.panini.linganushasanam.sutras.UkarantahSutra
+import dev.panini.linganushasanam.sutras.BhrtrAmitraChatraPutraSutra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -32,7 +32,7 @@ class CanonicalMasculineSutrasTest {
         assertTrue(BhrtrAmitraChatraPutraSutra.matches(LingaRuleContext("मन्त्र")))
         assertFalse(BhrtrAmitraChatraPutraSutra.matches(LingaRuleContext("पात्र")))
         assertEquals(LinganushasanaSection.NAPUMSAKALINGA, BhrtrAmitraChatraPutraSutra.section)
-        assertEquals(Linga.PUMS, BhrtrAmitraChatraPutraSutra.targetLinga)
+        assertEquals(setOf(Linga.PUMS), BhrtrAmitraChatraPutraSutra.targetLingas)
     }
 
     @Test fun `canonical sutras are registered by their text identities`() {

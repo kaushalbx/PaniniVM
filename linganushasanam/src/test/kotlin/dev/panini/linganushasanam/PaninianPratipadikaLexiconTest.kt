@@ -8,10 +8,10 @@ import kotlin.test.assertTrue
 
 class PaninianPratipadikaLexiconTest {
     @Test
-    fun `gets gender from linganushasanam with provenance`() {
+    fun `does not invent noncanonical gender provenance`() {
         val entry = requireNotNull(PaninianPratipadikaLexicon.findPratipadika("मनस्"))
-        assertEquals(setOf(Linga.NAPUMSAKA), entry.linga)
-        assertEquals(setOf("3.3"), entry.lingaRuleIds)
+        assertEquals(emptySet(), entry.linga)
+        assertEquals(emptySet(), entry.lingaRuleIds)
     }
 
     @Test
@@ -31,7 +31,7 @@ class PaninianPratipadikaLexiconTest {
     fun `attested corpus stems receive gender only in linganushasanam layer`() {
         for ((text, rule) in mapOf(
             "घट" to "64",
-            "पुत्र" to "158",
+            "पुत्र" to "156",
             "दोष" to "93",
             "गुरु" to "57",
             "हेतु" to "57",

@@ -5,11 +5,11 @@ import dev.panini.core.Linga
 /**
  * Abstract base class for individual Pāṇinian Liṅgānuśāsana Sūtras.
  *
- * @property number Canonical Sūtra number in Liṅgānuśāsanam (e.g. "1.1", "3.2", "5.1").
+ * @property number Sūtra number in the Ashtadhyayi.com Liṅgānuśāsanam recension (1–189).
  * @property text Devanagari text of the Sūtra (e.g. "ल्युडाद्यन्तः").
  * @property hindiExplanation Traditional Hindi commentary/explanation.
  * @property section Section/Adhyāya of Liṅgānuśāsanam.
- * @property targetLinga The target [Linga] assigned by this Sūtra.
+ * @property targetLingas The complete set of [Linga] values prescribed by this Sūtra.
  * @property priority Priority value for evaluation order.
  */
 abstract class LinganushasanaSutra(
@@ -17,18 +17,20 @@ abstract class LinganushasanaSutra(
     val text: String,
     val hindiExplanation: String,
     val section: LinganushasanaSection,
-    val targetLinga: Linga,
+    val targetLingas: Set<Linga>,
     override val priority: Int = 10,
     val kind: LinganushasanaRuleKind = LinganushasanaRuleKind.VIDHI,
 ) : LinganushasanamRule {
 
-    open val targetLingas: Set<Linga> get() = setOf(targetLinga)
+    init {
+        require(targetLingas.isNotEmpty()) { "Sūtra $number must prescribe at least one liṅga." }
+    }
 
     override val ruleId: String get() = number
     override val description: String get() = "$number ($text): $hindiExplanation"
 
     override fun apply(context: LingaRuleContext): LingaRuleResult {
-        val resolvedLinga = context.governingLinga?.takeIf { it in targetLingas } ?: targetLinga
+        val resolvedLinga = context.governingLinga?.takeIf { it in targetLingas } ?: targetLingas.first()
         return LingaRuleResult.Matched(
             linga = resolvedLinga,
             ruleId = number,
