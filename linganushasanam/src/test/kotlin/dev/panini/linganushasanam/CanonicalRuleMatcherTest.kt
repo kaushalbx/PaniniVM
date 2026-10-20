@@ -42,6 +42,10 @@ class CanonicalRuleMatcherTest {
                 governingLinga = Linga.STRI,
             ),
         )
+        assertRule(
+            "43", Linga.PUMS,
+            LingaRuleContext("इन्द्र", semanticClasses = setOf(LingaSemanticClass.DEVA_ABHIDHANA)),
+        )
     }
 
     @Test

@@ -228,7 +228,7 @@ internal object CanonicalLinganushasanamCorpus {
         val feminineAndNeuter = setOf(Linga.STRI, Linga.NAPUMSAKA)
 
         return when (number) {
-            "5", "8" -> feminineAndMasculine
+            "5", "8", "53" -> feminineAndMasculine
             "7", "16" -> setOf(Linga.PUMS)
             "19", "22" -> setOf(Linga.NAPUMSAKA)
             "21" -> feminineAndNeuter

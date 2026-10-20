@@ -11,7 +11,7 @@ import dev.panini.shiksha.toVarnas
 /** Liṅgānuśāsanam 51: उकारान्तः. */
 object UkarantahSutra : LinganushasanaSutra(
     number = "51",
-    text = "उकारान्तः",
+    text = "उकारान्तः ।",
     hindiExplanation = "ह्रस्व उकारान्त शब्द पुंलिङ्ग होते हैं; उत्तरसूत्रों में पठित अपवाद पृथक् हैं।",
     section = LinganushasanaSection.PUMLINGA,
     targetLinga = Linga.PUMS,

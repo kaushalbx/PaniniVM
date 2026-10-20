@@ -1,0 +1,9 @@
+package dev.panini.linganushasanam.adhyaya3
+import dev.panini.core.Linga
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toVarnas
+import dev.panini.linganushasanam.*
+/** Liṅgānuśāsanam 187: ष्णान्ता सङ्ख्या । */
+object SnaantaSankhyaSutra : LinganushasanaSutra(
+    "187", "ष्णान्ता सङ्ख्या ।", "ष्, न् अथवा ण्-अन्त संख्यावाचक शब्द तीनों लिङ्गों में होते हैं।", LinganushasanaSection.AVISISHTALINGA, Linga.PUMS, 10,
+) { override val targetLingas = Linga.entries.toSet(); override fun matches(context: LingaRuleContext) = context.numericalValue != null && context.pratipadika.toVarnas().lastOrNull() in setOf(Vyanjana.SSA, Vyanjana.NA, Vyanjana.NNA) }

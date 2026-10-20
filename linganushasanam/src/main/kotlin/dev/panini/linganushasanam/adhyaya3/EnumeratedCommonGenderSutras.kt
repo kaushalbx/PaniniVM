@@ -12,7 +12,7 @@ import dev.panini.linganushasanam.phonologicallyIn
  */
 object SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra : LinganushasanaSutra(
     number = "145",
-    text = "शीलमूलमङ्गलसालकमलतलमुसलकुण्डलपललमृणालबालनिगलपलालबिडालखिलशूलाः पुंसि च",
+    text = "शीलमूलमङ्गलसालकमलतलमुसलकुण्डलपललमृणाल- बालनिगलपलालबिडालखिलशूलाः पुंसि च ।",
     hindiExplanation = "ये नपुंसकलिङ्ग शब्द पुंलिङ्ग में भी प्रयुक्त होते हैं।",
     section = LinganushasanaSection.NAPUMSAKALINGA,
     targetLinga = Linga.NAPUMSAKA,
@@ -28,7 +28,7 @@ object SilaMulaMangalaSalaKamalaTalaMusalaKundalaSutra : LinganushasanaSutra(
 
 object DandaMandaKhandaSavaSaindhavaParsvaSutra : LinganushasanaSutra(
     number = "183",
-    text = "दण्डमण्डखण्डशवसैन्धवपार्श्वकाशकुशकाशाङ्कुशकुलिशाः",
+    text = "दण्डमण्डखण्डशवसैन्धवपार्श्वकाशकुशकाशाङ्कुशकुलिशाः ।",
     hindiExplanation = "ये शब्द पुंलिङ्ग और नपुंसकलिङ्ग दोनों में प्रयुक्त होते हैं।",
     section = LinganushasanaSection.PUMNAPUMSAKALINGA,
     targetLinga = Linga.PUMS,

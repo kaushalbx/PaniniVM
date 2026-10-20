@@ -1,0 +1,17 @@
+package dev.panini.linganushasanam.adhyaya3
+
+import dev.panini.core.Linga
+import dev.panini.linganushasanam.LingaRuleContext
+import dev.panini.linganushasanam.LinganushasanaSection
+import dev.panini.linganushasanam.LinganushasanaSutra
+import dev.panini.linganushasanam.phonologicallyIn
+
+/** Liṅgānuśāsanam 163: आजिः स्त्रियामेव । */
+object AjiStriyamEvaSutra : LinganushasanaSutra(
+    number = "163", text = "आजिः स्त्रियामेव ।", hindiExplanation = "आजि केवल स्त्रीलिङ्ग होती है।",
+    section = LinganushasanaSection.NAPUMSAKALINGA, targetLinga = Linga.STRI, priority = 50,
+) {
+    private val members = setOf("आजि")
+    override fun matches(context: LingaRuleContext): Boolean = context.pratipadika.phonologicallyIn(members)
+}
+

@@ -9,7 +9,7 @@ import dev.panini.linganushasanam.LinganushasanaSutra
 /** Liṅgānuśāsana 36: घञबन्तः — ghañ/ap derivatives in bhāva are masculine. */
 object GhanAbantahSutra : LinganushasanaSutra(
     number = "36",
-    text = "घञबन्तः",
+    text = "घञबन्तः ।",
     hindiExplanation = "भावार्थ में घञ् अथवा अप् प्रत्ययान्त शब्द पुंलिङ्ग होते हैं।",
     section = LinganushasanaSection.PUMLINGA,
     targetLinga = Linga.PUMS,

@@ -80,13 +80,7 @@ class CanonicalCorpusCompletenessTest {
     }
 
     @Test
-    fun `every canonical vidhi has a dedicated or declarative matcher`() {
-        val modeled = CanonicalRuleMatcher.modeledNumbers + LinganushasanamRegistry.dedicatedCanonicalNumbers
-        val canonicalVidhis = LinganushasanamRegistry.canonicalSutras
-            .filter { it.kind == LinganushasanaRuleKind.VIDHI }
-            .map { it.number }
-            .toSet()
-
-        assertEquals(canonicalVidhis, modeled - setOf("35"))
+    fun `every canonical sutra has a dedicated implementation`() {
+        assertEquals((1..191).map(Int::toString).toSet(), LinganushasanamRegistry.dedicatedCanonicalNumbers)
     }
 }

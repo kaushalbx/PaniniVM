@@ -12,7 +12,7 @@ import dev.panini.linganushasanam.LinganushasanaSutra
  */
 object PumsiSutra : LinganushasanaSutra(
     number = "35",
-    text = "पुमान्",
+    text = "पुमान् ।",
     hindiExplanation = "यहाँ से आगे पुंलिङ्ग का अधिकार चलता है।",
     section = LinganushasanaSection.PUMLINGA,
     targetLinga = Linga.PUMS,
