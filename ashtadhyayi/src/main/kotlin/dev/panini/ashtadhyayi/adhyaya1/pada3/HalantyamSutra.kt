@@ -70,6 +70,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
                         Vyanjana.NGA -> ItMarker.NGIT
                         Vyanjana.NNA -> ItMarker.NIT
                         Vyanjana.NYA -> ItMarker.NYIT
+                        Vyanjana.CA -> ItMarker.CIT
                         Vyanjana.SHA, Vyanjana.SSA -> ItMarker.SH
                         else -> ItMarker.GENERIC
                     }

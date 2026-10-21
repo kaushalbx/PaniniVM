@@ -33,5 +33,6 @@ object KrvaPajiMiSvadisadhyashubhyoUnSutra : UnadiSutra(
         "अश्" to Samjna.Rudhi("आशु")
     ),
     meaning = Artha.Karaka.KARTA,
-    hindiExplanation = "कृ, वा, पा, जि, मि, स्वद्, साध्, अश् धातुओं से उण् प्रत्यय होता है।"
+    hindiExplanation = "कृ, वा, पा, जि, मि, स्वद्, साध् और अश् धातुओं के बाद उण् प्रत्यय होता है। " +
+        "ण् इत्संज्ञक होकर लुप्त होता है और उ शेष रहता है। इससे क्रमशः कारु, वायु, पायु, जायु, मायु, स्वादु, साधु और आशु जैसे शब्द सिद्ध होते हैं।"
 )

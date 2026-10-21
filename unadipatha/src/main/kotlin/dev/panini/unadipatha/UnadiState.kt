@@ -4,6 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varna
 
 /**
  * UnadiMatch represents the result of querying an Uṇādi sūtra relation.
@@ -14,6 +15,8 @@ data class UnadiMatch(
     val dhatu: Dhatu,
     val pratyaya: String,
     val pratyayaSurface: String,
+    val pratyayaSurfaceVarnas: List<Varna>,
+    val derivedStemVarnas: List<Varna>? = null,
     val itMarkers: Set<ItMarker>,
     val samjnas: Set<Samjna>,
     val meaning: Artha,

@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.toDevanagari
 
 /**
  * Bridges Uṇādi suffix assignment matches to the Aṣṭādhyāyī DerivationEngine.
@@ -19,14 +20,14 @@ object UnadiDerivationBridge {
     fun createInitialState(dhatu: Dhatu, match: UnadiMatch): DerivationState {
         val rootTerm = DerivationTerm(
             id = "root",
-            surface = dhatu.sourceSurface.ifEmpty { dhatu.upadesha },
+            surface = dhatu.sourceVarnas.toDevanagari(),
             kind = TermKind.DHATU,
             upadesha = dhatu.upadesha
         )
 
         val pratyayaTerm = DerivationTerm(
             id = "unadi_${match.sutraNumber}",
-            surface = match.pratyayaSurface,
+            surface = match.pratyayaSurfaceVarnas.toDevanagari(),
             kind = TermKind.PRATYAYA,
             itMarkers = match.itMarkers,
             upadesha = match.pratyaya

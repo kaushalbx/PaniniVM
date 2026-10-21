@@ -1,118 +1,59 @@
 package dev.panini.unadipatha
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.unadipatha.adhyaya1.ArtiRbhyamThanSutra
-import dev.panini.unadipatha.adhyaya1.BhuvaKthunSutra
-import dev.panini.unadipatha.adhyaya1.GamerIniSutra
-import dev.panini.unadipatha.adhyaya1.HrerIniSutra
-import dev.panini.unadipatha.adhyaya1.KrGrShrVrbhyahKuSutra
-import dev.panini.unadipatha.adhyaya1.KrSrbhyamUnSutra
-import dev.panini.unadipatha.adhyaya1.KrvaPajiMiSvadisadhyashubhyoUnSutra
-import dev.panini.unadipatha.adhyaya1.MiderMataSutra
-import dev.panini.unadipatha.adhyaya1.SthaghvorIccaSutra
-import dev.panini.unadipatha.adhyaya1.TabhyamAnyatrapiDrshyaKartaryUnSutra
-import dev.panini.unadipatha.adhyaya2.GraherInSutra
-import dev.panini.unadipatha.adhyaya2.HuDhabhyamJnuhSutra
-import dev.panini.unadipatha.adhyaya2.NeraKthanSutra
-import dev.panini.unadipatha.adhyaya2.PaPaBhyamTrnSutra
-import dev.panini.unadipatha.adhyaya2.ShruVrDrPraVrbhyahSihSutra
-import dev.panini.unadipatha.adhyaya2.SmroNisSutra
-import dev.panini.unadipatha.adhyaya2.VrdhehKitSutra
-import dev.panini.unadipatha.adhyaya3.DrsehKsSutra
-import dev.panini.unadipatha.adhyaya3.JiaerInSutra
-import dev.panini.unadipatha.adhyaya3.PunsoAsunSutra
-import dev.panini.unadipatha.adhyaya3.ShruvaKitSutra
-import dev.panini.unadipatha.adhyaya3.TanuKrbhyahTanSutra
-import dev.panini.unadipatha.adhyaya3.VidehSatrSutra
-import dev.panini.unadipatha.adhyaya4.BhrMrDrshiYajiPanibhyahKanSutra
-import dev.panini.unadipatha.adhyaya4.KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra
-import dev.panini.unadipatha.adhyaya4.KaverBunSutra
-import dev.panini.unadipatha.adhyaya4.KrvrDaribhyahKaninSutra
-import dev.panini.unadipatha.adhyaya4.PaaHrerInSutra
-import dev.panini.unadipatha.adhyaya4.PhaleGrahirAtmambharishcaSutra
-import dev.panini.unadipatha.adhyaya4.RishehKitSutra
-import dev.panini.unadipatha.adhyaya4.VidheshcaSutra
-import dev.panini.unadipatha.adhyaya5.DivaerUunSutra
-import dev.panini.unadipatha.adhyaya5.ShrVrbhyamAnakSutra
 import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
+import dev.panini.unadipatha.adhyaya1.UnadiAdhyaya1Registry
+import dev.panini.unadipatha.adhyaya2.UnadiAdhyaya2Registry
+import dev.panini.unadipatha.adhyaya3.UnadiAdhyaya3Registry
+import dev.panini.unadipatha.adhyaya4.UnadiAdhyaya4Registry
+import dev.panini.unadipatha.adhyaya5.UnadiAdhyaya5Registry
 
 object UnadiPatha {
-    val sutras: List<UnadiSutra> = listOf(
-        KrvaPajiMiSvadisadhyashubhyoUnSutra,
-        TabhyamAnyatrapiDrshyaKartaryUnSutra,
-        KrSrbhyamUnSutra,
-        KrGrShrVrbhyahKuSutra,
-        ArtiRbhyamThanSutra,
-        MiderMataSutra,
-        GamerIniSutra,
-        HrerIniSutra,
-        SthaghvorIccaSutra,
-        BhuvaKthunSutra,
-        ShruVrDrPraVrbhyahSihSutra,
-        NeraKthanSutra,
-        PaPaBhyamTrnSutra,
-        SmroNisSutra,
-        VrdhehKitSutra,
-        HuDhabhyamJnuhSutra,
-        GraherInSutra,
-        PunsoAsunSutra,
-        TanuKrbhyahTanSutra,
-        VidehSatrSutra,
-        DrsehKsSutra,
-        JiaerInSutra,
-        ShruvaKitSutra,
-        KrvrDaribhyahKaninSutra,
-        BhrMrDrshiYajiPanibhyahKanSutra,
-        KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra,
-        PhaleGrahirAtmambharishcaSutra,
-        PaaHrerInSutra,
-        RishehKitSutra,
-        KaverBunSutra,
-        VidheshcaSutra,
-        ShrVrbhyamAnakSutra,
-        DivaerUunSutra
-    )
+    val sourceSutras: List<UnadiPathaEntry> get() = UnadiPathaCatalog.sutras
 
-    /**
-     * Forward Lookup: Finds matching Uṇādi pratyayas for a given Dhātu and optional target Artha/Meaning.
-     */
+    val modeledSourceSutras: List<UnadiSutra> = listOf(
+        UnadiAdhyaya1Registry.modeledSutras,
+        UnadiAdhyaya2Registry.modeledSutras,
+        UnadiAdhyaya3Registry.modeledSutras,
+        UnadiAdhyaya4Registry.modeledSutras,
+        UnadiAdhyaya5Registry.modeledSutras,
+    ).flatten()
+
+    val sutras: List<UnadiSutra> get() = modeledSourceSutras
+
+    private val legacyExecutableSutras: List<UnadiSutra> = listOf(
+        UnadiAdhyaya1Registry.legacySutras,
+        UnadiAdhyaya2Registry.legacySutras,
+        UnadiAdhyaya3Registry.legacySutras,
+        UnadiAdhyaya4Registry.legacySutras,
+        UnadiAdhyaya5Registry.legacySutras,
+    ).flatten()
+
+    val executableSutras: List<UnadiSutra> = modeledSourceSutras +
+        legacyExecutableSutras.filter { legacy -> modeledSourceSutras.none { it.number == legacy.number } }
+
     fun findPratyaya(dhatu: Dhatu, artha: Artha? = null): List<UnadiMatch> {
-        val matches = sutras.filter { it.matchesRoot(dhatu) }
-        val filtered = if (artha != null) {
-            matches.filter { sutra ->
-                sutra.meaning == artha || sutra.baseSamjnas.any { s ->
-                    s is Samjna.Karaka && artha is Artha.Karaka && s.name == artha.name
-                }
+        val matches = executableSutras.filter { it.matchesRoot(dhatu) }.map { it.matchFor(dhatu) }
+        return if (artha == null) matches else matches.filter { match ->
+            match.meaning == artha || match.samjnas.any { samjna ->
+                samjna is Samjna.Karaka && artha is Artha.Karaka && samjna.name == artha.name
             }
-        } else {
-            matches
         }
-        return filtered.map { it.matchFor(dhatu) }
     }
 
-    /**
-     * Reverse Lookup: Given a Dhātu and Uṇādi Pratyaya (upadeśa or surface), returns all matching Saṁjñās & Sūtras.
-     */
-    fun findSamjna(dhatu: Dhatu, pratyaya: String): List<UnadiMatch> {
-        return sutras
-            .filter { it.matchesRoot(dhatu) && (it.pratyaya == pratyaya || it.pratyayaSurface == pratyaya) }
-            .map { it.matchFor(dhatu) }
-    }
+    fun findSamjna(dhatu: Dhatu, pratyaya: String): List<UnadiMatch> = executableSutras
+        .filter { it.matchesRoot(dhatu) && (it.pratyaya == pratyaya || it.pratyayaSurface == pratyaya) }
+        .map { it.matchFor(dhatu) }
 
-    /**
-     * Etymological / Nirukta Lookup: Given a conventional word (Saṁjñā), finds matching Dhātus & Uṇādi Sūtras.
-     */
     fun findByWord(word: String): List<UnadiMatch> {
         val results = mutableListOf<UnadiMatch>()
-        for (sutra in sutras) {
+        for (sutra in executableSutras) {
             for (root in sutra.roots) {
                 val match = sutra.matchFor(root)
                 val hasWord = match.samjnas.any { it is Samjna.Rudhi && it.word == word } ||
-                        (match.meaning is Artha.Rudhi && (match.meaning as Artha.Rudhi).devanagari == word)
-                if (hasWord) {
-                    results.add(match)
-                }
+                    (match.meaning is Artha.Rudhi && match.meaning.devanagari == word)
+                if (hasWord) results.add(match)
             }
         }
         return results

@@ -45,8 +45,8 @@ class UnadipathaRuntimeGranthaTest {
             ),
         )
 
-        assertTrue(grantha.sutras.size >= 33)
-        assertTrue(result.state.appliedSutras.contains(SutraId("1.3")))
+        assertEquals(157, grantha.sutras.size)
+        assertTrue(result.state.appliedSutras.contains(SutraId("1.1")))
         val pratyayaTerm = result.state.derivation.terms.firstOrNull { it.kind == TermKind.PRATYAYA }
         assertTrue(pratyayaTerm != null)
     }
@@ -64,10 +64,12 @@ class UnadipathaRuntimeGranthaTest {
 
         assertEquals(blueprint, decoded)
         val sutra1_3 = decoded.sutras.single { it.id == SutraId("1.3") }
-        assertEquals("कृसृभ्यामुण्", sutra1_3.source.text)
+        assertEquals("दॄसनिजनिचरिचटिभ्यो ञुण्", sutra1_3.source.text)
         assertEquals(SutraArthaValue.Text("1.3"), sutra1_3.artha.fields["number"])
         assertEquals(
-            SutraArthaValue.Sequence(listOf(SutraArthaValue.Text("डुकृञ्"), SutraArthaValue.Text("सृ"))),
+            SutraArthaValue.Sequence(
+                listOf("दॄ", "जनीँ", "सन्", "चर्", "चट्").map(SutraArthaValue::Text),
+            ),
             sutra1_3.artha.fields["roots"],
         )
     }

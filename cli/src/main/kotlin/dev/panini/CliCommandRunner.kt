@@ -57,7 +57,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             "pair" -> {
                 val dhatuText = args.getOrNull(2) ?: error("Usage: --unadi pair <dhatu> <pratyaya>")
                 val pratyaya = args.getOrNull(3) ?: error("Usage: --unadi pair <dhatu> <pratyaya>")
-                val dhatuObj = UnadiPatha.sutras.flatMap { it.roots }
+                val dhatuObj = UnadiPatha.executableSutras.flatMap { it.roots }
                     .firstOrNull { it.sourceSurface == dhatuText || it.upadesha == dhatuText }
                     ?: error("Dhātu '$dhatuText' not found in Uṇādipāṭha catalog.")
                 val analysis = UnadiAnalyzer.analyzePair(dhatuObj, pratyaya)

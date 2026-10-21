@@ -17,7 +17,7 @@ object UnadiDerivationEngine {
     fun derive(dhatuSurface: String, pratyaya: String): DerivationResult {
         val dhatu = DhatuPathaRegistration.allDhatus.firstOrNull {
             it.sourceSurface == dhatuSurface || it.upadesha == dhatuSurface
-        } ?: UnadiPatha.sutras.flatMap { it.roots }.firstOrNull {
+        } ?: UnadiPatha.executableSutras.flatMap { it.roots }.firstOrNull {
             it.sourceSurface == dhatuSurface || it.upadesha == dhatuSurface
         } ?: error("Dhātu '$dhatuSurface' not found in DhātuPatha or Uṇādipāṭha.")
 
