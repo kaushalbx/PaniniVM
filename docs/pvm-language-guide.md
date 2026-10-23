@@ -656,7 +656,155 @@ A standalone present-tense existential is treated as an assertion. Put it in a
 `यदि` or `यावत्` clause when its truth value controls execution. The older
 accusative-list/instrumental-member frame remains accepted for compatibility.
 
-### 7.2 Collection concatenation
+### 7.2 Quantified collection predicates
+
+Use a genitive collection, a quantifier, and a nominative singular member name
+to test a condition against collection members. The member name is local to the
+predicate; it does not overwrite a variable of the same name outside the
+expression.
+
+`कश्चित्` is the natural existential form, equivalent to `any { condition }`:
+
+```pvm
+सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।
+```
+
+This reads as “some member of the list is greater than two.” It returns
+`सत्यम्` as soon as the first matching member is found and returns `असत्यम्`
+when no member matches.
+
+`प्रत्येकः` is the natural universal form, equivalent to `all { condition }`:
+
+```pvm
+सूची + ङस् प्रत्येकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।
+```
+
+This reads as “every member of the list is greater than zero.” It returns
+`असत्यम्` as soon as the first nonmatching member is found. For an empty
+collection, `कश्चित्` returns `असत्यम्`, while `प्रत्येकः` returns `सत्यम्`
+(vacuous truth). Both `सूची` values and grammatical `गण` groups are accepted.
+The member predicate must produce typed `सत्य`; a scalar collection, an
+unresolved member predicate, or a non-truth result is an error.
+
+There are multiple natural ways to express related goals:
+
+- Use locative membership (`वस्तु सूच्याम् अस्ति`) when checking one known
+  value for typed equality.
+- Use `कश्चित् …` or `प्रत्येकः …` when each member must satisfy a reusable
+  condition; these forms short-circuit and compose directly inside `यदि`.
+- Use the distributive `सूच्याः सदस्यं प्रति …` form when the body performs an
+  action for every member and its effects or results matter.
+
+See `examples/collections/quantified_predicates.pvm`.
+
+### 7.3 Grouping by a typed key
+
+Use `वि + भजँ` with the source collection in the accusative and a unary key
+operation in the instrumental:
+
+```pvm
+सूची + अम् यु + टा वि + भजँ + लोट् + सिप् ।
+```
+
+This reads as “divide the list into classes by `यु`.” Here unary `यु` tests
+evenness, so `[1, 2, 3, 4, 2]` produces two classes in first-seen key order:
+the false-key class `[1, 3]`, followed by the true-key class `[2, 4, 2]`.
+Duplicates and the order within each class are preserved. A `गण` is also a
+valid source; a scalar is not. An empty collection produces an empty result.
+
+The result is a list of typed `वर्ग` records. Each record has `कुञ्जी`, the
+actual typed key value, and `सदस्यसूची`, the members belonging to it. Numeric,
+text, truth, ordinal, and structured keys therefore remain distinct; grouping
+does not compare rendered spellings. A typed source-list constraint is retained
+on every `सदस्यसूची`.
+
+There are multiple ways to achieve related goals:
+
+- Use `वि + भजँ` when every member must be retained and classified by a key.
+- Use `वि + वृज्` filtering when only members satisfying a truth-valued unary
+  operation should remain.
+- Use `सम् + यु` mapping when every member should be transformed rather than
+  classified.
+- Use `कश्चित् …` or `प्रत्येकः …` when only a single truth result is needed;
+  these can stop before visiting every member.
+- Use slicing when the desired classes are positional contiguous ranges rather
+  than semantic key classes.
+
+The key operation must resolve unambiguously as a unary operation and must
+succeed for every visited member. The first key failure aborts grouping and
+reports its one-based member position. Interpreter and compiled JVM execution
+use the same registered `BhajDhatu` operation and preserve identical ordering.
+See `examples/collections/group_by.pvm`.
+
+### 7.4 Typed distinct members
+
+Use `वि + शिषॢँ` to retain the first member of every typed-equality class:
+
+```pvm
+सूची + अम् वि + शिषॢँ + लोट् + सिप् ।
+```
+
+For `[1, 2, 1, 3, 2]` the result is `[1, 2, 3]`. Order is stable, a typed
+list constraint is preserved, and a `गण` is accepted. Equality is structural
+and typed: the number `2`, the word `"2"`, and a record that renders similarly
+are not duplicates. Empty collections succeed; scalar operands fail.
+
+Use this operation when only duplicate removal is needed. Use grouping when the
+members of every equality/key class must remain available, or filtering when
+membership is determined by a predicate rather than equality. See
+`examples/collections/distinct.pvm`.
+
+### 7.5 Stable typed sorting
+
+Plain `क्रमुँ` sorts in ascending natural order; `प्रति + क्रमुँ` sorts in
+descending order:
+
+```pvm
+सूची + अम् क्रमुँ + लोट् + सिप् ।
+सूची + अम् प्रति + क्रमुँ + लोट् + सिप् ।
+```
+
+Sorting is stable, retains duplicates, and preserves a declared list member
+type. Lists and groups are accepted, including empty ones. Comparable kinds are
+cardinals, ordinals, rationals, words, and truth values. Members must all have
+the same typed kind. PVM deliberately rejects mixed or structured members
+instead of silently ordering their rendered spellings. Rational comparison is
+exact and does not multiply in `Long`, avoiding overflow-dependent ordering.
+
+### 7.6 Truth partition, map, and filter
+
+`प्रति + वि + भजँ` is the binary truth-specialized form of grouping:
+
+```pvm
+सूची + अम् यु + टा प्रति + वि + भजँ + लोट् + सिप् ।
+```
+
+It invokes unary `यु` for each member and returns one typed `द्विविभाग` record
+with `सत्यसूची` and `असत्यसूची`. Both lists retain source order, duplicates,
+and the source member constraint. Empty input returns two empty lists. A scalar,
+unresolved callback, callback failure, or non-truth callback result is an error.
+
+The existing transformation forms use the same unary-operation convention:
+
+```pvm
+# map: double every member with एधँ
+सूची + अम् एधँ + टा सम् + यु + लोट् + सिप् ।
+
+# filter: retain members for which unary यु (evenness) is true
+सूची + अम् यु + टा वि + वृजीँ + लोट् + सिप् ।
+```
+
+Map infers a numeric or text result constraint when every produced value has
+that type. Filter preserves the source constraint. Both accept `सूची`, `गण`,
+and coordinated grammatical groups, reject a lone scalar, and report the
+one-based member at which a callback fails. Callback-local `loop_element`,
+`loop_index`, and map's `loop_result` do not overwrite outer bindings.
+
+Choose map to transform every value, filter to keep one side of a truth test,
+partition to retain both sides, and group-by when the key can have more than two
+values. See `examples/collections/sort_and_partition.pvm`.
+
+### 7.7 Collection concatenation
 
 Join two collections with causative `सम् + युज्`. The collection being
 extended is accusative, while the collection joined with it is instrumental:
@@ -687,7 +835,7 @@ an explicitly supplied empty typed list remains a valid value to store.
 Display also requires every supplied object reference to resolve; it does not
 silently omit missing objects and print only the remaining coordinated values.
 
-### 7.3 Collection cardinality
+### 7.8 Collection cardinality
 
 Count the members of a collection with ordinary transitive `गण्`:
 
@@ -700,7 +848,7 @@ object being counted. Its resolved `कर्मन्` binding supplies the col
 both the interpreter action and the compiler's direct length instruction; the
 meaning does not depend on the variable name or operand position.
 
-### 7.4 Collection slicing
+### 7.9 Collection slicing
 
 Take an inclusive portion of a collection by expressing the collection as a
 genitive whole and its ordinal limits with `पर्यन्तम्`:
@@ -728,8 +876,12 @@ Slice bounds use inclusive one-based positions. Current slicing clips a start
 below one to the first member and an end beyond the collection to its length;
 an empty or reversed clipped interval returns an empty collection. Bounds
 outside the supported signed 32-bit position range produce a value error.
+The lower and upper bounds may also be named computed numbers. For example,
+`आरम्भ + ङसिँ अन्तक्रम + शस् परि + अन्त + अम्` uses the current values of
+`आरम्भ` and `अन्तक्रम`; it does not require literal ordinals. This has the
+same interpreter and compiled-JVM meaning.
 
-### 7.5 One-based indexed retrieval
+### 7.10 One-based indexed retrieval
 
 Take a value from an ablative source collection at a locative position:
 
@@ -747,7 +899,7 @@ Run the complete example at
 [`examples/collections/ordinal_index.pvm`](../examples/collections/ordinal_index.pvm).
 It gathers three numbers and prints the second member.
 
-### 7.6 Final member extraction
+### 7.11 Final member extraction
 
 Express the collection as the genitive whole and its final member as the
 accusative object:
@@ -770,7 +922,39 @@ boundary it chooses the assimilated variant licensed by
 `ह्` after a stop may take the corresponding fourth consonant of that class.
 The underlying segmented source remains `उद् + हृ`.
 
-### 7.7 Summing number members
+### 7.12 Finding an item's position
+
+To find the first one-based position of an item, express the collection as the
+locative search domain, the sought item in the genitive, and `स्थान` as the
+accusative result relation:
+
+```pvm
+सूची + ङि लक्ष्य + ङस् स्थान + अम् अनु + इष् + लोट् + सिप् ।
+```
+
+This reads as `सूच्यां लक्ष्यस्य स्थानमन्विच्छ`—“find the position of the
+target in the list.” The result is a cardinal `सङ्ख्या`, so it can be stored or
+used as the locative position of indexed retrieval:
+
+```pvm
+सूची + ङि लक्ष्य + ङस् स्थान + अम् अनु + इष् + लोट् + सिप्
+ततः फल + अम् क्रमाङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+```
+
+Positions begin at one. If equal values occur more than once, the first
+position is returned. Equality is semantic and typed, not a comparison of
+rendered spellings. A missing item, a scalar search domain, or a query that
+does not resolve to exactly one value produces a value error.
+
+For a single lookup, this position operation is the direct form. Algorithms
+that must inspect combinations can instead use natural index-aware iteration.
+The Two Sum example takes each value and its related one-based position twice,
+then considers only pairs whose first position precedes the second. This also
+handles duplicate values without confusing their positions and requires no
+algorithm-specific action. See
+[`examples/algorithms/two_sum.pvm`](../examples/algorithms/two_sum.pvm).
+
+### 7.13 Summing number members
 
 For member summation, make the collection/member relation explicit:
 
@@ -865,6 +1049,42 @@ Nested alternatives are supported:
 अन्यथा गुरु
 ततः मुद्र् + णिच् + लोट् + सिप् ।
 ```
+
+A selected branch may itself be a natural action pipeline ending in another
+conditional. This expresses several dependent actions without artificial block
+delimiters; readable Sanskrit renders the preceding actions with the existing
+`क्त्वा`/`ल्यप्` sequence semantics:
+
+```pvm
+यदि प्रथमक्रम + सुँ द्वितीयक्रम + ङसिँ न्यून + सुँ असँ + लट् + तिप्
+तर्हि प्रथममूल्य + अम् द्वितीयमूल्य + अम् च युज् + णिच् + लोट् + सिप्
+    ततः यदि फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप्
+    तर्हि प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + लोट् + सिप्
+    अन्यथा असत्य + सुँ
+अन्यथा असत्य + सुँ ।
+```
+
+The nested condition observes the preceding pipeline result through `फल`.
+Only the selected outer branch evaluates that pipeline.
+
+When one selected branch must perform several **independent** actions, connect
+its complete sentences with `अथ` (“and then”). Unlike `ततः`, `अथ` does not
+pipe the previous result into the next action. Unlike `च`, it separates actions;
+`च` continues to coordinate operands inside one action.
+
+```pvm
+यदि फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप्
+तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप्
+    अथ प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + लोट् + सिप्
+    अथ वि + स्था + लोट् + सिप्
+अन्यथा असत्य + सुँ ।
+```
+
+Thus the same broader goal can be expressed naturally in different ways:
+use `ततः` when the next clause consumes the preceding result, use `अथ` when
+the branch performs consecutive independent actions, or call a named प्रक्रिया
+when the action group is reusable. The Two Sum example uses `अथ`; it needs no
+problem-specific action or helper procedure.
 
 Bare branch values such as `लघु` and `गुरु` are lowered to direct result values.
 The shared pipeline target executes only for the selected branch.
@@ -1269,7 +1489,7 @@ ordinary identifier; its spelling has no hidden suffix convention:
 अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
 ```
 
-Readable Sanskrit: `अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राः सन्ति।`
+Readable Sanskrit: `अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राणि सन्ति।`
 
 A typed kriyā can declare that schema as its result:
 
@@ -1468,7 +1688,7 @@ saptamī parameter slot must be immediately followed by one dvitīyā value.
 ### A structured result is rejected
 
 Confirm that the schema was declared before use with the plural
-`…स्य क्षेत्राः सन्ति` frame and that the returned field names exactly match
+`…स्य क्षेत्राणि सन्ति` frame and that the returned field names exactly match
 its declaration.
 
 ### A grammatical role remains ambiguous
@@ -1519,6 +1739,26 @@ Iteration snapshots list membership on entry, preserves member value types,
 and uses the condition-iteration host budget. An empty list runs no body.
 `वि + स्था + लोट् + सिप्` exits the nearest loop. Non-list sources fail.
 See `examples/control_flow/foreach.pvm` and its CLI-generated readable text.
+
+To expose the current one-based position, use the natural prior-action
+construction “having taken each member and its position”:
+
+```pvm
+सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा
+    क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This derives as `सूच्याः प्रत्येकं सदस्यं तस्य क्रमं च गृहीत्वा …`: “having
+taken each member of the list and its position …”. `सदस्य` is the current
+value and `क्रम` is its position (`एकम्`, `द्वे`, `त्रीणि`, ...). `तस्य`
+states that the position belongs to that member instead of leaving two adjacent
+accusatives semantically disconnected. Both names are scoped to the loop body
+and neither leaks after the loop. The member and index names must be distinct.
+
+The older `सूची + ङस् सदस्य + अम् क्रम + अम् प्रति` form remains accepted for
+source compatibility, but new programs and examples should use the natural
+`प्रत्येकम् … तस्य … च गृहीत्वा` construction. Value-only iteration retains
+the concise `सूची + ङस् सदस्य + अम् प्रति` form.
 
 ### Local pronoun references
 

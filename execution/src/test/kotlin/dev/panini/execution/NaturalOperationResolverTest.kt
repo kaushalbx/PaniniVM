@@ -20,6 +20,35 @@ import kotlin.test.assertTrue
 
 class NaturalOperationResolverTest {
     @Test
+    fun `locative collection search returns the first one based item position`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङि द्वि + ओस् स्थान + अम् अनु + इष् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())
+        assertEquals(2L, assertIs<SanskritValue.Sankhya>(
+            assertIs<ExecutionResult.Success>(results.last()).typedValue,
+        ).value)
+    }
+
+    @Test
+    fun `collection position search fails when the sought item is absent`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङि त्रि + आम् स्थान + अम् अनु + इष् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertIs<ExecutionResult.Failure>(results.last())
+    }
+
+    @Test
     fun `locative ordinal selects the second member as a one based position`() {
         val results = PaniniVM().evalScript(
             """
@@ -322,6 +351,28 @@ class NaturalOperationResolverTest {
         assertEquals("द्वितीय", operation.start.bindingName())
         assertEquals("तृतीय", operation.endInclusive.bindingName())
         assertEquals("अंश", operation.result.bindingName())
+    }
+
+    @Test
+    fun `collection slice accepts computed numeric boundaries`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            द्वि + अम् आरम्भ + ङि स्था + णिच् + लोट् + सिप् ।
+            त्रि + अम् अन्तक्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङस् आरम्भ + ङसिँ अन्तक्रम + शस् परि + अन्त + अम्
+                अंश + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+        assertEquals(
+            listOf(2L, 3L),
+            assertIs<SanskritValue.Suchi>(
+                assertIs<ExecutionResult.Success>(results.last()).typedValue,
+            ).items.map { assertIs<SanskritValue.Sankhya>(it).value },
+        )
     }
 
     private fun resolve(

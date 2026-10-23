@@ -1,0 +1,7 @@
+# Stable ascending and descending typed sorting.
+त्रि+ङस् एक+ओस् द्वि+आम् च एक+आम् च सूची अस्ति ।
+सूचीं क्रम ।
+सूचीं प्रतिक्रम ।
+
+# Split members into the true and false lists produced by unary evenness.
+सूचीं युना प्रतिविभज ।

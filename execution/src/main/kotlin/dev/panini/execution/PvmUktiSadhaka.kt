@@ -231,8 +231,20 @@ class PvmUktiSadhaka(
         override fun visitQuotation(node: Quotation): String =
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
-        override fun visitForEach(node: ForEach): String =
-            "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
+        override fun visitForEach(node: ForEach): String = node.index?.let { index ->
+            "${sadhayaSubanta(node.collection)} प्रत्येकं ${sadhayaSubanta(node.member)} " +
+                "तस्य ${sadhayaSubanta(index)} च गृहीत्वा ${render(node.body)}"
+        } ?: "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
+        override fun visitQuantifiedCollectionPredicate(
+            node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+        ): String {
+            val quantifier = when (node.quantifier) {
+                dev.panini.vyakaranam.ast.CollectionQuantifier.ANY -> "कश्चित्"
+                dev.panini.vyakaranam.ast.CollectionQuantifier.ALL -> "प्रत्येकः"
+            }
+            return "${sadhayaSubanta(node.collection)} $quantifier ${sadhayaSubanta(node.member)} " +
+                sadhayaPadas(node.predicate.vakya.padas.drop(1))
+        }
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
             if (node.maximumIterationStems.isNotEmpty() && node.maximumBoundaryPadas.isEmpty()) {
                 val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value

@@ -49,7 +49,7 @@ class PvmSentenceClassificationTest {
                 "असँ + लट् + झि ।"
 
         assertEquals(
-            "अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राः सन्ति ।",
+            "अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राणि सन्ति ।",
             PvmUktiSadhaka().sadhayaLine(source),
         )
     }

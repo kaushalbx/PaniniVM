@@ -161,21 +161,28 @@ internal object KarakaExtractor {
             }
             when (pada) {
                 is ParyantaRangePada -> {
-                    fun boundaryValue(boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada): Long =
-                        requireNotNull(dev.panini.execution.NaturalSemanticNormalizer.boundaryValue(boundary)) {
+                    fun boundaryExpression(
+                        boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada,
+                    ): ExecutionExpression {
+                        val value = dev.panini.execution.NaturalSemanticNormalizer.boundaryValue(boundary)
+                        if (value != null) return ExecutionExpression.sankhya(value, boundary.sourceText)
+                        val reference = boundary.stems.singleOrNull()
+                        require(!reference.isNullOrBlank()) {
                             "क्रमसीमायाः पूरणार्थः न ज्ञातः: ${boundary.sourceText}"
                         }
-                    val minimum = boundaryValue(pada.lowerLimit)
-                    val maximum = boundaryValue(pada.upperLimit)
+                        return ExecutionExpression.Reference(reference)
+                    }
+                    val minimum = boundaryExpression(pada.lowerLimit)
+                    val maximum = boundaryExpression(pada.upperLimit)
                     addBinding(
-                        ExecutionExpression.sankhya(minimum, pada.lowerLimit.sourceText),
+                        minimum,
                         setOf(Karaka.APADANA),
                     )
                     addBinding(
-                        ExecutionExpression.sankhya(maximum, pada.upperLimit.sourceText),
+                        maximum,
                         setOf(Karaka.ADHIKARANA),
                     )
-                    trace += "परि + अन्त + अम् licenses inclusive limits $minimum..$maximum."
+                    trace += "परि + अन्त + अम् licenses inclusive collection limits."
                 }
                 is SubantaPada -> {
                     val copularPredicate =

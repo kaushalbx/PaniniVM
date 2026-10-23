@@ -404,6 +404,9 @@ object VyakaranamExecutionAdapter {
                 ExecuteRepeat(List(node.count) { build(node.body) })
             override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ExecutionNode = build(node.body)
+            override fun visitQuantifiedCollectionPredicate(
+                node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+            ): ExecutionNode = build(node.predicate)
             override fun visitPipeline(node: Pipeline): ExecutionNode =
                 error("Pipelines are executed through their semantic stage engine.")
             override fun visitPrakriya(node: Prakriya): ExecutionNode =
@@ -454,6 +457,7 @@ object VyakaranamExecutionAdapter {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
         val metadataMap = buildMap {
+            put("sourceClause", padas.joinToString(" ") { it.sourceText })
             tinganta?.listMemberType?.let { put("listMemberType", it.name) }
             put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
             put(dev.panini.execution.ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
@@ -566,6 +570,7 @@ object VyakaranamExecutionAdapter {
                 body
             }
             is dev.panini.vyakaranam.ast.ForEach -> visit(node.body)
+            is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> visit(node.predicate)
             is Pipeline -> Shape(emptySet(), emptySet())
             is Prakriya -> Shape(emptySet(), emptySet())
             is Scope -> Shape(emptySet(), emptySet())

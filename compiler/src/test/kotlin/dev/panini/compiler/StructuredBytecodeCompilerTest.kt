@@ -1555,6 +1555,21 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
+    fun `collection position search has interpreted and compiled parity`() {
+        val source = """
+            एक + अम् द्वि + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङि द्वि + ओस् स्थान + अम् अनु + इष् + लोट् + सिप् ।
+        """.trimIndent()
+
+        val interpreted = PaniniVM().evalScript(source)
+        assertEquals(2L, ((interpreted.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+        val compiled = compileAndInspect(source, "CompiledCollectionPosition")
+        assertEquals(2L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `existential clause branches directly on a named truth state`() {
         val source = """
             सत्य + अम् अवस्था + ङि स्था + णिच् + लोट् + सिप् ।
@@ -1669,6 +1684,7 @@ class StructuredBytecodeCompilerTest {
                         SanskritValue.Sankhya(4L, "चत्वारि"),
                         SanskritValue.Sankhya(6L, "षट्"),
                     ),
+                    dev.panini.execution.ListMemberType.NUMBER,
                 ),
             ),
             CollectionResultCase(

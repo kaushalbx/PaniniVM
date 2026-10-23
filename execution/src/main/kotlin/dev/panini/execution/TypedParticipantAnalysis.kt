@@ -82,9 +82,17 @@ object TypedParticipantAnalysis {
                 return super.visitConditional(node)
             }
             override fun visitForEach(node: ForEach): ProgramNode {
+                val names = listOfNotNull(node.member, node.index).map { it.pratipadika.referenceKey() }
+                val added = names.filter(localNames::add)
+                return try { super.visitForEach(node) }
+                finally { added.forEach(localNames::remove) }
+            }
+            override fun visitQuantifiedCollectionPredicate(
+                node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+            ): ProgramNode {
                 val name = node.member.pratipadika.referenceKey()
                 val added = localNames.add(name)
-                return try { super.visitForEach(node) }
+                return try { super.visitQuantifiedCollectionPredicate(node) }
                 finally { if (added) localNames.remove(name) }
             }
         }

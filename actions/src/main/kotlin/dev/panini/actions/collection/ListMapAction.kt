@@ -27,10 +27,14 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
             "Target list resolves to empty."
         )
 
-        val elements = when (firstVal) {
-            is SanskritValue.Suchi -> firstVal.items
-            is SanskritValue.Gana -> firstVal.elements
-            else -> listValues
+        val elements = when {
+            listValues.size > 1 -> listValues // coordinated grammatical group
+            firstVal is SanskritValue.Suchi -> firstVal.items
+            firstVal is SanskritValue.Gana -> firstVal.elements
+            else -> return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "List map requires a list or group, not a scalar operand."
+            )
         }
 
         // 2. Resolve target operation (from KARANA or ADHIKARANA)
@@ -41,10 +45,10 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
                 "List map execution requires a target action or verbal root in KARANA or ADHIKARANA."
             )
 
-        val targetName = context.resolve(targetExpression).firstOrNull()?.trim()
+        val targetName = context.resolve(targetExpression).singleOrNull()?.trim()
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Target operation cannot be resolved to a name."
+                "Target operation must resolve to exactly one name."
             )
 
         val targetOp = context.operationCatalog.resolve(
@@ -126,7 +130,14 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
             }
         }
 
-        val mappedList = SanskritValue.Suchi(results)
+        val resultType = when {
+            results.isNotEmpty() && results.all { dev.panini.execution.OperationValueType.NUMBER.accepts(it) } ->
+                dev.panini.execution.ListMemberType.NUMBER
+            results.isNotEmpty() && results.all { it is SanskritValue.Shabda } ->
+                dev.panini.execution.ListMemberType.TEXT
+            else -> null
+        }
+        val mappedList = SanskritValue.Suchi(results, resultType)
         return ExecutionResult.Success(
             mappedList.toDisplayText(),
             operation.name,

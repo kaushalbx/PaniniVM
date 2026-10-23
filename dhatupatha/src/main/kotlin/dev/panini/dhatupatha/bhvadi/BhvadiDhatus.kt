@@ -4954,19 +4954,7 @@ object BhvadiDhatus {
                 "अदने", "", "to eat",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "01.0545",
-                545,
-                "क्रमुँ",
-                "क्रम्",
-                "पादविक्षेपे",
-                "निर्भयता से जाना, रक्षण करना, बढ़ना",
-                "to walk,to step,to go ahead,to cross,to leap,to ascend, to protect, to approach",
-                PadaType.PARASMAIPADA,
-                ItStatus.SET,
-                Karmatva.SAKARMAKA,
-                Accent.UDATTA,
-            )
+            dhatu(KramDhatu())
             dhatu(
                 "01.0546", 546, "अयँ", "अय्",
                 "गतौ", "जाना", "to go",

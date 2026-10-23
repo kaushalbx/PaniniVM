@@ -190,6 +190,7 @@ internal object CompilerFrontend {
         private var nextLabel = 0
         var callerSourceFile: String? = null
         private var referents = emptyList<dev.panini.execution.AgreementCandidate<String>>()
+        private var procedureEnvironment = dev.panini.execution.ValueEnvironment()
         private var inProcedure = false
         private var resultRoleShadowed = false
 
@@ -201,6 +202,12 @@ internal object CompilerFrontend {
                 dev.panini.execution.AgreementCandidate(dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey(index),
                     dev.panini.execution.ReferentAgreement.fromDeclaration(declarations[parameter.nameStem]))
             }
+            procedureEnvironment = dev.panini.execution.ValueEnvironment(
+                constraints = parameters.indices.associate { index ->
+                    dev.panini.execution.PrakriyaAstArgumentBinder.referenceKey(index) to
+                        dev.panini.execution.SemanticValueConstraint()
+                },
+            )
         }
 
         private fun resolveAnaphors(node: Invocation): Invocation =
@@ -260,6 +267,7 @@ internal object CompilerFrontend {
                 CompilerUnsupportedKind.LOOP, render(node), "Cannot lower condition-controlled loop to compiler IR.",
             )
             is dev.panini.vyakaranam.ast.ForEach -> lowerForEach(node)
+            is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> lowerQuantifiedCollectionPredicate(node)
             is PrakriyaNode -> node.body.flatMap { lower(it) }
             is Scope -> node.body.flatMap { lower(it) }
         }
@@ -383,12 +391,14 @@ internal object CompilerFrontend {
             }
             return (ResolvedLeafPlanner.plan(
                 node,
+                environment = procedureEnvironment,
                 allowStore = allowDirectStore,
                 injectedBindings = injectedBindings,
             ) ?: ResolvedLeafPlanner.planAny(
                 node,
+                environment = procedureEnvironment,
                 injectedBindings = injectedBindings,
-            ) ?: if (consumesPriorResult) ResolvedLeafPlanner.planAny(node) else null
+            ) ?: if (consumesPriorResult) ResolvedLeafPlanner.planAny(node, procedureEnvironment) else null
             )?.let { withActionIdentity(lowerDirect(it), node, it.resolved.invocation.dhatu) }
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
@@ -969,6 +979,7 @@ internal object CompilerFrontend {
             is Repeat -> lowerRepeatIr(node)
             is WhileLoop -> lowerWhileIr(node)
             is dev.panini.vyakaranam.ast.ForEach -> lowerForEach(node)
+            is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> lowerQuantifiedCollectionPredicate(node)
             is Pipeline, is Quotation -> null
         }
 
@@ -1059,11 +1070,19 @@ internal object CompilerFrontend {
                 node.collection.sourceText, listOf(node.collection))))
             val source = (whole.vakya.padas.single() as SubantaPada).pratipadika.referenceKey()
             val member = node.member.pratipadika.referenceKey()
+            val indexName = node.index?.pratipadika?.referenceKey()
             val previousReferents = referents
-            referents = referents.filterNot { it.identity == member } + dev.panini.execution.AgreementCandidate(
-                member, dev.panini.execution.ReferentAgreement.fromDeclaration(node.member))
+            val loopNames = setOfNotNull(member, indexName)
+            referents = referents.filterNot { it.identity in loopNames } +
+                dev.panini.execution.AgreementCandidate(
+                    member, dev.panini.execution.ReferentAgreement.fromDeclaration(node.member)) +
+                listOfNotNull(node.index?.let {
+                    dev.panini.execution.AgreementCandidate(indexName!!,
+                        dev.panini.execution.ReferentAgreement.fromDeclaration(it))
+                })
             val body = try { lower(node.body) } finally { referents = previousReferents }
-            fun number(value: Long) = CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Sankhya(value, value.toString()))
+            fun number(value: Long) = CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Sankhya(
+                value, dev.panini.execution.renderSankhyaResult(value) ?: value.toString()))
             return buildList {
                 add(CompilerInstruction.Load(source))
                 add(CompilerInstruction.Collection(CollectionOperator.SNAPSHOT))
@@ -1081,7 +1100,8 @@ internal object CompilerFrontend {
                 add(CompilerInstruction.LoadLocal("${prefix}_list"))
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 add(CompilerInstruction.Collection(CollectionOperator.INDEX))
-                add(CompilerInstruction.EnterFrame(listOf(member), scopedBinding = true))
+                if (indexName != null) add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                add(CompilerInstruction.EnterFrame(listOfNotNull(member, indexName), scopedBinding = true))
                 addAll(body)
                 add(CompilerInstruction.ExitFrame)
                 add(CompilerInstruction.IsProcedureReturnRequested)
@@ -1093,6 +1113,72 @@ internal object CompilerFrontend {
                 add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
                 add(CompilerInstruction.StoreLocal("${prefix}_index"))
                 add(CompilerInstruction.Jump("${prefix}_check"))
+                add(CompilerInstruction.Label("${prefix}_done"))
+            }
+        }
+
+        private fun lowerQuantifiedCollectionPredicate(
+            node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+        ): List<CompilerInstruction> {
+            val prefix = "quantifier_${nextLabel++}"
+            val whole = resolveAnaphors(Invocation(dev.panini.vyakaranam.ast.NamaVakya(
+                node.collection.sourceText,
+                listOf(node.collection),
+            )))
+            val source = (whole.vakya.padas.single() as SubantaPada).pratipadika.referenceKey()
+            val member = node.member.pratipadika.referenceKey()
+            val previousReferents = referents
+            referents = referents.filterNot { it.identity == member } + dev.panini.execution.AgreementCandidate(
+                member,
+                dev.panini.execution.ReferentAgreement.fromDeclaration(node.member),
+            )
+            val predicate = try {
+                lowerResolvedCondition(node.predicate)
+                    ?: throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.CONDITIONAL,
+                        render(node.predicate),
+                        "A quantified member predicate must produce a truth value.",
+                    )
+            } finally {
+                referents = previousReferents
+            }
+            val isAny = node.quantifier == dev.panini.vyakaranam.ast.CollectionQuantifier.ANY
+            val exhaustedValue = SanskritValue.Satya(!isAny)
+            val decisiveValue = SanskritValue.Satya(isAny)
+            fun number(value: Long) = CompilerInstruction.Constant(SanskritValue.Sankhya(value, value.toString()))
+            return buildList {
+                add(CompilerInstruction.Load(source))
+                add(CompilerInstruction.Collection(CollectionOperator.QUANTIFIER_SNAPSHOT))
+                add(CompilerInstruction.StoreLocal("${prefix}_collection"))
+                add(number(1))
+                add(CompilerInstruction.StoreLocal("${prefix}_index"))
+                add(CompilerInstruction.Label("${prefix}_check"))
+                add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                add(CompilerInstruction.LoadLocal("${prefix}_collection"))
+                add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
+                add(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN_OR_EQUAL))
+                add(CompilerInstruction.Branch("${prefix}_exhausted"))
+                add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                add(CompilerInstruction.CheckCollectionIteration)
+                add(CompilerInstruction.LoadLocal("${prefix}_collection"))
+                add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                add(CompilerInstruction.Collection(CollectionOperator.INDEX))
+                add(CompilerInstruction.EnterFrame(listOf(member), scopedBinding = true))
+                addAll(predicate)
+                add(CompilerInstruction.ExitFrame)
+                add(CompilerInstruction.Branch("${prefix}_continue", whenTrue = !isAny))
+                add(CompilerInstruction.Constant(decisiveValue))
+                add(CompilerInstruction.Store("LastResult"))
+                add(CompilerInstruction.Jump("${prefix}_done"))
+                add(CompilerInstruction.Label("${prefix}_continue"))
+                add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                add(number(1))
+                add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
+                add(CompilerInstruction.StoreLocal("${prefix}_index"))
+                add(CompilerInstruction.Jump("${prefix}_check"))
+                add(CompilerInstruction.Label("${prefix}_exhausted"))
+                add(CompilerInstruction.Constant(exhaustedValue))
+                add(CompilerInstruction.Store("LastResult"))
                 add(CompilerInstruction.Label("${prefix}_done"))
             }
         }

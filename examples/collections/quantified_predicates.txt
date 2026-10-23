@@ -1,0 +1,8 @@
+# Natural existential and universal predicates over a scoped collection member.
+एकस्य द्वयोः त्रयाणां च सूची अस्ति ।
+
+# Some member is greater than two.
+सूच्याः कश्चित् सदस्यः द्वि+ङसिँ अधिकः अस्ति ।
+
+# Every member is greater than zero.
+सूच्याः प्रत्येकः सदस्यः शून्याद् अधिकः अस्ति ।

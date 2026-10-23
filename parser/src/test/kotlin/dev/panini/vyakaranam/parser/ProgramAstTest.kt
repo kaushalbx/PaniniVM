@@ -1,6 +1,7 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.NamaVakya
@@ -18,6 +19,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class ProgramAstTest {
@@ -373,6 +375,68 @@ class ProgramAstTest {
         assertIs<Conditional>(sequence.statements.last())
         assertEquals(listOf("ततः"), sequence.connectors)
     }
+
+    @Test
+    fun `conditional consequent may contain an action pipeline ending in a nested conditional`() {
+        val outer = assertIs<Conditional>(
+            parser.parse(
+                "यदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् " +
+                    "तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् " +
+                    "ततः यदि फल + सुँ पञ्चन् + टा सम + सुँ असँ + लट् + तिप् " +
+                    "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val consequent = assertIs<Sequence>(outer.consequent)
+        assertIs<Invocation>(consequent.statements.first())
+        assertIs<Conditional>(consequent.statements.last())
+    }
+
+    @Test
+    fun `conditional consequent may coordinate independent actions`() {
+        val conditional = assertIs<Conditional>(
+            parser.parse(
+                "यदि एक + अम् एक + अम् च विद् + लोट् + सिप् " +
+                    "तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
+                    "अथ एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
+                    "अथ वि + स्था + लोट् + सिप् अन्यथा असत्य + सुँ ।",
+            ).body,
+        )
+
+        val consequent = assertIs<Sequence>(conditional.consequent)
+        assertEquals(3, consequent.statements.size)
+        assertEquals(listOf("अथ", "अथ"), consequent.connectors)
+    }
+
+    @Test
+    fun `natural indexed iteration lowers to foreach member and index bindings`() {
+        val loop = assertIs<ForEach>(
+            parser.parse(
+                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा " +
+                    "क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals("सूची", loop.collection.pratipadika.semanticKey())
+        assertEquals("सदस्य", loop.member.pratipadika.semanticKey())
+        assertEquals("क्रम", assertNotNull(loop.index).pratipadika.semanticKey())
+    }
+
+    @Test
+    fun `natural indexed iteration requires its semantic relation and acquisition`() {
+        val body = "क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् अन्य + ङस् क्रम + अम् च ग्रह् + क्त्वा $body",
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च मुद्र् + क्त्वा $body",
+            )
+        }
+    }
+
 
     @Test
     fun `conditional arms may be bare nominal values`() {

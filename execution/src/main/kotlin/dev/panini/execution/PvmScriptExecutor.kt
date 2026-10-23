@@ -12,6 +12,8 @@ import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.ForEach
+import dev.panini.vyakaranam.ast.CollectionQuantifier
+import dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate
 import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.Ukti
 import java.io.File
@@ -196,6 +198,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
         is WhileLoop -> executeWhileLoop(node, context)
         is ForEach -> executeForEach(node, context)
+        is QuantifiedCollectionPredicate -> executeQuantifiedCollectionPredicate(node, context)
         is Pipeline -> PurvaparaPipelineEngine.executePipeline(
             node, vm, context.sessionKey, context.scope, context.speaker, context.listener,
             context.registry, callerSourceFile = context.sourceFile,
@@ -347,6 +350,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             ExecutionError.INVALID_VALUE, "Distributive iteration requires a list: '$source'.")).also(context::publish)
         val items = value.items.toList()
         val name = loop.member.pratipadika.referenceKey()
+        val indexName = loop.index?.pratipadika?.referenceKey()
         return buildList {
             for ((index, item) in items.withIndex()) {
                 val budget = vm.executionLimits.maxConditionIterations
@@ -358,18 +362,130 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     break
                 }
                 val memberBindings = ProcedureLocalBindings.member(context.scope.procedureBindings, name, item, loop.member)
+                val oneBasedIndex = index + 1L
+                val loopBindings = if (indexName == null) memberBindings else ProcedureLocalBindings.member(
+                    memberBindings, indexName, SanskritValue.Sankhya(oneBasedIndex,
+                        renderSankhyaResult(oneBasedIndex) ?: oneBasedIndex.toString()), loop.index)
+                val loopEnvironment = context.scope.environment
+                    .mergedWith(ValueEnvironment.live(memberBindings.values))
+                    .let { environment -> if (loopBindings === memberBindings) environment else
+                        environment.mergedWith(ValueEnvironment.live(loopBindings.values)) }
                 val scope = context.scope.copy(
-                    environment = context.scope.environment.mergedWith(ValueEnvironment.live(memberBindings.values)),
-                    procedureBindings = memberBindings,
+                    environment = loopEnvironment,
+                    procedureBindings = loopBindings,
                 )
-                val produced = vm.withRestoredBinding(context.sessionKey, name, context.persistSession) {
+                val executeBody = {
                     executeProgramNode(loop.body, context.copy(scope = scope,
                         onResult = { context.publish(it.consumeLoopBreak()) }))
+                }
+                val produced = vm.withRestoredBinding(context.sessionKey, name, context.persistSession) {
+                    if (indexName == null) executeBody() else vm.withRestoredBinding(
+                        context.sessionKey, indexName, context.persistSession, executeBody)
                 }
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
                 if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) break
             }
         }
+    }
+
+    private fun executeQuantifiedCollectionPredicate(
+        expression: QuantifiedCollectionPredicate,
+        context: ExecutionContext,
+    ): List<ExecutionResult> {
+        val whole = Invocation(dev.panini.vyakaranam.ast.NamaVakya(
+            expression.collection.sourceText,
+            listOf(expression.collection),
+        ))
+        val bound = try {
+            LocalAnaphorBinding.resolve(whole, context.scope)
+        } catch (failure: IllegalArgumentException) {
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                failure.message ?: "Unresolved quantified collection.",
+            )).also(context::publish)
+        }
+        val source = (bound.invocation.vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada)
+            .pratipadika.referenceKey()
+        val collection = bound.scope.environment.values[source] ?: vm.runtimeValue(context.sessionKey, source)
+        val items = when (collection) {
+            is SanskritValue.Suchi -> collection.items.toList()
+            is SanskritValue.Gana -> collection.elements.toList()
+            else -> return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "A quantified predicate requires a list or group: '$source'.",
+            )).also(context::publish)
+        }
+        val memberName = expression.member.pratipadika.referenceKey()
+        val trace = mutableListOf<String>()
+        var inspected = 0
+        var truth = expression.quantifier == CollectionQuantifier.ALL
+        for ((index, item) in items.withIndex()) {
+            val budget = vm.executionLimits.maxConditionIterations
+            if (budget != null && index.toLong() >= budget) {
+                return listOf(ExecutionResult.Failure(
+                    ExecutionError.ACTION_FAILED,
+                    "Collection predicate exhausted its host execution budget.",
+                    trace,
+                )).also(context::publish)
+            }
+            val memberBindings = ProcedureLocalBindings.member(
+                context.scope.procedureBindings,
+                memberName,
+                item,
+                expression.member,
+            )
+            val predicateScope = context.scope.copy(
+                environment = context.scope.environment.mergedWith(ValueEnvironment.live(memberBindings.values)),
+                procedureBindings = memberBindings,
+            )
+            val predicateResult = vm.withRestoredBinding(context.sessionKey, memberName, context.persistSession) {
+                vm.evalParsed(
+                    Ukti(expression.predicate.sourceText, body = expression.predicate),
+                    context.sessionKey,
+                    predicateScope,
+                    context.speaker,
+                    context.listener,
+                    evaluateCondition = true,
+                    persistSession = context.persistSession,
+                )
+            }
+            val matches = when (predicateResult) {
+                is ExecutionResult.Success -> predicateResult.conditionValue
+                    ?: (predicateResult.typedValue as? SanskritValue.Satya)?.boolean
+                    ?: return listOf(ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "The quantified member predicate must produce a truth value.",
+                        trace + predicateResult.trace,
+                    )).also(context::publish)
+                is ExecutionResult.Failure -> return listOf(predicateResult.copy(
+                    message = "Collection predicate failed for member ${index + 1}: ${predicateResult.message}",
+                    trace = trace + predicateResult.trace,
+                )).also(context::publish)
+                else -> return listOf(ExecutionResult.Failure(
+                    ExecutionError.ACTION_FAILED,
+                    "Collection predicate could not resolve member ${index + 1} to truth.",
+                    trace + predicateResult.trace,
+                )).also(context::publish)
+            }
+            inspected++
+            trace += "Member ${index + 1} ('${item.toDisplayText()}') satisfies predicate: $matches."
+            if (expression.quantifier == CollectionQuantifier.ANY && matches) {
+                truth = true
+                break
+            }
+            if (expression.quantifier == CollectionQuantifier.ALL && !matches) {
+                truth = false
+                break
+            }
+        }
+        val value = SanskritValue.Satya(truth)
+        return listOf(ExecutionResult.Success(
+            value.toDisplayText(),
+            "pvm.collection-${expression.quantifier.name.lowercase()}",
+            trace + "Inspected $inspected of ${items.size} collection members.",
+            typedValue = value,
+            conditionValue = truth,
+        )).also(context::publish)
     }
 
     private data class ExecutionContext(

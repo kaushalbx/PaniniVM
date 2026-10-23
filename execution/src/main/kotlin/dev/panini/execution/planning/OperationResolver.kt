@@ -46,10 +46,17 @@ object OperationResolver {
         for (operation in named) {
             val accepted = operation.signature.requirements.mapTo(mutableSetOf()) { it.karaka } +
                 operation.signature.optionalKarakas
-            if (invocation.ambiguousBindings.any { it.candidates.intersect(accepted).isEmpty() }) {
+            val rejectedAmbiguous = invocation.ambiguousBindings.firstOrNull {
+                it.candidates.intersect(accepted).isEmpty()
+            }
+            if (rejectedAmbiguous != null) {
                 evaluations += Triple(operation, invocation.executionContext(variables),
                     SignatureEvaluation.Incompatible(
-                        "An ambiguous participant has no grammatical role accepted by operation ${operation.name}.",
+                        "Explicit participant ${rejectedAmbiguous.expression} has no grammatical role " +
+                            "accepted by operation ${operation.name}: it licenses " +
+                            "${rejectedAmbiguous.candidates.joinToString { it.sanskritName }}, but operation " +
+                            "accepts ${accepted.joinToString { it.sanskritName }} " +
+                            "in '${invocation.metadata["sourceClause"] ?: invocation.id}'.",
                     ))
                 continue
             }
@@ -78,9 +85,16 @@ object OperationResolver {
                     "${missing.joinToString { it.sanskritName }} कारकम् अपेक्षते।",
                 )
             }
-            val reason = evaluations.firstNotNullOfOrNull { (_, _, result) ->
-                (result as? SignatureEvaluation.Incompatible)?.reason
-            } ?: "No operation signature accepts this invocation."
+            val reasons = evaluations.mapNotNull { (operation, _, result) ->
+                when (result) {
+                    is SignatureEvaluation.Incompatible -> "${operation.name}: ${result.reason}"
+                    is SignatureEvaluation.Missing -> "${operation.name}: missing " +
+                        result.karakas.joinToString { it.sanskritName }
+                    SignatureEvaluation.Compatible -> null
+                }
+            }.distinct()
+            val reason = reasons.takeIf { it.isNotEmpty() }?.joinToString(" ")
+                ?: "No operation signature accepts this invocation."
             return OperationResolution.Invalid(ExecutionError.INVALID_VALUE, reason)
         }
 
@@ -173,8 +187,13 @@ object OperationResolver {
         if (predicate != null && signature.copularPredicates.isNotEmpty() && predicate !in signature.copularPredicates) {
             return SignatureEvaluation.Incompatible("This operation does not accept the written copular predicate.")
         }
-        if (signature.forbiddenKarakas.any { it in context.bindings }) {
-            return SignatureEvaluation.Incompatible("This operation does not accept the supplied grammatical roles.")
+        val suppliedForbidden = signature.forbiddenKarakas.filterTo(linkedSetOf()) { it in context.bindings }
+        if (suppliedForbidden.isNotEmpty()) {
+            return SignatureEvaluation.Incompatible(
+                "Operation ${operation.name} forbids the supplied roles " +
+                    suppliedForbidden.joinToString { it.sanskritName } +
+                    " in '${context.metadata["sourceClause"] ?: operation.name}'.",
+            )
         }
         val memberSum = dev.panini.execution.NaturalOperationResolver.resolve(operation, context)
             as? dev.panini.execution.NaturalOperation.CollectionSummation

@@ -4,6 +4,36 @@ import dev.panini.execution.*
 import kotlin.test.*
 
 class ForEachTest {
+    @Test fun `indexed distributive iteration exposes one based member positions`() {
+        val source = """
+            $declaration
+            सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा
+                क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(listOf("एकम्", "द्वे", "त्रीणि"),
+            interpreted.filterIsInstance<ExecutionResult.Success>()
+                .filter { it.outputKind == OutputKind.CONSOLE }.map { it.value })
+
+        val values = compiled(source, "IndexedForEach")
+        assertEquals("त्रीणि", values.getValue("LastResult").toDisplayText())
+        assertFalse("सदस्य" in values)
+        assertFalse("क्रम" in values)
+    }
+
+    @Test fun `legacy indexed prati iteration remains compatible`() {
+        val source = """
+            $declaration
+            सूची + ङस् सदस्य + अम् क्रम + अम् प्रति
+                क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals("त्रीणि", compiled(source, "LegacyIndexedForEach").getValue("LastResult").toDisplayText())
+    }
+
     @Test fun `genitive pronoun names a local list as the distributive whole`() {
         val source = """
             परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।

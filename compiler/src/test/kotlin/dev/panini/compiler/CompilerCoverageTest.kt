@@ -103,6 +103,26 @@ class CompilerCoverageTest {
     }
 
     @Test
+    fun `two sum position search executes with compiled duplicate parity`() {
+        val ordinary = File("examples/algorithms/two_sum.pvm").readText()
+        val duplicate = ordinary
+            .replace(
+                "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च",
+                "त्रि + ङस् त्रि + ओस् चतुर् + आम् पञ्चन् + आम् च",
+            )
+            .replace(
+                "पञ्चन् + अम् लक्ष्य + ङि स्था + णिच् + लोट् + सिप्",
+                "षष् + अम् लक्ष्य + ङि स्था + णिच् + लोट् + सिप्",
+            )
+        for ((index, source) in listOf(ordinary, duplicate).withIndex()) {
+            val generated = BytecodeCompiler.compileAndLoad(source, "CompiledTwoSumPosition$index")
+            @Suppress("UNCHECKED_CAST")
+            val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+            assertEquals(SanskritValue.Satya(true), values["प्राप्त"])
+        }
+    }
+
+    @Test
     fun `core deterministic examples have no generic runtime boundary`() {
         val examples = listOf(
             "examples/arithmetic/addition.pvm",

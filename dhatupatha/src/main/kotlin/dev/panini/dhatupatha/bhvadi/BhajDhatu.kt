@@ -1,6 +1,8 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListSliceAction
+import dev.panini.actions.collection.ListGroupByAction
+import dev.panini.actions.collection.ListPartitionAction
 import dev.panini.actions.numeric.DivisionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
@@ -37,6 +39,21 @@ class BhajDhatu : Dhatu(
             requires(Karaka.KARANA) // start index
             requires(Karaka.SAMPRADANA) // end index
             returns(Samjna.GANA)
+        },
+        ListGroupByAction.op {
+            triggeredBy(
+                requiredUpasargaIdentities = setOf(Upasarga.VI),
+                forbiddenUpasargaIdentities = setOf(Upasarga.PRATI),
+            )
+            requires(Karaka.KARMAN) // सूची/गण to classify
+            requires(Karaka.KARANA) // unary typed key operation
+            returns(Samjna.GANA)
+        },
+        ListPartitionAction.op {
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI, Upasarga.PRATI))
+            requires(Karaka.KARMAN) // सूची/गण to split
+            requires(Karaka.KARANA) // unary typed truth operation
+            returns(Samjna.SHABDA)
         },
     ),
 )

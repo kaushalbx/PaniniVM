@@ -34,6 +34,12 @@ sealed interface NaturalOperation {
         val result: ExecutionExpression,
     ) : NaturalOperation
 
+    /** Finds the first one-based position of an item in a collection. */
+    data class CollectionPosition(
+        val collection: ExecutionExpression,
+        val item: ExecutionExpression,
+    ) : NaturalOperation
+
     /** A nominative entity exists in a collection expressed in the locative. */
     data class CollectionMembership(
         val item: ExecutionExpression,
@@ -98,6 +104,11 @@ object NaturalOperationResolver {
                 val index = bindings[Karaka.ADHIKARANA] ?: return null
                 val result = bindings[Karaka.KARMAN] ?: return null
                 NaturalOperation.IndexedRetrieval(collection, index, result)
+            }
+            "सूचीस्थानान्वेषणम्" -> {
+                val collection = bindings[Karaka.ADHIKARANA] ?: return null
+                val item = bindings[Karaka.SAMBANDHA] ?: return null
+                NaturalOperation.CollectionPosition(collection, item)
             }
             "सूच्यस्तित्वम्" -> {
                 val item = bindings[Karaka.KARTR] ?: return null

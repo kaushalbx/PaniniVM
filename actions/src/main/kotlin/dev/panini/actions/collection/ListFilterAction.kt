@@ -27,10 +27,14 @@ object ListFilterAction : DhatuAction("सूचीशोधनम्", "सू�
             "Target list resolves to empty."
         )
 
-        val elements = when (firstVal) {
-            is SanskritValue.Suchi -> firstVal.items
-            is SanskritValue.Gana -> firstVal.elements
-            else -> listValues
+        val elements = when {
+            listValues.size > 1 -> listValues // coordinated grammatical group
+            firstVal is SanskritValue.Suchi -> firstVal.items
+            firstVal is SanskritValue.Gana -> firstVal.elements
+            else -> return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "List filter requires a list or group, not a scalar operand."
+            )
         }
 
         // 2. Resolve target predicate operation (from KARANA or ADHIKARANA)
@@ -41,10 +45,10 @@ object ListFilterAction : DhatuAction("सूचीशोधनम्", "सू�
                 "List filter execution requires a target action or verbal root in KARANA or ADHIKARANA."
             )
 
-        val targetName = context.resolve(targetExpression).firstOrNull()?.trim()
+        val targetName = context.resolve(targetExpression).singleOrNull()?.trim()
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Target operation cannot be resolved to a name."
+                "Target operation must resolve to exactly one name."
             )
 
         val targetOp = context.operationCatalog.resolve(

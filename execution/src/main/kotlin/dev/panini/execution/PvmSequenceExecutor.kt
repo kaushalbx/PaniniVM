@@ -16,6 +16,13 @@ internal class PvmSequenceExecutor {
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
         executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
+        if (node.independentActions) return buildList {
+            for (statement in node.statements) {
+                val produced = executeNode(statement)
+                addAll(produced)
+                if (produced.any { it !is ExecutionResult.Success || it.controlSignal != null }) break
+            }
+        }
         val hasNamedStage = try { node.statements.withIndex().any { (index, stage) ->
             stage is Invocation && registry.detectInvocation(
                 Ukti(sourceText = stage.sourceText, body = stage), callerSourceFile = sourceFile,
@@ -26,6 +33,10 @@ internal class PvmSequenceExecutor {
                 failure.message ?: "Invalid procedure invocation."))
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
+        // Structured stages (for example a conditional after ततः) must be
+        // executed from their existing AST. Sending the whole Sequence back
+        // through evalParsed re-enters this executor with the same node.
+        val hasStructuredStage = node.statements.any { it !is Invocation }
         val hasAnaphor = node.statements.filterIsInstance<Invocation>().any { invocation ->
             invocation.vakya.padas.any { pada -> when (pada) {
                 is dev.panini.vyakaranam.ast.SubantaPada -> AnaphoricOperandProjection.agreement(pada) != null
@@ -45,7 +56,7 @@ internal class PvmSequenceExecutor {
         }
         if (node.statements.size < 2 ||
             node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
-            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor && !hasReturnStage)
+            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor && !hasReturnStage && !hasStructuredStage)
         ) return evaluateWhole()
 
         val results = mutableListOf<ExecutionResult>()

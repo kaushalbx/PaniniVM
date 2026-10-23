@@ -8,6 +8,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitRepeat(node: Repeat): R
     fun visitWhileLoop(node: WhileLoop): R
     fun visitForEach(node: ForEach): R
+    fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): R
     fun visitPipeline(node: Pipeline): R
     fun visitPrakriya(node: Prakriya): R
     fun visitScope(node: Scope): R
@@ -21,6 +22,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Repeat -> visitor.visitRepeat(this)
     is WhileLoop -> visitor.visitWhileLoop(this)
     is ForEach -> visitor.visitForEach(this)
+    is QuantifiedCollectionPredicate -> visitor.visitQuantifiedCollectionPredicate(this)
     is Pipeline -> visitor.visitPipeline(this)
     is Prakriya -> visitor.visitPrakriya(this)
     is Scope -> visitor.visitScope(this)
@@ -64,6 +66,8 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
     override fun visitForEach(node: ForEach): List<ProgramNode> = listOf(node.body)
+    override fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): List<ProgramNode> =
+        listOf(node.predicate)
     override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> =
         listOfNotNull(node.body, node.exhausted, node.resultTarget)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
@@ -92,6 +96,9 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         node.copy(body = transform(node.body))
 
     override fun visitForEach(node: ForEach): ProgramNode = node.copy(body = transform(node.body))
+
+    override fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): ProgramNode =
+        node.copy(predicate = transform(node.predicate) as Invocation)
 
     override fun visitWhileLoop(node: WhileLoop): ProgramNode =
         node.copy(

@@ -97,6 +97,7 @@ object PvmScript {
             val sentence = statements.single() as PvmScriptStatement.Sentence
             val requiresOrchestration = sentence.program?.depthFirst()?.any {
                 it is dev.panini.vyakaranam.ast.ForEach ||
+                    it is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate ||
                     it is dev.panini.vyakaranam.ast.Repeat ||
                     (it is dev.panini.vyakaranam.ast.Invocation && it.implicitValuePada != null)
             } == true

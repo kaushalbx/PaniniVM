@@ -206,7 +206,9 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
-        val body = context.distributiveClause()?.let(::buildDistributiveClause) ?: context.quotationClause()?.let { quotation ->
+        val body = context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
+            ?: context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
+            ?: context.distributiveClause()?.let(::buildDistributiveClause) ?: context.quotationClause()?.let { quotation ->
             Quotation(
                 sourceText = quotation.text,
                 quoted = Invocation(buildVakya(requireNotNull(quotation.quoted))),
@@ -323,26 +325,114 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.ConditionalExpressionContext,
     ): Conditional = Conditional(
         sourceText = context.text,
-        condition = Invocation(buildVakya(context.condition!!)),
+        condition = buildConditionClause(requireNotNull(context.condition)),
         consequent = buildConditionalArm(context.consequent!!),
         alternate = context.nested?.let(::buildConditional)
             ?: context.alternate?.let(::buildConditionalArm),
     )
 
+    private fun buildConditionClause(
+        context: PaniniyaVyakaranamParser.ConditionClauseContext,
+    ): ProgramNode = context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
+        ?: Invocation(buildVakya(requireNotNull(context.vakya())))
+
+    private fun buildQuantifiedCollectionClause(
+        clause: PaniniyaVyakaranamParser.QuantifiedCollectionClauseContext,
+    ): QuantifiedCollectionPredicate {
+        val collection = buildSubanta(requireNotNull(clause.collection))
+        val member = buildSubanta(requireNotNull(clause.member))
+        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
+            "A quantified collection predicate requires a genitive singular collection."
+        }
+        require(member.sup.affixCandidates == listOf(SupAffix.SU)) {
+            "A quantified collection predicate requires a nominative singular member."
+        }
+        require(member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "The quantified member must introduce an underived nominal referent."
+        }
+        val predicate = buildAkhyataVakya(requireNotNull(clause.predicate))
+        val predicateWithSubject = predicate.copy(
+            sourceText = member.sourceText + predicate.sourceText,
+            padas = listOf(member) + predicate.padas,
+        )
+        return QuantifiedCollectionPredicate(
+            sourceText = clause.text,
+            collection = collection,
+            quantifier = if (clause.KASHCHIT() != null) CollectionQuantifier.ANY else CollectionQuantifier.ALL,
+            member = member,
+            predicate = Invocation(predicateWithSubject),
+        )
+    }
+
     private fun buildDistributiveClause(clause: PaniniyaVyakaranamParser.DistributiveClauseContext): ForEach {
         val collection = buildSubanta(requireNotNull(clause.collection))
         val member = buildSubanta(requireNotNull(clause.member))
+        val index = clause.index?.let(::buildSubanta)
         require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) { "Distributive iteration requires a genitive singular collection." }
         require(member.sup.affixCandidates == listOf(SupAffix.AM)) { "Distributive प्रति requires a singular accusative member." }
         require(member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
             "The iteration member must introduce an underived nominal referent."
         }
-        return ForEach(clause.text, collection, member, build(requireNotNull(clause.body)).body)
+        require(index == null || index.sup.affixCandidates == listOf(SupAffix.AM)) {
+            "An indexed distributive iteration requires a singular accusative index."
+        }
+        require(index == null || index.pratipadika is MulaPratipadika &&
+            (index.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "The iteration index must introduce an underived nominal referent."
+        }
+        require(index == null || index.pratipadika.semanticKey() != member.pratipadika.semanticKey()) {
+            "The iteration member and index require distinct referents."
+        }
+        return ForEach(clause.text, collection, member, index, build(requireNotNull(clause.body)).body)
+    }
+
+    private fun buildNaturalIndexedDistributiveClause(
+        clause: PaniniyaVyakaranamParser.NaturalIndexedDistributiveClauseContext,
+    ): ForEach {
+        val collection = buildSubanta(requireNotNull(clause.collection))
+        val quantifier = buildSubanta(requireNotNull(clause.quantifier))
+        val member = buildSubanta(requireNotNull(clause.member))
+        val relation = buildSubanta(requireNotNull(clause.relation))
+        val index = buildSubanta(requireNotNull(clause.index))
+        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
+            "Natural indexed iteration requires a genitive singular collection."
+        }
+        require(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
+            quantifier.sup.affixCandidates == listOf(SupAffix.AM)) {
+            "Natural indexed iteration requires प्रत्येक + अम्."
+        }
+        require(member.sup.affixCandidates == listOf(SupAffix.AM) &&
+            member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "Natural indexed iteration requires an underived singular accusative member."
+        }
+        require(relation.pratipadika.semanticKey() == "तद्" &&
+            relation.sup.affixCandidates == listOf(SupAffix.NGAS)) {
+            "The index must be related to its member by तद् + ङस्."
+        }
+        require(index.sup.affixCandidates == listOf(SupAffix.AM) &&
+            index.pratipadika is MulaPratipadika && (index.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "Natural indexed iteration requires an underived singular accusative index."
+        }
+        require(index.pratipadika.semanticKey() != member.pratipadika.semanticKey()) {
+            "The iteration member and index require distinct referents."
+        }
+        val acquisition = requireNotNull(clause.acquisition)
+        require(acquisition.dhatuPrakriti().text == "ग्रह्" && acquisition.avyayaKrtPratyaya().text == "क्त्वा") {
+            "Natural indexed iteration requires ग्रह् + क्त्वा."
+        }
+        return ForEach(clause.text, collection, member, index, build(requireNotNull(clause.body)).body)
     }
 
     private fun buildConditionalArm(
         context: PaniniyaVyakaranamParser.ConditionalArmContext,
-    ): ProgramNode = context.distributiveClause()?.let(::buildDistributiveClause) ?: context.vakya()?.let {
+    ): ProgramNode = context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
+        ?: context.distributiveClause()?.let(::buildDistributiveClause)
+        ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)
+        ?: context.conditionalActionSequence()?.let { sequence ->
+            val statements = sequence.statements.map { Invocation(buildVakya(it)) }
+            Sequence(sequence.text, statements, List(statements.size - 1) { "अथ" }, independentActions = true)
+        }
+        ?: context.vakya()?.let {
         val vakya = buildVakya(it)
         val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull()
         if (nominal is SubantaPada || nominal is SankhyaBoundaryPada || nominal is KatapayadiPada ||

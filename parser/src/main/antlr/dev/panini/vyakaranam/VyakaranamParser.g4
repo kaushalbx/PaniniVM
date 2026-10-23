@@ -64,7 +64,9 @@ prakriyaDeclaration
 
 // Reusable clause content: document/block entry rules own their delimiters and EOF.
 utterance
-    : distributiveClause
+    : quantifiedCollectionClause
+    | naturalIndexedDistributiveClause
+    | distributiveClause
     | quotationClause
     | whileClause
     | conditionalPipelineClause
@@ -76,9 +78,27 @@ utterance
       (vakyaSambandha vakya)*
     ;
 
+// Natural collection predicates: “some/every member of the collection satisfies …”.
+// The nominative member introduces a scoped singular referent which is also the
+// implicit subject of the following finite predicate.
+quantifiedCollectionClause
+    : collection=subantaPada quantifier=(KASHCHIT | PRATYEKAH)
+      member=subantaPada predicate=akhyataVakya
+    ;
+
 // Accusative distributive प्रति: “for each member of the genitive whole”.
 distributiveClause
-    : collection=subantaPada member=subantaPada PRATI body=utterance
+    : collection=subantaPada member=subantaPada index=subantaPada? PRATI body=utterance
+    ;
+
+// Natural indexed iteration: “having taken each member of the collection and its index ...”.
+// Lexical and case constraints are checked by the AST builder rather than encoded
+// as unsegmented keywords: सूची + ङस् प्रत्येक + अम् सदस्य + अम्
+// तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा ...
+naturalIndexedDistributiveClause
+    : collection=subantaPada quantifier=subantaPada member=subantaPada
+      relation=subantaPada index=subantaPada CHA acquisition=avyayaKridanta
+      body=utterance
     ;
 
 quotationClause
@@ -139,14 +159,28 @@ conditionalClause
     ;
 
 conditionalExpression
-    : YADI condition=vakya TARHI consequent=conditionalArm
+    : YADI condition=conditionClause TARHI consequent=conditionalArm
       (ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
     ;
 
+conditionClause
+    : quantifiedCollectionClause
+    | vakya
+    ;
+
 conditionalArm
-    : distributiveClause
+    : naturalIndexedDistributiveClause
+    | distributiveClause
+    | conditionalPipelineClause
+    | conditionalActionSequence
     | value=pratipadika
     | vakya
+    ;
+
+// Coordinated independent actions in one selected branch.
+conditionalActionSequence
+    : statements+=vakya ATHA statements+=vakya
+      (ATHA statements+=vakya)*
     ;
 
 // ============================================================================

@@ -151,10 +151,22 @@ object PrakriyaAstArgumentBinder {
         return object : ProgramNodeTransformer() {
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ProgramNode {
                 val collection = bindPada(node.collection) as SubantaPada
+                val names = listOfNotNull(node.member, node.index).map { it.pratipadika.referenceKey() }
+                val added = names.filter(localNames::add)
+                return try { node.copy(collection = collection, body = transform(node.body)) }
+                finally { added.forEach(localNames::remove) }
+            }
+            override fun visitQuantifiedCollectionPredicate(
+                node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+            ): ProgramNode {
+                val collection = bindPada(node.collection) as SubantaPada
                 val name = node.member.pratipadika.referenceKey()
                 val added = localNames.add(name)
-                return try { node.copy(collection = collection, body = transform(node.body)) }
-                finally { if (added) localNames.remove(name) }
+                return try {
+                    node.copy(collection = collection, predicate = transform(node.predicate) as Invocation)
+                } finally {
+                    if (added) localNames.remove(name)
+                }
             }
             override fun visitInvocation(node: Invocation): ProgramNode = bindInvocation(node)
 

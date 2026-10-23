@@ -353,6 +353,50 @@ class CollectionOperationsTest {
     }
 
     @Test
+    fun `map and filter reject scalar collections and infer or preserve list types`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val map = DhatuPatha.all.first { it.upadesha == "यु" }
+            .operations.single { it.name == "सूचीसंयोजनम्" }
+        val filter = DhatuPatha.all.first { it.upadesha == "वृजीँ" }
+            .operations.single { it.name == "सूचीशोधनम्" }
+        fun execute(operation: dev.panini.execution.DhatuOperation, value: SanskritValue, callback: String) =
+            operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Reference("source"),
+                Karaka.KARANA to ExecutionExpression.Pada(callback),
+            ), variables = mapOf("source" to value)), operation)
+
+        assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(
+            execute(map, SanskritValue.Sankhya(2, "द्वि"), "एधँ"),
+        ).error)
+        assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(
+            execute(filter, SanskritValue.Sankhya(2, "द्वि"), "यु"),
+        ).error)
+
+        val typed = SanskritValue.Suchi(
+            listOf(SanskritValue.Sankhya(1, "एक"), SanskritValue.Sankhya(2, "द्वि")),
+            ListMemberType.NUMBER,
+        )
+        val mapped = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(map, typed, "एधँ")).typedValue,
+        )
+        val filtered = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(filter, typed, "यु")).typedValue,
+        )
+        assertEquals(ListMemberType.NUMBER, mapped.memberType)
+        assertEquals(ListMemberType.NUMBER, filtered.memberType)
+
+        val empty = SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER)
+        assertTrue(assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(map, empty, "एधँ")).typedValue,
+        ).items.isEmpty())
+        val emptyFiltered = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(filter, empty, "यु")).typedValue,
+        )
+        assertTrue(emptyFiltered.items.isEmpty())
+        assertEquals(ListMemberType.NUMBER, emptyFiltered.memberType)
+    }
+
+    @Test
     fun `SrjDhatu executes ListConcatAction to concatenate two lists`() {
         DhatuPathaRegistration.ensureRegistered()
         val srj = DhatuPatha.all.first { it.id == "06.0150" }
@@ -489,6 +533,196 @@ class CollectionOperationsTest {
         val typed = result.typedValue
         assertIs<SanskritValue.Suchi>(typed)
         assertEquals(2, typed.items.size)
+    }
+
+    @Test
+    fun `BhajDhatu groups list members by a typed unary key in stable order`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.id == "01.1153" }
+            .operations.single { it.name == "सूचीवर्गीकरणम्" }
+        val source = SanskritValue.Suchi(
+            listOf(1L, 2L, 3L, 4L, 2L).map { SanskritValue.Sankhya(it, it.toString()) },
+            ListMemberType.NUMBER,
+        )
+        val result = assertIs<ExecutionResult.Success>(operation.action.execute(
+            ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.TypedOperand(source, dev.panini.core.SupAffix.AM),
+                Karaka.KARANA to ExecutionExpression.Pada("यु"),
+            )),
+            operation,
+        ))
+
+        val groups = assertIs<SanskritValue.Suchi>(result.typedValue)
+        assertEquals(2, groups.items.size)
+        val odd = assertIs<SanskritValue.Rupa>(groups.items[0])
+        val even = assertIs<SanskritValue.Rupa>(groups.items[1])
+        assertEquals("वर्ग", odd.schema)
+        assertEquals(false, assertIs<SanskritValue.Satya>(odd.fields.getValue("कुञ्जी")).boolean)
+        assertEquals(true, assertIs<SanskritValue.Satya>(even.fields.getValue("कुञ्जी")).boolean)
+        fun numbers(group: SanskritValue.Rupa): List<Long> {
+            val members = assertIs<SanskritValue.Suchi>(group.fields.getValue("सदस्यसूची"))
+            assertEquals(ListMemberType.NUMBER, members.memberType)
+            return members.items.map { assertIs<SanskritValue.Sankhya>(it).value }
+        }
+        assertEquals(listOf(1L, 3L), numbers(odd))
+        assertEquals(listOf(2L, 4L, 2L), numbers(even))
+    }
+
+    @Test
+    fun `group by accepts empty typed lists and groups while rejecting scalars`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.id == "01.1153" }
+            .operations.single { it.name == "सूचीवर्गीकरणम्" }
+        fun execute(value: SanskritValue) = operation.action.execute(
+            ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Reference("source"),
+                Karaka.KARANA to ExecutionExpression.Pada("यु"),
+            ), variables = mapOf("source" to value)),
+            operation,
+        )
+
+        val emptyList = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER))).typedValue,
+        )
+        assertTrue(emptyList.items.isEmpty())
+        val emptyGroup = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(SanskritValue.Gana(emptyList()))).typedValue,
+        )
+        assertTrue(emptyGroup.items.isEmpty())
+        assertEquals(
+            ExecutionError.INVALID_VALUE,
+            assertIs<ExecutionResult.Failure>(execute(SanskritValue.Sankhya(1, "एक"))).error,
+        )
+    }
+
+    @Test
+    fun `vi Shish retains first typed-distinct members and list constraint`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.id == "07.0014" }
+            .operations.single { it.name == "सूचीवैशिष्ट्यम्" }
+        val source = SanskritValue.Suchi(
+            listOf(1L, 2L, 1L, 3L, 2L).map { SanskritValue.Sankhya(it, it.toString()) },
+            ListMemberType.NUMBER,
+        )
+        val result = assertIs<ExecutionResult.Success>(operation.action.execute(
+            ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.TypedOperand(source, dev.panini.core.SupAffix.AM),
+            )), operation,
+        ))
+        val distinct = assertIs<SanskritValue.Suchi>(result.typedValue)
+        assertEquals(ListMemberType.NUMBER, distinct.memberType)
+        assertEquals(listOf(1L, 2L, 3L), distinct.items.map { assertIs<SanskritValue.Sankhya>(it).value })
+        val empty = operation.action.execute(ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Reference("empty"),
+        ), variables = mapOf("empty" to SanskritValue.Gana(emptyList()))), operation)
+        assertTrue(assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(empty).typedValue,
+        ).items.isEmpty())
+    }
+
+    @Test
+    fun `KramDhatu stably sorts comparable typed collections in both directions`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operations = DhatuPatha.all.first { it.id == "01.0545" }.operations
+        val source = SanskritValue.Suchi(
+            listOf(3L, 1L, 2L, 1L).map { SanskritValue.Sankhya(it, it.toString()) },
+            ListMemberType.NUMBER,
+        )
+        fun execute(name: String): SanskritValue.Suchi {
+            val operation = operations.single { it.name == name }
+            val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.TypedOperand(source, dev.panini.core.SupAffix.AM),
+            )), operation)
+            return assertIs<ExecutionResult.Success>(result).typedValue as SanskritValue.Suchi
+        }
+        val ascending = execute("सूच्यारोहक्रमः")
+        val descending = execute("सूच्यवरोहक्रमः")
+        assertEquals(ListMemberType.NUMBER, ascending.memberType)
+        assertEquals(listOf(1L, 1L, 2L, 3L), ascending.items.map { assertIs<SanskritValue.Sankhya>(it).value })
+        assertEquals(listOf(3L, 2L, 1L, 1L), descending.items.map { assertIs<SanskritValue.Sankhya>(it).value })
+    }
+
+    @Test
+    fun `sorting accepts empty groups and rejects mixed or structured members`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.id == "01.0545" }
+            .operations.single { it.name == "सूच्यारोहक्रमः" }
+        fun execute(value: SanskritValue) = operation.action.execute(ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Reference("source"),
+        ), variables = mapOf("source" to value)), operation)
+        assertTrue(assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(SanskritValue.Gana(emptyList()))).typedValue,
+        ).items.isEmpty())
+        for (value in listOf(
+            SanskritValue.Gana(listOf(SanskritValue.Sankhya(1, "एक"), SanskritValue.Shabda("एक"))),
+            SanskritValue.Gana(listOf(SanskritValue.Rupa("वस्तु", emptyMap()))),
+            SanskritValue.Sankhya(1, "एक"),
+        )) assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(execute(value)).error)
+    }
+
+    @Test
+    fun `prati vi Bhaj partitions members into stable typed truth lists`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.id == "01.1153" }
+            .operations.single { it.name == "सूचीद्विविभागः" }
+        val source = SanskritValue.Suchi(
+            listOf(1L, 2L, 3L, 4L, 2L).map { SanskritValue.Sankhya(it, it.toString()) },
+            ListMemberType.NUMBER,
+        )
+        val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.TypedOperand(source, dev.panini.core.SupAffix.AM),
+            Karaka.KARANA to ExecutionExpression.Pada("यु"),
+        )), operation)
+        val partition = assertIs<SanskritValue.Rupa>(assertIs<ExecutionResult.Success>(result).typedValue)
+        fun numbers(field: String): List<Long> {
+            val list = assertIs<SanskritValue.Suchi>(partition.fields.getValue(field))
+            assertEquals(ListMemberType.NUMBER, list.memberType)
+            return list.items.map { assertIs<SanskritValue.Sankhya>(it).value }
+        }
+        assertEquals(listOf(2L, 4L, 2L), numbers("सत्यसूची"))
+        assertEquals(listOf(1L, 3L), numbers("असत्यसूची"))
+    }
+
+    @Test
+    fun `keyed collection operations validate callbacks and support grammatical groups`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val bhaj = DhatuPatha.all.first { it.id == "01.1153" }
+        val groupBy = bhaj.operations.single { it.name == "सूचीवर्गीकरणम्" }
+        val partition = bhaj.operations.single { it.name == "सूचीद्विविभागः" }
+        val group = SanskritValue.Gana(listOf(
+            SanskritValue.Sankhya(1, "एक"),
+            SanskritValue.Sankhya(2, "द्वि"),
+            SanskritValue.Sankhya(3, "त्रि"),
+        ))
+        fun execute(operation: dev.panini.execution.DhatuOperation, callback: String) =
+            operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Reference("source"),
+                Karaka.KARANA to ExecutionExpression.Pada(callback),
+            ), variables = mapOf("source" to group)), operation)
+
+        assertEquals(2, assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(execute(groupBy, "यु")).typedValue,
+        ).items.size)
+        assertIs<SanskritValue.Rupa>(assertIs<ExecutionResult.Success>(execute(partition, "यु")).typedValue)
+        assertEquals(ExecutionError.ACTION_FAILED, assertIs<ExecutionResult.Failure>(
+            execute(groupBy, "अज्ञातक्रिया"),
+        ).error)
+        assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(
+            execute(partition, "एधँ"),
+        ).error)
+
+        val emptyContext = ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Reference("source"),
+            Karaka.KARANA to ExecutionExpression.Pada("यु"),
+        ), variables = mapOf("source" to SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER)))
+        val emptyPartition = assertIs<SanskritValue.Rupa>(
+            assertIs<ExecutionResult.Success>(partition.action.execute(emptyContext, partition)).typedValue,
+        )
+        emptyPartition.fields.values.forEach {
+            val list = assertIs<SanskritValue.Suchi>(it)
+            assertTrue(list.items.isEmpty())
+            assertEquals(ListMemberType.NUMBER, list.memberType)
+        }
     }
 
     @Test

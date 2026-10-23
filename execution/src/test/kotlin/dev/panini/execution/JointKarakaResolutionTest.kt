@@ -74,5 +74,9 @@ class JointKarakaResolutionTest {
                 Karaka.SAMPRADANA to ExecutionExpression.TypedOperand(SanskritValue.Shabda("शब्द"), SupAffix.NGE),
             ), candidateRoles = setOf(Karaka.APADANA, Karaka.ADHIKARANA)))
         assertTrue(result.message.contains("no grammatical role"))
+        assertTrue(result.message.contains("अपादान"))
+        assertTrue(result.message.contains("अधिकरण"))
+        assertTrue(result.message.contains("करण"))
+        assertTrue(result.message.contains("सम्प्रदान"))
     }
 }

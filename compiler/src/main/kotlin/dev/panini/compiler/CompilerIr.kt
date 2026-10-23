@@ -398,12 +398,14 @@ internal enum class NumericUnaryOperator {
 
 internal enum class CollectionOperator {
     SNAPSHOT,
+    QUANTIFIER_SNAPSHOT,
     SUM,
     SUM_NUMBER_MEMBERS,
     LENGTH,
     REVERSE,
     CONCAT,
     INDEX,
+    INDEX_OF,
     CONTAINS,
     APPEND,
     POP,
@@ -724,6 +726,7 @@ internal object CompilerIrLowering {
             "सूचीविलोमः" -> CollectionOperator.REVERSE
             "सूचीसंयोगः" -> CollectionOperator.CONCAT
             "सूचीस्थानम्" -> CollectionOperator.INDEX
+            "सूचीस्थानान्वेषणम्" -> CollectionOperator.INDEX_OF
             "सूच्यस्तित्वम्" -> CollectionOperator.CONTAINS
             "सूचीनिक्षेपणम्" -> CollectionOperator.APPEND
             "सूच्युद्धरणम्" -> CollectionOperator.POP
@@ -831,6 +834,13 @@ internal object CompilerIrLowering {
                     ?.let { lowerNumericOperand(it, allowOrdinal = true) }
                     ?: return null
                 list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
+            }
+            collection == CollectionOperator.INDEX_OF -> {
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionPosition
+                    ?: return null
+                val list = lowerSingleCollectionValue(naturalFrame.collection) ?: return null
+                val item = lowerOperand(naturalFrame.item) ?: return null
+                list + item + CompilerInstruction.Collection(CollectionOperator.INDEX_OF)
             }
             collection == CollectionOperator.CONTAINS -> {
                 val naturalFrame = naturalOperation as? NaturalOperation.CollectionMembership
@@ -1271,12 +1281,14 @@ internal object CompilerIrVerifier {
                 val arity = when (instruction.operator) {
                     CollectionOperator.CONCAT,
                     CollectionOperator.INDEX,
+                    CollectionOperator.INDEX_OF,
                     CollectionOperator.CONTAINS,
                     CollectionOperator.APPEND,
                     -> 2
                     CollectionOperator.SLICE -> 3
                     CollectionOperator.LENGTH,
                     CollectionOperator.SNAPSHOT,
+                    CollectionOperator.QUANTIFIER_SNAPSHOT,
                     CollectionOperator.SUM,
                     CollectionOperator.SUM_NUMBER_MEMBERS,
                     CollectionOperator.REVERSE,
@@ -1309,7 +1321,8 @@ internal object CompilerIrVerifier {
                 }
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
-                    CollectionOperator.LENGTH, CollectionOperator.SUM, CollectionOperator.SUM_NUMBER_MEMBERS -> ValueKind.NUMBER
+                    CollectionOperator.LENGTH, CollectionOperator.SUM, CollectionOperator.SUM_NUMBER_MEMBERS,
+                    CollectionOperator.INDEX_OF -> ValueKind.NUMBER
                     CollectionOperator.CONTAINS -> ValueKind.BOOLEAN
                     // Member type is determined by the collection's runtime
                     // payload, not an opaque scalar type or an integer guess.

@@ -1,0 +1,5 @@
+# Group a list by the typed result of a unary key operation.
+एकस्य द्वयोः त्रयाणां चतुर्णां च द्वि+आम् च सूची अस्ति ।
+
+# वि + भजँ partitions the accusative list; instrumental यु supplies the evenness key.
+सूचीं युना विभज ।

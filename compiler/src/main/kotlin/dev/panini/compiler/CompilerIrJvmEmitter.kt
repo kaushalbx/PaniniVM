@@ -374,12 +374,14 @@ internal class CompilerIrJvmEmitter(
     private fun emitCollection(operator: CollectionOperator) {
         val method = when (operator) {
             CollectionOperator.SNAPSHOT -> "listSnapshot"
+            CollectionOperator.QUANTIFIER_SNAPSHOT -> "quantifierSnapshot"
             CollectionOperator.SUM -> "listSum"
             CollectionOperator.SUM_NUMBER_MEMBERS -> "listNumberMemberSum"
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
             CollectionOperator.INDEX -> "listIndex"
+            CollectionOperator.INDEX_OF -> "listIndexOf"
             CollectionOperator.CONTAINS -> "listContains"
             CollectionOperator.APPEND -> "listAppend"
             CollectionOperator.POP -> "listPop"
@@ -390,12 +392,14 @@ internal class CompilerIrJvmEmitter(
         val descriptor = when (operator) {
             CollectionOperator.CONCAT,
             CollectionOperator.INDEX,
+            CollectionOperator.INDEX_OF,
             CollectionOperator.CONTAINS,
             CollectionOperator.APPEND,
             -> "($value$value)$value"
             CollectionOperator.SLICE -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
             CollectionOperator.SNAPSHOT,
+            CollectionOperator.QUANTIFIER_SNAPSHOT,
             CollectionOperator.SUM,
             CollectionOperator.SUM_NUMBER_MEMBERS,
             CollectionOperator.REVERSE,

@@ -71,6 +71,8 @@ data class Sequence(
     override val sourceText: String,
     val statements: List<ProgramNode>,
     val connectors: List<String> = emptyList(),
+    /** Execute coordinated clauses independently without piping or reparsing them as one sentence. */
+    val independentActions: Boolean = false,
 ) : ProgramNode {
     val connectorKinds: List<SequenceConnector> = connectors.map(SequenceConnector::fromSurface)
 
@@ -85,6 +87,8 @@ data class Sequence(
 /** Typed discourse relation between adjacent executable clauses. */
 enum class SequenceConnector(val surface: String) {
     SAMUCCAYA("च"),
+    /** A following independent sentence in the same selected branch. */
+    VAKYANTARA("अथ"),
     ANANTARYA("ततः"),
     /** Ordering supplied by prior-action morphology, not a source connector word. */
     PURVAKALA(""),
@@ -139,7 +143,19 @@ data class ForEach(
     override val sourceText: String,
     val collection: SubantaPada,
     val member: SubantaPada,
+    val index: SubantaPada? = null,
     val body: ProgramNode,
+) : ProgramNode
+
+enum class CollectionQuantifier { ANY, ALL }
+
+/** A truth-valued predicate evaluated over a scoped member of a collection. */
+data class QuantifiedCollectionPredicate(
+    override val sourceText: String,
+    val collection: SubantaPada,
+    val quantifier: CollectionQuantifier,
+    val member: SubantaPada,
+    val predicate: Invocation,
 ) : ProgramNode
 
 data class PipelineStage(

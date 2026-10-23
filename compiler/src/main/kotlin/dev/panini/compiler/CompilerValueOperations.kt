@@ -66,6 +66,15 @@ internal object CompilerValueOperations {
         return value.copy(items = value.items.toList())
     }
     @JvmStatic
+    fun quantifierSnapshot(value: SanskritValue): SanskritValue = when (value) {
+        is SanskritValue.Suchi -> value.copy(items = value.items.toList())
+        is SanskritValue.Gana -> SanskritValue.Suchi(value.elements.toList())
+        else -> throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "A quantified predicate requires a list or group.",
+        )
+    }
+    @JvmStatic
     fun checkNumericProhibition(left: SanskritValue, right: SanskritValue) {
         if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya && left.value == right.value) {
             throw CompiledPaniniExecutionException(ExecutionError.ACTION_FAILED,
@@ -267,6 +276,24 @@ internal object CompilerValueOperations {
             )
         }
         return items[numericIndex.toInt() - 1]
+    }
+
+    @JvmStatic
+    fun listIndexOf(list: SanskritValue, query: SanskritValue): SanskritValue {
+        val index = collectionItems(list).indexOfFirst { it.semanticallyEquals(query) }
+        if (index < 0) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "The sought item '${query.toDisplayText()}' is not present in the collection.",
+            )
+        }
+        val position = index.toLong() + 1L
+        val word = dev.panini.execution.renderSankhyaResult(position)
+            ?: throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "The one-based position $position cannot be rendered as a Sanskrit number.",
+            )
+        return SanskritValue.Sankhya(position, word)
     }
 
     @JvmStatic

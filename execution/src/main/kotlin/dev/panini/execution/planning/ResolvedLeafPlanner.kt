@@ -52,6 +52,7 @@ object ResolvedLeafPlanner {
         "सूचीनिक्षेपणम्",
         "सूचीसङ्ग्रहः",
         "सूचीस्थानम्",
+        "सूचीस्थानान्वेषणम्",
         "सूचीविभागः",
         "सूचीविलोमः",
         "सूचीप्रसारणम्",
@@ -222,7 +223,10 @@ object ResolvedLeafPlanner {
                     nominal.vikaras.isEmpty() && pada.sup.affixCandidates == listOf(SupAffix.SAS)
             }
             .filter { pada ->
-                isCopularReferenceParticipant(parsedUkti, pada) || pada.sup.supports(Vibhakti.DVITIYA)
+                val reference = pada.pratipadika.referenceKey()
+                isCopularReferenceParticipant(parsedUkti, pada) ||
+                    pada.sup.supports(Vibhakti.DVITIYA) ||
+                    reference in environment.values || reference in environment.constraints
             }
             .flatMap { pada ->
                 sequenceOf(

@@ -178,6 +178,9 @@ class UktiAnalyzer(
                 return FrameBoundary(condition.entry, result?.exits ?: exits)
             }
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): FrameBoundary = visit(node.body)
+            override fun visitQuantifiedCollectionPredicate(
+                node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
+            ): FrameBoundary = visit(node.predicate)
             override fun visitPipeline(node: Pipeline): FrameBoundary =
                 error("A semantic pipeline does not contain grammatical kriya frames.")
             override fun visitPrakriya(node: Prakriya): FrameBoundary =

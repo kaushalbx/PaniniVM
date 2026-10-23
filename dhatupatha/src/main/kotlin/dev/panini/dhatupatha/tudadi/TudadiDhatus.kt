@@ -391,11 +391,7 @@ object TudadiDhatus {
             "हिंसायाम्", "मार डालना, दुःख देना", "to kill, to destroy, to hurt, to strike",
             PadaType.PARASMAIPADA, ItStatus.VET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "06.0078", 78, "इषुँ", "इष्",
-            "इच्छायाम्", "इच्छा करना, चाहना", "to wish, to desire, to want",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(IshDhatu())
         dhatu(
             "06.0079", 79, "मिषँ", "मिष्",
             "स्पर्धायाम्", "स्पर्धा करना, होड़ लगाना", "to compete, to contend, to rival",
