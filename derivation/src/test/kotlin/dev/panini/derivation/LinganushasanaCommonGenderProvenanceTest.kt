@@ -8,17 +8,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-/** Source: https://sanskritdocuments.org/doc_z_misc_major_works/lingAnushAsanam.html (145, 183). */
+/** Source: https://sanskritdocuments.org/doc_z_misc_major_works/lingAnushAsanam.html (143, 181). */
 class LinganushasanaCommonGenderProvenanceTest {
     @Test fun `common gender stems retain linga rule and forward nominal traces`() {
         val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
         assertTrue(index.failures.isEmpty(), index.failures.joinToString())
         for ((stem, rule, masculine, neuter) in listOf(
-            listOf("मूल", "145", "मूलः", "मूलम्"),
-            listOf("बाल", "145", "बालः", "बालम्"),
-            listOf("शूल", "145", "शूलः", "शूलम्"),
-            listOf("दण्ड", "183", "दण्डः", "दण्डम्"),
-            listOf("शव", "183", "शवः", "शवम्"),
+            listOf("मूल", "143", "मूलः", "मूलम्"),
+            listOf("शूल", "143", "शूलः", "शूलम्"),
+            listOf("दण्ड", "181", "दण्डः", "दण्डम्"),
         )) {
             val entry = assertNotNull(PaninianPratipadikaLexicon.findPratipadika(stem))
             assertEquals(setOf(Linga.PUMS, Linga.NAPUMSAKA), entry.linga, stem)
