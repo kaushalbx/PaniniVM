@@ -159,6 +159,7 @@ class UktiAnalyzer(
             override fun visitQuotation(node: Quotation): FrameBoundary = visit(node.reporting)
 
             override fun visitRepeat(node: Repeat): FrameBoundary = visit(node.body)
+            override fun visitRecurrence(node: dev.panini.vyakaranam.ast.Recurrence): FrameBoundary = visit(node.body)
             override fun visitWhileLoop(node: WhileLoop): FrameBoundary {
                 val condition = visit(node.condition)
                 val body = visit(node.body)

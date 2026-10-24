@@ -947,11 +947,50 @@ rendered spellings. A missing item, a scalar search domain, or a query that
 does not resolve to exactly one value produces a value error.
 
 For a single lookup, this position operation is the direct form. Algorithms
-that must inspect combinations can instead use natural index-aware iteration.
-The Two Sum example takes each value and its related one-based position twice,
-then considers only pairs whose first position precedes the second. This also
-handles duplicate values without confusing their positions and requires no
-algorithm-specific action. See
+that must inspect combinations can apply an action directly between every
+member and the members before or after it:
+
+```pvm
+सूची + ङस् प्रत्येक + टाप् + अम्
+सङ्ख्या + अम्
+तद् + ङस् + लुक् - उत्तर + टाप् + भिस्
+सङ्ख्या + भिस्
+युज् + णिच् + लोट् + सिप् ।
+```
+
+This derives as `सूच्याः प्रत्येकां सङ्ख्यां तदुत्तराभिः सङ्ख्याभिः
+योजय`—“add each number of the list to the numbers after it.” `तदुत्तर` is
+parsed as the written `तद् + ङस् + लुक् - उत्तर` compound, not as a keyword.
+The `-` already marks the compound boundary, so no parentheses are used.
+`उत्तर` gives the direction, and instrumental plural `भिस्` gives the
+many-item selection. Replacing `उत्तर` with `पूर्व` gives all preceding items.
+The runtime lowers this surface sentence to typed nested iteration and invokes
+the existing `युज्` action once for each pair; it creates neither a special
+pair value nor a Two-Sum-specific action.
+
+Instrumental number chooses how many relative items participate. Singular
+`टा` selects only the immediately adjacent item:
+
+```pvm
+दत्तसूची + ङस् प्रत्येक + टाप् + अम्
+सङ्ख्या + अम्
+तद् + ङस् + लुक् - उत्तर + टाप् + टा
+सङ्ख्या + टा
+युज् + णिच् + लोट् + सिप् ।
+```
+
+It derives as `दत्तसूच्याः प्रत्येकां सङ्ख्यां तदुत्तरया सङ्ख्यया योजय`.
+The final member has no next item, so that boundary iteration is omitted.
+Plural `भिस्` retains the all-following/all-preceding behaviour. The
+selector and its member noun must use the same instrumental case and number;
+established gender evidence must also agree. The current and relative member
+nouns must name the same member type. See
+[`adjacent_addition.pvm`](../examples/collections/adjacent_addition.pvm).
+
+The Two Sum example therefore considers every unordered pair once. On a match
+it prints the latest addition's remembered dual `कर्मन् + औट्` participants;
+duplicate values remain two distinct action operands even though no position
+variables are introduced. See
 [`examples/algorithms/two_sum.pvm`](../examples/algorithms/two_sum.pvm).
 
 ### 7.13 Summing number members
@@ -967,6 +1006,8 @@ members. This produces their sum, not collection concatenation. Both backends
 require numeric members and preserve the list. Derived member nouns are not
 silently interpreted as the plain सङ्ख्या selector. See
 `examples/collections/member_sum.pvm` for a declaration and display chain.
+Dual `सङ्ख्या + औट्` selects exactly the two numeric members of a pair; plural
+`सङ्ख्या + शस्` selects the numeric members of a general collection.
 The same member frame works before a display verb in a prior-action chain:
 
 ```text
@@ -1031,6 +1072,9 @@ only an omitted bound may inherit the active range.
 
 ## 9. Conditionals
 
+`यदि … तर्हि` a hypothetical choice expresses “if this is true, then do this.”
+Its typed AST relation is `HYPOTHETICAL`, and it may have an `अन्यथा` branch.
+
 Use `यदि … तर्हि … अन्यथा …`:
 
 ```pvm
@@ -1065,26 +1109,91 @@ delimiters; readable Sanskrit renders the preceding actions with the existing
 ```
 
 The nested condition observes the preceding pipeline result through `फल`.
-Only the selected outer branch evaluates that pipeline.
+Only the selected outer branch evaluates that pipeline. A result event may use
+the temporal pair in the same position: `ततः यदा … तदा …` means “from that
+result, when this state obtains, then perform the selected action.”
 
-When one selected branch must perform several **independent** actions, connect
-its complete sentences with `अथ` (“and then”). Unlike `ततः`, `अथ` does not
-pipe the previous result into the next action. Unlike `च`, it separates actions;
-`च` continues to coordinate operands inside one action.
+When one selected branch performs several complete actions, use `अथ` for an
+explicit succession (“and then”), or `च` for coordination (“and”). Neither
+connector pipes the preceding result into the next action. Action-level `च`
+immediately follows the preceding finite verb; a `च` before that verb belongs
+to its nominal operands. This attachment rule keeps the two uses unambiguous.
 
 ```pvm
 यदि फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप्
 तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप्
-    अथ प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + लोट् + सिप्
-    अथ वि + स्था + लोट् + सिप्
+    च प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + क्त्वा
+    स्था + लोट् + सिप्
 अन्यथा असत्य + सुँ ।
 ```
 
-Thus the same broader goal can be expressed naturally in different ways:
-use `ततः` when the next clause consumes the preceding result, use `अथ` when
-the branch performs consecutive independent actions, or call a named प्रक्रिया
-when the action group is reusable. The Two Sum example uses `अथ`; it needs no
-problem-specific action or helper procedure.
+Here the first `च` follows `स्थापय` and coordinates two complete actions. The
+second `च` occurs before `मुद्रयित्वा` and coordinates the two positions as
+operands of printing. `मुद्र् + णिच् + क्त्वा … स्था + लोट् + सिप्` explicitly
+means “having printed, stop”; therefore printing completes before the loop-stop
+effect is requested. If a control action occurs first in an action group, later
+coordinated actions are not executed.
+
+Thus the same broader goal can be expressed naturally in different ways: use
+`ततः` when the next clause consumes the preceding result, `अथ` for explicit
+succession, `च` for complete-action coordination, `क्त्वा`/`ल्यप्` when prior
+completion is part of the meaning, or a named प्रक्रिया when the action group
+is reusable.
+
+For several complete sentences governed by the same condition, end the first
+consequent with `।` and begin each further guarded sentence with `तदा`:
+
+```pvm
+यदि फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप्
+तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् ।
+तदा प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + लोट् + सिप् ।
+तदा स्था + लोट् + सिप् ।
+```
+
+Each `तदा` sentence is a complete independent sentence, but it executes only
+when the nearest preceding `यदि` condition selected its `तर्हि` branch. This
+relation is grammatical and does not depend on commas, newlines, or indentation.
+Nested uses attach to the nearest conditional, so loop-local member and index
+bindings remain in scope. `अथ` still coordinates actions inside one sentence;
+`तदा` continues the selected branch across danda-ended sentences.
+
+When a false branch is needed, write it after every `तदा` sentence. It may also
+start a new danda-separated sentence:
+
+```pvm
+यदि फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप्
+तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् ।
+तदा विजय + अम् मुद्र् + णिच् + लोट् + सिप् ।
+अन्यथा पराजय + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Here both true-branch sentences are skipped when the condition is false, and
+only the `अन्यथा` sentence runs. Once `अन्यथा` begins, a later `तदा` does not
+retroactively extend the true branch; this ordering keeps branch attachment
+unambiguous.
+
+Use `यदा … तदा` for a temporal event relation: “when this is true now, then do
+this.” The condition is observed once when execution reaches the sentence; this
+form is not a waiting construct or a loop. Its typed AST relation is `TEMPORAL`.
+It deliberately has no `अन्यथा` branch—use `यदि … तर्हि … अन्यथा` when a false
+alternative is required.
+
+```pvm
+यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप्
+तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
+तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Like the hypothetical form, further danda-ended `तदा` sentences share the one
+condition observation, require neither commas nor indentation, and remain in
+the nearest enclosing branch or loop scope. Nested temporal and hypothetical
+clauses attach structurally to the nearest governing arm. See
+[yada_tada.pvm](../examples/control_flow/yada_tada.pvm).
+
+The Two Sum example attaches `ततः यदि–तर्हि` directly to the pairwise addition
+sentence. On a match, `मुद्रयित्वा विरम` first prints that addition's two
+remembered objects and then stops the search. This needs neither an artificial
+block nor a new Two-Sum-specific action.
 
 Bare branch values such as `लघु` and `गुरु` are lowered to direct result values.
 The shared pipeline target executes only for the selected branch.
@@ -1125,6 +1234,29 @@ The segmented suffix `कृत्वसुच्` supplies a repetition count:
 ```pvm
 पञ्चन् + कृत्वसुच् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
 ```
+
+Use `पुनः` to say “perform this compatible action again.” It is a discourse
+recurrence marker, not the numeric frequency two: a compatible action with the
+same resolved dhātu, upasargas, and sanādi identity must already have completed.
+The marked action then executes exactly once. If there is no such antecedent,
+execution reports a language value error instead of silently treating the
+marked action as its own first attempt. When `पुनः` begins a connected `ततः`
+chain, that complete chain is the action performed again:
+
+```pvm
+शून्य + अम् गणना + ङि स्था + णिच् + लोट् + सिप् ।
+गणना + अम् एक + अम् च युज् + णिच् + लोट् + सिप्
+ततः फल + अम् गणना + ङि स्था + णिच् + लोट् + सिप् ।
+पुनः गणना + अम् एक + अम् च युज् + णिच् + लोट् + सिप्
+ततः फल + अम् गणना + ङि स्था + णिच् + लोट् + सिप् ।
+```
+
+The first increment establishes the antecedent; `पुनः` performs one retry, so
+the final `गणना` is two. Inside `यदि` it remains in that selected branch. Inside
+an existing loop it marks the current iteration's action as recurrence and does
+not multiply the loop count. For any explicit numeric count—including two—use
+the `कृत्वसुच्` construction. `पुनः` and an explicit count on the same action
+are rejected. See [punah.pvm](../examples/control_flow/punah.pvm).
 
 ### 10.2 Condition-controlled loop
 
@@ -1737,7 +1869,16 @@ The same distributive clause can be the consequent or alternate of यदि …
 
 Iteration snapshots list membership on entry, preserves member value types,
 and uses the condition-iteration host budget. An empty list runs no body.
-`वि + स्था + लोट् + सिप्` exits the nearest loop. Non-list sources fail.
+Inside an active loop, the ordinary unprefixed imperative
+`स्था + लोट् + सिप्` (`तिष्ठ`) exits the nearest loop. Outside a loop the same
+morphology retains the ordinary `स्था` meaning and does not emit a loop-control
+signal. The older `वि + स्था + लोट् + सिप्` spelling remains accepted for source
+compatibility. Non-list sources fail.
+
+`वि + रम् + लोट् + सिप्` (`विरम`; write `शप्` when lexical disambiguation is
+needed) has a wider boundary: it terminates the
+current top-level script, crossing nested loops and conditions. Thus `तिष्ठ`
+means “leave this nearest loop,” while `विरम` means “cease the computation.”
 See `examples/control_flow/foreach.pvm` and its CLI-generated readable text.
 
 To expose the current one-based position, use the natural prior-action
@@ -1747,6 +1888,71 @@ construction “having taken each member and its position”:
 सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा
     क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।
 ```
+
+The same construction can expose the immediately preceding or following member:
+
+```pvm
+सूची + ङस् प्रत्येक + अम् सदस्य + अम्
+तद् + ङस् क्रम + अम्
+तद् + ङस् पूर्व + अम्
+तद् + ङस् उत्तर + अम् च
+ग्रह् + क्त्वा
+पूर्व + अम् उत्तर + अम् च मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+The `क्रम` binding is optional when only neighbouring values are needed. For
+example, the concise form of “for each member, take all members after it” is:
+
+```pvm
+सूची + ङस् प्रत्येक + अम् सदस्य + अम्
+तद् + ङस् उत्तर + शस् च ग्रह् + क्त्वा
+...
+```
+
+When the collection members are feminine numbers, agreement can be stated
+fully rather than left implicit:
+
+```pvm
+सूची + ङस् प्रत्येक + टाप् + अम्
+सङ्ख्या + अम्
+तद् + टाप् + ङस् उत्तर + टाप् + शस् च
+ग्रह् + क्त्वा
+...
+```
+
+This derives as `सूच्याः प्रत्येकां सङ्ख्यां तस्याः उत्तराः च
+गृहीत्वा …`. The AST retains the written quantifier and anaphor morphology, so
+rendering does not replace feminine `प्रत्येकाम्`/`तस्याः` with masculine
+forms. `उत्तराः` is substantival here: “the following [numbers]”.
+
+`पूर्व` and `उत्तर` are relative collection-selection operations which also
+introduce ordinary scoped bindings; they are not global lexical identities or
+reserved runtime variables. Their relation is stated explicitly
+by an agreeing form of `तद् + ङस्`. Requesting
+`पूर्व` omits the first member's iteration, because it has no predecessor;
+requesting `उत्तर` similarly omits the last member's iteration. When both are
+requested, only members having both neighbours are visited. A one-member list
+therefore has no iteration when either neighbour is requested.
+
+Vacana changes the selection rather than merely its spelling. Accusative
+singular (`पूर्व + अम्`, `उत्तर + अम्`) selects the one adjacent member.
+Accusative plural (`पूर्व + शस्`, `उत्तर + शस्`) selects every member before
+or after the current member, preserving order and the source list's member
+type. The plural prefix or suffix may be empty; unlike the singular form, that
+does not suppress the boundary iteration. For example:
+
+```pvm
+सूची + ङस् प्रत्येक + अम् सदस्य + अम्
+तद् + ङस् क्रम + अम् तद् + ङस् उत्तर + शस् च ग्रह् + क्त्वा
+उत्तर + शस् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+When the only purpose of that binding would be to apply one action to each
+current/relative pair, prefer the direct compound sentence shown in §7.12:
+`प्रत्येकां सङ्ख्यां तदुत्तराभिः सङ्ख्याभिः योजय`. The explicit
+`गृहीत्वा` form remains useful when later sentences need the current member,
+its position, or the selected neighbours as named bindings. Thus both forms
+express the same traversal, but their scopes serve different purposes.
 
 This derives as `सूच्याः प्रत्येकं सदस्यं तस्य क्रमं च गृहीत्वा …`: “having
 taken each member of the list and its position …”. `सदस्य` is the current

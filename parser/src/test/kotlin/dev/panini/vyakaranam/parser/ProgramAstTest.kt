@@ -1,6 +1,7 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.ConditionalRelation
 import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
@@ -21,6 +22,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProgramAstTest {
     @Test fun `productive ordinals retain native morphology in explicit coordination`() {
@@ -409,6 +411,162 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `tada sentences continue the nearest conditional consequent`() {
+        val conditional = assertIs<Conditional>(
+            parser.parse(
+                "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                    "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "तदा वि + स्था + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val consequent = assertIs<Sequence>(conditional.consequent)
+        assertEquals(3, consequent.statements.size)
+        assertEquals(listOf("तदा", "तदा"), consequent.connectors)
+        assertEquals(listOf(SequenceConnector.TADANIM, SequenceConnector.TADANIM), consequent.connectorKinds)
+    }
+
+    @Test
+    fun `danda separated alternate follows all tada consequents`() {
+        val conditional = assertIs<Conditional>(
+            parser.parse(
+                "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                    "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "अन्यथा त्रि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(2, assertIs<Sequence>(conditional.consequent).statements.size)
+        assertIs<Invocation>(assertNotNull(conditional.alternate))
+    }
+
+    @Test
+    fun `yada tada has typed temporal relation and natural continuations`() {
+        val conditional = assertIs<Conditional>(parser.parse(
+            "यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals(ConditionalRelation.TEMPORAL, conditional.relation)
+        val consequent = assertIs<Sequence>(conditional.consequent)
+        assertEquals(2, consequent.statements.size)
+        assertEquals(listOf(SequenceConnector.TADANIM), consequent.connectorKinds)
+        assertNull(conditional.alternate)
+    }
+
+    @Test
+    fun `yada tada rejects an alternate branch`() {
+        assertFailsWith<PaniniParseException> {
+            parser.parse(
+                "यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                    "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            )
+        }
+    }
+
+    @Test
+    fun `nested yada attaches to the nearest hypothetical arm`() {
+        val outer = assertIs<Conditional>(parser.parse(
+            "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                "तर्हि यदा द्वि + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् " +
+                "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
+                "अन्यथा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals(ConditionalRelation.HYPOTHETICAL, outer.relation)
+        assertEquals(ConditionalRelation.TEMPORAL, assertIs<Conditional>(outer.consequent).relation)
+        assertIs<Invocation>(assertNotNull(outer.alternate))
+    }
+
+    @Test
+    fun `result pipeline may end in a paired temporal condition`() {
+        val pipeline = assertIs<Sequence>(parser.parse(
+            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+                "ततः यदा फल + सुँ त्रि + टा सम + सुँ असँ + लट् + तिप् " +
+                "तदा सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
+                "अथ एक + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals(SequenceConnector.ANANTARYA, pipeline.connectorKinds.single())
+        val temporal = assertIs<Conditional>(pipeline.statements.last())
+        assertEquals(ConditionalRelation.TEMPORAL, temporal.relation)
+        val arm = assertIs<Sequence>(temporal.consequent)
+        assertEquals(SequenceConnector.VAKYANTARA, arm.connectorKinds.single())
+    }
+
+    @Test
+    fun `cha coordinates complete finite actions in a selected arm`() {
+        val conditional = assertIs<Conditional>(parser.parse(
+            "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
+                "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        val actions = assertIs<Sequence>(conditional.consequent)
+        assertTrue(actions.independentActions)
+        assertEquals(listOf(SequenceConnector.SAMUCCAYA), actions.connectorKinds)
+        assertEquals(2, actions.statements.size)
+    }
+
+    @Test
+    fun `cha coordinates a finite action with a prior action construction`() {
+        val conditional = assertIs<Conditional>(parser.parse(
+            "यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                "तदा सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
+                "च प्रथम + अम् द्वितीय + अम् च मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।",
+        ).body)
+
+        val actions = assertIs<Sequence>(conditional.consequent)
+        assertTrue(actions.independentActions)
+        assertEquals(listOf(SequenceConnector.SAMUCCAYA), actions.connectorKinds)
+        assertEquals(2, actions.statements.size)
+    }
+
+    @Test
+    fun `result pipeline retains finite action cha before a prior action construction`() {
+        val pipeline = assertIs<Sequence>(parser.parse(
+            "प्रथममूल्य + अम् द्वितीयमूल्य + अम् च युज् + णिच् + लोट् + सिप् " +
+                "ततः यदा फल + सुँ लक्ष्य + टा सम + सुँ असँ + लट् + तिप् " +
+                "तदा सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
+                "च प्रथमक्रम + अम् द्वितीयक्रम + अम् च मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।",
+        ).body)
+
+        val temporal = assertIs<Conditional>(pipeline.statements.last())
+        val actions = assertIs<Sequence>(temporal.consequent)
+        assertTrue(actions.independentActions)
+        assertEquals(listOf(SequenceConnector.SAMUCCAYA), actions.connectorKinds)
+        assertEquals(2, actions.statements.size)
+    }
+
+    @Test
+    fun `top level action cha attaches immediately after the finite head`() {
+        val actions = assertIs<Sequence>(parser.parse(
+            "सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
+                "च प्रथम + अम् द्वितीय + अम् च मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।",
+        ).body)
+
+        assertTrue(actions.independentActions)
+        assertEquals(listOf(SequenceConnector.SAMUCCAYA), actions.connectorKinds)
+        val first = assertIs<Invocation>(actions.statements.first())
+        assertEquals(2, first.vakya.padas.filterIsInstance<SubantaPada>().size)
+    }
+
+    @Test
+    fun `action cha after postposed operands is rejected as ambiguous`() {
+        val failure = assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "एक + अम् मुद्र् + णिच् + लोट् + सिप् राम + सुँ " +
+                    "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+            )
+        }
+
+        assertTrue(failure.message.orEmpty().contains("immediately follow"))
+    }
+
+    @Test
     fun `natural indexed iteration lowers to foreach member and index bindings`() {
         val loop = assertIs<ForEach>(
             parser.parse(
@@ -420,6 +578,127 @@ class ProgramAstTest {
         assertEquals("सूची", loop.collection.pratipadika.semanticKey())
         assertEquals("सदस्य", loop.member.pratipadika.semanticKey())
         assertEquals("क्रम", assertNotNull(loop.index).pratipadika.semanticKey())
+    }
+
+    @Test
+    fun `natural indexed iteration retains previous and next member bindings`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
+                "तद् + ङस् पूर्व + अम् तद् + ङस् उत्तर + अम् च ग्रह् + क्त्वा " +
+                "सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals("पूर्व", loop.relativeSelections.single {
+            it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.PREVIOUS
+        }.binding.pratipadika.semanticKey())
+        assertEquals("उत्तर", loop.relativeSelections.single {
+            it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT
+        }.binding.pratipadika.semanticKey())
+    }
+
+    @Test
+    fun `natural neighbour iteration does not require an index binding`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् उत्तर + शस् च ग्रह् + क्त्वा " +
+                "उत्तर + शस् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertNull(loop.index)
+        val next = loop.relativeSelections.single()
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT, next.direction)
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS, next.cardinality)
+        assertEquals("उत्तर", next.binding.pratipadika.semanticKey())
+    }
+
+    @Test
+    fun `natural neighbour iteration retains feminine anaphoric morphology`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "तद् + टाप् + ङस् उत्तर + टाप् + शस् च ग्रह् + क्त्वा " +
+                "उत्तर + टाप् + शस् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        val next = loop.relativeSelections.single()
+        assertEquals("तद्", next.relation.pratipadika.semanticKey())
+        assertEquals("उत्तर", next.binding.pratipadika.semanticKey())
+    }
+
+    @Test
+    fun `direct relative action lowers tad uttara compound to typed pairwise iteration`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "तद् + ङस् + लुक् - उत्तर + टाप् + भिस् सङ्ख्या + भिस् " +
+                "युज् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        val relative = loop.relativeSelections.single()
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT, relative.direction)
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS, relative.cardinality)
+        assertNotNull(loop.directRelativeAction)
+        assertIs<ForEach>(loop.body)
+    }
+
+    @Test
+    fun `direct relative action derives previous direction from the compound`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "तद् + ङस् + लुक् - पूर्व + टाप् + भिस् सङ्ख्या + भिस् " +
+                "युज् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals(
+            dev.panini.vyakaranam.ast.CollectionRelativeDirection.PREVIOUS,
+            loop.relativeSelections.single().direction,
+        )
+        assertEquals(
+            dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS,
+            loop.relativeSelections.single().cardinality,
+        )
+    }
+
+    @Test
+    fun `direct singular relative action selects exactly the adjacent item`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + टा " +
+                "युज् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals(
+            dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEM,
+            loop.relativeSelections.single().cardinality,
+        )
+        assertIs<Invocation>(loop.body)
+    }
+
+    @Test
+    fun `direct relative action requires number and gender agreement`() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                    "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
+                    "युज् + णिच् + लोट् + सिप् ।",
+            )
+        }
+        val genderFailure = assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् प्रत्येक + अम् फल + अम् " +
+                    "तद् + ङस् + लुक् - उत्तर + टाप् + टा फल + टा " +
+                    "युज् + णिच् + लोट् + सिप् ।",
+            )
+        }
+        assertTrue(genderFailure.message.orEmpty().contains("gender"))
+    }
+
+    @Test
+    fun `direct relative action rejects a compound without the genitive luk anchor`() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                    "तद् + ङस् - उत्तर + टाप् + भिस् सङ्ख्या + भिस् " +
+                    "युज् + णिच् + लोट् + सिप् ।",
+            )
+        }
     }
 
     @Test

@@ -368,6 +368,9 @@ internal sealed interface CompilerInstruction {
 
     data object Return : CompilerInstruction
 
+    /** Return the entry-point state map immediately (वि + रम्). */
+    data object HaltScript : CompilerInstruction
+
     data object ReturnIfBreak : CompilerInstruction
 }
 

@@ -82,7 +82,9 @@ object TypedParticipantAnalysis {
                 return super.visitConditional(node)
             }
             override fun visitForEach(node: ForEach): ProgramNode {
-                val names = listOfNotNull(node.member, node.index).map { it.pratipadika.referenceKey() }
+                val names = (listOfNotNull(node.member, node.index) +
+                    node.relativeSelections.map { it.binding })
+                    .map { it.pratipadika.referenceKey() }
                 val added = names.filter(localNames::add)
                 return try { super.visitForEach(node) }
                 finally { added.forEach(localNames::remove) }

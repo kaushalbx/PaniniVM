@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.hasSarvanamasthanaSupIdentity
 import dev.panini.derivation.TermKind
+import dev.panini.core.Linga
+import dev.panini.core.Vacana
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.isHrasva
@@ -42,6 +44,14 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+
+        // The neuter dual has already received śī by 7.1.19.  It yields forms
+        // such as karman + auṭ -> karmaṇī, not *karmāṇī.  The plural śi
+        // remains eligible (phala -> phalāni).
+        if (context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
+            context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&
+            affix.upadesha == "शी"
+        ) return false
 
         // 1. Stem must end in consonant 'न्', or have received a 'num' augment substitution (7.1.70-73), or carry 'num'/'nuṭ' terms
         val isNStemOrNum = stem.varnas.lastOrNull() == Vyanjana.NA ||

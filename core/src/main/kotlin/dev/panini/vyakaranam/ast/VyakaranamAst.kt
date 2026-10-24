@@ -89,6 +89,8 @@ enum class SequenceConnector(val surface: String) {
     SAMUCCAYA("च"),
     /** A following independent sentence in the same selected branch. */
     VAKYANTARA("अथ"),
+    /** A new sentence guarded by the nearest preceding conditional. */
+    TADANIM("तदा"),
     ANANTARYA("ततः"),
     /** Ordering supplied by prior-action morphology, not a source connector word. */
     PURVAKALA(""),
@@ -108,7 +110,15 @@ data class Conditional(
     val alternate: ProgramNode? = null,
     /** One source-written pipeline target lowered into both branches for execution. */
     val surfacePipelineTarget: ProgramNode? = null,
+    val relation: ConditionalRelation = ConditionalRelation.HYPOTHETICAL,
 ) : ProgramNode
+
+enum class ConditionalRelation {
+    /** यदि … तर्हि — a decision based on a proposition. */
+    HYPOTHETICAL,
+    /** यदा … तदा — an action selected when an event/state obtains now. */
+    TEMPORAL,
+}
 
 /** A command mentioned with इति and supplied as data to a reporting command. */
 data class Quotation(
@@ -126,6 +136,12 @@ data class Repeat(
         require(count >= 0) { "A repetition count must be nonnegative." }
     }
 }
+
+/** पुनः — execute this action again, licensed by a compatible earlier action. */
+data class Recurrence(
+    override val sourceText: String,
+    val body: ProgramNode,
+) : ProgramNode
 
 /** A condition-controlled loop, optionally bounded by a Sanskrit repetition count. */
 data class WhileLoop(
@@ -145,7 +161,32 @@ data class ForEach(
     val member: SubantaPada,
     val index: SubantaPada? = null,
     val body: ProgramNode,
+    /** Anaphoric relations are retained so rendering preserves the author's gender and number. */
+    val indexRelation: SubantaPada? = null,
+    /** Retains agreement morphology such as feminine प्रत्येकाम्. */
+    val quantifier: SubantaPada? = null,
+    /** Typed collection operations; their meaning does not depend on the binding's variable name. */
+    val relativeSelections: List<CollectionRelativeSelection> = emptyList(),
+    /** Original direct-action surface retained after lowering to ordinary nested iteration. */
+    val directRelativeAction: DirectRelativeActionSurface? = null,
 ) : ProgramNode
+
+enum class CollectionRelativeDirection { PREVIOUS, NEXT }
+enum class CollectionRelativeCardinality { ITEM, ITEMS }
+
+data class CollectionRelativeSelection(
+    val direction: CollectionRelativeDirection,
+    val cardinality: CollectionRelativeCardinality,
+    val binding: SubantaPada,
+    val relation: SubantaPada,
+)
+
+data class DirectRelativeActionSurface(
+    val relative: SubantaPada,
+    val relativeType: SubantaPada,
+    val action: TingantaPada,
+    val continuation: ProgramNode? = null,
+)
 
 enum class CollectionQuantifier { ANY, ALL }
 

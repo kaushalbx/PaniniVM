@@ -52,7 +52,8 @@ object CollectionMemberMorphology {
         return nominals.filter {
             (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == identity &&
                 !hasSlot(it, SupAffix.NGAS) &&
-                (identity != MulaPratipadikaIdentity.SANKHYA || hasSlot(it, SupAffix.SAS))
+                (identity != MulaPratipadikaIdentity.SANKHYA ||
+                    hasSlot(it, SupAffix.AUT) || hasSlot(it, SupAffix.SAS))
         }
     }
 

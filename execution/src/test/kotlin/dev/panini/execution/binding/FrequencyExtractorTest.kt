@@ -39,9 +39,9 @@ class FrequencyExtractorTest {
     }
 
     @Test
-    fun `derives pragmatic repetition from avyaya classification`() {
-        assertEquals(2, FrequencyExtractor.extractFrequencyCount(emptyList(), frame("पुनः")))
-        assertEquals(2, FrequencyExtractor.extractFrequencyCount(emptyList(), frame("पुनर्")))
+    fun `does not reinterpret discourse recurrence as a numeric frequency`() {
+        assertEquals(null, FrequencyExtractor.extractFrequencyCount(emptyList(), frame("पुनः")))
+        assertEquals(null, FrequencyExtractor.extractFrequencyCount(emptyList(), frame("पुनर्")))
         assertEquals(null, FrequencyExtractor.extractFrequencyCount(emptyList(), frame("शीघ्रम्")))
     }
 

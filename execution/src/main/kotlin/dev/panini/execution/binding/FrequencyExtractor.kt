@@ -3,7 +3,6 @@ package dev.panini.execution.binding
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaQualificationKind
 import dev.panini.sankhya.SankhyaAbhyasaMarkers
-import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 
@@ -41,7 +40,7 @@ internal object FrequencyExtractor {
      *
      * Handles:
      * - अभ्यास-सङ्ख्या padas (e.g. *कृत्वः forms)
-     * - KriyaQualificationKind.FREQUENCY qualifiers (सकृत्, द्विः, त्रिः, पुनः …)
+     * - numerical KriyaQualificationKind.FREQUENCY qualifiers (सकृत्, द्विः, त्रिः …)
      */
     internal fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
         extractAbhyasaCount(padas)?.let { return it }
@@ -53,9 +52,6 @@ internal object FrequencyExtractor {
             //   *कृत्वः / *कृत्वस् compound forms (evaluateStems suffix branch)
             val evaluated = runCatching { sharedSankhyaEvaluator.evaluateStems(listOf(text)) }.getOrNull()
             if (evaluated != null) return checkedCount(evaluated.value)
-            // पुनः / पुनर् are pragmatic repetition markers ("again" = do once more),
-            // not purely numerical — retain as minimal policy.
-            if (AvyayaFunction.fromForm(text) == AvyayaFunction.REPETITION) return 2
         }
         return null
     }

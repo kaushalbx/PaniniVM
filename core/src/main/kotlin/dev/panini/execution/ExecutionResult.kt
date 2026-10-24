@@ -3,7 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 enum class OutputKind { INTERNAL, CONSOLE, EXTERNAL }
-enum class ExecutionControlSignal { BREAK_LOOP, RETURN_PROCEDURE }
+enum class ExecutionControlSignal { BREAK_LOOP, RETURN_PROCEDURE, HALT_SCRIPT }
 
 /** The value of a successful execution is always a Sanskrit string. */
 sealed interface ExecutionResult {

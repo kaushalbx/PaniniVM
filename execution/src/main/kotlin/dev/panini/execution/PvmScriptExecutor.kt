@@ -8,6 +8,7 @@ import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
+import dev.panini.vyakaranam.ast.Recurrence
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
@@ -120,7 +121,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
             }
             val last = results.lastOrNull()
-            if (last != null && last !is ExecutionResult.Success) break
+            if (last != null && (last !is ExecutionResult.Success ||
+                    last.controlSignal == ExecutionControlSignal.HALT_SCRIPT)) break
         }
         return results
     }
@@ -133,6 +135,20 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         vm.executionMetrics.recordAstNode()
         return when (node) {
         is Invocation -> {
+            if (NaturalScriptStop.matches(node)) {
+                return listOf(ExecutionResult.Success(
+                    value = "विरतम्",
+                    operation = "pvm.natural-script-stop",
+                    controlSignal = ExecutionControlSignal.HALT_SCRIPT,
+                )).also(context::publish)
+            }
+            if (context.loopDepth > 0 && NaturalLoopStop.matches(node)) {
+                return listOf(ExecutionResult.Success(
+                    value = "स्थितम्",
+                    operation = "pvm.natural-loop-stop",
+                    controlSignal = ExecutionControlSignal.BREAK_LOOP,
+                )).also(context::publish)
+            }
             if (!context.conditionEvaluation && context.scope.procedureBindings?.hasProcedureOwner == true) {
                 val bound = try { LocalAnaphorBinding.resolve(node, context.scope) }
                     catch (failure: IllegalArgumentException) {
@@ -191,11 +207,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         is Conditional -> executeConditionalNode(node, context)
         is Repeat -> buildList {
             repeat(node.count) {
-                val produced = executeProgramNode(node.body, context.copy(onResult = { context.publish(it.consumeLoopBreak()) }))
+                val produced = executeProgramNode(node.body, context.copy(
+                    loopDepth = context.loopDepth + 1,
+                    onResult = { context.publish(it.consumeLoopBreak()) },
+                ))
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
                 if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) return@buildList
             }
         }
+        is Recurrence -> executeRecurrence(node, context)
         is WhileLoop -> executeWhileLoop(node, context)
         is ForEach -> executeForEach(node, context)
         is QuantifiedCollectionPredicate -> executeQuantifiedCollectionPredicate(node, context)
@@ -212,6 +232,22 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         is Prakriya -> executeBody(node.body, context)
         is Scope -> executeBody(node.body, context)
         }
+    }
+
+    private fun executeRecurrence(node: Recurrence, context: ExecutionContext): List<ExecutionResult> {
+        val analysis = dev.panini.execution.binding.VyakaranamExecutionAdapter.analyzeForMemory(
+            Ukti(node.body.sourceText, body = node.body),
+        )
+        val identity = analysis?.frames?.firstOrNull()?.kriya?.actionIdentity
+        val hasAntecedent = identity != null && vm.kriyaMemory(context.sessionKey)
+            .matchingActions(identity).isNotEmpty()
+        if (!hasAntecedent) {
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "पुनः requires a compatible earlier completed action.",
+            )).also(context::publish)
+        }
+        return executeProgramNode(node.body, context)
     }
 
     private fun executeBody(body: List<ProgramNode>, context: ExecutionContext): List<ExecutionResult> = buildList {
@@ -351,21 +387,54 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val items = value.items.toList()
         val name = loop.member.pratipadika.referenceKey()
         val indexName = loop.index?.pratipadika?.referenceKey()
+        val previousSelection = loop.relativeSelections.singleOrNull {
+            it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.PREVIOUS
+        }
+        val nextSelection = loop.relativeSelections.singleOrNull {
+            it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT
+        }
+        val previousName = previousSelection?.binding?.pratipadika?.referenceKey()
+        val nextName = nextSelection?.binding?.pratipadika?.referenceKey()
+        val previousIsPlural = previousSelection?.cardinality ==
+            dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
+        val nextIsPlural = nextSelection?.cardinality ==
+            dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
+        data class Iteration(
+            val ordinal: Int,
+            val member: SanskritValue,
+            val index: SanskritValue,
+            val previous: SanskritValue?,
+            val next: SanskritValue?,
+        )
+        val iterations = items.mapIndexedNotNull { index, item ->
+            if (previousName != null && !previousIsPlural && index == 0 ||
+                nextName != null && !nextIsPlural && index == items.lastIndex) {
+                return@mapIndexedNotNull null
+            }
+            val position = index + 1L
+            Iteration(index, item, SanskritValue.Sankhya(position,
+                renderSankhyaResult(position) ?: position.toString()),
+                if (previousIsPlural) SanskritValue.Suchi(items.take(index), value.memberType) else items.getOrNull(index - 1),
+                if (nextIsPlural) SanskritValue.Suchi(items.drop(index + 1), value.memberType) else items.getOrNull(index + 1))
+        }
         return buildList {
-            for ((index, item) in items.withIndex()) {
+            for (iteration in iterations) {
                 val budget = vm.executionLimits.maxConditionIterations
-                if (budget != null && index.toLong() >= budget) {
+                if (budget != null && iteration.ordinal.toLong() >= budget) {
                     val failure = ExecutionResult.Failure(ExecutionError.ACTION_FAILED,
                         "Collection iteration exhausted its host execution budget.")
                     add(failure)
                     context.publish(failure)
                     break
                 }
-                val memberBindings = ProcedureLocalBindings.member(context.scope.procedureBindings, name, item, loop.member)
-                val oneBasedIndex = index + 1L
-                val loopBindings = if (indexName == null) memberBindings else ProcedureLocalBindings.member(
-                    memberBindings, indexName, SanskritValue.Sankhya(oneBasedIndex,
-                        renderSankhyaResult(oneBasedIndex) ?: oneBasedIndex.toString()), loop.index)
+                val memberBindings = ProcedureLocalBindings.member(context.scope.procedureBindings, name,
+                    iteration.member, loop.member)
+                val indexBindings = if (indexName == null) memberBindings else ProcedureLocalBindings.member(
+                    memberBindings, indexName, iteration.index, loop.index)
+                val previousBindings = if (previousName == null) indexBindings else ProcedureLocalBindings.member(
+                    indexBindings, previousName, requireNotNull(iteration.previous), previousSelection.binding)
+                val loopBindings = if (nextName == null) previousBindings else ProcedureLocalBindings.member(
+                    previousBindings, nextName, requireNotNull(iteration.next), nextSelection.binding)
                 val loopEnvironment = context.scope.environment
                     .mergedWith(ValueEnvironment.live(memberBindings.values))
                     .let { environment -> if (loopBindings === memberBindings) environment else
@@ -376,12 +445,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 )
                 val executeBody = {
                     executeProgramNode(loop.body, context.copy(scope = scope,
+                        loopDepth = context.loopDepth + 1,
                         onResult = { context.publish(it.consumeLoopBreak()) }))
                 }
-                val produced = vm.withRestoredBinding(context.sessionKey, name, context.persistSession) {
-                    if (indexName == null) executeBody() else vm.withRestoredBinding(
-                        context.sessionKey, indexName, context.persistSession, executeBody)
+                fun withRestored(names: List<String>, action: () -> List<ExecutionResult>): List<ExecutionResult> {
+                    val current = names.firstOrNull() ?: return action()
+                    return vm.withRestoredBinding(context.sessionKey, current, context.persistSession) {
+                        withRestored(names.drop(1), action)
+                    }
                 }
+                val produced = withRestored(listOfNotNull(name, indexName, previousName, nextName), executeBody)
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
                 if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) break
             }
@@ -501,6 +574,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val persistSession: Boolean,
         val conditionEvaluation: Boolean = false,
         val injectedKarman: InjectedKarmanBinding? = null,
+        val loopDepth: Int = 0,
     ) {
         fun publish(result: ExecutionResult) {
             onResult?.invoke(result)
@@ -527,6 +601,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.copy(
                         scope = scope,
                         conditionEvaluation = conditionEvaluation,
+                        loopDepth = if (node === loop.body) context.loopDepth + 1 else context.loopDepth,
                         onResult = if (node === loop.body) {
                             { result -> context.publish(result.consumeLoopBreak()) }
                         } else context.onResult,

@@ -31,11 +31,11 @@ class ExecutionQualificationIntentTest {
     }
 
     @Test
-    fun `lowers repetition qualification to repeated typed invocations`() {
+    fun `does not lower discourse recurrence to a numeric duplicate`() {
         val bound = bind("पुनः एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।")
 
-        assertEquals(2, bound.ukti.invocations.size)
-        assertEquals(listOf("योग-1", "योग-2"), bound.ukti.invocations.map { it.id })
+        assertEquals(1, bound.ukti.invocations.size)
+        assertEquals(listOf("योग-1"), bound.ukti.invocations.map { it.id })
         assertEquals(false, bound.ukti.invocations.any { "frequencyCount" in it.metadata })
     }
 

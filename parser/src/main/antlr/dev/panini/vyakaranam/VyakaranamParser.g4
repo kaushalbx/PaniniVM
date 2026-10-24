@@ -65,6 +65,7 @@ prakriyaDeclaration
 // Reusable clause content: document/block entry rules own their delimiters and EOF.
 utterance
     : quantifiedCollectionClause
+    | naturalRelativeActionClause
     | naturalIndexedDistributiveClause
     | distributiveClause
     | quotationClause
@@ -73,9 +74,26 @@ utterance
     | attributePipelineClause
     | pipelineClause
     | conditionalClause
+    | conditionalActionSequence
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
+    ;
+
+// Direct pairwise collection action: “add each number to the numbers after it”.
+// The relative compound is interpreted structurally; it is not a lexical variable.
+naturalRelativeActionClause
+    : collection=subantaPada quantifier=subantaPada member=subantaPada
+      relative=compoundSubantaPada relativeType=subantaPada action=tingantaPada
+      (TATAH conditional=conditionalExpression)?
+    ;
+
+// The written samāsa boundary keeps this clause syntactically distinct from
+// ordinary multi-argument finite invocations; parentheses are unnecessary.
+compoundSubantaPada
+    : samasaPratipadika
+      pratipadikaVikara*
+      PLUS supPratyaya
     ;
 
 // Natural collection predicates: “some/every member of the collection satisfies …”.
@@ -97,7 +115,8 @@ distributiveClause
 // तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा ...
 naturalIndexedDistributiveClause
     : collection=subantaPada quantifier=subantaPada member=subantaPada
-      relation=subantaPada index=subantaPada CHA acquisition=avyayaKridanta
+      (relations+=subantaPada selections+=subantaPada)+
+      CHA acquisition=avyayaKridanta
       body=utterance
     ;
 
@@ -107,7 +126,7 @@ quotationClause
 
 conditionalPipelineClause
     : source=akhyataVakya (TATAH stages+=akhyataVakya)*
-      TATAH conditional=conditionalExpression
+      TATAH (conditional=conditionalExpression | temporal=temporalConditionalExpression)
     ;
 
 attributePipelineClause
@@ -155,12 +174,18 @@ pipelineResult
     ;
 
 conditionalClause
-    : conditionalExpression (TATAH target=vakya)?
+    : (conditionalExpression | temporalConditionalExpression) (TATAH target=vakya)?
     ;
 
 conditionalExpression
     : YADI condition=conditionClause TARHI consequent=conditionalArm
-      (ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+      (DANDA TADA continuations+=utterance)*
+      ((DANDA)? ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+    ;
+
+temporalConditionalExpression
+    : YADA condition=conditionClause TADA consequent=conditionalArm
+      (DANDA TADA continuations+=utterance)*
     ;
 
 conditionClause
@@ -173,14 +198,27 @@ conditionalArm
     | distributiveClause
     | conditionalPipelineClause
     | conditionalActionSequence
+    | temporalConditionalExpression
     | value=pratipadika
     | vakya
     ;
 
-// Coordinated independent actions in one selected branch.
+// Coordinated complete actions, including inside one selected branch.
 conditionalActionSequence
-    : statements+=vakya ATHA statements+=vakya
-      (ATHA statements+=vakya)*
+    : statements+=coordinatedActionVakya connectors+=actionCoordinator
+      (statements+=coordinatedActionVakya connectors+=actionCoordinator)*
+      finalStatement=vakya
+    ;
+
+// The coordinator immediately follows a finite head. This gives action-level च
+// an unambiguous owner; च before that head remains nominal/operand coordination.
+coordinatedActionVakya
+    : purvaVakyaPada* tingantaPada
+    ;
+
+actionCoordinator
+    : ATHA
+    | CHA
     ;
 
 // ============================================================================

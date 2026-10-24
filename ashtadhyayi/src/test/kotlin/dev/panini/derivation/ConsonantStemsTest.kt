@@ -64,6 +64,11 @@ class ConsonantStemsTest {
         val atmana = engine.derive(SubantaDerivationRequest("आत्मन्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("आत्मना", atmana.final.surface)
 
+        val karmani = engine.derive(SubantaDerivationRequest("कर्मन्", Vibhakti.DVITIYA, Vacana.DVIVACANA, Linga.NAPUMSAKA))
+        assertEquals("कर्मणी", karmani.final.surface)
+        kotlin.test.assertTrue(karmani.applications.any { it.sutra == "7.1.19" })
+        kotlin.test.assertFalse(karmani.applications.any { it.sutra == "6.4.8" })
+
         // go stem tests
         val gauh = engine.derive(SubantaDerivationRequest("गो", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("गौः", gauh.final.surface)

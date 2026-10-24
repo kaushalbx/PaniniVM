@@ -46,7 +46,7 @@ class SthaDhatu : Dhatu(
             returns(Samjna.SHABDA, Samjna.SANKHYA)
         },
         StateWaitAction.op {
-            requires(Karaka.KARMAN)
+            optional(Karaka.KARMAN)
             triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SHABDA)
         },

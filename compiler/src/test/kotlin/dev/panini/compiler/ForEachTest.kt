@@ -23,6 +23,42 @@ class ForEachTest {
         assertFalse("क्रम" in values)
     }
 
+    @Test fun `adjacent foreach members have interpreter compiler parity and remain scoped`() {
+        for ((stem, expected) in listOf("उत्तर" to "त्रि", "पूर्व" to "द्वि")) {
+            val source = """
+                $declaration
+                सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम्
+                तद् + ङस् $stem + अम् च ग्रह् + क्त्वा
+                $stem + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            """.trimIndent()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+            assertEquals(expected, interpreted.filterIsInstance<ExecutionResult.Success>()
+                .filter { it.outputKind == OutputKind.CONSOLE }.last().value)
+            val values = compiled(source, "AdjacentForEach$stem")
+            assertEquals(expected, values.getValue("LastResult").toDisplayText())
+            assertFalse(stem in values)
+        }
+    }
+
+    @Test fun `plural neighbour bindings expose typed prefixes and suffixes in both backends`() {
+        for ((stem, expected) in listOf("उत्तर" to "[]", "पूर्व" to "[एक, द्वि]")) {
+            val source = """
+                $declaration
+                सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम्
+                तद् + ङस् $stem + शस् च ग्रह् + क्त्वा
+                $stem + शस् मुद्र् + णिच् + लोट् + सिप् ।
+            """.trimIndent()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+            assertEquals(expected, interpreted.filterIsInstance<ExecutionResult.Success>()
+                .filter { it.outputKind == OutputKind.CONSOLE }.last().value)
+            val values = compiled(source, "PluralAdjacentForEach$stem")
+            assertEquals(expected, values.getValue("LastResult").toDisplayText())
+            assertFalse(stem in values)
+        }
+    }
+
     @Test fun `legacy indexed prati iteration remains compatible`() {
         val source = """
             $declaration
@@ -166,6 +202,21 @@ class ForEachTest {
         val values = compiled(source, "NativeForEach")
         assertEquals("त्रि", values.getValue("LastResult").toDisplayText())
         assertFalse("सदस्य" in values)
+    }
+
+    @Test fun `direct singular next item action has interpreter compiler parity`() {
+        val source = """
+            एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
+            तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + टा
+            युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(7L, assertIs<SanskritValue.Sankhya>(
+            interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue).value)
+        assertEquals(7L, assertIs<SanskritValue.Sankhya>(
+            compiled(source, "DirectSingularNext").getValue("LastResult")).value)
     }
 
     @Test fun `nested loops restore outer member`() {

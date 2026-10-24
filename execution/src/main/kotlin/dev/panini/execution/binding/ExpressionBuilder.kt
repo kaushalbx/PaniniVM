@@ -55,7 +55,8 @@ internal object ExpressionBuilder {
         }
         val selection = if (nominal?.vikaras?.isEmpty() == true) when {
             nominal.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
-                normalized.sup.affixCandidates == listOf(SupAffix.SAS) -> dev.panini.execution.CollectionMemberSelection.NUMBERS
+                normalized.sup.affixCandidates.singleOrNull() in setOf(SupAffix.AUT, SupAffix.SAS) ->
+                    dev.panini.execution.CollectionMemberSelection.NUMBERS
             nominal.lexicalIdentity == MulaPratipadikaIdentity.ANTIMA &&
                 normalized.sup.affixCandidates == listOf(SupAffix.AM) -> dev.panini.execution.CollectionMemberSelection.FINAL
             else -> null

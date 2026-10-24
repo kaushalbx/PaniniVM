@@ -6,6 +6,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitConditional(node: Conditional): R
     fun visitQuotation(node: Quotation): R
     fun visitRepeat(node: Repeat): R
+    fun visitRecurrence(node: Recurrence): R
     fun visitWhileLoop(node: WhileLoop): R
     fun visitForEach(node: ForEach): R
     fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): R
@@ -20,6 +21,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Conditional -> visitor.visitConditional(this)
     is Quotation -> visitor.visitQuotation(this)
     is Repeat -> visitor.visitRepeat(this)
+    is Recurrence -> visitor.visitRecurrence(this)
     is WhileLoop -> visitor.visitWhileLoop(this)
     is ForEach -> visitor.visitForEach(this)
     is QuantifiedCollectionPredicate -> visitor.visitQuantifiedCollectionPredicate(this)
@@ -65,6 +67,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
         listOfNotNull(node.condition, node.consequent, node.alternate)
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
+    override fun visitRecurrence(node: Recurrence): List<ProgramNode> = listOf(node.body)
     override fun visitForEach(node: ForEach): List<ProgramNode> = listOf(node.body)
     override fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): List<ProgramNode> =
         listOf(node.predicate)
@@ -93,6 +96,9 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         node.copy(reporting = transform(node.reporting))
 
     override fun visitRepeat(node: Repeat): ProgramNode =
+        node.copy(body = transform(node.body))
+
+    override fun visitRecurrence(node: Recurrence): ProgramNode =
         node.copy(body = transform(node.body))
 
     override fun visitForEach(node: ForEach): ProgramNode = node.copy(body = transform(node.body))

@@ -19,7 +19,9 @@ object PaninianPratipadikaLexicon : PratipadikaLexicon {
         if (base == null && ganas.isEmpty() && linga == null) return null
 
         return (base ?: PratipadikaEntry(normalized, emptySet())).copy(
-            linga = base?.linga.orEmpty() + linga?.lingas.orEmpty(),
+            // An explicitly sourced lexical gender is stronger evidence than a
+            // broad shape-based rule; the latter fills only undeclared gender.
+            linga = base?.linga?.takeIf { it.isNotEmpty() } ?: linga?.lingas.orEmpty(),
             ganaNames = base?.ganaNames.orEmpty() + ganas.map { it.name },
             lingaRuleIds = base?.lingaRuleIds.orEmpty() + listOfNotNull(linga?.ruleId),
         )

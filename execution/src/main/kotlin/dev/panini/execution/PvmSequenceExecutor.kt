@@ -16,7 +16,13 @@ internal class PvmSequenceExecutor {
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
         executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
-        if (node.independentActions) return buildList {
+        val independentConnectors = setOf(
+            SequenceConnector.SAMUCCAYA,
+            SequenceConnector.VAKYANTARA,
+            SequenceConnector.TADANIM,
+        )
+        if (node.independentActions ||
+            (node.statements.size > 1 && node.connectorKinds.all { it in independentConnectors })) return buildList {
             for (statement in node.statements) {
                 val produced = executeNode(statement)
                 addAll(produced)
@@ -54,9 +60,12 @@ internal class PvmSequenceExecutor {
             root?.operations?.any { it.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE &&
                 features != null && it.trigger.matches(features) } == true
         }
+        // क्त्वा/ल्यप् lowering has already established explicit prior completion.
+        // Execute those AST stages directly even when they need no result injection.
+        val hasPriorAction = node.connectorKinds.any { it == SequenceConnector.PURVAKALA }
         if (node.statements.size < 2 ||
             node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
-            (!hasNamedStage && !startsWithImplicitValue && !hasAnaphor && !hasReturnStage && !hasStructuredStage)
+            (!hasPriorAction && !hasNamedStage && !startsWithImplicitValue && !hasAnaphor && !hasReturnStage && !hasStructuredStage)
         ) return evaluateWhole()
 
         val results = mutableListOf<ExecutionResult>()

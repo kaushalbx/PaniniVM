@@ -48,6 +48,8 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         // Technical category and grammatical gender are independent metadata.
         put("सङ्ख्या", getValue("सङ्ख्या").copy(linga = setOf(Linga.STRI), stemFormation = NominalStemFormation.AP))
         put("सूची", PratipadikaEntry("सूची", setOf(Linga.STRI)))
+        put("कर्मन्", PratipadikaEntry("कर्मन्", setOf(Linga.NAPUMSAKA),
+            categories = setOf(NominalCategory.TECHNICAL_SAMJNA)))
         put("शब्द", PratipadikaEntry("शब्द", emptySet()))
         // Independently attested masculine nominal examples, not corpus output aliases:
         // Kāśikā 6.1.113 (vṛkṣa/plakṣa), 6.1.114 (puruṣa), and

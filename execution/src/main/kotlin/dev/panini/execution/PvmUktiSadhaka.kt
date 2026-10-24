@@ -188,16 +188,21 @@ class PvmUktiSadhaka(
 
     private val programRenderer = object : ProgramNodeVisitor<String> {
         private fun render(node: ProgramNode): String = node.accept(this)
-        override fun visitInvocation(node: Invocation): String = node.implicitValuePada
-            ?.let(::sadhayaPada)
-            ?: node.implicitValue
-            ?: sadhayaPadas(node.vakya.padas)
+        override fun visitInvocation(node: Invocation): String = when {
+            NaturalScriptStop.matches(node) -> "विरम"
+            node.implicitValuePada != null -> sadhayaPada(requireNotNull(node.implicitValuePada))
+            node.implicitValue != null -> requireNotNull(node.implicitValue)
+            else -> sadhayaPadas(node.vakya.padas)
+        }
         override fun visitSequence(node: Sequence): String = buildString {
             node.statements.forEachIndexed { index, statement ->
                 if (index > 0) {
-                    append(' ')
-                    append(node.connectors.getOrNull(index - 1) ?: "।")
-                    append(' ')
+                    val connector = node.connectors.getOrNull(index - 1) ?: "।"
+                    if (node.connectorKinds.getOrNull(index - 1) == SequenceConnector.TADANIM) {
+                        append(" । ${SequenceConnector.TADANIM.surface} ")
+                    } else {
+                        append(" $connector ")
+                    }
                 }
                 append(render(statement))
             }
@@ -207,9 +212,9 @@ class PvmUktiSadhaka(
         private fun renderConditional(node: Conditional, includePipelineTarget: Boolean): String = buildString {
             val hasSharedTarget = includePipelineTarget && node.surfacePipelineTarget != null
             val stripLoweredTargets = hasSharedTarget || !includePipelineTarget
-            append("यदि ")
+            append(if (node.relation == dev.panini.vyakaranam.ast.ConditionalRelation.TEMPORAL) "यदा " else "यदि ")
             append(render(node.condition))
-            append(" तर्हि ")
+            append(if (node.relation == dev.panini.vyakaranam.ast.ConditionalRelation.TEMPORAL) " तदा " else " तर्हि ")
             append(renderBranch(node.consequent, stripPipelineTarget = stripLoweredTargets))
             node.alternate?.let {
                 append(" अन्यथा ")
@@ -231,10 +236,33 @@ class PvmUktiSadhaka(
         override fun visitQuotation(node: Quotation): String =
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
-        override fun visitForEach(node: ForEach): String = node.index?.let { index ->
-            "${sadhayaSubanta(node.collection)} प्रत्येकं ${sadhayaSubanta(node.member)} " +
-                "तस्य ${sadhayaSubanta(index)} च गृहीत्वा ${render(node.body)}"
-        } ?: "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
+        override fun visitRecurrence(node: dev.panini.vyakaranam.ast.Recurrence): String =
+            "पुनः ${render(node.body)}"
+        override fun visitForEach(node: ForEach): String {
+            node.directRelativeAction?.let { direct ->
+                return buildString {
+                    append(sadhayaSubanta(node.collection)); append(' ')
+                    append(node.quantifier?.let(::sadhayaSubanta) ?: "प्रत्येकं"); append(' ')
+                    append(sadhayaSubanta(node.member)); append(' ')
+                    append(sadhayaSubanta(direct.relative)); append(' ')
+                    append(sadhayaSubanta(direct.relativeType)); append(' ')
+                    append(sadhayaTinganta(direct.action))
+                    direct.continuation?.let { append(" ततः "); append(render(it)) }
+                }
+            }
+            val selections = listOfNotNull(
+                node.index?.let { node.indexRelation to it },
+            ) + node.relativeSelections.map { it.relation to it.binding }
+            if (selections.isEmpty()) {
+                return "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
+            }
+            val related = selections.joinToString(" ") { (relation, selection) ->
+                "${relation?.let(::sadhayaSubanta) ?: "तस्य"} ${sadhayaSubanta(selection)}"
+            }
+            val quantifier = node.quantifier?.let(::sadhayaSubanta) ?: "प्रत्येकं"
+            return "${sadhayaSubanta(node.collection)} $quantifier ${sadhayaSubanta(node.member)} " +
+                "$related च गृहीत्वा ${render(node.body)}"
+        }
         override fun visitQuantifiedCollectionPredicate(
             node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
         ): String {
@@ -481,14 +509,41 @@ class PvmUktiSadhaka(
                 }
                 val outerAffix = SupAffix.fromUpadesha(normalized.sup.text)
                     ?: return subanta.sourceText
+                val samasaLinga = if (samasa.vikaras.any { it is StriVikara }) Linga.STRI else lingaOverride
                 samasaEngine.derive(
                     padas, SamasaType.TATPURUSA,
-                    outputLinga = lingaOverride,
+                    outputLinga = samasaLinga,
                     outputVacana = outerAffix.vacana,
                     outputVibhakti = outerAffix.vibhakti,
                 ).final.surface
             } catch (_: Exception) {
-                subanta.sourceText
+                // A source-written luk compound can still be declined compositionally
+                // when the full samasa derivation has no productive feminine path yet.
+                runCatching {
+                    require(samasa.angas.dropLast(1).all { it.supLopa == dev.panini.core.SupLopa.LUK })
+                    val outerAffix = requireNotNull(SupAffix.fromUpadesha(normalized.sup.text))
+                    val compoundBase = samasa.angas.map { it.pratipadika.baseText() }
+                        .reduce(sandhiEngine::joinPadas).replace(" ", "")
+                    val feminine = samasa.vikaras.singleOrNull { it is StriVikara } as? StriVikara
+                    val declinedBase = if (feminine == null) compoundBase else {
+                        val samjna = when (feminine.pratyaya) {
+                            "टाप्" -> dev.panini.shiksha.Samjna.TAP
+                            "ङीप्" -> dev.panini.shiksha.Samjna.NIP
+                            "ङीष्" -> dev.panini.shiksha.Samjna.NIS
+                            "ङीन्" -> dev.panini.shiksha.Samjna.NIN
+                            else -> error("Unsupported feminine compound affix: ${feminine.pratyaya}")
+                        }
+                        striPratyayaEngine.derive(StriPratyayaRequest(compoundBase, samjna)).final.surface
+                    }
+                    subantaEngine.derive(SubantaDerivationRequest(
+                        declinedBase,
+                        outerAffix.vibhakti,
+                        outerAffix.vacana,
+                        if (feminine == null) lingaOverride ?: Linga.PUMS else Linga.STRI,
+                        if (feminine != null && declinedBase.endsWith("ा")) NominalStemFormation.AP
+                        else NominalStemFormation.UNSPECIFIED,
+                    )).final.surface
+                }.getOrElse { subanta.sourceText }
             }
         }
         val kridanta = normalized.pratipadika as? KridantaPratipadika
@@ -526,7 +581,11 @@ class PvmUktiSadhaka(
             .orEmpty()
         if (striVikaras.size > 1) return subanta.sourceText
         val explicitStri = striVikaras.singleOrNull()
+        val isTyadadiPronoun = baseText in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
         val explicitlyFeminineBase = explicitStri?.let { vikara ->
+            // त्यदादि pronouns form their feminine paradigm inside SubantaEngine;
+            // टाप् here conveys gender and must not replace the lexical pronoun stem first.
+            if (isTyadadiPronoun) return@let null
             val samjna = when (vikara.pratyaya) {
                 "टाप्" -> dev.panini.shiksha.Samjna.TAP
                 "ङीप्" -> dev.panini.shiksha.Samjna.NIP
@@ -594,7 +653,7 @@ class PvmUktiSadhaka(
                     mula?.vikaras?.forEach { vikara ->
                         when (vikara) {
                             is TaddhitaVikara -> add(vikara.pratyaya)
-                            is StriVikara -> add(vikara.pratyaya)
+                            is StriVikara -> if (!isTyadadiPronoun) add(vikara.pratyaya)
                             else -> Unit
                         }
                     }
@@ -607,6 +666,9 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
+        if (tinganta.dhatu.mulaDhatu == "रम्" && tinganta.upasargas == listOf("वि") &&
+            tinganta.dhatu.sanadiPratyayas.isEmpty() && tinganta.lakara == dev.panini.core.Lakara.LOT &&
+            tinganta.ting.text == "सिप्") return "विरम"
         if (tinganta.hasContradictoryActiveCausativeVikarana()) return tinganta.sourceText
         tinganta.priorAction?.let { derivation ->
             val source = (derivation.upasargas + derivation.dhatu.sourceText + derivation.pratyaya)

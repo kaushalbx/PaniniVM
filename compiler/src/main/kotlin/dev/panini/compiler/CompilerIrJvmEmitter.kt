@@ -262,6 +262,11 @@ internal class CompilerIrJvmEmitter(
                     mv.visitInsn(POP)
                 }
                 CompilerInstruction.Return -> mv.visitInsn(RETURN)
+                CompilerInstruction.HaltScript -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "snapshot", "()Ljava/util/Map;", false)
+                    mv.visitInsn(ARETURN)
+                }
                 CompilerInstruction.ReturnIfBreak -> emitReturnIfBreak()
             }
         }

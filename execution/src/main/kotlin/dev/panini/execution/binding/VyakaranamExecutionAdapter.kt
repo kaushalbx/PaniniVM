@@ -33,6 +33,7 @@ import dev.panini.analysis.UktiAnalysis
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Conditional
@@ -44,6 +45,7 @@ import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
+import dev.panini.vyakaranam.ast.Recurrence
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SequenceConnector
@@ -137,20 +139,36 @@ object VyakaranamExecutionAdapter {
                 // A leading frequency qualifies this connected event chain, not an
                 // enclosing conditional or distributive clause.
                 val first = node.statements.firstOrNull() as? Invocation ?: return super.visitSequence(node)
-                val repeated = visitInvocation(first) as? Repeat ?: return super.visitSequence(node)
-                return Repeat(node.sourceText, repeated.count, node.copy(statements =
-                    listOf(repeated.body) + node.statements.drop(1).map(::transform)))
+                return when (val qualified = visitInvocation(first)) {
+                    is Repeat -> Repeat(node.sourceText, qualified.count, node.copy(statements =
+                        listOf(qualified.body) + node.statements.drop(1).map(::transform)))
+                    is Recurrence -> Recurrence(node.sourceText, node.copy(statements =
+                        listOf(qualified.body) + node.statements.drop(1).map(::transform)))
+                    else -> super.visitSequence(node)
+                }
             }
             override fun visitInvocation(node: Invocation): ProgramNode {
-                val count = FrequencyExtractor.extractAbhyasaCount(node.vakya.padas)
-                    ?: return node
-                val padas = node.vakya.padas.filterNot { it is SankhyaAbhyasaPada }
+                val numericCount = FrequencyExtractor.extractAbhyasaCount(node.vakya.padas)
+                val punah = node.vakya.padas.filterIsInstance<AvyayaPada>()
+                    .filter { it.function == AvyayaFunction.REPETITION }
+                require(numericCount == null || punah.isEmpty()) {
+                    "Use either an explicit repetition count or पुनः, not both."
+                }
+                require(punah.size <= 1) { "Use पुनः only once on an action." }
+                if (numericCount == null && punah.isEmpty()) return node
+                val count = numericCount
+                val padas = node.vakya.padas.filterNot {
+                    it is SankhyaAbhyasaPada ||
+                        it is AvyayaPada && it.function == AvyayaFunction.REPETITION
+                }
                 val sourceText = padas.joinToString(" ") { it.sourceText }
                 val vakya = when (val original = node.vakya) {
                     is AkhyataVakya -> original.copy(sourceText = sourceText, padas = padas)
                     is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(sourceText = sourceText, padas = padas)
                 }
-                return Repeat(node.sourceText, count, node.copy(vakya = vakya))
+                val body = node.copy(vakya = vakya)
+                return if (punah.isNotEmpty()) Recurrence(node.sourceText, body)
+                else Repeat(node.sourceText, requireNotNull(count), body)
             }
         }.transform(ukti.body)
         return ukti.copy(body = body)
@@ -402,6 +420,7 @@ object VyakaranamExecutionAdapter {
             override fun visitQuotation(node: Quotation): ExecutionNode = build(node.reporting)
             override fun visitRepeat(node: Repeat): ExecutionNode =
                 ExecuteRepeat(List(node.count) { build(node.body) })
+            override fun visitRecurrence(node: Recurrence): ExecutionNode = build(node.body)
             override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ExecutionNode = build(node.body)
             override fun visitQuantifiedCollectionPredicate(
@@ -563,6 +582,7 @@ object VyakaranamExecutionAdapter {
                 val repetitions = List(node.count) { visit(node.body) }
                 Shape(repetitions.first().entries, repetitions.last().exits)
             }
+            is Recurrence -> visit(node.body)
             is WhileLoop -> {
                 val body = visit(node.body)
                 node.exhausted?.let(::visit)
@@ -586,6 +606,17 @@ object VyakaranamExecutionAdapter {
     ): ProgramNode {
         val transformer = object : ProgramNodeTransformer() {
             var frameIndex = 0
+            override fun visitSequence(node: Sequence): ProgramNode {
+                val transformed = node.copy(statements = node.statements.map(::transform))
+                return when (val qualified = transformed.statements.firstOrNull()) {
+                    is Repeat -> Repeat(node.sourceText, qualified.count, transformed.copy(
+                        statements = listOf(qualified.body) + transformed.statements.drop(1)))
+                    is Recurrence -> Recurrence(node.sourceText, transformed.copy(
+                        statements = listOf(qualified.body) + transformed.statements.drop(1)))
+                    else -> transformed
+                }
+            }
+
             override fun visitInvocation(node: Invocation): ProgramNode {
                 val frame = analysis.frames[frameIndex++]
                 val count = FrequencyExtractor.extractFrequencyCount(node.vakya.padas, frame)

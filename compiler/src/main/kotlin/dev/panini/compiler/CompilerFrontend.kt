@@ -34,6 +34,7 @@ import dev.panini.vyakaranam.ast.Prakriya as PrakriyaNode
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
+import dev.panini.vyakaranam.ast.Recurrence
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SequenceConnector
@@ -43,6 +44,7 @@ import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.vyakaranam.ast.depthFirst
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
@@ -193,6 +195,12 @@ internal object CompilerFrontend {
         private var procedureEnvironment = dev.panini.execution.ValueEnvironment()
         private var inProcedure = false
         private var resultRoleShadowed = false
+        private var loopDepth = 0
+
+        private inline fun <T> withinLoop(block: () -> T): T {
+            loopDepth++
+            return try { block() } finally { loopDepth-- }
+        }
 
         fun setProcedureReferents(parameters: List<PrakriyaParameter>, body: List<PvmScriptStatement.Sentence>) {
             inProcedure = true
@@ -252,7 +260,12 @@ internal object CompilerFrontend {
             exactSource: String? = null,
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> = when (node) {
-            is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
+            is Invocation -> if (dev.panini.execution.NaturalScriptStop.matches(node)) {
+                require(!inProcedure) { "विरम is a top-level script stop; use a procedure result inside a प्रक्रिया." }
+                listOf(CompilerInstruction.HaltScript)
+            } else if (loopDepth > 0 && dev.panini.execution.NaturalLoopStop.matches(node)) {
+                listOf(CompilerInstruction.RequestBreak)
+            } else lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
             is Pipeline -> lowerPipeline(node)
             is Quotation -> dev.panini.execution.ListDeclarationLowering.expand(node)
@@ -263,6 +276,7 @@ internal object CompilerFrontend {
             is Repeat -> lowerRepeatIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.REPETITION, render(node), "Cannot lower repetition body to compiler IR.",
             )
+            is Recurrence -> lowerRecurrenceIr(node)
             is WhileLoop -> lowerWhileIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.LOOP, render(node), "Cannot lower condition-controlled loop to compiler IR.",
             )
@@ -273,9 +287,14 @@ internal object CompilerFrontend {
         }
 
         private fun lowerSequence(node: Sequence, exactSource: String?): List<CompilerInstruction> {
-            if (node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
-                node.statements.any { it !is Invocation }
-            ) {
+            val structuralConnectors = setOf(
+                SequenceConnector.ANANTARYA,
+                SequenceConnector.PURVAKALA,
+                SequenceConnector.SAMUCCAYA,
+                SequenceConnector.VAKYANTARA,
+                SequenceConnector.TADANIM,
+            )
+            if (node.connectorKinds.any { it !in structuralConnectors }) {
                 return lowerPlannedNode(node)
             }
             val exit = "sequence_return_${nextLabel++}"
@@ -284,12 +303,13 @@ internal object CompilerFrontend {
                 if (index == 0) {
                     lower(statement)
                 } else if (statement is Invocation) {
-                    lowerInvocation(statement, exactSource = null,
+                    if (dev.panini.execution.NaturalScriptStop.matches(statement)) lower(statement)
+                    else lowerInvocation(statement, exactSource = null,
                         piped = node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
                 } else {
                     lower(statement)
                 }
-                instructions + listOf(CompilerInstruction.IsProcedureReturnRequested,
+                instructions + listOf(CompilerInstruction.IsProcedureExitRequested,
                     CompilerInstruction.Branch(exit, whenTrue = true))
             } + CompilerInstruction.Label(exit)
         }
@@ -934,6 +954,7 @@ internal object CompilerFrontend {
 
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
+                dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
                 if (node.implicitValuePada != null) {
                     lowerNominalResult(requireNotNull(resolveAnaphors(node).implicitValuePada))
                 } else if (node.vakya.padas.none { it is TingantaPada }) {
@@ -950,8 +971,15 @@ internal object CompilerFrontend {
                 }
             }
             is Conditional -> lowerConditionalIr(node)
+            is Recurrence -> lowerRecurrenceIr(node)
             is Sequence -> if (node.statements.all { it is Invocation } &&
-                node.connectorKinds.all { it in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) }) {
+                node.connectorKinds.all { it in setOf(
+                    SequenceConnector.ANANTARYA,
+                    SequenceConnector.PURVAKALA,
+                    SequenceConnector.SAMUCCAYA,
+                    SequenceConnector.VAKYANTARA,
+                    SequenceConnector.TADANIM,
+                ) }) {
                 lowerSequence(node, exactSource = null)
             } else buildList {
                 val exit = "branch_result_${nextLabel++}"
@@ -961,7 +989,7 @@ internal object CompilerFrontend {
                         render(statement),
                         "Cannot lower a sequence statement in a conditional branch (${statement::class.simpleName}).",
                     ))
-                    add(CompilerInstruction.IsProcedureReturnRequested)
+                    add(CompilerInstruction.IsProcedureExitRequested)
                     add(CompilerInstruction.Branch(exit, whenTrue = true))
                 }
                 add(CompilerInstruction.Label(exit))
@@ -981,6 +1009,33 @@ internal object CompilerFrontend {
             is dev.panini.vyakaranam.ast.ForEach -> lowerForEach(node)
             is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> lowerQuantifiedCollectionPredicate(node)
             is Pipeline, is Quotation -> null
+        }
+
+        private fun lowerRecurrenceIr(node: Recurrence): List<CompilerInstruction> {
+            val invocation = node.body.depthFirst().filterIsInstance<Invocation>().firstOrNull()
+                ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.REPETITION, render(node),
+                    "पुनः requires an executable action.",
+                )
+            val plan = ResolvedLeafPlanner.planAny(invocation)
+                ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.REPETITION, render(node),
+                    "Cannot resolve the action governed by पुनः.",
+                )
+            val head = invocation.vakya.padas.filterIsInstance<TingantaPada>().single()
+            require(head.upasargaIdentities.all { it != null } && head.dhatu.sanadiAffixes.all { it != null }) {
+                "पुनः requires a fully resolved action identity."
+            }
+            val dhatu = plan.resolved.invocation.dhatu
+            val identity = dev.panini.core.ActionIdentity(
+                dhatu.id,
+                head.upasargaIdentities.filterNotNull(),
+                head.dhatu.sanadiAffixes.filterNotNull(),
+            )
+            return listOf(
+                CompilerInstruction.LoadActionResult(dhatu.upadesha, actionIdentity = identity),
+                CompilerInstruction.Pop,
+            ) + lower(node.body)
         }
 
         private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
@@ -1026,7 +1081,7 @@ internal object CompilerFrontend {
                         ?: return null
                 }
             }
-            val body = lower(node.body)
+            val body = withinLoop { lower(node.body) }
             val exhausted = node.exhausted?.let { runCatching { lower(it) }.getOrNull() } ?: emptyList()
             if (node.exhausted != null && exhausted.isEmpty()) return null
             val resultTarget = node.resultTarget?.let { target ->
@@ -1071,23 +1126,41 @@ internal object CompilerFrontend {
             val source = (whole.vakya.padas.single() as SubantaPada).pratipadika.referenceKey()
             val member = node.member.pratipadika.referenceKey()
             val indexName = node.index?.pratipadika?.referenceKey()
+            val previousSelection = node.relativeSelections.singleOrNull {
+                it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.PREVIOUS
+            }
+            val nextSelection = node.relativeSelections.singleOrNull {
+                it.direction == dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT
+            }
+            val previousName = previousSelection?.binding?.pratipadika?.referenceKey()
+            val nextName = nextSelection?.binding?.pratipadika?.referenceKey()
+            val previousIsPlural = previousSelection?.cardinality ==
+                dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
+            val nextIsPlural = nextSelection?.cardinality ==
+                dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
             val previousReferents = referents
-            val loopNames = setOfNotNull(member, indexName)
+            val loopNames = setOfNotNull(member, indexName, previousName, nextName)
             referents = referents.filterNot { it.identity in loopNames } +
                 dev.panini.execution.AgreementCandidate(
                     member, dev.panini.execution.ReferentAgreement.fromDeclaration(node.member)) +
                 listOfNotNull(node.index?.let {
                     dev.panini.execution.AgreementCandidate(indexName!!,
                         dev.panini.execution.ReferentAgreement.fromDeclaration(it))
+                }, previousSelection?.binding?.let {
+                    dev.panini.execution.AgreementCandidate(previousName!!,
+                        dev.panini.execution.ReferentAgreement.fromDeclaration(it))
+                }, nextSelection?.binding?.let {
+                    dev.panini.execution.AgreementCandidate(nextName!!,
+                        dev.panini.execution.ReferentAgreement.fromDeclaration(it))
                 })
-            val body = try { lower(node.body) } finally { referents = previousReferents }
+            val body = try { withinLoop { lower(node.body) } } finally { referents = previousReferents }
             fun number(value: Long) = CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Sankhya(
                 value, dev.panini.execution.renderSankhyaResult(value) ?: value.toString()))
             return buildList {
                 add(CompilerInstruction.Load(source))
                 add(CompilerInstruction.Collection(CollectionOperator.SNAPSHOT))
                 add(CompilerInstruction.StoreLocal("${prefix}_list"))
-                add(number(1))
+                add(number(if (previousName == null || previousIsPlural) 1 else 2))
                 add(CompilerInstruction.StoreLocal("${prefix}_index"))
                 add(CompilerInstruction.Label("${prefix}_check"))
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
@@ -1095,13 +1168,42 @@ internal object CompilerFrontend {
                 add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
                 add(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN_OR_EQUAL))
                 add(CompilerInstruction.Branch("${prefix}_done"))
+                if (nextName != null && !nextIsPlural) {
+                    add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                    add(CompilerInstruction.LoadLocal("${prefix}_list"))
+                    add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
+                    add(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN))
+                    add(CompilerInstruction.Branch("${prefix}_done"))
+                }
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 add(CompilerInstruction.CheckCollectionIteration)
                 add(CompilerInstruction.LoadLocal("${prefix}_list"))
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 add(CompilerInstruction.Collection(CollectionOperator.INDEX))
                 if (indexName != null) add(CompilerInstruction.LoadLocal("${prefix}_index"))
-                add(CompilerInstruction.EnterFrame(listOfNotNull(member, indexName), scopedBinding = true))
+                if (previousName != null) {
+                    add(CompilerInstruction.LoadLocal("${prefix}_list"))
+                    if (previousIsPlural) {
+                        add(number(1)); add(CompilerInstruction.LoadLocal("${prefix}_index")); add(number(1))
+                        add(CompilerInstruction.Arithmetic(ArithmeticOperator.SUBTRACT))
+                        add(CompilerInstruction.Collection(CollectionOperator.SLICE))
+                    } else {
+                        add(CompilerInstruction.LoadLocal("${prefix}_index")); add(number(1))
+                        add(CompilerInstruction.Arithmetic(ArithmeticOperator.SUBTRACT))
+                        add(CompilerInstruction.Collection(CollectionOperator.INDEX))
+                    }
+                }
+                if (nextName != null) {
+                    add(CompilerInstruction.LoadLocal("${prefix}_list")); add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                    add(number(1)); add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
+                    if (nextIsPlural) {
+                        add(CompilerInstruction.LoadLocal("${prefix}_list"));
+                        add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
+                        add(CompilerInstruction.Collection(CollectionOperator.SLICE))
+                    } else add(CompilerInstruction.Collection(CollectionOperator.INDEX))
+                }
+                add(CompilerInstruction.EnterFrame(
+                    listOfNotNull(member, indexName, previousName, nextName), scopedBinding = true))
                 addAll(body)
                 add(CompilerInstruction.ExitFrame)
                 add(CompilerInstruction.IsProcedureReturnRequested)
@@ -1185,7 +1287,7 @@ internal object CompilerFrontend {
 
         private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
             val body = node.body
-            val bodyInstructions = runCatching { lower(body) }.getOrNull() ?: return null
+            val bodyInstructions = runCatching { withinLoop { lower(body) } }.getOrNull() ?: return null
             return CompilerIrLowering.lowerRepeat(
                 count = node.count,
                 body = bodyInstructions,

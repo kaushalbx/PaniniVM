@@ -111,14 +111,19 @@ class CompilerCoverageTest {
                 "त्रि + ङस् त्रि + ओस् चतुर् + आम् पञ्चन् + आम् च",
             )
             .replace(
-                "पञ्चन् + अम् लक्ष्य + ङि स्था + णिच् + लोट् + सिप्",
-                "षष् + अम् लक्ष्य + ङि स्था + णिच् + लोट् + सिप्",
+                "पञ्चन् + भिस् सम",
+                "षष् + भिस् सम",
             )
         for ((index, source) in listOf(ordinary, duplicate).withIndex()) {
-            val generated = BytecodeCompiler.compileAndLoad(source, "CompiledTwoSumPosition$index")
+            val withUnreachableTail = source +
+                "\nनवन् + अम् पश्चात् + ङि स्था + णिच् + लोट् + सिप् ।"
+            val generated = BytecodeCompiler.compileAndLoad(withUnreachableTail, "CompiledTwoSumPosition$index")
             @Suppress("UNCHECKED_CAST")
             val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
-            assertEquals(SanskritValue.Satya(true), values["प्राप्त"])
+            assertEquals(if (index == 0) "एक चतुर्" else "त्रि त्रि",
+                values.getValue("LastResult").toDisplayText())
+            assertTrue("लक्ष्य" !in values && "प्राप्त" !in values)
+            assertTrue("पश्चात्" !in values)
         }
     }
 

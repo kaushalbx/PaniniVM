@@ -1,11 +1,13 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.core.Lakara
+import dev.panini.core.Linga
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
+import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 import dev.panini.parser.VyakaranamParser as PaniniyaVyakaranamParser
 
 class VyakaranamAstBuilder {
@@ -207,6 +209,7 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
         val body = context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
+            ?: context.naturalRelativeActionClause()?.let(::buildNaturalRelativeActionClause)
             ?: context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
             ?: context.distributiveClause()?.let(::buildDistributiveClause) ?: context.quotationClause()?.let { quotation ->
             Quotation(
@@ -260,11 +263,13 @@ class VyakaranamAstBuilder {
             ?: context.attributePipelineClause()?.let(::buildAttributePipeline)
             ?: context.pipelineClause()?.let(::buildPipeline)
             ?: context.conditionalClause()?.let { clause ->
-                val conditional = buildConditional(clause.conditionalExpression())
+                val conditional = clause.conditionalExpression()?.let(::buildConditional)
+                    ?: buildTemporalConditional(requireNotNull(clause.temporalConditionalExpression()))
                 clause.target?.let { target ->
                     pipeConditionalResult(conditional, target)
                 } ?: conditional
             }
+            ?: context.conditionalActionSequence()?.let(::buildActionSequence)
             ?: run {
             val statements = context.vakya().mapTo(mutableListOf<ProgramNode>()) { Invocation(buildVakya(it)) }
             val connectors = context.vakyaSambandha().mapTo(mutableListOf()) { it.text }
@@ -280,6 +285,15 @@ class VyakaranamAstBuilder {
                 )
                 statements.removeAt(boundary + 1)
                 connectors.removeAt(boundary)
+            }
+            connectors.forEachIndexed { index, connector ->
+                if (connector == SequenceConnector.SAMUCCAYA.surface) {
+                    val preceding = (statements.getOrNull(index) as? Invocation)?.vakya as? AkhyataVakya
+                    require(preceding == null || preceding.padas.lastOrNull() == preceding.tinganta) {
+                        "Action-level च must immediately follow the preceding finite verb; " +
+                            "place nominal च before that verb to coordinate operands."
+                    }
+                }
             }
             if (statements.size == 1) statements.single()
             else Sequence(context.text, statements, connectors)
@@ -297,7 +311,8 @@ class VyakaranamAstBuilder {
     ): Sequence {
         val stages = listOf(Invocation(buildAkhyataVakya(requireNotNull(context.source)))) +
             context.stages.map { Invocation(buildAkhyataVakya(it)) } +
-            buildConditional(requireNotNull(context.conditional))
+            (context.conditional?.let(::buildConditional)
+                ?: buildTemporalConditional(requireNotNull(context.temporal)))
         return Sequence(
             sourceText = context.text,
             statements = stages,
@@ -323,13 +338,40 @@ class VyakaranamAstBuilder {
 
     private fun buildConditional(
         context: PaniniyaVyakaranamParser.ConditionalExpressionContext,
-    ): Conditional = Conditional(
-        sourceText = context.text,
-        condition = buildConditionClause(requireNotNull(context.condition)),
-        consequent = buildConditionalArm(context.consequent!!),
-        alternate = context.nested?.let(::buildConditional)
-            ?: context.alternate?.let(::buildConditionalArm),
-    )
+    ): Conditional {
+        val firstConsequent = buildConditionalArm(context.consequent!!)
+        val consequent = if (context.continuations.isEmpty()) firstConsequent else Sequence(
+            sourceText = context.text,
+            statements = listOf(firstConsequent) + context.continuations.map { build(it).body },
+            connectors = List(context.continuations.size) { SequenceConnector.TADANIM.surface },
+            independentActions = true,
+        )
+        return Conditional(
+            sourceText = context.text,
+            condition = buildConditionClause(requireNotNull(context.condition)),
+            consequent = consequent,
+            alternate = context.nested?.let(::buildConditional)
+                ?: context.alternate?.let(::buildConditionalArm),
+        )
+    }
+
+    private fun buildTemporalConditional(
+        context: PaniniyaVyakaranamParser.TemporalConditionalExpressionContext,
+    ): Conditional {
+        val firstConsequent = buildConditionalArm(requireNotNull(context.consequent))
+        val consequent = if (context.continuations.isEmpty()) firstConsequent else Sequence(
+            sourceText = context.text,
+            statements = listOf(firstConsequent) + context.continuations.map { build(it).body },
+            connectors = List(context.continuations.size) { SequenceConnector.TADANIM.surface },
+            independentActions = true,
+        )
+        return Conditional(
+            sourceText = context.text,
+            condition = buildConditionClause(requireNotNull(context.condition)),
+            consequent = consequent,
+            relation = ConditionalRelation.TEMPORAL,
+        )
+    }
 
     private fun buildConditionClause(
         context: PaniniyaVyakaranamParser.ConditionClauseContext,
@@ -392,8 +434,8 @@ class VyakaranamAstBuilder {
         val collection = buildSubanta(requireNotNull(clause.collection))
         val quantifier = buildSubanta(requireNotNull(clause.quantifier))
         val member = buildSubanta(requireNotNull(clause.member))
-        val relation = buildSubanta(requireNotNull(clause.relation))
-        val index = buildSubanta(requireNotNull(clause.index))
+        val relations = clause.relations.map(::buildSubanta)
+        val selections = clause.selections.map(::buildSubanta)
         require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
             "Natural indexed iteration requires a genitive singular collection."
         }
@@ -405,22 +447,220 @@ class VyakaranamAstBuilder {
             member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
             "Natural indexed iteration requires an underived singular accusative member."
         }
-        require(relation.pratipadika.semanticKey() == "तद्" &&
-            relation.sup.affixCandidates == listOf(SupAffix.NGAS)) {
-            "The index must be related to its member by तद् + ङस्."
-        }
-        require(index.sup.affixCandidates == listOf(SupAffix.AM) &&
+        require(relations.size == selections.size && relations.all {
+            it.pratipadika.semanticKey() == "तद्" && it.sup.affixCandidates == listOf(SupAffix.NGAS)
+        }) { "An iteration selection must be related to its member by तद् + ङस्." }
+        val indices = selections.filter { it.pratipadika.semanticKey() == "क्रम" }
+        require(indices.size <= 1) { "Natural iteration permits at most one क्रम binding." }
+        val index = indices.singleOrNull()
+        require(index == null || index.sup.affixCandidates == listOf(SupAffix.AM) &&
             index.pratipadika is MulaPratipadika && (index.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
             "Natural indexed iteration requires an underived singular accusative index."
         }
-        require(index.pratipadika.semanticKey() != member.pratipadika.semanticKey()) {
-            "The iteration member and index require distinct referents."
+        val neighbors = selections.filter { it !== index }
+        require(neighbors.all {
+            it.sup.affixCandidates.singleOrNull() in setOf(SupAffix.AM, SupAffix.SAS) &&
+                it.pratipadika is MulaPratipadika &&
+                (it.pratipadika as MulaPratipadika).vikaras.all { vikara -> vikara.isRecognizedStriAffix }
+        }) { "A neighbouring member requires a recognised singular or plural accusative nominal." }
+        val previous = neighbors.singleOrNull {
+            it.pratipadika.semanticKey() == "पूर्व"
+        }
+        val next = neighbors.singleOrNull {
+            it.pratipadika.semanticKey() == "उत्तर"
+        }
+        require(neighbors.size == listOfNotNull(previous, next).size) {
+            "Natural indexed iteration supports only one पूर्व and one उत्तर neighbouring member."
+        }
+        require(listOfNotNull(member, index) + neighbors == (listOfNotNull(member, index) + neighbors)
+            .distinctBy { it.pratipadika.semanticKey() }) {
+            "Iteration member, index, and neighbour bindings require distinct referents."
         }
         val acquisition = requireNotNull(clause.acquisition)
         require(acquisition.dhatuPrakriti().text == "ग्रह्" && acquisition.avyayaKrtPratyaya().text == "क्त्वा") {
             "Natural indexed iteration requires ग्रह् + क्त्वा."
         }
-        return ForEach(clause.text, collection, member, index, build(requireNotNull(clause.body)).body)
+        fun relationOf(selection: SubantaPada?): SubantaPada? = selection?.let { selected ->
+            selections.indexOfFirst { it === selected }
+                .takeIf { it >= 0 }
+                ?.let(relations::get)
+        }
+        val relativeSelections = listOfNotNull(
+            previous?.let { binding -> CollectionRelativeSelection(
+                CollectionRelativeDirection.PREVIOUS,
+                if (binding.sup.affixCandidates == listOf(SupAffix.SAS))
+                    CollectionRelativeCardinality.ITEMS else CollectionRelativeCardinality.ITEM,
+                binding,
+                requireNotNull(relationOf(binding)),
+            ) },
+            next?.let { binding -> CollectionRelativeSelection(
+                CollectionRelativeDirection.NEXT,
+                if (binding.sup.affixCandidates == listOf(SupAffix.SAS))
+                    CollectionRelativeCardinality.ITEMS else CollectionRelativeCardinality.ITEM,
+                binding,
+                requireNotNull(relationOf(binding)),
+            ) },
+        )
+        return ForEach(clause.text, collection, member, index, build(requireNotNull(clause.body)).body,
+            indexRelation = relationOf(index),
+            quantifier = quantifier,
+            relativeSelections = relativeSelections,
+        )
+    }
+
+    private fun buildNaturalRelativeActionClause(
+        clause: PaniniyaVyakaranamParser.NaturalRelativeActionClauseContext,
+    ): ForEach {
+        val collection = buildSubanta(requireNotNull(clause.collection))
+        val quantifier = buildSubanta(requireNotNull(clause.quantifier))
+        val member = buildSubanta(requireNotNull(clause.member))
+        val relative = buildCompoundSubanta(requireNotNull(clause.relative))
+        val relativeType = buildSubanta(requireNotNull(clause.relativeType))
+        val action = buildTinganta(requireNotNull(clause.action))
+        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
+            "A direct relative action requires a genitive singular collection."
+        }
+        require(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
+            quantifier.sup.affixCandidates == listOf(SupAffix.AM)) {
+            "A direct relative action requires an accusative प्रत्येक qualifier."
+        }
+        require(member.sup.affixCandidates == listOf(SupAffix.AM)) {
+            "A direct relative action requires an accusative current member."
+        }
+        val relativeAffix = relative.sup.affixCandidates.singleOrNull()
+        require(relativeAffix in setOf(SupAffix.TA, SupAffix.BHIS) &&
+            relativeType.sup.affixCandidates == listOf(relativeAffix)) {
+            "A direct relative action requires agreeing instrumental singular or plural relative items."
+        }
+        val compound = relative.pratipadika as? SamasaPratipadika
+            ?: throw IllegalArgumentException("A relative collection operand must be a तद् compound.")
+        require(compound.angas.size == 2) { "A relative collection operand requires exactly two compound members." }
+        val anchor = compound.angas[0]
+        val selector = compound.angas[1]
+        require(anchor.pratipadika.semanticKey() == "तद्" &&
+            anchor.sup?.affixCandidates == listOf(SupAffix.NGAS) && anchor.supLopa == dev.panini.core.SupLopa.LUK) {
+            "A relative collection operand requires तद् + ङस् + लुक् as its anchor."
+        }
+        val direction = when (selector.pratipadika.semanticKey()) {
+            "पूर्व" -> CollectionRelativeDirection.PREVIOUS
+            "उत्तर" -> CollectionRelativeDirection.NEXT
+            else -> throw IllegalArgumentException("A relative collection operand requires पूर्व or उत्तर.")
+        }
+        require(relativeType.pratipadika.semanticKey() == member.pratipadika.semanticKey()) {
+            "The current and relative collection members require the same written member type."
+        }
+        fun genders(pada: SubantaPada): Set<Linga> {
+            val stem = pada.pratipadika
+            val vikaras = when (stem) {
+                is MulaPratipadika -> stem.vikaras
+                is SankhyaPratipadika -> stem.vikaras
+                is KridantaPratipadika -> stem.vikaras
+                is UnadyantaPratipadika -> stem.vikaras
+                is SamasaPratipadika -> stem.vikaras
+            }
+            if (vikaras.lastOrNull()?.isRecognizedStriAffix == true) return setOf(Linga.STRI)
+            if (vikaras.isNotEmpty()) return emptySet()
+            val lexical = when (stem) {
+                is MulaPratipadika -> stem.text
+                is SankhyaPratipadika -> stem.semanticValue.word
+                else -> return emptySet()
+            }
+            return StandardPratipadikaLexicon.findPratipadika(lexical)?.linga.orEmpty()
+        }
+        fun requireGenderAgreement(left: SubantaPada, right: SubantaPada, message: String) {
+            val leftGenders = genders(left)
+            val rightGenders = genders(right)
+            require(leftGenders.isEmpty() || rightGenders.isEmpty() || leftGenders.any { it in rightGenders }) {
+                message
+            }
+        }
+        requireGenderAgreement(quantifier, member,
+            "The distributive qualifier and current member have incompatible gender evidence.")
+        requireGenderAgreement(relative, relativeType,
+            "The relative selector and member type have incompatible gender evidence.")
+        requireGenderAgreement(member, relativeType,
+            "The current and relative member types have incompatible gender evidence.")
+        val cardinality = if (relativeAffix == SupAffix.BHIS)
+            CollectionRelativeCardinality.ITEMS else CollectionRelativeCardinality.ITEM
+        val internalStem = (if (direction == CollectionRelativeDirection.NEXT) "उत्तर" else "पूर्व") +
+            relativeType.pratipadika.semanticKey()
+        fun internalBinding(upadesha: String): SubantaPada = SubantaPada(
+            sourceText = "$internalStem+$upadesha",
+            pratipadika = MulaPratipadika(internalStem, internalStem),
+            sup = SupPratyaya(upadesha, upadesha),
+        )
+        val relativeBinding = internalBinding(requireNotNull(relativeAffix).upadesha)
+        val relativeCollection = internalBinding("ङस्")
+        val relativeItem = internalBinding("अम्")
+        val actionVakya = AkhyataVakya(
+            sourceText = member.sourceText + relativeItem.sourceText + action.sourceText,
+            padas = listOf(member, relativeItem, action),
+            tinganta = action,
+        )
+        val continuation = clause.conditional?.let(::buildConditional)
+        val innerBody: ProgramNode = if (continuation == null) Invocation(actionVakya) else Sequence(
+            sourceText = clause.text,
+            statements = listOf(Invocation(actionVakya), continuation),
+            connectors = listOf(SequenceConnector.ANANTARYA.surface),
+        )
+        val loweredBody = if (cardinality == CollectionRelativeCardinality.ITEMS) ForEach(
+            sourceText = clause.text,
+            collection = relativeCollection,
+            member = relativeItem,
+            body = innerBody,
+        ) else innerBody
+        val relation = SubantaPada(
+            sourceText = anchor.sourceText,
+            pratipadika = anchor.pratipadika,
+            sup = requireNotNull(anchor.sup),
+        )
+        return ForEach(
+            sourceText = clause.text,
+            collection = collection,
+            member = member,
+            body = loweredBody,
+            quantifier = quantifier,
+            relativeSelections = listOf(CollectionRelativeSelection(
+                direction = direction,
+                cardinality = cardinality,
+                binding = relativeBinding,
+                relation = relation,
+            )),
+            directRelativeAction = DirectRelativeActionSurface(
+                relative = relative,
+                relativeType = relativeType,
+                action = action,
+                continuation = continuation,
+            ),
+        )
+    }
+
+    private fun buildCompoundSubanta(
+        context: PaniniyaVyakaranamParser.CompoundSubantaPadaContext,
+    ): SubantaPada {
+        val parsed = buildSamasa(requireNotNull(context.samasaPratipadika()))
+        // Without grouping punctuation, ANTLR naturally attaches a suffix after
+        // the final compound member to that member.  In this surface construction
+        // it forms the compound as a whole (tad-uttara + ṭāp), so retain the
+        // written morphology while lifting that suffix to the samāsa node.
+        val finalMula = parsed.angas.last().pratipadika as? MulaPratipadika
+        val compound = if (finalMula != null && finalMula.vikaras.isNotEmpty()) parsed.copy(
+            angas = parsed.angas.dropLast(1) + parsed.angas.last().copy(
+                pratipadika = finalMula.copy(vikaras = emptyList()),
+            ),
+            vikaras = parsed.vikaras + finalMula.vikaras,
+        ) else parsed
+        return SubantaPada(
+            sourceText = context.text,
+            pratipadika = attachVikaras(
+                compound,
+                compound.vikaras + context.pratipadikaVikara().map(::buildPratipadikaVikara),
+            ),
+            sup = SupPratyaya(
+                sourceText = requireNotNull(context.supPratyaya()).text,
+                text = requireNotNull(context.supPratyaya()).text,
+            ),
+        )
     }
 
     private fun buildConditionalArm(
@@ -428,10 +668,8 @@ class VyakaranamAstBuilder {
     ): ProgramNode = context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
         ?: context.distributiveClause()?.let(::buildDistributiveClause)
         ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)
-        ?: context.conditionalActionSequence()?.let { sequence ->
-            val statements = sequence.statements.map { Invocation(buildVakya(it)) }
-            Sequence(sequence.text, statements, List(statements.size - 1) { "अथ" }, independentActions = true)
-        }
+        ?: context.temporalConditionalExpression()?.let(::buildTemporalConditional)
+        ?: context.conditionalActionSequence()?.let(::buildActionSequence)
         ?: context.vakya()?.let {
         val vakya = buildVakya(it)
         val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull()
@@ -441,6 +679,18 @@ class VyakaranamAstBuilder {
         } else Invocation(vakya)
     }
         ?: implicitPratipadikaReturn(buildPratipadika(requireNotNull(context.value)))
+
+    private fun buildActionSequence(
+        sequence: PaniniyaVyakaranamParser.ConditionalActionSequenceContext,
+    ): Sequence {
+        val statements = sequence.statements.map { coordinated ->
+            val padas = coordinated.purvaVakyaPada()
+                .flatMap { buildVakyaPada(requireNotNull(it.vakyaPada())) }
+            val tinganta = buildTinganta(requireNotNull(coordinated.tingantaPada()))
+            Invocation(AkhyataVakya(coordinated.text, padas + tinganta, tinganta))
+        } + Invocation(buildVakya(requireNotNull(sequence.finalStatement)))
+        return Sequence(sequence.text, statements, sequence.connectors.map { it.text }, independentActions = true)
+    }
 
     /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
     private fun implicitNominalReturn(value: Pada): ProgramNode {
