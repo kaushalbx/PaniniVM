@@ -33,6 +33,19 @@ data class DocumentSourceSpan(val start: Int, val endExclusive: Int) {
     init { require(start >= 0 && endExclusive >= start) }
 }
 
+/** Common shape for semantic failures produced at any analysis phase. */
+interface SemanticDiagnostic<out C> {
+    val code: C
+    val message: String
+    val span: DocumentSourceSpan?
+    val offendingText: String
+}
+
+/** Orthographic provenance kept separate from grammatical equality. */
+interface SourceLocatedNode {
+    val sourceSpan: DocumentSourceSpan?
+}
+
 /** A named सीमा declaration retains its morphological bounds, not evaluated numbers. */
 data class RangeDeclaration(
     override val sourceText: String,
@@ -75,6 +88,10 @@ data class Sequence(
     val independentActions: Boolean = false,
 ) : ProgramNode {
     val connectorKinds: List<SequenceConnector> = connectors.map(SequenceConnector::fromSurface)
+    /** Typed statement boundaries; consumers must not reinterpret connector text themselves. */
+    val boundaries: List<SequenceBoundary> = connectorKinds.mapIndexed { index, connector ->
+        SequenceBoundary(index, index + 1, connector, connector.resultFlow)
+    }
 
     init {
         require(statements.isNotEmpty()) { "A sequence must contain at least one statement." }
@@ -84,14 +101,30 @@ data class Sequence(
     }
 }
 
+enum class SequenceResultFlow {
+    NONE,
+    /** The preceding successful value is available to an implicit target operand. */
+    PREVIOUS_RESULT,
+}
+
+data class SequenceBoundary(
+    val sourceStatementIndex: Int,
+    val targetStatementIndex: Int,
+    val connector: SequenceConnector,
+    val resultFlow: SequenceResultFlow,
+)
+
 /** Typed discourse relation between adjacent executable clauses. */
-enum class SequenceConnector(val surface: String) {
+enum class SequenceConnector(
+    val surface: String,
+    val resultFlow: SequenceResultFlow = SequenceResultFlow.NONE,
+) {
     SAMUCCAYA("च"),
     /** A following independent sentence in the same selected branch. */
     VAKYANTARA("अथ"),
     /** A new sentence guarded by the nearest preceding conditional. */
     TADANIM("तदा"),
-    ANANTARYA("ततः"),
+    ANANTARYA("ततः", SequenceResultFlow.PREVIOUS_RESULT),
     /** Ordering supplied by prior-action morphology, not a source connector word. */
     PURVAKALA(""),
     ;
@@ -167,8 +200,6 @@ data class ForEach(
     val quantifier: SubantaPada? = null,
     /** Typed collection operations; their meaning does not depend on the binding's variable name. */
     val relativeSelections: List<CollectionRelativeSelection> = emptyList(),
-    /** Original direct-action surface retained after lowering to ordinary nested iteration. */
-    val directRelativeAction: DirectRelativeActionSurface? = null,
 ) : ProgramNode
 
 enum class CollectionRelativeDirection { PREVIOUS, NEXT }
@@ -181,12 +212,37 @@ data class CollectionRelativeSelection(
     val relation: SubantaPada,
 )
 
-data class DirectRelativeActionSurface(
+/** A grammatical relative operand, independent of any fabricated binding name. */
+data class CollectionRelativeOperand(
     val relative: SubantaPada,
-    val relativeType: SubantaPada,
+    /** Resolved member type; inferred from the current member when omitted in source. */
+    val memberType: SubantaPada,
+    val memberTypeWritten: Boolean,
+    val direction: CollectionRelativeDirection,
+    val cardinality: CollectionRelativeCardinality,
+)
+
+/** Apply one existing action between each member and its selected relative members. */
+data class CollectionRelativeAction(
+    override val sourceText: String,
+    val collection: SubantaPada,
+    val quantifier: SubantaPada,
+    val member: SubantaPada,
+    val operand: CollectionRelativeOperand,
     val action: TingantaPada,
     val continuation: ProgramNode? = null,
-)
+) : ProgramNode {
+    /** The written finite action, projected as a grammatical clause for analysis. */
+    fun actionInvocation(): Invocation = Invocation(
+        AkhyataVakya(
+            sourceText = action.sourceText,
+            // The two operands are supplied by collection-relative semantics at execution time;
+            // the member-type nouns describe them but are not additional runtime arguments.
+            padas = listOf(action),
+            tinganta = action,
+        ),
+    )
+}
 
 enum class CollectionQuantifier { ANY, ALL }
 
@@ -291,7 +347,14 @@ data class SubantaPada(
     override val sourceText: String,
     val pratipadika: Pratipadika,
     override val sup: SupPratyaya,
-) : SupBearingPada
+) : SupBearingPada, SourceLocatedNode {
+    /** Provenance is deliberately excluded from grammatical equality. */
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+
+    fun locatedAt(span: DocumentSourceSpan?): SubantaPada = apply { sourceSpan = span }
+    fun inheritLocation(source: SubantaPada): SubantaPada = locatedAt(source.sourceSpan)
+}
 
 data class TingantaPada(
     override val sourceText: String,
@@ -305,8 +368,29 @@ data class TingantaPada(
     val priorAction: AvyayaKridantaDerivation? = null,
     /** Constraint retained by internal collection-declaration lowering. */
     val listMemberType: dev.panini.execution.ListMemberType? = null,
-) : Pada {
+) : Pada, SourceLocatedNode {
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+
+    fun locatedAt(span: DocumentSourceSpan?): TingantaPada = apply { sourceSpan = span }
+    fun inheritLocation(source: TingantaPada): TingantaPada = locatedAt(source.sourceSpan)
+
     val upasargaIdentities: List<Upasarga?> get() = upasargas.map(Upasarga::fromUpadesha)
+}
+
+/** Smallest source interval covering the written semantic relation. */
+fun Invocation.relationSpan(): DocumentSourceSpan? {
+    fun Pada.spans(): List<DocumentSourceSpan> = when (this) {
+        is SourceLocatedNode -> listOfNotNull(sourceSpan)
+        is SamuccitaSubanta -> members.flatMap { (it as Pada).spans() }
+        is ParyantaRangePada -> lowerLimit.spans() + upperLimit.spans() + marker.spans()
+        else -> emptyList()
+    }
+    val spans = vakya.padas.flatMap(Pada::spans)
+    return if (spans.isEmpty()) null else DocumentSourceSpan(
+        spans.minOf(DocumentSourceSpan::start),
+        spans.maxOf(DocumentSourceSpan::endExclusive),
+    )
 }
 
 data class AvyayaPada(

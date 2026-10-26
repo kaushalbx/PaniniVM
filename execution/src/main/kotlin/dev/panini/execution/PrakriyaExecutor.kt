@@ -21,8 +21,14 @@ internal class PrakriyaExecutor {
 
     fun execute(request: Request): List<ExecutionResult> {
         val invocation = request.invocation
-        invocation.resolutionError?.let {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, it))
+        invocation.resolutionError?.let { message ->
+            val diagnostic = PrakriyaCallDiagnostics.atInvocation(
+                invocation, "AMBIGUOUS_PROCEDURE_OVERLOAD", message)
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.AMBIGUOUS_OPERATION,
+                diagnostic.message,
+                diagnostic = ExecutionDiagnostic.from(diagnostic),
+            ))
         }
         val bodyAnalysis = try { invocation.kriya.bodyAnalysis } catch (failure: IllegalArgumentException) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
@@ -32,7 +38,11 @@ internal class PrakriyaExecutor {
         val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
             request.registry.all().mapTo(mutableSetOf()) { it.nameStem })
         if (argumentResolution is PrakriyaArgumentResolution.Failure) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                argumentResolution.message,
+                diagnostic = ExecutionDiagnostic.from(argumentResolution.diagnostic),
+            ))
         }
         val resolvedArguments = (argumentResolution as PrakriyaArgumentResolution.Success).arguments
         val argTerms = argumentResolution.terms
@@ -97,9 +107,15 @@ internal class PrakriyaExecutor {
         frame: PrakriyaCallFrame,
     ): ExecutionResult.Failure? {
         if (signature.parameters.isNotEmpty() && signature.parameters.size != terms.size) {
+            val diagnostic = PrakriyaCallDiagnostics.atInvocation(
+                invocation,
+                "PROCEDURE_ARITY_MISMATCH",
+                PrakriyaDiagnostics.arity(invocation.kriya.nameStem, signature.parameters.size, terms.size),
+            )
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                PrakriyaDiagnostics.arity(invocation.kriya.nameStem, signature.parameters.size, terms.size),
+                diagnostic.message,
+                diagnostic = ExecutionDiagnostic.from(diagnostic),
             )
         }
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
@@ -108,9 +124,16 @@ internal class PrakriyaExecutor {
             else pair.first.type != PrakriyaValueType.UNCONSTRAINED &&
                 PrakriyaValueClassifier.classifyTerm(pair.second) != pair.first.type
         } ?: return null
+        val diagnostic = PrakriyaCallDiagnostics.atInvocation(
+            invocation,
+            "PROCEDURE_ARGUMENT_TYPE_MISMATCH",
+            PrakriyaDiagnostics.parameterType(mismatch.value.first),
+            mismatch.index,
+        )
         return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
-            PrakriyaDiagnostics.parameterType(mismatch.value.first),
+            diagnostic.message,
+            diagnostic = ExecutionDiagnostic.from(diagnostic),
         )
     }
 
@@ -123,8 +146,13 @@ internal class PrakriyaExecutor {
             if (NishedhaGuardEvaluator.numericProhibition(guard,
                     invocation.kriya.signature.parameters, frame.arguments.size) == null &&
                 PrakriyaSignatureCompiler.inferGuardType(guard) == null) {
+                val diagnostic = PrakriyaCallDiagnostics.atInvocation(
+                    invocation,
+                    "UNSUPPORTED_PROCEDURE_PROHIBITION",
+                    "Unsupported procedure prohibition: '${guard.text.trim()}'",
+                )
                 return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                    "Unsupported procedure prohibition: '${guard.text.trim()}'")
+                    diagnostic.message, diagnostic = ExecutionDiagnostic.from(diagnostic))
             }
             val requiredType = invocation.kriya.signature.argumentType
             if (NishedhaGuardEvaluator.isProhibited(
@@ -135,9 +163,15 @@ internal class PrakriyaExecutor {
                     !PrakriyaValueClassifier.accepts(requiredType, it)
                 }
             ) {
+                val diagnostic = PrakriyaCallDiagnostics.atInvocation(
+                    invocation,
+                    "PROCEDURE_PROHIBITION_TRIGGERED",
+                    "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
+                )
                 return ExecutionResult.Failure(
                     ExecutionError.ACTION_FAILED,
-                    "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
+                    diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(diagnostic),
                 )
             }
         }

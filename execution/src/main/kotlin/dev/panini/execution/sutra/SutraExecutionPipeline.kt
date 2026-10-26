@@ -44,7 +44,8 @@ object SutraExecutionPipeline {
                 emptyList(),
             )
             is ExecutionBindingResult.Invalid -> Phala.Asiddha(
-                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
+                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message,
+                    diagnostic = binding.diagnostic),
                 emptyList(),
             )
         }

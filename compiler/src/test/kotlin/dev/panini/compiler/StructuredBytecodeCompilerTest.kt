@@ -15,10 +15,26 @@ import java.io.File
 import java.lang.reflect.InvocationTargetException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 
 class StructuredBytecodeCompilerTest {
+    @Test fun `compiled procedure rejects script level virama with source diagnostics`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वि + रम् + लोट् + सिप् ॥
+            परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val failure = assertFailsWith<CompilerUnsupportedException> {
+            BytecodeCompiler.compile(source, "ProcedureCannotHaltScript")
+        }
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("SCRIPT_STOP_IN_PROCEDURE", diagnostic.code)
+        assertNotNull(diagnostic.span)
+    }
+
     @Test fun `explicit display object is not duplicated by a preceding sequence result`() {
         val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ततः नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
         val interpreted = PaniniVM().evalScript(source)
@@ -146,9 +162,12 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test fun `compiled pronouns reject missing and ambiguous participants`() {
-        assertFailsWith<IllegalArgumentException> {
+        val missing = assertFailsWith<CompilerUnsupportedException> {
             CompilerFrontend.lower("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।", "MissingPronoun")
         }
+        val missingDiagnostic = assertNotNull(missing.diagnostic)
+        assertEquals("MISSING_ANTECEDENT", missingDiagnostic.code)
+        assertEquals(dev.panini.vyakaranam.ast.DocumentSourceSpan(0, 9), missingDiagnostic.span)
         val source = """
             परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
@@ -156,8 +175,13 @@ class StructuredBytecodeCompilerTest {
             तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             नवन् + शस् द्वि + औट् च परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
-        val failure = assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(source, "AmbiguousPronoun") }
+        val failure = assertFailsWith<CompilerUnsupportedException> {
+            CompilerFrontend.lower(source, "AmbiguousPronoun")
+        }
         assertTrue(failure.message.orEmpty().contains("Ambiguous तद् antecedent"), failure.toString())
+        val ambiguousDiagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("AMBIGUOUS_ANTECEDENT", ambiguousDiagnostic.code)
+        assertNotNull(ambiguousDiagnostic.span)
     }
 
     @Test fun `local pronouns preserve participant identity through assignment and predicates`() {
@@ -304,13 +328,13 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `disconnected embedded fields cannot become literal arithmetic operands`() {
         val source = "गुण + मतुप् + ङस् न मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ।"
-        for (operation in listOf<() -> Unit>(
-            { PaniniVM().evalScript(source); Unit },
-            { BytecodeCompiler.compile(source, "RejectedDisconnectedField"); Unit },
-        )) {
-            assertTrue(assertFailsWith<IllegalArgumentException> { operation() }
-                .message.orEmpty().contains("intervening words"))
+        val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
+        assertEquals("ATTRIBUTE_REFERENCE_DISCONNECTED", assertNotNull(interpreted.diagnostic).code)
+
+        val compiled = assertFailsWith<CompilerUnsupportedException> {
+            BytecodeCompiler.compile(source, "RejectedDisconnectedField")
         }
+        assertEquals(interpreted.diagnostic, compiled.diagnostic)
     }
 
     @Test
@@ -397,11 +421,16 @@ class StructuredBytecodeCompilerTest {
             query.replace("लोट् + सिप्", "लट् + तिप्"),
             query.replace("मूल्य + अम्", "मूल्य + सुँ"),
         ).withIndex()) {
-            assertFailsWith<IllegalArgumentException> { PaniniVM().evalScript(invalid) }
+            val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(invalid).single())
+            val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)
+            assertTrue(interpretedDiagnostic.code.startsWith("ATTRIBUTE_ACCESS_"))
             val failure = assertFailsWith<IllegalArgumentException> {
                 BytecodeCompiler.compile(invalid, "RejectedIncompleteFieldQuery$index")
             }
             assertTrue(failure.message.orEmpty().contains("retrieval"), failure.message)
+            val compiledDiagnostic = assertNotNull((failure as? CompilerUnsupportedException)?.diagnostic)
+            assertEquals(interpretedDiagnostic.code, compiledDiagnostic.code)
+            assertEquals(interpretedDiagnostic.span, compiledDiagnostic.span)
         }
     }
 
@@ -500,11 +529,15 @@ class StructuredBytecodeCompilerTest {
             "न शून्य + अम् राम + अम् शून्य + अम् ।\n" +
             "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
-        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
-            (PaniniVM().evalScript(source).last() as ExecutionResult.Failure).error)
-        assertTrue(assertFailsWith<IllegalArgumentException> {
+        val interpreted = PaniniVM().evalScript(source).last() as ExecutionResult.Failure
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, interpreted.error)
+        assertEquals("UNSUPPORTED_PROCEDURE_PROHIBITION", assertNotNull(interpreted.diagnostic).code)
+        val compiled = assertFailsWith<CompilerUnsupportedException> {
             BytecodeCompiler.compile(source, "RejectedUnsupportedProhibition")
-        }.message.orEmpty().contains("Unsupported procedure prohibition"))
+        }
+        assertTrue(compiled.message.orEmpty().contains("Unsupported procedure prohibition"))
+        assertEquals("UNSUPPORTED_PROCEDURE_PROHIBITION", assertNotNull(compiled.diagnostic).code)
+        assertNotNull(compiled.diagnostic.span)
     }
 
     @Test
@@ -1042,9 +1075,18 @@ class StructuredBytecodeCompilerTest {
             (failure.cause as CompiledPaniniExecutionException).error)
         val disagreement = prefix + "युज् + ल्युट् + ङस् प्रथम + सुँ फल + अम् वाचन + टा कृ + लोट् + सिप् ।"
         val invalid = PaniniVM().evalScript(disagreement)
-        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, (invalid.last() as ExecutionResult.Failure).error)
+        val invalidResult = invalid.last() as ExecutionResult.Failure
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, invalidResult.error)
+        val interpretedDiagnostic = assertNotNull(invalidResult.diagnostic)
+        assertEquals("RESULT_ORDERING_AGREEMENT", interpretedDiagnostic.code)
+        assertNotNull(interpretedDiagnostic.span)
         assertTrue(invalid.none { it is ExecutionResult.Success && it.outputKind == dev.panini.execution.OutputKind.CONSOLE })
-        assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(disagreement, "InvalidHistoryArgumentAgreement") }
+        val compiledInvalid = assertFailsWith<CompilerUnsupportedException> {
+            CompilerFrontend.lower(disagreement, "InvalidHistoryArgumentAgreement")
+        }
+        val compiledDiagnostic = assertNotNull(compiledInvalid.diagnostic)
+        assertEquals("RESULT_ORDERING_AGREEMENT", compiledDiagnostic.code)
+        assertNotNull(compiledDiagnostic.span)
     }
     @Test
     fun `history assignment updates owning procedure cell without leaking operand frames`() {
@@ -2845,13 +2887,16 @@ class StructuredBytecodeCompilerTest {
         val typeFailure = assertFailsWith<InvocationTargetException> {
             compileAndInspect(wrongType, "RejectedCompiledType")
         }
-        val prohibitionFailure = assertFailsWith<IllegalArgumentException> {
+        val prohibitionFailure = assertFailsWith<CompilerUnsupportedException> {
             BytecodeCompiler.compile(prohibited, "RejectedCompiledProhibition")
         }
 
-        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
-            (typeFailure.cause as CompiledPaniniExecutionException).error)
+        val typedCause = typeFailure.cause as CompiledPaniniExecutionException
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE, typedCause.error)
+        assertEquals("PROCEDURE_ARGUMENT_TYPE_MISMATCH", assertNotNull(typedCause.diagnostic).code)
         assertTrue(prohibitionFailure.message.orEmpty().contains("निषेध-प्रतिषेध"))
+        assertEquals("PROCEDURE_PROHIBITION_TRIGGERED",
+            assertNotNull(prohibitionFailure.diagnostic).code)
     }
 
     @Test

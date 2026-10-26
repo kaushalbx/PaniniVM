@@ -23,7 +23,7 @@ internal object NumeralAstNormalizer {
 
     fun normalize(pada: SubantaPada): SubantaPada {
         val typed = resolve(pada.pratipadika) ?: return pada
-        return if (typed === pada.pratipadika) pada else pada.copy(pratipadika = typed)
+        return if (typed === pada.pratipadika) pada else pada.copy(pratipadika = typed).inheritLocation(pada)
     }
 
     fun resolve(pratipadika: Pratipadika): SankhyaPratipadika? = when (pratipadika) {

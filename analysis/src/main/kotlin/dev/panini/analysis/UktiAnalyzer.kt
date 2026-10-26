@@ -179,6 +179,16 @@ class UktiAnalyzer(
                 return FrameBoundary(condition.entry, result?.exits ?: exits)
             }
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): FrameBoundary = visit(node.body)
+            override fun visitCollectionRelativeAction(
+                node: dev.panini.vyakaranam.ast.CollectionRelativeAction,
+            ): FrameBoundary {
+                val action = visit(node.actionInvocation())
+                val continuation = node.continuation?.let(::visit) ?: return action
+                action.exits.forEach { exit ->
+                    links += KriyaLink.Coordination(exit, continuation.entry, "ततः")
+                }
+                return FrameBoundary(action.entry, continuation.exits)
+            }
             override fun visitQuantifiedCollectionPredicate(
                 node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
             ): FrameBoundary = visit(node.predicate)

@@ -483,7 +483,7 @@ class GrammaticalRegexArchitectureTest {
         ).forEach { sequenceConsumer ->
             val source = sequenceConsumer.readText()
             assertFalse("connectors.any { it != \"ततः\" }" in source, sequenceConsumer.path)
-            assertTrue("SequenceConnector.ANANTARYA" in source, sequenceConsumer.path)
+            assertTrue("SequenceResultFlow.PREVIOUS_RESULT" in source, sequenceConsumer.path)
         }
 
         assertFalse("setOf(\"सत्य\", \"असत्य\")" in leafPlanner)

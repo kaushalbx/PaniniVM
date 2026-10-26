@@ -3,7 +3,6 @@ package dev.panini.execution
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Sequence
-import dev.panini.vyakaranam.ast.SequenceConnector
 
 /** Semantic classification computed once when a script sentence is parsed. */
 sealed interface PvmSentenceSemantics {
@@ -47,7 +46,8 @@ internal object PvmSentenceClassifier {
         PvmSentenceSemantics.AttributePipeline? {
         val sequence = program as? Sequence ?: return null
         if (sequence.statements.size < 2 ||
-            sequence.connectorKinds.any { it != SequenceConnector.ANANTARYA }
+            sequence.boundaries.any { it.resultFlow !=
+                dev.panini.vyakaranam.ast.SequenceResultFlow.PREVIOUS_RESULT }
         ) return null
         val source = sequence.statements.first() as? Invocation ?: return null
         val targets = sequence.statements.drop(1).map { it as? Invocation ?: return null }

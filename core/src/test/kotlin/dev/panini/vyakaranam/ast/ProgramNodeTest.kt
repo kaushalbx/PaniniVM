@@ -39,6 +39,18 @@ class ProgramNodeTest {
     }
 
     @Test
+    fun `sequence boundaries retain typed result flow`() {
+        val statement = Invocation(vakya)
+        val sequence = Sequence("", listOf(statement, statement, statement), listOf("ततः", "च"))
+
+        assertEquals(SequenceResultFlow.PREVIOUS_RESULT, sequence.boundaries[0].resultFlow)
+        assertEquals(SequenceResultFlow.NONE, sequence.boundaries[1].resultFlow)
+        assertEquals(0 to 1, sequence.boundaries[0].let {
+            it.sourceStatementIndex to it.targetStatementIndex
+        })
+    }
+
+    @Test
     fun `prakriya and scope expose their nested program leaves`() {
         val invocation = Invocation(vakya)
         val prakriya = Prakriya("definition", "योग", body = listOf(invocation))

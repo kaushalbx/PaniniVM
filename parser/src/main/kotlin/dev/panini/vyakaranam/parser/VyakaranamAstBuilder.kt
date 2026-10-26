@@ -9,8 +9,35 @@ import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 import dev.panini.parser.VyakaranamParser as PaniniyaVyakaranamParser
+import org.antlr.v4.kotlinruntime.ParserRuleContext
 
 class VyakaranamAstBuilder {
+
+    private fun semanticError(
+        context: ParserRuleContext,
+        code: PaniniSemanticDiagnosticCode,
+        message: String,
+    ): Nothing {
+        val start = requireNotNull(context.start)
+        val stop = requireNotNull(context.stop)
+        throw PaniniSemanticException(PaniniSemanticDiagnostic(
+            code = code,
+            message = message,
+            span = DocumentSourceSpan(start.startIndex, stop.stopIndex + 1),
+            line = start.line,
+            column = start.charPositionInLine,
+            offendingText = context.text,
+        ))
+    }
+
+    private fun semanticRequire(
+        condition: Boolean,
+        context: ParserRuleContext,
+        code: PaniniSemanticDiagnosticCode,
+        message: String,
+    ) {
+        if (!condition) semanticError(context, code, message)
+    }
 
     fun buildDocument(context: PaniniyaVyakaranamParser.DocumentContext): ProgramDocument {
         val spans = context.documentItem().mapTo(mutableListOf()) { item ->
@@ -135,15 +162,17 @@ class VyakaranamAstBuilder {
         body: List<ProgramNode>,
     ): Prakriya {
         val names = context.names.map(::buildSubanta)
-        require(names.size in 1..2) { "A prakriyā declaration names one operation and optionally one domain." }
+        semanticRequire(names.size in 1..2, context,
+            PaniniSemanticDiagnosticCode.PRAKRIYA_HEADER_CARDINALITY,
+            "A prakriyā declaration names one operation and optionally one domain.")
         val operation = names.last()
-        require(operation.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)) {
-            "A single prakriyā declaration requires a nominative singular name."
-        }
+        semanticRequire(operation.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA),
+            context.names.last(), PaniniSemanticDiagnosticCode.PRAKRIYA_OPERATION_AGREEMENT,
+            "A single prakriyā declaration requires a nominative singular name.")
         val domain = names.dropLast(1).singleOrNull()
-        require(domain == null || domain.sup.supports(Vibhakti.SASTHI, dev.panini.core.Vacana.EKAVACANA)) {
-            "A single prakriyā declaration requires a genitive singular domain."
-        }
+        semanticRequire(domain == null || domain.sup.supports(Vibhakti.SASTHI, dev.panini.core.Vacana.EKAVACANA),
+            context.names.first(), PaniniSemanticDiagnosticCode.PRAKRIYA_DOMAIN_AGREEMENT,
+            "A single prakriyā declaration requires a genitive singular domain.")
         val declarationContext = requireNotNull(context.declaration)
         val marker = SubantaPada(
             "प्रक्रिया+${declarationContext.markerSup!!.text}",
@@ -159,27 +188,33 @@ class VyakaranamAstBuilder {
             predicate.dhatu.mulaDhatu in setOf("असँ", "अस्") &&
                 predicate.dhatu.sanadiPratyayas.isEmpty()
         } else {
-            require(result.sup.affixCandidates == listOf(SupAffix.AM)) {
-                "A procedure's declared product requires the accusative singular."
-            }
-            require(marker.sup.affixCandidates == listOf(SupAffix.SU)) { "A result-producing procedure must be singular." }
+            semanticRequire(result.sup.affixCandidates == listOf(SupAffix.AM),
+                requireNotNull(declarationContext.result), PaniniSemanticDiagnosticCode.PRAKRIYA_RESULT_AGREEMENT,
+                "A procedure's declared product requires the accusative singular.")
+            semanticRequire(marker.sup.affixCandidates == listOf(SupAffix.SU), declarationContext,
+                PaniniSemanticDiagnosticCode.PRAKRIYA_MISSING_MARKER,
+                "A result-producing procedure must be singular.")
             // The parser retains morphology; the lexical dhātu class owns meaning.
             true
         }
-        require(validPredicate &&
+        semanticRequire(validPredicate &&
             declaration.tinganta.upasargas.isEmpty() &&
-            declaration.tinganta.lakara == Lakara.LAT && declaration.tinganta.ting.affix == TingAffix.TIP) {
-            "A prakriyā declaration requires अस्ति, or an accusative product with जनयति."
+            declaration.tinganta.lakara == Lakara.LAT && declaration.tinganta.ting.affix == TingAffix.TIP,
+            declarationContext, PaniniSemanticDiagnosticCode.PRAKRIYA_DECLARATION_PREDICATE,
+            "A prakriyā declaration requires अस्ति, or an accusative product with जनयति.")
+        val qualifierContexts = declarationContext.qualifiers
+        val qualifiers = declaration.padas.filterIsInstance<SubantaPada>().mapIndexed { index, pada ->
+            val qualifierContext = qualifierContexts.getOrNull(index) ?: declarationContext
+            semanticRequire(pada.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA),
+                qualifierContext, PaniniSemanticDiagnosticCode.PRAKRIYA_QUALIFIER_AGREEMENT,
+                "Prakriyā subject and qualifiers require nominative singular agreement with the declaration predicate.")
+            pada.prakriyaDefinitionQualifier() ?: semanticError(qualifierContext,
+                PaniniSemanticDiagnosticCode.PRAKRIYA_UNSUPPORTED_QUALIFIER,
+                "Unsupported prakriyā qualifier.")
         }
-        val qualifiers = declaration.padas.filterIsInstance<SubantaPada>().map { pada ->
-            require(pada.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)) {
-                "Prakriyā subject and qualifiers require nominative singular agreement with the declaration predicate."
-            }
-            requireNotNull(pada.prakriyaDefinitionQualifier()) {
-                "Unsupported prakriyā qualifier."
-            }
-        }
-        require(PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers) { "A reusable declaration requires प्रक्रिया." }
+        semanticRequire(PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers, declarationContext,
+            PaniniSemanticDiagnosticCode.PRAKRIYA_MISSING_MARKER,
+            "A reusable declaration requires प्रक्रिया.")
         return Prakriya(
             sourceText = sourceText,
             name = operation.sourceText,
@@ -510,45 +545,62 @@ class VyakaranamAstBuilder {
 
     private fun buildNaturalRelativeActionClause(
         clause: PaniniyaVyakaranamParser.NaturalRelativeActionClauseContext,
-    ): ForEach {
+    ): CollectionRelativeAction {
         val collection = buildSubanta(requireNotNull(clause.collection))
         val quantifier = buildSubanta(requireNotNull(clause.quantifier))
         val member = buildSubanta(requireNotNull(clause.member))
         val relative = buildCompoundSubanta(requireNotNull(clause.relative))
-        val relativeType = buildSubanta(requireNotNull(clause.relativeType))
-        val action = buildTinganta(requireNotNull(clause.action))
-        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
-            "A direct relative action requires a genitive singular collection."
-        }
-        require(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
-            quantifier.sup.affixCandidates == listOf(SupAffix.AM)) {
-            "A direct relative action requires an accusative प्रत्येक qualifier."
-        }
-        require(member.sup.affixCandidates == listOf(SupAffix.AM)) {
-            "A direct relative action requires an accusative current member."
-        }
         val relativeAffix = relative.sup.affixCandidates.singleOrNull()
-        require(relativeAffix in setOf(SupAffix.TA, SupAffix.BHIS) &&
-            relativeType.sup.affixCandidates == listOf(relativeAffix)) {
-            "A direct relative action requires agreeing instrumental singular or plural relative items."
+            ?: semanticError(requireNotNull(clause.relative),
+                PaniniSemanticDiagnosticCode.RELATIVE_INSTRUMENTAL,
+                "A direct relative action requires an unambiguous instrumental relative selector.")
+        require(relativeAffix in setOf(SupAffix.TA, SupAffix.BHIS)) {
+            "A direct relative action requires an instrumental singular or plural relative selector."
         }
+        val relativeTypeWritten = clause.relativeType != null
+        val relativeType = clause.relativeType?.let(::buildSubanta) ?: member.copy(
+            sourceText = member.pratipadika.morphologicalKey() + " + " + relativeAffix.upadesha,
+            sup = SupPratyaya(relativeAffix.upadesha, relativeAffix.upadesha),
+        ).inheritLocation(member)
+        val action = buildTinganta(requireNotNull(clause.action))
+        semanticRequire(collection.sup.affixCandidates == listOf(SupAffix.NGAS), requireNotNull(clause.collection),
+            PaniniSemanticDiagnosticCode.COLLECTION_SOURCE_CASE,
+            "A direct relative action requires a genitive singular collection.")
+        semanticRequire(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
+            quantifier.sup.affixCandidates == listOf(SupAffix.AM), requireNotNull(clause.quantifier),
+            PaniniSemanticDiagnosticCode.DISTRIBUTIVE_AGREEMENT,
+            "A direct relative action requires an accusative प्रत्येक qualifier.")
+        semanticRequire(member.sup.affixCandidates == listOf(SupAffix.AM), requireNotNull(clause.member),
+            PaniniSemanticDiagnosticCode.CURRENT_MEMBER_CASE,
+            "A direct relative action requires an accusative current member.")
+        semanticRequire(relativeType.sup.affixCandidates == listOf(relativeAffix),
+            clause.relativeType ?: requireNotNull(clause.relative),
+            PaniniSemanticDiagnosticCode.RELATIVE_INSTRUMENTAL,
+            "A direct relative action requires agreeing instrumental singular or plural relative items.")
         val compound = relative.pratipadika as? SamasaPratipadika
-            ?: throw IllegalArgumentException("A relative collection operand must be a तद् compound.")
-        require(compound.angas.size == 2) { "A relative collection operand requires exactly two compound members." }
+            ?: semanticError(requireNotNull(clause.relative), PaniniSemanticDiagnosticCode.RELATIVE_COMPOUND,
+                "A relative collection operand must be a तद् compound.")
+        semanticRequire(compound.angas.size == 2, requireNotNull(clause.relative),
+            PaniniSemanticDiagnosticCode.RELATIVE_COMPOUND,
+            "A relative collection operand requires exactly two compound members.")
         val anchor = compound.angas[0]
         val selector = compound.angas[1]
-        require(anchor.pratipadika.semanticKey() == "तद्" &&
-            anchor.sup?.affixCandidates == listOf(SupAffix.NGAS) && anchor.supLopa == dev.panini.core.SupLopa.LUK) {
-            "A relative collection operand requires तद् + ङस् + लुक् as its anchor."
-        }
+        semanticRequire(anchor.pratipadika.semanticKey() == "तद्" &&
+            anchor.sup?.affixCandidates == listOf(SupAffix.NGAS) &&
+            anchor.supLopa == dev.panini.core.SupLopa.LUK, requireNotNull(clause.relative),
+            PaniniSemanticDiagnosticCode.RELATIVE_ANCHOR,
+            "A relative collection operand requires तद् + ङस् + लुक् as its anchor.")
         val direction = when (selector.pratipadika.semanticKey()) {
             "पूर्व" -> CollectionRelativeDirection.PREVIOUS
             "उत्तर" -> CollectionRelativeDirection.NEXT
-            else -> throw IllegalArgumentException("A relative collection operand requires पूर्व or उत्तर.")
+            else -> semanticError(requireNotNull(clause.relative),
+                PaniniSemanticDiagnosticCode.RELATIVE_DIRECTION,
+                "A relative collection operand requires पूर्व or उत्तर.")
         }
-        require(relativeType.pratipadika.semanticKey() == member.pratipadika.semanticKey()) {
-            "The current and relative collection members require the same written member type."
-        }
+        semanticRequire(relativeType.pratipadika.semanticKey() == member.pratipadika.semanticKey(),
+            clause.relativeType ?: requireNotNull(clause.relative),
+            PaniniSemanticDiagnosticCode.MEMBER_TYPE_MISMATCH,
+            "The current and relative collection members require the same written member type.")
         fun genders(pada: SubantaPada): Set<Linga> {
             val stem = pada.pratipadika
             val vikaras = when (stem) {
@@ -567,71 +619,43 @@ class VyakaranamAstBuilder {
             }
             return StandardPratipadikaLexicon.findPratipadika(lexical)?.linga.orEmpty()
         }
-        fun requireGenderAgreement(left: SubantaPada, right: SubantaPada, message: String) {
+        fun requireGenderAgreement(left: SubantaPada, right: SubantaPada,
+            context: ParserRuleContext, message: String) {
             val leftGenders = genders(left)
             val rightGenders = genders(right)
-            require(leftGenders.isEmpty() || rightGenders.isEmpty() || leftGenders.any { it in rightGenders }) {
-                message
-            }
+            semanticRequire(leftGenders.isEmpty() || rightGenders.isEmpty() ||
+                leftGenders.any { it in rightGenders }, context,
+                PaniniSemanticDiagnosticCode.GENDER_MISMATCH, message)
         }
         requireGenderAgreement(quantifier, member,
+            requireNotNull(clause.quantifier),
             "The distributive qualifier and current member have incompatible gender evidence.")
         requireGenderAgreement(relative, relativeType,
+            clause.relativeType ?: requireNotNull(clause.relative),
             "The relative selector and member type have incompatible gender evidence.")
         requireGenderAgreement(member, relativeType,
+            clause.relativeType ?: requireNotNull(clause.relative),
             "The current and relative member types have incompatible gender evidence.")
         val cardinality = if (relativeAffix == SupAffix.BHIS)
             CollectionRelativeCardinality.ITEMS else CollectionRelativeCardinality.ITEM
-        val internalStem = (if (direction == CollectionRelativeDirection.NEXT) "उत्तर" else "पूर्व") +
-            relativeType.pratipadika.semanticKey()
-        fun internalBinding(upadesha: String): SubantaPada = SubantaPada(
-            sourceText = "$internalStem+$upadesha",
-            pratipadika = MulaPratipadika(internalStem, internalStem),
-            sup = SupPratyaya(upadesha, upadesha),
-        )
-        val relativeBinding = internalBinding(requireNotNull(relativeAffix).upadesha)
-        val relativeCollection = internalBinding("ङस्")
-        val relativeItem = internalBinding("अम्")
-        val actionVakya = AkhyataVakya(
-            sourceText = member.sourceText + relativeItem.sourceText + action.sourceText,
-            padas = listOf(member, relativeItem, action),
-            tinganta = action,
-        )
-        val continuation = clause.conditional?.let(::buildConditional)
-        val innerBody: ProgramNode = if (continuation == null) Invocation(actionVakya) else Sequence(
-            sourceText = clause.text,
-            statements = listOf(Invocation(actionVakya), continuation),
-            connectors = listOf(SequenceConnector.ANANTARYA.surface),
-        )
-        val loweredBody = if (cardinality == CollectionRelativeCardinality.ITEMS) ForEach(
-            sourceText = clause.text,
-            collection = relativeCollection,
-            member = relativeItem,
-            body = innerBody,
-        ) else innerBody
-        val relation = SubantaPada(
-            sourceText = anchor.sourceText,
-            pratipadika = anchor.pratipadika,
-            sup = requireNotNull(anchor.sup),
-        )
-        return ForEach(
+        val continuation = clause.continuation?.let { continuation ->
+            continuation.conditionalExpression()?.let(::buildConditional)
+                ?: Invocation(buildVakya(requireNotNull(continuation.vakya())))
+        }
+        return CollectionRelativeAction(
             sourceText = clause.text,
             collection = collection,
-            member = member,
-            body = loweredBody,
             quantifier = quantifier,
-            relativeSelections = listOf(CollectionRelativeSelection(
+            member = member,
+            operand = CollectionRelativeOperand(
+                relative = relative,
+                memberType = relativeType,
+                memberTypeWritten = relativeTypeWritten,
                 direction = direction,
                 cardinality = cardinality,
-                binding = relativeBinding,
-                relation = relation,
-            )),
-            directRelativeAction = DirectRelativeActionSurface(
-                relative = relative,
-                relativeType = relativeType,
-                action = action,
-                continuation = continuation,
             ),
+            action = action,
+            continuation = continuation,
         )
     }
 
@@ -1133,7 +1157,10 @@ class VyakaranamAstBuilder {
                 sourceText = context.supPratyaya()!!.text,
                 text = context.supPratyaya()!!.text,
             ),
-        )
+        ).locatedAt(DocumentSourceSpan(
+            requireNotNull(context.start).startIndex,
+            requireNotNull(context.stop).stopIndex + 1,
+        ))
 
     private fun buildPratipadika(
         context: PaniniyaVyakaranamParser.PratipadikaContext,
@@ -1293,7 +1320,10 @@ class VyakaranamAstBuilder {
                 text = context.tingPratyaya()!!.text,
             ),
             vikarana = context.vikarana()?.text?.let(dev.panini.vyakaranam.ast.Vikarana::fromUpadesha),
-        )
+        ).locatedAt(DocumentSourceSpan(
+            requireNotNull(context.start).startIndex,
+            requireNotNull(context.stop).stopIndex + 1,
+        ))
 
     private fun buildDhatu(
         context: PaniniyaVyakaranamParser.DhatuPrakritiContext,

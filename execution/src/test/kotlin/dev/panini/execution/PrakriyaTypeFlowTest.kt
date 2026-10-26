@@ -5,8 +5,24 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 
 class PrakriyaTypeFlowTest {
+    @Test
+    fun `validator preserves parser semantic code span and offending text`() {
+        val source = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
+            "युज् + णिच् + लोट् + सिप् ।"
+
+        val diagnostic = PrakriyaScriptValidator.validate(source).single()
+
+        assertEquals("RELATIVE_INSTRUMENTAL", diagnostic.code)
+        assertEquals("सङ्ख्या+भिस्", diagnostic.offendingText)
+        assertEquals(diagnostic.offendingText,
+            source.substring(diagnostic.span.start, diagnostic.span.endExclusive).filterNot(Char::isWhitespace))
+        assertNotNull(diagnostic.span)
+    }
+
     @Test
     fun `legacy reusable header receives a precise explicit declaration suggestion`() {
         val source = "वृध् + ल्युट् + सुँ ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"

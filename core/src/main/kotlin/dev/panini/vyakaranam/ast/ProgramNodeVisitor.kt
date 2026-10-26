@@ -9,6 +9,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitRecurrence(node: Recurrence): R
     fun visitWhileLoop(node: WhileLoop): R
     fun visitForEach(node: ForEach): R
+    fun visitCollectionRelativeAction(node: CollectionRelativeAction): R
     fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): R
     fun visitPipeline(node: Pipeline): R
     fun visitPrakriya(node: Prakriya): R
@@ -24,6 +25,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Recurrence -> visitor.visitRecurrence(this)
     is WhileLoop -> visitor.visitWhileLoop(this)
     is ForEach -> visitor.visitForEach(this)
+    is CollectionRelativeAction -> visitor.visitCollectionRelativeAction(this)
     is QuantifiedCollectionPredicate -> visitor.visitQuantifiedCollectionPredicate(this)
     is Pipeline -> visitor.visitPipeline(this)
     is Prakriya -> visitor.visitPrakriya(this)
@@ -69,6 +71,8 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
     override fun visitRecurrence(node: Recurrence): List<ProgramNode> = listOf(node.body)
     override fun visitForEach(node: ForEach): List<ProgramNode> = listOf(node.body)
+    override fun visitCollectionRelativeAction(node: CollectionRelativeAction): List<ProgramNode> =
+        listOfNotNull(node.actionInvocation(), node.continuation)
     override fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): List<ProgramNode> =
         listOf(node.predicate)
     override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> =
@@ -102,6 +106,9 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         node.copy(body = transform(node.body))
 
     override fun visitForEach(node: ForEach): ProgramNode = node.copy(body = transform(node.body))
+
+    override fun visitCollectionRelativeAction(node: CollectionRelativeAction): ProgramNode =
+        node.copy(continuation = node.continuation?.let(::transform))
 
     override fun visitQuantifiedCollectionPredicate(node: QuantifiedCollectionPredicate): ProgramNode =
         node.copy(predicate = transform(node.predicate) as Invocation)

@@ -14,6 +14,26 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `compiled exception preserves structured execution diagnostics`() {
+        val diagnostic = dev.panini.execution.ExecutionDiagnostic(
+            "MISSING_ANTECEDENT",
+            "No compatible antecedent.",
+            dev.panini.vyakaranam.ast.DocumentSourceSpan(0, 9),
+            "तद्+अम्",
+        )
+        val failure = dev.panini.execution.ExecutionResult.Failure(
+            dev.panini.execution.ExecutionError.INVALID_VALUE,
+            "readable message",
+            diagnostic = diagnostic,
+        )
+
+        val compiled = CompiledPaniniExecutionException.from(failure, "test")
+
+        assertEquals(diagnostic, compiled.diagnostic)
+        assertEquals("readable message", compiled.message)
+    }
+
+    @Test
     fun `history group loads retain a wrapper around one collection participant`() {
         val members = listOf(SanskritValue.Sankhya(1, "एक"))
         for (collection in listOf(SanskritValue.Suchi(members), SanskritValue.Gana(members))) {

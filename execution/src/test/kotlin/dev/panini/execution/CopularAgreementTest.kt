@@ -5,6 +5,16 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class CopularAgreementTest {
+    @Test fun `predicate number mismatch exposes a typed agreement diagnostic`() {
+        val source = "एक + सुँ द्वि + ङसिँ न्यून + औ असँ + लट् + तिप् ।"
+        val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
+        val analysis = assertIs<CopularAgreement.Analysis.Invalid>(CopularAgreement.analyze(invocation))
+        assertEquals("COPULAR_PREDICATE_NUMBER_AGREEMENT", analysis.diagnostic.code)
+        assertNotNull(analysis.diagnostic.span)
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        assertEquals(analysis.diagnostic.code, assertNotNull(failure.diagnostic).code)
+    }
+
     @Test fun `copular gender check rejects established mismatch without guessing unknown names`() {
         fun node(subject: String) = PaniniParser().parse(
             "$subject + सुँ मान + ङसिँ न्यून + टाप् + सुँ असँ + लट् + तिप् ।").body as Invocation

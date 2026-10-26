@@ -5,6 +5,21 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.test.*
 
 class ProcedureResultContractTest {
+    @Test fun `malformed result relation has interpreter compiler diagnostic parity`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            फल + सुँ शून्य + सुँ असँ + लट् + तस् ॥
+            परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        assertEquals("PROCEDURE_RESULT_AGREEMENT",
+            assertNotNull(interpreted.diagnostic, interpreted.toString()).code)
+        val compiled = assertFailsWith<CompilerUnsupportedException> {
+            BytecodeCompiler.compile(source, "MalformedProcedureResultAgreement")
+        }
+        assertEquals("PROCEDURE_RESULT_AGREEMENT", assertNotNull(compiled.diagnostic).code)
+    }
+
     @Test fun `procedure return belongs to callee across binding frames not loops or caller`() {
         val runtime = CompiledProgramRuntime()
         assertFailsWith<CompiledPaniniExecutionException> {

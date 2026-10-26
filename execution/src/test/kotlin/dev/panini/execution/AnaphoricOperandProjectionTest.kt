@@ -100,6 +100,30 @@ class AnaphoricOperandProjectionTest {
         }.message.orEmpty().contains(message))
     }
 
+    @Test fun `anaphor analysis returns typed failures without throwing`() {
+        val source = "तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val node = invocation(source)
+        val cases = listOf(
+            emptyList<AgreementCandidate<String>>() to
+                AnaphoricOperandProjection.DiagnosticCode.MISSING_ANTECEDENT,
+            listOf(AgreementCandidate("unknown", ReferentAgreement())) to
+                AnaphoricOperandProjection.DiagnosticCode.INCOMPLETE_AGREEMENT,
+            listOf(AgreementCandidate("one", singular), AgreementCandidate("two", singular)) to
+                AnaphoricOperandProjection.DiagnosticCode.AMBIGUOUS_ANTECEDENT,
+        )
+
+        cases.forEach { (candidates, code) ->
+            val invalid = assertIs<AnaphoricOperandProjection.Analysis.Invalid<String>>(
+                AnaphoricOperandProjection.analyze(node, candidates),
+            )
+            assertEquals(code, invalid.diagnostic.code)
+            assertEquals("तद्", invalid.diagnostic.anaphor.pratipadika.semanticKey())
+            val span = assertNotNull(invalid.diagnostic.span)
+            assertEquals("तद् + अम्", source.substring(span.start, span.endExclusive))
+            assertEquals("तद्+अम्", invalid.diagnostic.offendingText)
+        }
+    }
+
     @Test fun `projection preserves each case relation independently`() {
         for (sup in listOf("सुँ", "अम्", "टा", "ङे", "ङसिँ", "ङस्", "ङि")) {
             val node = invocation("तद् + $sup मुद्र् + णिच् + लोट् + सिप् ।")
@@ -108,6 +132,7 @@ class AnaphoricOperandProjectionTest {
                 listOf(AgreementCandidate("referent", singular)))
             val replacement = projection.invocation.vakya.padas.filterIsInstance<SubantaPada>().single()
             assertSame(original.sup, replacement.sup, sup)
+            assertEquals(original.sourceSpan, replacement.sourceSpan, sup)
             assertSame(original, projection.operands.single().original, sup)
             assertEquals("referent", projection.operands.single().identity, sup)
         }

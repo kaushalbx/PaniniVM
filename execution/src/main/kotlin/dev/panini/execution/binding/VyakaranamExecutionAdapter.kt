@@ -58,6 +58,7 @@ import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.expandedInvocations
 import dev.panini.vyakaranam.ast.depthFirst
 import dev.panini.vyakaranam.ast.accept
+import dev.panini.vyakaranam.ast.relationSpan
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
@@ -76,6 +77,24 @@ import java.util.IdentityHashMap
  * - [KarakaExtractor]    — kāraka binding extraction
  */
 object VyakaranamExecutionAdapter {
+    data class FrequencyDiagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: dev.panini.vyakaranam.ast.DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : dev.panini.vyakaranam.ast.SemanticDiagnostic<String>
+
+    sealed interface FrequencyAnalysis {
+        data class Resolved(val ukti: Ukti) : FrequencyAnalysis
+        data class Invalid(val diagnostic: FrequencyDiagnostic) : FrequencyAnalysis
+    }
+
+    private class InvalidFrequency(
+        val code: String,
+        val invocation: Invocation,
+        message: String,
+    ) : IllegalArgumentException(message)
+
     private val parser = PaniniParser()
     // UktiAnalysis frames retain their source AST, so weak keys alone cannot make
     // this cache collectible. Bound it explicitly while retaining AST identity.
@@ -133,7 +152,24 @@ object VyakaranamExecutionAdapter {
     }.analyze(ukti)
 
     /** Preserves explicit Sanskrit frequency morphology in the shared program AST. */
-    internal fun normalizeFrequencyAst(ukti: Ukti): Ukti {
+    internal fun analyzeFrequencyAst(ukti: Ukti): FrequencyAnalysis = try {
+        FrequencyAnalysis.Resolved(normalizeFrequencyAstInternal(ukti))
+    } catch (error: InvalidFrequency) {
+        FrequencyAnalysis.Invalid(FrequencyDiagnostic(
+            error.code,
+            error.message.orEmpty(),
+            error.invocation.relationSpan(),
+            error.invocation.sourceText,
+        ))
+    }
+
+    internal fun normalizeFrequencyAst(ukti: Ukti): Ukti = when (val analysis = analyzeFrequencyAst(ukti)) {
+        is FrequencyAnalysis.Resolved -> analysis.ukti
+        is FrequencyAnalysis.Invalid -> throw dev.panini.execution.PvmSemanticException(
+            dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic))
+    }
+
+    private fun normalizeFrequencyAstInternal(ukti: Ukti): Ukti {
         val body = object : ProgramNodeTransformer() {
             override fun visitSequence(node: Sequence): ProgramNode {
                 // A leading frequency qualifies this connected event chain, not an
@@ -151,10 +187,11 @@ object VyakaranamExecutionAdapter {
                 val numericCount = FrequencyExtractor.extractAbhyasaCount(node.vakya.padas)
                 val punah = node.vakya.padas.filterIsInstance<AvyayaPada>()
                     .filter { it.function == AvyayaFunction.REPETITION }
-                require(numericCount == null || punah.isEmpty()) {
-                    "Use either an explicit repetition count or पुनः, not both."
-                }
-                require(punah.size <= 1) { "Use पुनः only once on an action." }
+                if (numericCount != null && punah.isNotEmpty()) throw InvalidFrequency(
+                    "REPETITION_MARKER_CONFLICT", node,
+                    "Use either an explicit repetition count or पुनः, not both.")
+                if (punah.size > 1) throw InvalidFrequency(
+                    "REPEATED_PUNAH_MARKER", node, "Use पुनः only once on an action.")
                 if (numericCount == null && punah.isEmpty()) return node
                 val count = numericCount
                 val padas = node.vakya.padas.filterNot {
@@ -254,21 +291,91 @@ object VyakaranamExecutionAdapter {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
         }
         val loweredUkti = try {
+            var semanticDiagnostic: dev.panini.vyakaranam.ast.SemanticDiagnostic<*>? = null
             val declarations = object : ProgramNodeTransformer() {
-                override fun visitQuotation(node: Quotation): ProgramNode =
-                    dev.panini.execution.ListDeclarationLowering.expand(node) ?: node
+                override fun visitQuotation(node: Quotation): ProgramNode {
+                    if (semanticDiagnostic != null) return node
+                    return when (val analysis = dev.panini.execution.ListDeclarationLowering.analyze(node)) {
+                        dev.panini.execution.ListDeclarationLowering.Analysis.NotDeclaration -> node
+                        is dev.panini.execution.ListDeclarationLowering.Analysis.Resolved -> analysis.sequence
+                        is dev.panini.execution.ListDeclarationLowering.Analysis.Invalid -> {
+                            semanticDiagnostic = analysis.diagnostic
+                            node
+                        }
+                    }
+                }
                 override fun visitInvocation(node: Invocation): ProgramNode {
-                    dev.panini.execution.CopularAgreement.validate(node)
-                    dev.panini.execution.CollectionMemberMorphology.validate(node)
-                    return dev.panini.execution.ListDeclarationLowering.expand(node)
-                        ?: dev.panini.execution.OrdinalObjectLowering.expand(node) ?: node
+                    if (semanticDiagnostic != null) return node
+                    when (val copular = dev.panini.execution.CopularAgreement.analyze(node)) {
+                        dev.panini.execution.CopularAgreement.Analysis.Valid -> Unit
+                        is dev.panini.execution.CopularAgreement.Analysis.Invalid -> {
+                            semanticDiagnostic = copular.diagnostic
+                            return node
+                        }
+                    }
+                    when (val member = dev.panini.execution.CollectionMemberMorphology.analyze(node)) {
+                        dev.panini.execution.CollectionMemberMorphology.Analysis.Valid -> Unit
+                        is dev.panini.execution.CollectionMemberMorphology.Analysis.Invalid -> {
+                            semanticDiagnostic = member.diagnostic
+                            return node
+                        }
+                    }
+                    val declaration = when (val analysis = dev.panini.execution.ListDeclarationLowering.analyze(node)) {
+                        dev.panini.execution.ListDeclarationLowering.Analysis.NotDeclaration -> null
+                        is dev.panini.execution.ListDeclarationLowering.Analysis.Resolved -> analysis.sequence
+                        is dev.panini.execution.ListDeclarationLowering.Analysis.Invalid -> {
+                            semanticDiagnostic = analysis.diagnostic
+                            return node
+                        }
+                    }
+                    if (declaration != null) return declaration
+                    return when (val analysis = dev.panini.execution.OrdinalObjectLowering.analyze(node)) {
+                        dev.panini.execution.OrdinalObjectLowering.Analysis.NotOrdinalObject -> node
+                        is dev.panini.execution.OrdinalObjectLowering.Analysis.Resolved -> analysis.sequence
+                        is dev.panini.execution.OrdinalObjectLowering.Analysis.Invalid -> {
+                            semanticDiagnostic = analysis.diagnostic
+                            node
+                        }
+                    }
                 }
             }.transform(ukti.body)
-            ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(declarations))
+            semanticDiagnostic?.let { diagnostic ->
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(
+                    diagnostic.message,
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                ))
+            }
+            var priorDiagnostic: dev.panini.execution.PriorActionLowering.Diagnostic? = null
+            val priorActions = object : ProgramNodeTransformer() {
+                override fun visitInvocation(node: Invocation): ProgramNode {
+                    if (priorDiagnostic != null) return node
+                    return when (val analysis = dev.panini.execution.PriorActionLowering.analyze(node)) {
+                        dev.panini.execution.PriorActionLowering.Analysis.NotPriorAction -> node
+                        is dev.panini.execution.PriorActionLowering.Analysis.Resolved -> analysis.sequence
+                        is dev.panini.execution.PriorActionLowering.Analysis.Invalid -> {
+                            priorDiagnostic = analysis.diagnostic
+                            node
+                        }
+                    }
+                }
+            }.transform(declarations)
+            priorDiagnostic?.let { diagnostic ->
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(
+                    diagnostic.message,
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                ))
+            }
+            ukti.copy(body = priorActions)
         } catch (error: IllegalArgumentException) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction."))
         }
-        val executableUkti = normalizeFrequencyAst(loweredUkti)
+        val executableUkti = when (val frequency = analyzeFrequencyAst(loweredUkti)) {
+            is FrequencyAnalysis.Resolved -> frequency.ukti
+            is FrequencyAnalysis.Invalid -> return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(
+                frequency.diagnostic.message,
+                dev.panini.execution.ExecutionDiagnostic.from(frequency.diagnostic),
+            ))
+        }
         val quotations = quotationBindings(executableUkti.body)
 
         var listener = input.listener
@@ -423,6 +530,12 @@ object VyakaranamExecutionAdapter {
             override fun visitRecurrence(node: Recurrence): ExecutionNode = build(node.body)
             override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
             override fun visitForEach(node: dev.panini.vyakaranam.ast.ForEach): ExecutionNode = build(node.body)
+            override fun visitCollectionRelativeAction(
+                node: dev.panini.vyakaranam.ast.CollectionRelativeAction,
+            ): ExecutionNode {
+                val action = build(node.actionInvocation())
+                return node.continuation?.let { ExecuteSequence(listOf(action, build(it))) } ?: action
+            }
             override fun visitQuantifiedCollectionPredicate(
                 node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
             ): ExecutionNode = build(node.predicate)
@@ -560,7 +673,8 @@ object VyakaranamExecutionAdapter {
             is Sequence -> {
                 val shapes = node.statements.map(::visit)
                 shapes.zipWithNext().forEachIndexed { boundary, (before, after) ->
-                    if (node.connectorKinds.getOrNull(boundary) == SequenceConnector.ANANTARYA &&
+                    if (node.boundaries.getOrNull(boundary)?.resultFlow ==
+                        dev.panini.vyakaranam.ast.SequenceResultFlow.PREVIOUS_RESULT &&
                         (node.statements[boundary + 1] as? Invocation)?.let {
                             dev.panini.execution.PriorResultInjection.hasExplicitDisplayObject(it)
                         } != true &&
@@ -590,6 +704,11 @@ object VyakaranamExecutionAdapter {
                 body
             }
             is dev.panini.vyakaranam.ast.ForEach -> visit(node.body)
+            is dev.panini.vyakaranam.ast.CollectionRelativeAction -> {
+                val action = visit(node.actionInvocation())
+                val continuation = node.continuation?.let(::visit)
+                Shape(action.entries, continuation?.exits ?: action.exits)
+            }
             is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> visit(node.predicate)
             is Pipeline -> Shape(emptySet(), emptySet())
             is Prakriya -> Shape(emptySet(), emptySet())

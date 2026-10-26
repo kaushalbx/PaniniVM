@@ -89,6 +89,13 @@ object TypedParticipantAnalysis {
                 return try { super.visitForEach(node) }
                 finally { added.forEach(localNames::remove) }
             }
+            override fun visitCollectionRelativeAction(
+                node: dev.panini.vyakaranam.ast.CollectionRelativeAction,
+            ): ProgramNode {
+                collect(listOf(node.collection))
+                node.continuation?.let(::transform)
+                return node
+            }
             override fun visitQuantifiedCollectionPredicate(
                 node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
             ): ProgramNode {

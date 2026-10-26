@@ -55,10 +55,15 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 failure.message ?: "Invalid procedure invocation."))
         }
         if (invocation != null) {
-            if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) return listOf(
-                ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                    "The ordering qualifier and फल must agree in case and number."),
-            )
+            val references = invocation.arguments.mapNotNull { it.actionResult }
+            dev.panini.execution.binding.NamedActionResultReferenceResolver
+                .agreementDiagnostic(references)?.let { diagnostic ->
+                    return listOf(ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        diagnostic.message,
+                        diagnostic = ExecutionDiagnostic.from(diagnostic),
+                    ))
+                }
             val memory = vm.kriyaMemory(request.sessionKey)
             val arguments = invocation.arguments.map { argument ->
                 val pada = argument.pada as? dev.panini.vyakaranam.ast.SubantaPada

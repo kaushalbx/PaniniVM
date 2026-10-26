@@ -7,16 +7,23 @@ import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
+import dev.panini.vyakaranam.ast.SemanticDiagnostic
+import dev.panini.vyakaranam.parser.PaniniSemanticException
 
 enum class PrakriyaDiagnosticSeverity { ERROR, WARNING }
 
 data class PrakriyaDiagnostic(
     val offset: Int,
     val length: Int,
-    val message: String,
+    override val message: String,
     val severity: PrakriyaDiagnosticSeverity = PrakriyaDiagnosticSeverity.ERROR,
     val replacement: String? = null,
-)
+    override val code: String = "VALIDATION",
+    override val offendingText: String = "",
+) : SemanticDiagnostic<String> {
+    override val span: DocumentSourceSpan = DocumentSourceSpan(offset, offset + length)
+}
 
 /** Performs declaration and call checks without executing the script. */
 object PrakriyaScriptValidator {
@@ -45,10 +52,13 @@ object PrakriyaScriptValidator {
             )
         }
         val statements = runCatching { parseSource(source) }.getOrElse { error ->
+            val semantic = (error as? PaniniSemanticException)?.diagnostic
             diagnostics += PrakriyaDiagnostic(
-                offset = 0,
-                length = source.length.coerceAtLeast(1),
+                offset = semantic?.span?.start ?: 0,
+                length = semantic?.span?.let { it.endExclusive - it.start } ?: source.length.coerceAtLeast(1),
                 message = "Source contains invalid Sanskrit: ${error.message.orEmpty()}",
+                code = semantic?.code?.name ?: "INVALID_SOURCE",
+                offendingText = semantic?.offendingText.orEmpty(),
             )
             return diagnostics
         }
@@ -183,28 +193,53 @@ object PrakriyaScriptValidator {
                 analyzedArgumentTypes = argumentTypes,
             ) } catch (failure: IllegalArgumentException) {
                 diagnostics += diagnostic(source, stage.operationStem,
-                    failure.message ?: "Invalid pipeline type evidence.")
+                    PipelineSemanticDiagnostics.atPipeline(
+                        pipeline,
+                        "INVALID_PIPELINE_TYPE_EVIDENCE",
+                        failure.message ?: "Invalid pipeline type evidence.",
+                    ))
                 return
             } ?: return@forEach
+            invocation.resolutionError?.let { message ->
+                diagnostics += diagnostic(source, stage.operationStem,
+                    PipelineSemanticDiagnostics.atPipeline(
+                        pipeline, "AMBIGUOUS_PIPELINE_STAGE", message))
+                return
+            }
             val signature = invocation.kriya.signature
             if (signature.parameters.isNotEmpty()) {
                 if (signature.parameters.size != arguments.size) {
-                    diagnostics += diagnostic(
-                        source,
-                        stage.operationStem,
-                        PrakriyaDiagnostics.arity(stage.operationStem, signature.parameters.size, arguments.size),
-                    )
+                    diagnostics += diagnostic(source, stage.operationStem,
+                        PipelineSemanticDiagnostics.atPipeline(
+                            pipeline,
+                            "PROCEDURE_ARITY_MISMATCH",
+                            PrakriyaDiagnostics.arity(
+                                stage.operationStem, signature.parameters.size, arguments.size),
+                        ))
                 } else {
                     if (signature.hasTypedParticipants && !TypedParticipantBinding.acceptsTypes(
                             signature.parameters.map { it.type }, argumentTypes)) {
-                        diagnostics += diagnostic(source, stage.operationStem, "Procedure typed participant mismatch.")
+                        diagnostics += diagnostic(source, stage.operationStem,
+                            PipelineSemanticDiagnostics.atPipeline(
+                                pipeline,
+                                "PROCEDURE_PARTICIPANT_TYPE_MISMATCH",
+                                "Procedure typed participant mismatch.",
+                            ))
                     }
-                    signature.parameters.zip(argumentTypes).takeUnless { signature.hasTypedParticipants }.orEmpty().firstOrNull { (parameter, actual) ->
+                    signature.parameters.zip(argumentTypes).takeUnless { signature.hasTypedParticipants }
+                        .orEmpty().withIndex().firstOrNull { (_, pair) ->
+                        val (parameter, actual) = pair
                         parameter.type != PrakriyaValueType.UNCONSTRAINED &&
                             actual != PrakriyaValueType.UNCONSTRAINED && parameter.type != actual
-                    }?.let { (parameter, actual) ->
+                    }?.let { mismatch ->
+                        val (parameter, actual) = mismatch.value
                         diagnostics += diagnostic(source, stage.operationStem,
-                            "Pipeline type mismatch: ${parameter.type} cannot consume $actual for '${parameter.nameStem}'.")
+                            PipelineSemanticDiagnostics.atPipeline(
+                                pipeline,
+                                "PIPELINE_ARGUMENT_TYPE_MISMATCH",
+                                "Pipeline type mismatch: ${parameter.type} cannot consume $actual for '${parameter.nameStem}'.",
+                                mismatch.index,
+                            ))
                     }
                 }
             }
@@ -225,25 +260,39 @@ object PrakriyaScriptValidator {
         diagnostics: MutableList<PrakriyaDiagnostic>,
         knownOperationStems: Set<String>,
     ) {
-        invocation.resolutionError?.let {
-            diagnostics += diagnostic(source, invocation.kriya.nameStem, it)
+        invocation.resolutionError?.let { message ->
+            diagnostics += diagnostic(source, invocation.kriya.nameStem,
+                PrakriyaCallDiagnostics.atInvocation(
+                    invocation, "AMBIGUOUS_PROCEDURE_OVERLOAD", message))
             return
         }
         val signature = invocation.kriya.signature
         val callName = invocation.kriya.nameStem
         val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation, knownOperationStems)
         if (resolution is PrakriyaArgumentResolution.Failure) {
-            diagnostics += diagnostic(source, callName, resolution.message)
+            val semantic = resolution.diagnostic
+            diagnostics += semantic.span?.let { span ->
+                PrakriyaDiagnostic(
+                    offset = span.start,
+                    length = (span.endExclusive - span.start).coerceAtLeast(1),
+                    message = semantic.message,
+                    code = semantic.code,
+                    offendingText = semantic.offendingText,
+                )
+            } ?: diagnostic(source, callName, semantic.message).copy(
+                code = semantic.code,
+                offendingText = semantic.offendingText,
+            )
             return
         }
         if (signature.parameters.isEmpty()) return
         val arguments = (resolution as PrakriyaArgumentResolution.Success).arguments
         if (arguments.size != signature.parameters.size) {
-            diagnostics += diagnostic(
-                source,
-                callName,
+            diagnostics += diagnostic(source, callName, PrakriyaCallDiagnostics.atInvocation(
+                invocation,
+                "PROCEDURE_ARITY_MISMATCH",
                 PrakriyaDiagnostics.arity(callName, signature.parameters.size, arguments.size),
-            )
+            ))
             return
         }
         if (signature.hasTypedParticipants) {
@@ -253,17 +302,28 @@ object PrakriyaScriptValidator {
                     ?: PrakriyaValueType.UNCONSTRAINED
             }
             if (!TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, types))
-                diagnostics += diagnostic(source, callName, "Procedure typed participant mismatch.")
+                diagnostics += diagnostic(source, callName, PrakriyaCallDiagnostics.atInvocation(
+                    invocation,
+                    "PROCEDURE_PARTICIPANT_TYPE_MISMATCH",
+                    "Procedure typed participant mismatch.",
+                ))
             return
         }
-        signature.parameters.zip(arguments).firstOrNull { (parameter, argument) ->
+        signature.parameters.zip(arguments).withIndex().firstOrNull { (_, pair) ->
+            val (parameter, argument) = pair
             val actual = argument.argument.value?.let(PrakriyaValueClassifier::classifyValue)
                 ?: argument.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
                 ?: PrakriyaValueType.UNCONSTRAINED
             parameter.type != PrakriyaValueType.UNCONSTRAINED &&
                 actual != PrakriyaValueType.UNCONSTRAINED && parameter.type != actual
-        }?.let { (parameter, _) ->
-            diagnostics += diagnostic(source, callName, PrakriyaDiagnostics.parameterType(parameter))
+        }?.let { mismatch ->
+            val parameter = mismatch.value.first
+            diagnostics += diagnostic(source, callName, PrakriyaCallDiagnostics.atInvocation(
+                invocation,
+                "PROCEDURE_ARGUMENT_TYPE_MISMATCH",
+                PrakriyaDiagnostics.parameterType(parameter),
+                mismatch.index,
+            ))
         }
     }
 
@@ -295,4 +355,21 @@ object PrakriyaScriptValidator {
         val offset = source.indexOf(token).coerceAtLeast(0)
         return PrakriyaDiagnostic(offset, token.length.coerceAtLeast(1), message)
     }
+
+    private fun diagnostic(
+        source: String,
+        token: String,
+        semantic: SemanticDiagnostic<String>,
+    ): PrakriyaDiagnostic = semantic.span?.let { span ->
+        PrakriyaDiagnostic(
+            offset = span.start,
+            length = (span.endExclusive - span.start).coerceAtLeast(1),
+            message = semantic.message,
+            code = semantic.code,
+            offendingText = semantic.offendingText,
+        )
+    } ?: diagnostic(source, token, semantic.message).copy(
+        code = semantic.code,
+        offendingText = semantic.offendingText,
+    )
 }

@@ -78,7 +78,29 @@ internal object CompilerFrontend {
     }
 
     internal fun lowerModule(descriptor: PaniniModuleDescriptor, className: String,
-        parseSource: (String) -> List<PvmScriptStatement> = PvmScript::parse): CompilerProgram {
+        parseSource: (String) -> List<PvmScriptStatement> = PvmScript::parse): CompilerProgram =
+        try {
+            lowerModuleUnchecked(descriptor, className, parseSource)
+        } catch (error: dev.panini.execution.PvmSemanticException) {
+            throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.REPETITION,
+                error.diagnostic.offendingText,
+                "${error.diagnostic.code}: ${error.diagnostic.message}",
+                error.diagnostic,
+            )
+        } catch (error: dev.panini.vyakaranam.parser.PaniniSemanticException) {
+            val diagnostic = dev.panini.execution.ExecutionDiagnostic.from(error.diagnostic)
+            throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.REPETITION,
+                diagnostic.offendingText,
+                "${diagnostic.code}: ${diagnostic.message}",
+                diagnostic,
+            )
+        }
+
+    /** Keeps semantic failures from every lowering phase behind the compiler diagnostic boundary. */
+    private fun lowerModuleUnchecked(descriptor: PaniniModuleDescriptor, className: String,
+        parseSource: (String) -> List<PvmScriptStatement>): CompilerProgram {
         val analyzed = PaniniModuleAnalyzer.analyze(descriptor, parseSource)
         val registry = PrakriyaRegistry()
         val methodsByProcedure = mutableMapOf<Prakriya, ProcedureTarget>()
@@ -219,10 +241,20 @@ internal object CompilerFrontend {
         }
 
         private fun resolveAnaphors(node: Invocation): Invocation =
-            dev.panini.execution.AnaphoricOperandProjection.project(node, referents,
+            when (val analysis = dev.panini.execution.AnaphoricOperandProjection.analyze(node, referents,
                 protectedPadas = dev.panini.execution.PrakriyaAstArgumentBinder.protectedParameterPadas(
                     node.vakya.padas, registry.all().mapTo(mutableSetOf()) { it.nameStem }),
-                referenceName = { it }).invocation
+                referenceName = { it })) {
+                is dev.panini.execution.AnaphoricOperandProjection.Analysis.Resolved ->
+                    analysis.projection.invocation
+                is dev.panini.execution.AnaphoricOperandProjection.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION,
+                        normalized(render(node)),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
         fun lowerProcedureSentence(node: ProgramNode, source: String, parameters: List<PrakriyaParameter>): List<CompilerInstruction> {
             val bound = dev.panini.execution.PrakriyaAstArgumentBinder.bind(node, parameters,
                 parameters.size, registry.all().mapTo(mutableSetOf()) { it.nameStem })
@@ -261,15 +293,30 @@ internal object CompilerFrontend {
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> = when (node) {
             is Invocation -> if (dev.panini.execution.NaturalScriptStop.matches(node)) {
-                require(!inProcedure) { "विरम is a top-level script stop; use a procedure result inside a प्रक्रिया." }
+                dev.panini.execution.NaturalScriptStop.contextDiagnostic(node, inProcedure)?.let { diagnostic ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.PROCEDURE,
+                        render(node),
+                        "${diagnostic.code}: ${diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                    )
+                }
                 listOf(CompilerInstruction.HaltScript)
             } else if (loopDepth > 0 && dev.panini.execution.NaturalLoopStop.matches(node)) {
                 listOf(CompilerInstruction.RequestBreak)
             } else lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
             is Pipeline -> lowerPipeline(node)
-            is Quotation -> dev.panini.execution.ListDeclarationLowering.expand(node)
-                ?.let { lowerSequence(it, null) } ?: lowerPlannedNode(node)
+            is Quotation -> when (val analysis = dev.panini.execution.ListDeclarationLowering.analyze(node)) {
+                dev.panini.execution.ListDeclarationLowering.Analysis.NotDeclaration -> lowerPlannedNode(node)
+                is dev.panini.execution.ListDeclarationLowering.Analysis.Resolved -> lowerSequence(analysis.sequence, null)
+                is dev.panini.execution.ListDeclarationLowering.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
             is Conditional -> lowerConditionalIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL, render(node), "Cannot lower conditional to compiler IR.",
             )
@@ -281,6 +328,7 @@ internal object CompilerFrontend {
                 CompilerUnsupportedKind.LOOP, render(node), "Cannot lower condition-controlled loop to compiler IR.",
             )
             is dev.panini.vyakaranam.ast.ForEach -> lowerForEach(node)
+            is dev.panini.vyakaranam.ast.CollectionRelativeAction -> lowerCollectionRelativeAction(node)
             is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> lowerQuantifiedCollectionPredicate(node)
             is PrakriyaNode -> node.body.flatMap { lower(it) }
             is Scope -> node.body.flatMap { lower(it) }
@@ -305,7 +353,8 @@ internal object CompilerFrontend {
                 } else if (statement is Invocation) {
                     if (dev.panini.execution.NaturalScriptStop.matches(statement)) lower(statement)
                     else lowerInvocation(statement, exactSource = null,
-                        piped = node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
+                        piped = node.boundaries.getOrNull(index - 1)?.resultFlow ==
+                            dev.panini.vyakaranam.ast.SequenceResultFlow.PREVIOUS_RESULT)
                 } else {
                     lower(statement)
                 }
@@ -329,15 +378,34 @@ internal object CompilerFrontend {
             piped: Boolean = false,
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
+            when (val analysis = dev.panini.execution.CopularAgreement.analyze(node)) {
+                dev.panini.execution.CopularAgreement.Analysis.Valid -> Unit
+                is dev.panini.execution.CopularAgreement.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
             if (piped && dev.panini.execution.PriorResultInjection.hasExplicitDisplayObject(node))
                 return lowerInvocation(node, exactSource, piped = false, allowDirectStore = allowDirectStore)
             val anaphoric = resolveAnaphors(node)
             if (anaphoric != node) return lowerInvocation(anaphoric, null, piped, allowDirectStore)
-            if (inProcedure) dev.panini.execution.ProcedureResultStatement.resolve(node,
-                roleShadowed = resultRoleShadowed || referents.any { it.identity == "फल" })?.let { result ->
-                val value = dev.panini.execution.NominalResultSemantics.operand(result.value)
-                return listOf(lowerSemanticOperand(value.semantic, value.fallback),
-                    CompilerInstruction.RequestProcedureReturn)
+            if (inProcedure) when (val analysis = dev.panini.execution.ProcedureResultStatement.analyze(node,
+                roleShadowed = resultRoleShadowed || referents.any { it.identity == "फल" })) {
+                dev.panini.execution.ProcedureResultStatement.Analysis.NotResult -> Unit
+                is dev.panini.execution.ProcedureResultStatement.Analysis.Resolved -> {
+                    val value = dev.panini.execution.NominalResultSemantics.operand(analysis.relation.value)
+                    return listOf(lowerSemanticOperand(value.semantic, value.fallback),
+                        CompilerInstruction.RequestProcedureReturn)
+                }
+                is dev.panini.execution.ProcedureResultStatement.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.PROCEDURE,
+                        render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
             }
             node.implicitValuePada?.let { return lowerNominalResult(it) }
             if (node.vakya.padas.any { it is dev.panini.vyakaranam.ast.SamuccitaSubanta }) {
@@ -365,10 +433,38 @@ internal object CompilerFrontend {
                 }
                 addAll(lowerInvocation(attributeProjection.invocation, null, piped, allowDirectStore))
             }
-            dev.panini.execution.CollectionMemberMorphology.validate(node)
-            dev.panini.execution.ListDeclarationLowering.expand(node)?.let { return lowerSequence(it, null) }
-            dev.panini.execution.OrdinalObjectLowering.expand(node)?.let { return lowerSequence(it, null) }
-            dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
+            when (val analysis = dev.panini.execution.CollectionMemberMorphology.analyze(node)) {
+                dev.panini.execution.CollectionMemberMorphology.Analysis.Valid -> Unit
+                is dev.panini.execution.CollectionMemberMorphology.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
+            when (val analysis = dev.panini.execution.ListDeclarationLowering.analyze(node)) {
+                dev.panini.execution.ListDeclarationLowering.Analysis.NotDeclaration -> Unit
+                is dev.panini.execution.ListDeclarationLowering.Analysis.Resolved ->
+                    return lowerSequence(analysis.sequence, null)
+                is dev.panini.execution.ListDeclarationLowering.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
+            when (val analysis = dev.panini.execution.OrdinalObjectLowering.analyze(node)) {
+                dev.panini.execution.OrdinalObjectLowering.Analysis.NotOrdinalObject -> Unit
+                is dev.panini.execution.OrdinalObjectLowering.Analysis.Resolved ->
+                    return lowerSequence(analysis.sequence, null)
+                is dev.panini.execution.OrdinalObjectLowering.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
+            lowerPriorAction(node)?.let { return it }
             lowerKarakaHistoryInvocation(node)?.let { return withActionIdentity(it, node) }
             rejectUnsupportedKarakaHistory(node)
             val rendered = exactSource ?: render(node)
@@ -381,7 +477,14 @@ internal object CompilerFrontend {
                 }?.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika
             }
             val namedReferences = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
-            require(namedReferences.all { it.orderingAgrees }) { "The ordering qualifier and फल must agree in case and number." }
+            dev.panini.execution.binding.NamedActionResultReferenceResolver.agreementDiagnostic(namedReferences)?.let { diagnostic ->
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.INVOCATION,
+                    rendered,
+                    "${diagnostic.code}: ${diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                )
+            }
             if (namedReferences.isNotEmpty()) {
                 val (projected, loads) = projectNamedHistoryOperands(node, namedReferences)
                 // Explicit result operands already satisfy the original prior-result
@@ -441,6 +544,7 @@ internal object CompilerFrontend {
                     val index = references.indexOfFirst { it.result === pada }
                     if (index < 0) pada else references[index].result.copy(
                         pratipadika = MulaPratipadika(names[index], names[index]))
+                        .inheritLocation(references[index].result)
                 }
             val vakya = when (val original = node.vakya) {
                 is AkhyataVakya -> original.copy(padas = padas)
@@ -498,7 +602,16 @@ internal object CompilerFrontend {
         private fun lowerProcedureInvocation(
             invocation: dev.panini.execution.PrakriyaInvocation,
         ): List<CompilerInstruction>? {
-            require(invocation.resolutionError == null) { invocation.resolutionError.orEmpty() }
+            invocation.resolutionError?.let { message ->
+                val diagnostic = dev.panini.execution.PrakriyaCallDiagnostics.atInvocation(
+                    invocation, "AMBIGUOUS_PROCEDURE_OVERLOAD", message)
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.PROCEDURE,
+                    invocation.fullText,
+                    "${diagnostic.code}: ${diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                )
+            }
             val target = methodsByProcedure[invocation.kriya] ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }
@@ -521,8 +634,21 @@ internal object CompilerFrontend {
                         add(CompilerInstruction.CheckNumericProhibition)
                     }
                 }
-                add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds,
-                    typedParticipants = signature.hasTypedParticipants))
+                val argumentDiagnostics = signature.parameters.mapIndexed { index, parameter ->
+                    val diagnostic = dev.panini.execution.PrakriyaCallDiagnostics.atInvocation(
+                        invocation,
+                        "PROCEDURE_ARGUMENT_TYPE_MISMATCH",
+                        dev.panini.execution.PrakriyaDiagnostics.parameterType(parameter),
+                        index,
+                    )
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic)
+                }
+                add(CompilerInstruction.EnterFrame(
+                    parameterNames,
+                    parameterKinds,
+                    typedParticipants = signature.hasTypedParticipants,
+                    argumentDiagnostics = argumentDiagnostics,
+                ))
                 add(when (target) {
                     is ProcedureTarget.Local -> CompilerInstruction.InvokeProcedure(
                         target.methodName,
@@ -564,6 +690,16 @@ internal object CompilerFrontend {
         }
 
         private fun lowerPipeline(node: Pipeline): List<CompilerInstruction> = buildList {
+            fun pipelineFailure(code: String, message: String, argumentIndex: Int? = null): Nothing {
+                val diagnostic = dev.panini.execution.PipelineSemanticDiagnostics.atPipeline(
+                    node, code, message, argumentIndex)
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.PIPELINE,
+                    node.sourceText,
+                    "${diagnostic.code}: ${diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                )
+            }
             val originalArguments = node.arguments.mapIndexed { index, term ->
                 dev.panini.execution.PrakriyaArgument(term, pada = node.argumentPadas.getOrNull(index),
                     origin = dev.panini.execution.PrakriyaArgumentOrigin.WRITTEN)
@@ -585,14 +721,20 @@ internal object CompilerFrontend {
                         node.sourceText,
                         "Missing signature for pipeline stage '${stage.operationStem}'.",
                     )
-                require(invocation.resolutionError == null) { invocation.resolutionError.orEmpty() }
+                invocation.resolutionError?.let {
+                    pipelineFailure("AMBIGUOUS_PIPELINE_STAGE", it)
+                }
                 val kriya = invocation.kriya
                 val target = methodsByProcedure[kriya] ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.PIPELINE, node.sourceText,
                     "Unknown compiled pipeline stage '${stage.operationStem}'.")
                 val parameters = kriya.signature.parameters
-                require(parameters.isEmpty() || parameters.size == arguments.size) {
-                    dev.panini.execution.PrakriyaDiagnostics.arity(stage.operationStem, parameters.size, arguments.size)
+                if (parameters.isNotEmpty() && parameters.size != arguments.size) {
+                    pipelineFailure(
+                        "PROCEDURE_ARITY_MISMATCH",
+                        dev.panini.execution.PrakriyaDiagnostics.arity(
+                            stage.operationStem, parameters.size, arguments.size),
+                    )
                 }
                 parameters.forEachIndexed { parameterIndex, _ ->
                     if (stageIndex > 0 && parameterIndex == 0) {
@@ -718,7 +860,7 @@ internal object CompilerFrontend {
                     else -> error("Expected a participant history load")
                 }
                 replacements[reference.referent] = reference.referent.copy(
-                    pratipadika = MulaPratipadika(name, name))
+                    pratipadika = MulaPratipadika(name, name)).inheritLocation(reference.referent)
             }
             val protected = dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(sentence.padas)
             val projected = node.copy(vakya = sentence.copy(padas = padas.mapNotNull { pada ->
@@ -920,6 +1062,15 @@ internal object CompilerFrontend {
         }
 
         private fun lowerResolvedCondition(node: Invocation): List<CompilerInstruction>? {
+            when (val analysis = dev.panini.execution.CopularAgreement.analyze(node)) {
+                dev.panini.execution.CopularAgreement.Analysis.Valid -> Unit
+                is dev.panini.execution.CopularAgreement.Analysis.Invalid ->
+                    throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.CONDITIONAL, render(node),
+                        "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                        dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                    )
+            }
             val anaphoric = resolveAnaphors(node)
             if (anaphoric != node) return lowerResolvedCondition(anaphoric)
             val projection = dev.panini.execution.AttributeOperandProjection.project(
@@ -942,7 +1093,14 @@ internal object CompilerFrontend {
             }
             rejectUnsupportedKarakaHistory(node)
             val references = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
-            require(references.all { it.orderingAgrees }) { "The ordering qualifier and फल must agree in case and number." }
+            dev.panini.execution.binding.NamedActionResultReferenceResolver.agreementDiagnostic(references)?.let { diagnostic ->
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.CONDITIONAL,
+                    render(node),
+                    "${diagnostic.code}: ${diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                )
+            }
             if (references.isNotEmpty()) {
                 val (projected, loads) = projectNamedHistoryOperands(node, references)
                 return loads + (lowerResolvedCondition(projected) ?: return null) + CompilerInstruction.ExitFrame
@@ -954,7 +1112,7 @@ internal object CompilerFrontend {
 
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
-                dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
+                lowerPriorAction(node)?.let { return it }
                 if (node.implicitValuePada != null) {
                     lowerNominalResult(requireNotNull(resolveAnaphors(node).implicitValuePada))
                 } else if (node.vakya.padas.none { it is TingantaPada }) {
@@ -1007,8 +1165,23 @@ internal object CompilerFrontend {
             is Repeat -> lowerRepeatIr(node)
             is WhileLoop -> lowerWhileIr(node)
             is dev.panini.vyakaranam.ast.ForEach -> lowerForEach(node)
+            is dev.panini.vyakaranam.ast.CollectionRelativeAction -> lowerCollectionRelativeAction(node)
             is dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate -> lowerQuantifiedCollectionPredicate(node)
             is Pipeline, is Quotation -> null
+        }
+
+        private fun lowerPriorAction(node: Invocation): List<CompilerInstruction>? = when (
+            val analysis = dev.panini.execution.PriorActionLowering.analyze(node)
+        ) {
+            dev.panini.execution.PriorActionLowering.Analysis.NotPriorAction -> null
+            is dev.panini.execution.PriorActionLowering.Analysis.Resolved ->
+                lowerSequence(analysis.sequence, null)
+            is dev.panini.execution.PriorActionLowering.Analysis.Invalid ->
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.INVOCATION, render(node),
+                    "${analysis.diagnostic.code}: ${analysis.diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(analysis.diagnostic),
+                )
         }
 
         private fun lowerRecurrenceIr(node: Recurrence): List<CompilerInstruction> {
@@ -1219,6 +1392,59 @@ internal object CompilerFrontend {
             }
         }
 
+        /**
+         * Projects the typed relative operand onto private IR bindings. These names never enter
+         * the parsed/source AST and exist only long enough for the ordinary collection-loop IR.
+         */
+        private fun lowerCollectionRelativeAction(
+            node: dev.panini.vyakaranam.ast.CollectionRelativeAction,
+        ): List<CompilerInstruction> {
+            val suffix = nextLabel++
+            fun privatePada(template: SubantaPada, name: String) = template.copy(
+                sourceText = "$name + अम्",
+                pratipadika = MulaPratipadika(name, name),
+                sup = dev.panini.vyakaranam.ast.SupPratyaya("अम्", "अम्"),
+            ).inheritLocation(template)
+            val current = privatePada(node.member, "__relative_current_$suffix")
+            val relative = privatePada(node.operand.memberType, "__relative_value_$suffix")
+            val action = Invocation(AkhyataVakya(
+                node.action.sourceText,
+                listOf(current, relative, node.action),
+                node.action,
+            ))
+            val body = node.continuation?.let {
+                Sequence(node.sourceText, listOf(action, it), listOf(SequenceConnector.ANANTARYA.surface))
+            } ?: action
+            val outerBody: ProgramNode
+            val selectionBinding: SubantaPada
+            if (node.operand.cardinality == dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS) {
+                val relatives = privatePada(node.operand.memberType, "__relative_values_$suffix")
+                selectionBinding = relatives
+                outerBody = dev.panini.vyakaranam.ast.ForEach(
+                    sourceText = node.sourceText,
+                    collection = relatives,
+                    member = relative,
+                    body = body,
+                )
+            } else {
+                selectionBinding = relative
+                outerBody = body
+            }
+            return lowerForEach(dev.panini.vyakaranam.ast.ForEach(
+                sourceText = node.sourceText,
+                collection = node.collection,
+                member = current,
+                body = outerBody,
+                quantifier = node.quantifier,
+                relativeSelections = listOf(dev.panini.vyakaranam.ast.CollectionRelativeSelection(
+                    node.operand.direction,
+                    node.operand.cardinality,
+                    selectionBinding,
+                    node.operand.relative,
+                )),
+            ))
+        }
+
         private fun lowerQuantifiedCollectionPredicate(
             node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
         ): List<CompilerInstruction> {
@@ -1312,20 +1538,38 @@ internal object CompilerFrontend {
         private fun resolveArguments(
             invocation: dev.panini.execution.PrakriyaInvocation,
         ): List<ResolvedPrakriyaArgument> {
+            fun semanticFailure(code: String, message: String, argumentIndex: Int? = null): Nothing {
+                val diagnostic = dev.panini.execution.PrakriyaCallDiagnostics.atInvocation(
+                    invocation, code, message, argumentIndex)
+                throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.PROCEDURE,
+                    invocation.fullText,
+                    "${diagnostic.code}: ${diagnostic.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(diagnostic),
+                )
+            }
             val signature = invocation.kriya.signature
             val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
                 registry.all().mapTo(mutableSetOf()) { it.nameStem })
             val resolvedArguments = when (resolution) {
                 is PrakriyaArgumentResolution.Success -> resolution.arguments
-                is PrakriyaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
+                is PrakriyaArgumentResolution.Failure -> throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.PROCEDURE,
+                    invocation.fullText,
+                    "${resolution.diagnostic.code}: ${resolution.message}",
+                    dev.panini.execution.ExecutionDiagnostic.from(resolution.diagnostic),
+                )
             }
             val arguments = resolvedArguments.map { it.argument.term }
             val acceptsCollection = signature.parameters.singleOrNull()?.type == PrakriyaValueType.SUCHI
-            require(signature.parameters.size == arguments.size || signature.parameters.isEmpty()) {
-                dev.panini.execution.PrakriyaDiagnostics.arity(
+            if (signature.parameters.size != arguments.size && signature.parameters.isNotEmpty()) {
+                semanticFailure(
+                    "PROCEDURE_ARITY_MISMATCH",
+                    dev.panini.execution.PrakriyaDiagnostics.arity(
                     invocation.kriya.nameStem,
                     signature.parameters.size,
                     arguments.size,
+                    ),
                 )
             }
             if (signature.hasTypedParticipants) {
@@ -1334,8 +1578,11 @@ internal object CompilerFrontend {
                         ?: resolved.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
                         ?: PrakriyaValueType.UNCONSTRAINED
                 }
-                require(dev.panini.execution.TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, actual)) {
-                    "Procedure typed participant mismatch: expected ${signature.parameters.map { it.type }}, received $actual."
+                if (!dev.panini.execution.TypedParticipantBinding.acceptsTypes(signature.parameters.map { it.type }, actual)) {
+                    semanticFailure(
+                        "PROCEDURE_PARTICIPANT_TYPE_MISMATCH",
+                        "Procedure typed participant mismatch: expected ${signature.parameters.map { it.type }}, received $actual.",
+                    )
                 }
             }
             signature.parameters.zip(arguments).takeUnless { acceptsCollection || signature.hasTypedParticipants }.orEmpty()
@@ -1348,16 +1595,23 @@ internal object CompilerFrontend {
                 val actual = suppliedValue?.let(PrakriyaValueClassifier::classifyValue)
                     ?: resolved.argument.pada?.let(PrakriyaValueClassifier::classifyStaticPada)
                         ?.takeUnless { it == PrakriyaValueType.UNCONSTRAINED }
-                require(parameter.type == PrakriyaValueType.UNCONSTRAINED ||
-                    resolvedArguments[index].isPriorResult || actual == null || actual == parameter.type) {
-                    dev.panini.execution.PrakriyaDiagnostics.parameterType(parameter)
+                if (parameter.type != PrakriyaValueType.UNCONSTRAINED &&
+                    !resolvedArguments[index].isPriorResult && actual != null && actual != parameter.type) {
+                    semanticFailure(
+                        "PROCEDURE_ARGUMENT_TYPE_MISMATCH",
+                        dev.panini.execution.PrakriyaDiagnostics.parameterType(parameter),
+                        index,
+                    )
                 }
             }
             invocation.kriya.nishedhaGuards.forEach { guard ->
-                require(NishedhaGuardEvaluator.numericProhibition(guard, signature.parameters,
-                    resolvedArguments.size) != null ||
-                    dev.panini.execution.PrakriyaSignatureCompiler.inferGuardType(guard) != null) {
-                    "Unsupported procedure prohibition: '${guard.text.trim()}'"
+                if (NishedhaGuardEvaluator.numericProhibition(guard, signature.parameters,
+                    resolvedArguments.size) == null &&
+                    dev.panini.execution.PrakriyaSignatureCompiler.inferGuardType(guard) == null) {
+                    semanticFailure(
+                        "UNSUPPORTED_PROCEDURE_PROHIBITION",
+                        "Unsupported procedure prohibition: '${guard.text.trim()}'",
+                    )
                 }
                 val prohibited = NishedhaGuardEvaluator.isProhibitedResolved(
                     guard,
@@ -1376,8 +1630,11 @@ internal object CompilerFrontend {
                             signature.parameters.getOrNull(index)?.type != requiredType
                         } else actual != requiredType
                     }
-                require(!prohibited && !typeViolated) {
-                    "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'"
+                if (prohibited || typeViolated) {
+                    semanticFailure(
+                        "PROCEDURE_PROHIBITION_TRIGGERED",
+                        "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
+                    )
                 }
             }
             return resolvedArguments

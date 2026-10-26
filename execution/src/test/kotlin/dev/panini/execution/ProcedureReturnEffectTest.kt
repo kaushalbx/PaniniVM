@@ -4,6 +4,28 @@ import dev.panini.vyakaranam.ast.WhileLoop
 import kotlin.test.*
 
 class ProcedureReturnEffectTest {
+    @Test fun `loop condition propagates typed semantic failure without executing its body`() {
+        val statement = assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(
+            "यावत् मान + सुँ सत्य + टा सम + सुँ असँ + लट् + तिप् तावत् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).single())
+        val expected = ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "MISSING_ANTECEDENT: No compatible antecedent.",
+        )
+        var bodyCalls = 0
+        val results = PvmLoopExecutor().execute(PvmLoopExecutor.Request(
+            loop = assertIs<WhileLoop>(statement.program), scope = ExecutionScope(),
+            structStore = mutableMapOf(), structSchemas = emptyMap(), hostBudget = 2L,
+            executeNode = { _, _, _ -> bodyCalls++; emptyList() },
+            evaluateCondition = { _, _ -> error("Invalid condition must not be evaluated") },
+            resolveCondition = { PvmLoopExecutor.ConditionResolution.Invalid(expected) },
+            onResult = null,
+        ))
+
+        assertEquals(listOf(expected), results)
+        assertEquals(0, bodyCalls)
+    }
+
     @Test fun `return crosses reported-result loop without truth checking or loop completion`() {
         val statement = assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(
             "यावत् फल + सुँ न तावत् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।").single())

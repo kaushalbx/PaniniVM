@@ -18,10 +18,16 @@ class ProcedureArgumentMorphologyTest {
 
     @Test fun `unsupported case cannot disappear from positional procedure operands`() {
         for (ending in listOf("सुँ", "टा", "ङे", "ङसिँ", "भ्याम्", "भ्यस्")) {
-            val padas = PaniniParser().parse("राम + $ending एक + अम् ।")
+            val source = "राम + $ending एक + अम् ।"
+            val padas = PaniniParser().parse(source)
                 .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>()
-            assertIs<PrakriyaArgumentResolution.Failure>(
+            val failure = assertIs<PrakriyaArgumentResolution.Failure>(
                 NamedPrakriyaArgumentResolver.resolve(padas, PrakriyaSignature()), ending)
+            assertEquals("UNSUPPORTED_ARGUMENT_MORPHOLOGY", failure.diagnostic.code)
+            assertEquals(padas.first().sourceText, failure.diagnostic.offendingText)
+            val span = assertNotNull(failure.diagnostic.span)
+            assertEquals(padas.first().sourceText,
+                source.substring(span.start, span.endExclusive).replace(" ", ""))
         }
     }
 

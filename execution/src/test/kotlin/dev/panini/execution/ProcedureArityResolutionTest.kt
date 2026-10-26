@@ -19,5 +19,6 @@ class ProcedureArityResolutionTest {
         )
         val failure = assertIs<PrakriyaArgumentResolution.Failure>(PrakriyaInvocationArgumentResolver.resolve(invocation))
         assertTrue(failure.message.contains("1 मानानि अपेक्षितानि, 2 प्राप्तानि"), failure.message)
+        assertEquals("PROCEDURE_ARITY_MISMATCH", failure.diagnostic.code)
     }
 }

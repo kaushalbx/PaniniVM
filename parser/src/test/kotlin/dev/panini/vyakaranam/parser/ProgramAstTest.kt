@@ -2,6 +2,8 @@ package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.ConditionalRelation
+import dev.panini.vyakaranam.ast.CollectionRelativeAction
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
@@ -11,6 +13,7 @@ import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.vyakaranam.ast.relationSpan
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
@@ -624,23 +627,21 @@ class ProgramAstTest {
     }
 
     @Test
-    fun `direct relative action lowers tad uttara compound to typed pairwise iteration`() {
-        val loop = assertIs<ForEach>(parser.parse(
+    fun `direct relative action retains tad uttara as a typed semantic operand`() {
+        val action = assertIs<CollectionRelativeAction>(parser.parse(
             "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - उत्तर + टाप् + भिस् सङ्ख्या + भिस् " +
                 "युज् + णिच् + लोट् + सिप् ।",
         ).body)
 
-        val relative = loop.relativeSelections.single()
-        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT, relative.direction)
-        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS, relative.cardinality)
-        assertNotNull(loop.directRelativeAction)
-        assertIs<ForEach>(loop.body)
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeDirection.NEXT, action.operand.direction)
+        assertEquals(dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS, action.operand.cardinality)
+        assertTrue(action.operand.memberTypeWritten)
     }
 
     @Test
     fun `direct relative action derives previous direction from the compound`() {
-        val loop = assertIs<ForEach>(parser.parse(
+        val action = assertIs<CollectionRelativeAction>(parser.parse(
             "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - पूर्व + टाप् + भिस् सङ्ख्या + भिस् " +
                 "युज् + णिच् + लोट् + सिप् ।",
@@ -648,17 +649,17 @@ class ProgramAstTest {
 
         assertEquals(
             dev.panini.vyakaranam.ast.CollectionRelativeDirection.PREVIOUS,
-            loop.relativeSelections.single().direction,
+            action.operand.direction,
         )
         assertEquals(
             dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS,
-            loop.relativeSelections.single().cardinality,
+            action.operand.cardinality,
         )
     }
 
     @Test
     fun `direct singular relative action selects exactly the adjacent item`() {
-        val loop = assertIs<ForEach>(parser.parse(
+        val action = assertIs<CollectionRelativeAction>(parser.parse(
             "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + टा " +
                 "युज् + णिच् + लोट् + सिप् ।",
@@ -666,27 +667,42 @@ class ProgramAstTest {
 
         assertEquals(
             dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEM,
-            loop.relativeSelections.single().cardinality,
+            action.operand.cardinality,
         )
-        assertIs<Invocation>(loop.body)
+    }
+
+    @Test
+    fun `direct relative action safely infers an omitted repeated member noun`() {
+        val action = assertIs<CollectionRelativeAction>(parser.parse(
+            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "तद् + ङस् + लुक् - उत्तर + टाप् + भिस् " +
+                "युज् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals("सङ्ख्या", action.operand.memberType.pratipadika.semanticKey())
+        assertEquals(dev.panini.core.SupAffix.BHIS, action.operand.memberType.sup.affixCandidates.single())
+        assertTrue(!action.operand.memberTypeWritten)
     }
 
     @Test
     fun `direct relative action requires number and gender agreement`() {
-        assertFailsWith<IllegalArgumentException> {
-            parser.parse(
-                "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
-                    "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
-                    "युज् + णिच् + लोट् + सिप् ।",
-            )
-        }
-        val genderFailure = assertFailsWith<IllegalArgumentException> {
+        val numberSource = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
+            "युज् + णिच् + लोट् + सिप् ।"
+        val numberFailure = assertFailsWith<PaniniSemanticException> { parser.parse(numberSource) }
+        assertEquals(PaniniSemanticDiagnosticCode.RELATIVE_INSTRUMENTAL, numberFailure.diagnostic.code)
+        assertEquals("सङ्ख्या+भिस्", numberFailure.diagnostic.offendingText)
+        assertEquals(numberFailure.diagnostic.offendingText,
+            numberSource.substring(numberFailure.diagnostic.span.start, numberFailure.diagnostic.span.endExclusive)
+                .filterNot(Char::isWhitespace))
+        val genderFailure = assertFailsWith<PaniniSemanticException> {
             parser.parse(
                 "सूची + ङस् प्रत्येक + अम् फल + अम् " +
                     "तद् + ङस् + लुक् - उत्तर + टाप् + टा फल + टा " +
                     "युज् + णिच् + लोट् + सिप् ।",
             )
         }
+        assertEquals(PaniniSemanticDiagnosticCode.GENDER_MISMATCH, genderFailure.diagnostic.code)
         assertTrue(genderFailure.message.orEmpty().contains("gender"))
     }
 
@@ -781,5 +797,20 @@ class ProgramAstTest {
                     "गणित + ङस् वि + युज् + णिच् + ल्युट् + ङस् डुकृञ् + उ + लोट् + सिप् ।",
             )
         }
+    }
+
+    @Test
+    fun `finite action and complete relation retain source provenance outside semantic equality`() {
+        val source = "राम + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val invocation = assertIs<Invocation>(parser.parse(source).body)
+        val action = assertIs<AkhyataVakya>(invocation.vakya).tinganta
+        val actionSpan = assertNotNull(action.sourceSpan)
+
+        assertEquals("मुद्र् + णिच् + लोट् + सिप्",
+            source.substring(actionSpan.start, actionSpan.endExclusive))
+        assertEquals(source.substringBeforeLast(" ।"), invocation.relationSpan()?.let {
+            source.substring(it.start, it.endExclusive)
+        })
+        assertEquals(action, action.copy().locatedAt(DocumentSourceSpan(1, 2)))
     }
 }

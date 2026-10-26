@@ -22,10 +22,19 @@ class ProcedureResultStatementTest {
     }
 
     @Test fun `ambiguous results and incompatible finite number cannot finalize a procedure`() {
-        for (source in listOf(
-            "फल + सुँ शून्य + सुँ मान + सुँ असँ + लट् + तिप् ।",
-            "फल + सुँ शून्य + सुँ असँ + लट् + तस् ।",
-        )) assertFailsWith<IllegalArgumentException>(source) { ProcedureResultStatement.resolve(statement(source)) }
+        val cases = listOf(
+            "फल + सुँ शून्य + सुँ मान + सुँ असँ + लट् + तिप् ।" to "PROCEDURE_RESULT_CARDINALITY",
+            "फल + सुँ शून्य + सुँ असँ + लट् + तस् ।" to "PROCEDURE_RESULT_AGREEMENT",
+        )
+        for ((source, code) in cases) {
+            val invalid = assertIs<ProcedureResultStatement.Analysis.Invalid>(
+                ProcedureResultStatement.analyze(statement(source)), source)
+            assertEquals(code, invalid.diagnostic.code)
+            assertNotNull(invalid.diagnostic.span)
+            assertFailsWith<IllegalArgumentException>(source) {
+                ProcedureResultStatement.resolve(statement(source))
+            }
+        }
     }
 
     @Test fun `old give-back command is not a procedure return alias`() {

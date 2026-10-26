@@ -39,7 +39,8 @@ object PrakriyaAstArgumentBinder {
         val verb = padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
         if (verb != null && padas.filterIsInstance<dev.panini.vyakaranam.ast.SupBearingPada>().size == 2) {
             val text = padas.joinToString(" ") { it.sourceText }
-            ProcedureResultStatement.resolve(Invocation(AkhyataVakya(text, padas, verb)))?.value
+            (ProcedureResultStatement.analyze(Invocation(AkhyataVakya(text, padas, verb)))
+                as? ProcedureResultStatement.Analysis.Resolved)?.relation?.value
                 ?.takeIf { it is SankhyaPuranaPada }?.let(protected::add)
         }
         if (verb != null && knownOperationStems.isNotEmpty()) {
@@ -74,7 +75,7 @@ object PrakriyaAstArgumentBinder {
             return pada.copy(
                 sourceText = "$key + ${pada.sup.text}",
                 pratipadika = MulaPratipadika(key, key),
-            )
+            ).inheritLocation(pada)
         }
         fun reference(pada: SankhyaPuranaPada, index: Int): SubantaPada {
             val key = referenceKey(index)
@@ -156,6 +157,12 @@ object PrakriyaAstArgumentBinder {
                 return try { node.copy(collection = collection, body = transform(node.body)) }
                 finally { added.forEach(localNames::remove) }
             }
+            override fun visitCollectionRelativeAction(
+                node: dev.panini.vyakaranam.ast.CollectionRelativeAction,
+            ): ProgramNode = node.copy(
+                collection = bindPada(node.collection) as SubantaPada,
+                continuation = node.continuation?.let(::transform),
+            )
             override fun visitQuantifiedCollectionPredicate(
                 node: dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate,
             ): ProgramNode {

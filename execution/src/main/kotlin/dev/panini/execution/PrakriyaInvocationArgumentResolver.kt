@@ -8,18 +8,20 @@ object PrakriyaInvocationArgumentResolver {
     fun resolve(invocation: PrakriyaInvocation,
         knownOperationStems: Set<String> = emptySet()): PrakriyaArgumentResolution {
         if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) {
-            return PrakriyaArgumentResolution.Failure("The ordering qualifier and फल must agree in case and number.")
+            return failure(invocation, "RESULT_ORDERING_AGREEMENT",
+                "The ordering qualifier and फल must agree in case and number.")
         }
         val signature = invocation.kriya.signature
         val expectedParameters = try { signature.parameters.ifEmpty {
             PrakriyaSignatureCompiler.positionalParameters(invocation.kriya.body, signature.argumentType,
                 knownOperationStems)
         } } catch (failure: IllegalArgumentException) {
-            return PrakriyaArgumentResolution.Failure(failure.message ?: "Invalid procedure parameter morphology.")
+            return failure(invocation, "INVALID_PROCEDURE_SIGNATURE",
+                failure.message ?: "Invalid procedure parameter morphology.")
         }
         fun checked(result: PrakriyaArgumentResolution.Success): PrakriyaArgumentResolution =
             if (expectedParameters.isNotEmpty() && result.arguments.size != expectedParameters.size) {
-                PrakriyaArgumentResolution.Failure(PrakriyaDiagnostics.arity(
+                failure(invocation, "PROCEDURE_ARITY_MISMATCH", PrakriyaDiagnostics.arity(
                     invocation.kriya.nameStem, expectedParameters.size, result.arguments.size))
             } else result
         // Attach compatibility payloads before grammatical ordering changes source positions.
@@ -71,9 +73,22 @@ object PrakriyaInvocationArgumentResolver {
         }
         // Named ordering must consume every supplied operand, including piped values.
         // Otherwise an extra operand could disappear before the arity check.
-        if (remaining.isNotEmpty()) return PrakriyaArgumentResolution.Failure(
+        if (remaining.isNotEmpty()) return failure(
+            invocation,
+            "PROCEDURE_ARITY_MISMATCH",
             PrakriyaDiagnostics.arity(invocation.kriya.nameStem, expectedParameters.size,
-                resolved.size + remaining.size))
+                resolved.size + remaining.size),
+        )
         return checked(PrakriyaArgumentResolution.Success(resolved, resolution.named))
+    }
+
+    private fun failure(
+        invocation: PrakriyaInvocation,
+        code: String,
+        message: String,
+    ): PrakriyaArgumentResolution.Failure {
+        val diagnostic = PrakriyaCallDiagnostics.atInvocation(invocation, code, message)
+        return PrakriyaArgumentResolution.Failure(PrakriyaArgumentDiagnostic(
+            diagnostic.code, diagnostic.message, diagnostic.span, diagnostic.offendingText))
     }
 }

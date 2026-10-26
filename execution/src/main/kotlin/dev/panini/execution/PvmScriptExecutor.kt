@@ -14,6 +14,9 @@ import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.ast.CollectionQuantifier
+import dev.panini.vyakaranam.ast.CollectionRelativeAction
+import dev.panini.vyakaranam.ast.CollectionRelativeCardinality
+import dev.panini.vyakaranam.ast.CollectionRelativeDirection
 import dev.panini.vyakaranam.ast.QuantifiedCollectionPredicate
 import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.Ukti
@@ -51,7 +54,22 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
-        val parsed = parsedStatements ?: PvmScript.parse(scriptContent)
+        val parsed = try {
+            parsedStatements ?: PvmScript.parse(scriptContent)
+        } catch (error: PvmSemanticException) {
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                error.diagnostic.message,
+                diagnostic = error.diagnostic,
+            )).also { failures -> failures.forEach { onResult?.invoke(it) } }
+        } catch (error: dev.panini.vyakaranam.parser.PaniniSemanticException) {
+            val diagnostic = ExecutionDiagnostic.from(error.diagnostic)
+            return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                diagnostic.message,
+                diagnostic = diagnostic,
+            )).also { failures -> failures.forEach { onResult?.invoke(it) } }
+        }
         if (sourceFile != null) vm.executionMetrics.recordParsedFile()
         vm.executionMetrics.recordParsedSentences(parsed.sentenceCount())
 
@@ -76,7 +94,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
             val statement = item as? PvmScriptStatement.Sentence ?: continue
             val program = statement.program
-            when (val semantics = statement.semantics) {
+            try {
+                when (val semantics = statement.semantics) {
                 is PvmSentenceSemantics.SchemaDeclaration -> {
                     registry.registerSchema(semantics.schema)
                     structSchemas[semantics.schema.nameStem] = semantics.schema
@@ -119,6 +138,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     results += result
                     context.publish(result)
                 }
+                }
+            } catch (error: PvmSemanticException) {
+                val failure = ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    error.diagnostic.message,
+                    diagnostic = error.diagnostic,
+                )
+                results += failure
+                context.publish(failure)
             }
             val last = results.lastOrNull()
             if (last != null && (last !is ExecutionResult.Success ||
@@ -136,6 +164,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         return when (node) {
         is Invocation -> {
             if (NaturalScriptStop.matches(node)) {
+                NaturalScriptStop.contextDiagnostic(
+                    node,
+                    context.scope.procedureBindings?.hasProcedureOwner == true,
+                )?.let { diagnostic ->
+                    return listOf(ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        diagnostic.message,
+                        diagnostic = ExecutionDiagnostic.from(diagnostic),
+                    )).also(context::publish)
+                }
                 return listOf(ExecutionResult.Success(
                     value = "विरतम्",
                     operation = "pvm.natural-script-stop",
@@ -150,17 +188,22 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 )).also(context::publish)
             }
             if (!context.conditionEvaluation && context.scope.procedureBindings?.hasProcedureOwner == true) {
-                val bound = try { LocalAnaphorBinding.resolve(node, context.scope) }
-                    catch (failure: IllegalArgumentException) {
-                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                            failure.message ?: "Invalid procedure result.")).also(context::publish)
-                    }
-                val relation = try { ProcedureResultStatement.resolve(bound.invocation,
-                    roleShadowed = bound.scope.procedureBindings?.isDeclaredInProcedure("फल") == true) }
-                    catch (failure: IllegalArgumentException) {
-                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                            failure.message ?: "Invalid procedure result.")).also(context::publish)
-                    }
+                val bound = when (val analysis = LocalAnaphorBinding.analyze(node, context.scope)) {
+                    is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+                    is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
+                }
+                val relation = when (val analysis = ProcedureResultStatement.analyze(
+                    bound.invocation,
+                    roleShadowed = bound.scope.procedureBindings?.isDeclaredInProcedure("फल") == true,
+                )) {
+                    ProcedureResultStatement.Analysis.NotResult -> null
+                    is ProcedureResultStatement.Analysis.Resolved -> analysis.relation
+                    is ProcedureResultStatement.Analysis.Invalid -> return listOf(ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        analysis.diagnostic.message,
+                        diagnostic = ExecutionDiagnostic.from(analysis.diagnostic),
+                    )).also(context::publish)
+                }
                 if (relation != null) {
                     val value = try { NominalResultSemantics.operand(relation.value).resolve { name ->
                         bound.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
@@ -183,10 +226,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 return listOf(result)
             }
             node.implicitValuePada?.let { nominal ->
-                val bound = try { LocalAnaphorBinding.resolve(node, context.scope) }
-                catch (failure: IllegalArgumentException) {
-                    return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                        failure.message ?: "Unresolved nominal pronoun.")).also(context::publish)
+                val bound = when (val analysis = LocalAnaphorBinding.analyze(node, context.scope)) {
+                    is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+                    is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
                 }
                 val value = NominalResultSemantics.operand(bound.invocation.implicitValuePada ?: nominal).resolve { name ->
                     bound.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
@@ -195,12 +237,34 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 return listOf(ExecutionResult.Success(value.toDisplayText(), "pvm.nominal-result",
                     typedValue = value, conditionValue = (value as? SanskritValue.Satya)?.boolean)).also(context::publish)
             }
-            val expanded = try {
-                ListDeclarationLowering.expand(node) ?: OrdinalObjectLowering.expand(node) ?: PriorActionLowering.expand(node)
-            } catch (error: IllegalArgumentException) {
-                // Binding owns the public typed diagnostic for invalid morphology.
-                return executeEvaluatorNode(node, context)
+            val listExpansion = when (val analysis = ListDeclarationLowering.analyze(node)) {
+                ListDeclarationLowering.Analysis.NotDeclaration -> null
+                is ListDeclarationLowering.Analysis.Resolved -> analysis.sequence
+                is ListDeclarationLowering.Analysis.Invalid -> return listOf(ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    analysis.diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(analysis.diagnostic),
+                )).also(context::publish)
             }
+            val ordinalExpansion = when (val analysis = OrdinalObjectLowering.analyze(node)) {
+                OrdinalObjectLowering.Analysis.NotOrdinalObject -> null
+                is OrdinalObjectLowering.Analysis.Resolved -> analysis.sequence
+                is OrdinalObjectLowering.Analysis.Invalid -> return listOf(ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    analysis.diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(analysis.diagnostic),
+                )).also(context::publish)
+            }
+            val priorExpansion = when (val analysis = PriorActionLowering.analyze(node)) {
+                PriorActionLowering.Analysis.NotPriorAction -> null
+                is PriorActionLowering.Analysis.Resolved -> analysis.sequence
+                is PriorActionLowering.Analysis.Invalid -> return listOf(ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    analysis.diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(analysis.diagnostic),
+                )).also(context::publish)
+            }
+            val expanded = listExpansion ?: ordinalExpansion ?: priorExpansion
             expanded?.let { executeSequenceNode(it, context) } ?: executeInvocationNode(node, context)
         }
         is Sequence -> executeSequenceNode(node, context)
@@ -218,6 +282,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         is Recurrence -> executeRecurrence(node, context)
         is WhileLoop -> executeWhileLoop(node, context)
         is ForEach -> executeForEach(node, context)
+        is CollectionRelativeAction -> executeCollectionRelativeAction(node, context)
         is QuantifiedCollectionPredicate -> executeQuantifiedCollectionPredicate(node, context)
         is Pipeline -> PurvaparaPipelineEngine.executePipeline(
             node, vm, context.sessionKey, context.scope, context.speaker, context.listener,
@@ -225,8 +290,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             persistSession = context.persistSession,
         ).also(context::publish)
         is Quotation -> {
-            val expanded = try { ListDeclarationLowering.expand(node) }
-                catch (_: IllegalArgumentException) { return executeEvaluatorNode(node, context) }
+            val expanded = when (val analysis = ListDeclarationLowering.analyze(node)) {
+                ListDeclarationLowering.Analysis.NotDeclaration -> null
+                is ListDeclarationLowering.Analysis.Resolved -> analysis.sequence
+                is ListDeclarationLowering.Analysis.Invalid -> return listOf(ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    analysis.diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(analysis.diagnostic),
+                )).also(context::publish)
+            }
             expanded?.let { executeSequenceNode(it, context) } ?: executeEvaluatorNode(node, context)
         }
         is Prakriya -> executeBody(node.body, context)
@@ -302,11 +374,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         context: ExecutionContext,
     ): List<ExecutionResult> {
         val operations = context.registry.all().mapTo(mutableSetOf()) { it.nameStem }
-        val bound = try {
-            LocalAnaphorBinding.resolve(node, context.scope, operations)
-        } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Unresolved pronoun.")).also(context::publish)
+        val bound = when (val analysis = LocalAnaphorBinding.analyze(node, context.scope, operations)) {
+            is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+            is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
         }
         val resolved = structuredValueExecutor.resolveInvocation(bound.invocation, context.structStore,
             operations)
@@ -337,12 +407,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         context: ExecutionContext,
     ): List<ExecutionResult> {
         val condition = node.condition as? Invocation
-        val bound = try {
-            condition?.let { LocalAnaphorBinding.resolve(it, context.scope,
-                context.registry.all().mapTo(mutableSetOf()) { operation -> operation.nameStem }) }
-        } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Unresolved pronoun.")).also(context::publish)
+        val bound = condition?.let {
+            when (val analysis = LocalAnaphorBinding.analyze(it, context.scope,
+                context.registry.all().mapTo(mutableSetOf()) { operation -> operation.nameStem })) {
+                is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+                is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
+            }
         }
         val conditionContext = bound?.let { context.copy(scope = it.scope) } ?: context
         return conditionalExecutor.execute(
@@ -372,12 +442,20 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         it is ExecutionResult.Success && it.controlSignal != null
     }
 
+    private fun anaphorFailure(
+        diagnostic: LocalAnaphorBinding.Diagnostic,
+        context: ExecutionContext,
+    ): List<ExecutionResult> = listOf(ExecutionResult.Failure(
+        ExecutionError.INVALID_VALUE,
+        with(LocalAnaphorBinding) { diagnostic.render() },
+        diagnostic = with(LocalAnaphorBinding) { diagnostic.executionDiagnostic() },
+    )).also(context::publish)
+
     private fun executeForEach(loop: ForEach, context: ExecutionContext): List<ExecutionResult> {
         val whole = Invocation(dev.panini.vyakaranam.ast.NamaVakya(loop.collection.sourceText, listOf(loop.collection)))
-        val bound = try { LocalAnaphorBinding.resolve(whole, context.scope) }
-        catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Unresolved collection pronoun.")).also(context::publish)
+        val bound = when (val analysis = LocalAnaphorBinding.analyze(whole, context.scope)) {
+            is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+            is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
         }
         val source = (bound.invocation.vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada)
             .pratipadika.referenceKey()
@@ -461,6 +539,93 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
     }
 
+    /** Executes the grammatical relative operand directly; no source-visible binding is fabricated. */
+    private fun executeCollectionRelativeAction(
+        expression: CollectionRelativeAction,
+        context: ExecutionContext,
+    ): List<ExecutionResult> {
+        val whole = Invocation(dev.panini.vyakaranam.ast.NamaVakya(
+            expression.collection.sourceText,
+            listOf(expression.collection),
+        ))
+        val bound = when (val analysis = LocalAnaphorBinding.analyze(whole, context.scope)) {
+            is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+            is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
+        }
+        val source = (bound.invocation.vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada)
+            .pratipadika.referenceKey()
+        val collection = bound.scope.environment.values[source] ?: vm.runtimeValue(context.sessionKey, source)
+        val items = (collection as? SanskritValue.Suchi)?.items?.toList()
+            ?: return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "A collection-relative action requires a list: '$source'.",
+            )).also(context::publish)
+
+        val pairs = sequence {
+            for (currentIndex in items.indices) {
+                val relatives = when (expression.operand.direction) {
+                    CollectionRelativeDirection.NEXT ->
+                        if (expression.operand.cardinality == CollectionRelativeCardinality.ITEM)
+                            listOfNotNull(items.getOrNull(currentIndex + 1))
+                        else items.drop(currentIndex + 1)
+                    CollectionRelativeDirection.PREVIOUS ->
+                        if (expression.operand.cardinality == CollectionRelativeCardinality.ITEM)
+                            listOfNotNull(items.getOrNull(currentIndex - 1))
+                        else items.take(currentIndex)
+                }
+                relatives.forEach { yield(items[currentIndex] to it) }
+            }
+        }
+
+        return buildList {
+            for ((ordinal, pair) in pairs.withIndex()) {
+                val budget = vm.executionLimits.maxConditionIterations
+                if (budget != null && ordinal.toLong() >= budget) {
+                    val failure = ExecutionResult.Failure(
+                        ExecutionError.ACTION_FAILED,
+                        "Collection-relative action exhausted its host execution budget.",
+                    )
+                    add(failure); context.publish(failure); break
+                }
+                val operands = ExecutionExpression.Coordination(listOf(
+                    ExecutionExpression.TypedOperand(pair.first, dev.panini.core.SupAffix.AM),
+                    ExecutionExpression.TypedOperand(pair.second, dev.panini.core.SupAffix.AM),
+                ))
+                val actionResult = vm.evalParsed(
+                    Ukti(expression.action.sourceText, body = expression.actionInvocation()),
+                    context.sessionKey,
+                    bound.scope,
+                    context.speaker,
+                    context.listener,
+                    injectedBindings = mapOf(dev.panini.core.Karaka.KARMAN to operands),
+                    persistSession = context.persistSession,
+                ).let { result ->
+                    if (result is ExecutionResult.Failure) result.copy(
+                        message = "Collection-relative action '${expression.action.dhatu.mulaDhatu}' failed: ${result.message}",
+                    ) else result
+                }
+                add(actionResult); context.publish(actionResult)
+                if (actionResult !is ExecutionResult.Success) break
+
+                val continuation = expression.continuation ?: continue
+                val continued = executeProgramNode(
+                    continuation,
+                    context.copy(
+                        scope = bound.scope.copy(environment = bound.scope.environment.mergedWith(
+                            ValueEnvironment(mapOf(PIPE_OPERAND to
+                                (actionResult.typedValue ?: SanskritValue.of(actionResult.value)))),
+                        )),
+                        loopDepth = context.loopDepth + 1,
+                        injectedKarman = InjectedKarmanBinding(PIPE_OPERAND, actionResult.typedValue),
+                        onResult = { context.publish(it.consumeLoopBreak()) },
+                    ),
+                )
+                addAll(continued.map(ExecutionResult::consumeLoopBreak))
+                if (continued.hasControlSignal() || continued.any { it !is ExecutionResult.Success }) break
+            }
+        }
+    }
+
     private fun executeQuantifiedCollectionPredicate(
         expression: QuantifiedCollectionPredicate,
         context: ExecutionContext,
@@ -469,13 +634,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             expression.collection.sourceText,
             listOf(expression.collection),
         ))
-        val bound = try {
-            LocalAnaphorBinding.resolve(whole, context.scope)
-        } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                failure.message ?: "Unresolved quantified collection.",
-            )).also(context::publish)
+        val bound = when (val analysis = LocalAnaphorBinding.analyze(whole, context.scope)) {
+            is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+            is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
         }
         val source = (bound.invocation.vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada)
             .pratipadika.referenceKey()
@@ -620,10 +781,26 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 )
             },
             resolveCondition = {
-                val bound = LocalAnaphorBinding.resolve(it, context.scope,
-                    context.registry.all().mapTo(mutableSetOf()) { operation -> operation.nameStem })
-                structuredValueExecutor.resolveInvocation(bound.invocation, context.structStore)?.let { resolved ->
-                    resolved.copy(environment = bound.scope.environment.mergedWith(resolved.environment))
+                when (val analysis = LocalAnaphorBinding.analyze(it, context.scope,
+                    context.registry.all().mapTo(mutableSetOf()) { operation -> operation.nameStem })) {
+                    is LocalAnaphorBinding.Analysis.Invalid -> PvmLoopExecutor.ConditionResolution.Invalid(
+                        ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                            with(LocalAnaphorBinding) { analysis.diagnostic.render() },
+                            diagnostic = with(LocalAnaphorBinding) {
+                                analysis.diagnostic.executionDiagnostic()
+                            }),
+                    )
+                    is LocalAnaphorBinding.Analysis.Resolved -> {
+                        val bound = analysis.value
+                        structuredValueExecutor.resolveInvocation(bound.invocation, context.structStore)
+                            ?.let { resolved -> PvmLoopExecutor.ConditionResolution.Resolved(resolved.copy(
+                                environment = bound.scope.environment.mergedWith(resolved.environment),
+                            )) }
+                            ?: PvmLoopExecutor.ConditionResolution.Invalid(ExecutionResult.Failure(
+                                ExecutionError.INVALID_VALUE,
+                                "A structured attribute used by the loop condition could not be resolved.",
+                            ))
+                    }
                 }
             },
             resolveValue = { vm.runtimeValue(context.sessionKey, it) },

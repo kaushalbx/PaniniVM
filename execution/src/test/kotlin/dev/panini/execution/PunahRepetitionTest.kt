@@ -6,6 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class PunahRepetitionTest {
@@ -69,9 +70,23 @@ class PunahRepetitionTest {
 
     @Test
     fun `punah rejects a competing numeric repetition count`() {
+        val source = "पुनः त्रि + कृत्वसुच् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         val error = assertFailsWith<IllegalArgumentException> {
-            PvmScript.parse("पुनः त्रि + कृत्वसुच् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+            PvmScript.parse(source)
         }
         assertTrue(error.message.orEmpty().contains("either an explicit repetition count or पुनः"))
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("REPETITION_MARKER_CONFLICT", diagnostic.code)
+        assertNotNull(diagnostic.span)
+    }
+
+    @Test
+    fun `punah may qualify an action only once`() {
+        val source = "पुनः पुनः एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("REPEATED_PUNAH_MARKER", diagnostic.code)
+        assertNotNull(diagnostic.span)
     }
 }

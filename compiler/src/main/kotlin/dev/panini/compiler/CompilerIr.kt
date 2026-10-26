@@ -3,6 +3,7 @@ package dev.panini.compiler
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
+import dev.panini.execution.ExecutionDiagnostic
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.NaturalOperation
@@ -308,6 +309,7 @@ internal sealed interface CompilerInstruction {
         val parameterKinds: List<CompilerValueKind> = emptyList(),
         val scopedBinding: Boolean = false,
         val typedParticipants: Boolean = false,
+        val argumentDiagnostics: List<ExecutionDiagnostic?> = emptyList(),
     ) : CompilerInstruction
 
     data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction

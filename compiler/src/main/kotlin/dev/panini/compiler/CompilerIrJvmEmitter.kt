@@ -609,8 +609,16 @@ internal class CompilerIrJvmEmitter(
         call.parameterKinds.takeUnless { call.typedParticipants }.orEmpty().forEachIndexed { index, kind ->
             mv.visitVarInsn(ALOAD, values[index])
             mv.visitLdcInsn(kind.name)
+            val diagnostic = call.argumentDiagnostics.getOrNull(index)
+            mv.visitLdcInsn(diagnostic?.code.orEmpty())
+            mv.visitLdcInsn(diagnostic?.message.orEmpty())
+            mv.visitLdcInsn(diagnostic?.span?.start ?: -1)
+            mv.visitLdcInsn(diagnostic?.span?.endExclusive ?: -1)
+            mv.visitLdcInsn(diagnostic?.offendingText.orEmpty())
             mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
-                "requireArgumentKind", "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)V", false)
+                "requireArgumentKind",
+                "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/String;)V",
+                false)
         }
         emitStringArray(call.parameterNames)
         mv.visitVarInsn(ASTORE, parameterNames)

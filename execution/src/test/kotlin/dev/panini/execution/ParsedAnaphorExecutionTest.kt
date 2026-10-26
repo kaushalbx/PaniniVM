@@ -133,6 +133,14 @@ class ParsedAnaphorExecutionTest {
 
     @Test fun `AST entry point rejects absent antecedents`() {
         val result = PaniniVM().evalParsed(PaniniParser().parse("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।"))
-        assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
+        val failure = assertIs<ExecutionResult.Failure>(result)
+        assertEquals(ExecutionError.INVALID_VALUE, failure.error)
+        assertTrue(failure.message.startsWith("MISSING_ANTECEDENT:"), failure.message)
+        assertContains(failure.message, "at offsets 0..9")
+        assertContains(failure.message, "[तद्+अम्]")
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("MISSING_ANTECEDENT", diagnostic.code)
+        assertEquals(DocumentSourceSpan(0, 9), diagnostic.span)
+        assertEquals("तद्+अम्", diagnostic.offendingText)
     }
 }

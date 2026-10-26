@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SequenceConnector
+import dev.panini.vyakaranam.ast.SequenceResultFlow
 import dev.panini.vyakaranam.ast.Ukti
 
 /** Executes ततः sequences and carries typed results between their stages. */
@@ -32,7 +33,8 @@ internal class PvmSequenceExecutor {
         val hasNamedStage = try { node.statements.withIndex().any { (index, stage) ->
             stage is Invocation && registry.detectInvocation(
                 Ukti(sourceText = stage.sourceText, body = stage), callerSourceFile = sourceFile,
-                injectedKarman = if (index > 0 && node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
+                injectedKarman = if (index > 0 && node.boundaries.getOrNull(index - 1)?.resultFlow ==
+                    SequenceResultFlow.PREVIOUS_RESULT)
                     InjectedKarmanBinding(PIPE_OPERAND, null) else null) != null
         } } catch (failure: IllegalArgumentException) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
@@ -51,8 +53,9 @@ internal class PvmSequenceExecutor {
             } }
         }
         val hasReturnStage = node.statements.filterIsInstance<Invocation>().any { invocation ->
-            if (scope.procedureBindings?.hasProcedureOwner == true && ProcedureResultStatement.resolve(invocation,
-                    roleShadowed = scope.procedureBindings.isDeclaredInProcedure("फल")) != null) return@any true
+            if (scope.procedureBindings?.hasProcedureOwner == true && ProcedureResultStatement.analyze(invocation,
+                    roleShadowed = scope.procedureBindings.isDeclaredInProcedure("फल"))
+                    is ProcedureResultStatement.Analysis.Resolved) return@any true
             val head = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()
             val root = head?.let(dev.panini.execution.binding.DhatuCache::resolve)
             val features = head?.let { GrammaticalFeatures(it.upasargas.toSet(), it.dhatu.sanadiPratyayas.toSet(),
@@ -81,7 +84,7 @@ internal class PvmSequenceExecutor {
                     it.controlSignal != null }) break
             val invocation = stage as? Invocation
             stageResults = if (invocation != null && pipedValue != null &&
-                node.connectorKinds.getOrNull(index) == SequenceConnector.ANANTARYA) {
+                node.boundaries.getOrNull(index)?.resultFlow == SequenceResultFlow.PREVIOUS_RESULT) {
                 val stageScope = scope.copy(
                     environment = scope.environment.mergedWith(
                         ValueEnvironment(mapOf(PIPE_OPERAND to requireNotNull(pipedValue))),

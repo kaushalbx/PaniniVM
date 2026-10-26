@@ -3,8 +3,22 @@ package dev.panini.execution
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 
 class NaturalScriptStopTest {
+    @Test fun `script stop cannot escape from a procedure body`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वि + रम् + लोट् + सिप् ॥
+            परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("SCRIPT_STOP_IN_PROCEDURE", diagnostic.code)
+        assertNotNull(diagnostic.span)
+    }
+
     @Test
     fun `virama crosses nested loops and ends the script`() {
         val results = PaniniVM().evalScript(

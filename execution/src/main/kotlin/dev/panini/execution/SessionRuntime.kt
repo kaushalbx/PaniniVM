@@ -70,11 +70,14 @@ internal class SessionRuntime(
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
         persistSession: Boolean = true,
     ): ExecutionResult {
-        val bound = try { LocalAnaphorBinding.resolveLinear(ukti.body, scope,
-            scope.prakriyaRegistry?.all()?.mapTo(mutableSetOf()) { operation -> operation.nameStem }.orEmpty()) }
-        catch (failure: IllegalArgumentException) {
-            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Unresolved pronoun.")
+        val bound = when (val analysis = LocalAnaphorBinding.analyzeLinear(ukti.body, scope,
+            scope.prakriyaRegistry?.all()?.mapTo(mutableSetOf()) { operation -> operation.nameStem }.orEmpty())) {
+            is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
+            is LocalAnaphorBinding.Analysis.Invalid -> return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                with(LocalAnaphorBinding) { analysis.diagnostic.render() },
+                diagnostic = with(LocalAnaphorBinding) { analysis.diagnostic.executionDiagnostic() },
+            )
         }
         val projected = ukti.copy(body = bound.program)
         return evaluate(
@@ -214,7 +217,8 @@ internal class SessionRuntime(
         is ExecutionBindingResult.Invalid -> SambhashanaTurn(
             SanskritPrativacanaRenderer.render(
                 Phala.Asiddha(
-                    ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
+                    ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message,
+                        diagnostic = binding.diagnostic),
                     emptyList(),
                 ),
             ),

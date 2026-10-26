@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertIs
 import dev.panini.vyakaranam.ast.Conditional
-import dev.panini.vyakaranam.ast.ForEach
+import dev.panini.vyakaranam.ast.CollectionRelativeAction
 import dev.panini.vyakaranam.ast.depthFirst
 
 class TwoSumExampleTest {
@@ -24,7 +24,7 @@ class TwoSumExampleTest {
             PvmScript.parse(File("examples/algorithms/two_sum.pvm").readText()).last(),
         ).program!!
         val conditionals = program.depthFirst().filterIsInstance<Conditional>().toList()
-        assertEquals(2, program.depthFirst().filterIsInstance<ForEach>().count())
+        assertEquals(1, program.depthFirst().filterIsInstance<CollectionRelativeAction>().count())
         assertTrue(program.sourceText.contains("कर्मन्"))
         assertTrue(!program.sourceText.contains("क्रम"))
         assertTrue(conditionals.any { condition -> condition.consequent.sourceText.contains("वि+रम्") ||
@@ -35,7 +35,7 @@ class TwoSumExampleTest {
     fun `two sum example derives and prints the matching addition operands`() {
         val source = File("examples/algorithms/two_sum.pvm").readText()
         val readable = PvmUktiSadhaka().sadhayaScript(source)
-        assertTrue(readable.contains("प्रत्येकां सङ्ख्यां तदुत्तराभिः सङ्ख्याभिः योजय"), readable)
+        assertTrue(readable.contains("प्रत्येकां सङ्ख्यां तदुत्तराभिः योजय"), readable)
         assertTrue(readable.contains("योजनस्य कर्मणी"), readable)
         assertEquals(
             listOf("एक चतुर्"),

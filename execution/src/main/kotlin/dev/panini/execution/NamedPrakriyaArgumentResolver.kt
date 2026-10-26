@@ -2,6 +2,9 @@ package dev.panini.execution
 
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
+import dev.panini.vyakaranam.ast.SemanticDiagnostic
+import dev.panini.vyakaranam.ast.SourceLocatedNode
 import dev.panini.execution.binding.PhalaReference
 import dev.panini.execution.binding.referenceKey
 
@@ -29,8 +32,19 @@ sealed interface PrakriyaArgumentResolution {
             )
         }
     }
-    data class Failure(val message: String) : PrakriyaArgumentResolution
+    data class Failure(val diagnostic: PrakriyaArgumentDiagnostic) : PrakriyaArgumentResolution {
+        constructor(message: String) : this(PrakriyaArgumentDiagnostic("INVALID_ARGUMENT_MORPHOLOGY", message))
+        val message: String get() = diagnostic.message
+    }
 }
+
+/** A grammatical call-argument failure retained across validation, interpretation, and compilation. */
+data class PrakriyaArgumentDiagnostic(
+    override val code: String,
+    override val message: String,
+    override val span: DocumentSourceSpan? = null,
+    override val offendingText: String = "",
+) : SemanticDiagnostic<String>
 
 enum class PrakriyaArgumentBindingKind { POSITIONAL, NAMED, PIPE }
 
@@ -76,8 +90,11 @@ object NamedPrakriyaArgumentResolver {
             !it.sup.supports(Vibhakti.DVITIYA) && !it.sup.supports(Vibhakti.SAPTAMI) &&
                 !it.sup.supports(Vibhakti.SASTHI)
         }
-        if (unsupported != null) return PrakriyaArgumentResolution.Failure(
-            "Unsupported procedure argument morphology: '${unsupported.sourceText}'.")
+        if (unsupported != null) return failure(
+            code = "UNSUPPORTED_ARGUMENT_MORPHOLOGY",
+            message = "Unsupported procedure argument morphology: '${unsupported.sourceText}'.",
+            padas = listOf(unsupported),
+        )
         val positionalPadas = padas.filter { it.sup.supports(Vibhakti.DVITIYA) }
         return resolve(padas, signature, positionalPadas)
     }
@@ -94,35 +111,41 @@ object NamedPrakriyaArgumentResolver {
         val pairs = padas.mapIndexedNotNull { index, pada ->
             if (!pada.sup.supports(Vibhakti.SAPTAMI) && !pada.sup.supports(Vibhakti.SASTHI)) return@mapIndexedNotNull null
             if (pada.sup.affixCandidates.none { it.vacana == dev.panini.core.Vacana.EKAVACANA }) {
-                return PrakriyaArgumentResolution.Failure(
-                    "Parameter slot '${pada.stem()}' is singular; dual or plural slot references are unsupported.",
+                return failure(
+                    code = "INVALID_PARAMETER_NUMBER",
+                    message = "Parameter slot '${pada.stem()}' is singular; dual or plural slot references are unsupported.",
+                    padas = listOf(pada),
                 )
             }
             val value = uniqueValue ?: padas.getOrNull(index + 1)?.takeIf { it.sup.supports(Vibhakti.DVITIYA) }
-                ?: return PrakriyaArgumentResolution.Failure(
-                    "कारकदोषः: '${pada.stem()}' इति मानस्थानस्य अनन्तरं द्वितीयान्तं मूल्यम् अपेक्षितम्।",
+                ?: return failure(
+                    code = "MISSING_NAMED_ARGUMENT_VALUE",
+                    message = "कारकदोषः: '${pada.stem()}' इति मानस्थानस्य अनन्तरं द्वितीयान्तं मूल्यम् अपेक्षितम्।",
+                    padas = listOf(pada),
                 )
             NamedValue(pada.stem(), value)
         }
         if (pairs.isEmpty()) return PrakriyaArgumentResolution.Success.fromPadas(positionalPadas)
         if (pairs.size != positionalPadas.size) {
-            return PrakriyaArgumentResolution.Failure(
-                "मानदोषः: स्थाननिर्दिष्टानि क्रमानुसाराणि च मानानि एकत्र न योजनीयानि।",
+            return failure(
+                code = "MIXED_ARGUMENT_BINDING",
+                message = "मानदोषः: स्थाननिर्दिष्टानि क्रमानुसाराणि च मानानि एकत्र न योजनीयानि।",
+                padas = padas,
             )
         }
         val duplicates = pairs.groupBy(NamedValue::name).filterValues { it.size > 1 }.keys
         if (duplicates.isNotEmpty()) {
-            return PrakriyaArgumentResolution.Failure("पुनरुक्तमानानि: $duplicates।")
+            return failure("DUPLICATE_NAMED_ARGUMENT", "पुनरुक्तमानानि: $duplicates।", padas)
         }
         val supplied = pairs.associate { it.name to it.pada }
         val expected = signature.parameters.map(PrakriyaParameter::nameStem)
         val unknown = supplied.keys - expected.toSet()
         if (unknown.isNotEmpty()) {
-            return PrakriyaArgumentResolution.Failure("अज्ञातमानानि: $unknown।")
+            return failure("UNKNOWN_NAMED_ARGUMENT", "अज्ञातमानानि: $unknown।", padas)
         }
         val missing = expected.filterNot(supplied::containsKey)
         if (missing.isNotEmpty()) {
-            return PrakriyaArgumentResolution.Failure("लुप्तमानानि: $missing।")
+            return failure("MISSING_NAMED_ARGUMENT", "लुप्तमानानि: $missing।", padas)
         }
         return PrakriyaArgumentResolution.Success(
             signature.parameters.map { parameter ->
@@ -143,4 +166,21 @@ object NamedPrakriyaArgumentResolver {
 
     private fun SubantaPada.stem(): String =
         pratipadika.referenceKey()
+
+    private fun failure(
+        code: String,
+        message: String,
+        padas: List<SubantaPada>,
+    ): PrakriyaArgumentResolution.Failure {
+        val spans = padas.mapNotNull { (it as SourceLocatedNode).sourceSpan }
+        val span = spans.takeIf { it.isNotEmpty() }?.let {
+            DocumentSourceSpan(it.minOf(DocumentSourceSpan::start), it.maxOf(DocumentSourceSpan::endExclusive))
+        }
+        return PrakriyaArgumentResolution.Failure(PrakriyaArgumentDiagnostic(
+            code = code,
+            message = message,
+            span = span,
+            offendingText = padas.joinToString(" ") { it.sourceText },
+        ))
+    }
 }

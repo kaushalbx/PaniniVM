@@ -440,7 +440,10 @@ declaration after intervening printing or arithmetic. A subsequent declaration
 updates `सूची` while preserving earlier explicit names. This is a retained list
 value, not a permanent alias that follows later unrelated reassignment of a name.
 
-`ततः` sends the typed result of one stage into the missing कर्मन् of the next
+`ततः` creates a typed `PREVIOUS_RESULT` boundary in semantic analysis. The
+interpreter, compiler, and binding analyzer consume that same relation instead
+of independently reinterpreting the surface word. It sends the typed result of
+one stage into the missing कर्मन् of the next
 stage:
 
 ```pvm
@@ -964,9 +967,17 @@ parsed as the written `तद् + ङस् + लुक् - उत्तर` c
 The `-` already marks the compound boundary, so no parentheses are used.
 `उत्तर` gives the direction, and instrumental plural `भिस्` gives the
 many-item selection. Replacing `उत्तर` with `पूर्व` gives all preceding items.
-The runtime lowers this surface sentence to typed nested iteration and invokes
-the existing `युज्` action once for each pair; it creates neither a special
-pair value nor a Two-Sum-specific action.
+Semantic analysis retains this as one typed collection-relative action: the
+operand records direction, singular/plural cardinality, member type, and its
+written agreement. It does not fabricate a nested source loop or a Sanskrit
+variable name. The interpreter injects each selected pair into the existing
+`युज्` action. The compiler uses private IR slots with the same meaning; it
+creates neither a special pair value nor a Two-Sum-specific action.
+The relative construct is action-independent. For numeric members, replacing
+`युज्` with the registered `गण` dhātu selects its multiplication operation;
+for word members the same dhātu and coordinated pair select counting. Semantic
+operand types choose the existing operation, and interpreter/compiler parity
+tests cover both reuse paths—no collection-specific action is introduced.
 
 Instrumental number chooses how many relative items participate. Singular
 `टा` selects only the immediately adjacent item:
@@ -986,6 +997,25 @@ selector and its member noun must use the same instrumental case and number;
 established gender evidence must also agree. The current and relative member
 nouns must name the same member type. See
 [`adjacent_addition.pvm`](../examples/collections/adjacent_addition.pvm).
+
+Failures in these relations are structured semantic diagnostics rather than
+generic parse failures. Each diagnostic carries a stable code, absolute source
+span, line and column, and the exact offending segmented phrase, so editors can
+underline the collection, qualifier, relative selector, or member noun that
+must be corrected.
+
+When the relative member type is unambiguous, the repeated noun may be omitted:
+
+```pvm
+दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
+तद् + ङस् + लुक् - उत्तर + टाप् + भिस्
+युज् + णिच् + लोट् + सिप् ।
+```
+
+This derives as `दत्तसूच्याः प्रत्येकां सङ्ख्यां तदुत्तराभिः योजय`.
+Writing `सङ्ख्या + भिस्` explicitly remains equivalent. A result may continue
+into either a condition or another finite action with `ततः`; for example,
+appending `ततः मुद्र् + णिच् + लोट् + सिप्` prints every produced result.
 
 The Two Sum example therefore considers every unordered pair once. On a match
 it prints the latest addition's remembered dual `कर्मन् + औट्` participants;
@@ -1256,7 +1286,9 @@ the final `गणना` is two. Inside `यदि` it remains in that selected 
 an existing loop it marks the current iteration's action as recurrence and does
 not multiply the loop count. For any explicit numeric count—including two—use
 the `कृत्वसुच्` construction. `पुनः` and an explicit count on the same action
-are rejected. See [punah.pvm](../examples/control_flow/punah.pvm).
+are rejected with `REPETITION_MARKER_CONFLICT`; repeating `पुनः` itself uses
+`REPEATED_PUNAH_MARKER`. Both diagnostics retain the complete action span in
+interpretation and compilation. See [punah.pvm](../examples/control_flow/punah.pvm).
 
 ### 10.2 Condition-controlled loop
 
@@ -1364,6 +1396,13 @@ such as गणनम्, use nominative `गणन + सुँ`, not accusative 
 
 This is a header example; a complete procedure needs its body ending in `॥`.
 The “this” pronoun is not part of this new construction.
+
+Malformed declaration morphology is reported as a semantic error at the exact
+offending phrase rather than as a generic parser failure. Header name count,
+operation agreement, domain agreement, declared-result agreement, finite
+predicate shape, qualifier agreement, unsupported qualifiers, and the required
+`प्रक्रिया` marker use the stable `PRAKRIYA_*` diagnostic family. The interpreter,
+compiler, and validator preserve the same code and source span.
 
 ```pvm
 प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -1539,6 +1578,106 @@ Named arguments may appear in any order. One call must be entirely positional
 or entirely named. The validator reports unknown, duplicate, missing, mixed,
 and incorrectly typed arguments. The older ṣaṣṭhī label remains accepted only
 for source compatibility.
+
+Argument morphology is analyzed once and retained as a structured diagnostic
+through validation, interpretation, and compilation. Stable codes distinguish
+unsupported case endings (`UNSUPPORTED_ARGUMENT_MORPHOLOGY`), non-singular
+parameter slots (`INVALID_PARAMETER_NUMBER`), a missing accusative value
+(`MISSING_NAMED_ARGUMENT_VALUE`), mixed binding styles
+(`MIXED_ARGUMENT_BINDING`), and duplicate, unknown, or missing named arguments.
+Each result keeps the offending pada or argument phrase and its source span; a
+compiler failure therefore identifies the same Sanskrit segment as the
+interpreter instead of exposing a generic host-language exception.
+
+The same contract covers procedure calls after morphology has been resolved.
+Arity, ordinary argument-type, typed-participant, unsupported-prohibition, and
+triggered-prohibition failures use `PROCEDURE_ARITY_MISMATCH`,
+`PROCEDURE_ARGUMENT_TYPE_MISMATCH`, `PROCEDURE_PARTICIPANT_TYPE_MISMATCH`,
+`UNSUPPORTED_PROCEDURE_PROHIBITION`, and `PROCEDURE_PROHIBITION_TRIGGERED`.
+Generated JVM checks embed this source metadata in their IR, so a type mismatch
+discovered only after resolving a runtime name still points back to the written
+argument rather than losing its semantic provenance.
+Ordinary procedure overload ambiguity is `AMBIGUOUS_PROCEDURE_OVERLOAD` in
+validation, interpretation, and compilation; it is no longer surfaced as a
+backend-specific assertion failure.
+`विरम` is specifically a whole-script effect. If it appears inside a procedure,
+both execution and compilation reject it as `SCRIPT_STOP_IN_PROCEDURE` with the
+finite action's source span; a procedure must use its grammatical result form
+instead of smuggling a script-level halt through its body.
+Procedure-result clauses are also analyzed as typed relations. Multiple result
+roles or values produce `PROCEDURE_RESULT_CARDINALITY`; disagreement between a
+singular result role and the finite copula produces
+`PROCEDURE_RESULT_AGREEMENT`. Both backends preserve the complete relation span
+instead of converting these failures into generic exceptions.
+
+List declarations use the same typed analysis boundary. Invalid name agreement,
+member case, member-type ambiguity, derived declaration nouns, coordination,
+and copula agreement produce stable `LIST_DECLARATION_*` diagnostics. In
+particular, a singular `सूची` with a nonsingular copula is
+`LIST_DECLARATION_COPULA_AGREEMENT`; interpretation and compilation preserve
+the same source relation rather than falling back to a generic action error.
+
+Ordinal collection access is likewise a typed relation between the source
+collection, ordinal modifier, `मूल्य`, and retrieval action. Case/number or
+gender disagreement, ambiguous ordinals, derived heads, invalid source number,
+and extra frame participants use stable `ORDINAL_OBJECT_*` diagnostics with the
+whole relation span in both execution modes.
+The lower-level member-selector analysis also retains morphology independently
+of the surrounding finite or nonfinite action. Derived ordinal/final selectors,
+ambiguous selectors, and selector agreement failures use stable
+`COLLECTION_*_SELECTOR_*` diagnostics; these survive binding as structured
+diagnostics instead of becoming plain error strings.
+
+Prior-action clauses formed with `क्त्वा` or `ल्यप्` are analyzed as discourse
+relations before execution binding. Invalid agent identity, source order,
+prefixless `ल्यप्`, or an unsupported passive main action uses a stable
+`PRIOR_ACTION_*` diagnostic. The binding result retains that diagnostic and its
+source span, so preprocessing no longer reduces these errors to an unlocated
+message before the interpreter or compiler can report them.
+
+Copular comparison predicates retain their written agreement evidence before
+values are evaluated. Subject–verb number, predicate–verb number, and
+predicate–subject gender failures use `COPULAR_SUBJECT_NUMBER_AGREEMENT`,
+`COPULAR_PREDICATE_NUMBER_AGREEMENT`, and
+`COPULAR_PREDICATE_GENDER_AGREEMENT`. The same typed diagnostic and relation
+span survive preprocessing in both interpreted and compiled programs.
+
+Finite genitive attribute retrieval is analyzed as one typed relation over the
+possessor chain, requested field, and `ग्रह्` action. Disconnected or extra
+participants use `ATTRIBUTE_ACCESS_FRAME`; disagreement with the required
+accusative field and underived imperative uses `ATTRIBUTE_ACCESS_MORPHOLOGY`.
+Both execution modes retain the same complete relation span.
+
+Copular record-field assertions are separately analyzed before they update a
+record. A modified/non-present copula uses
+`FIELD_ASSERTION_COPULA_MORPHOLOGY`; negation, surplus participants, or other
+frame material that would otherwise be discarded uses `FIELD_ASSERTION_FRAME`.
+These failures carry the assertion span through both backends.
+
+Result-schema declarations with plural `क्षेत्र` use a parallel typed relation.
+Invalid copula morphology, a derived role noun, surplus frame material, fewer
+than two fields, and repeated field identities use stable `RESULT_SCHEMA_*`
+diagnostics. Duplicate detection therefore occurs during semantic analysis,
+before schema construction or registry mutation.
+
+An attribute phrase embedded in another finite action must remain contiguous:
+each possessive genitive is followed by the next possessor or requested field.
+An intervening pada produces `ATTRIBUTE_REFERENCE_DISCONNECTED`; an otherwise
+malformed possessor chain produces `ATTRIBUTE_REFERENCE_FRAME`. These embedded
+relations retain their source span in conditions and ordinary action operands.
+
+Ordered action-result references use the same analysis in execution and
+compilation. A case or number mismatch between an ordering qualifier and `फल`
+is `RESULT_ORDERING_AGREEMENT`; its span covers the qualifier–result relation,
+and neither backend may silently discard the disagreeing qualifier.
+
+Pipeline call failures likewise retain a typed source projection over their
+parsed arguments. Ambiguous stages, invalid type evidence, arity mismatches,
+typed-participant mismatches, and ordinary stage-input mismatches use stable
+codes such as `AMBIGUOUS_PIPELINE_STAGE` and
+`PIPELINE_ARGUMENT_TYPE_MISMATCH`. Validation and compiler lowering therefore
+identify the same written pipeline or individual offending argument without
+reconstructing meaning from rendered text.
 
 With exactly one written slot and one accusative value, their attachment does
 not depend on adjacency or order: `मान + ङि पञ्च + अम्` and
@@ -1983,6 +2122,31 @@ recent value. Missing evidence, missing antecedents, and multiple compatible
 antecedents are errors. A singular noun naming a list is still grammatically
 singular and may compete with a singular member; use an explicit name when
 agreement cannot distinguish them.
+Semantic resolution returns a typed outcome rather than guessing or treating
+`तद्` as literal text. Its failure codes distinguish `MISSING_ANTECEDENT`,
+`INCOMPLETE_AGREEMENT`, and `AMBIGUOUS_ANTECEDENT`, while retaining the original
+pronoun, its exact source offsets, and compatible candidates for diagnostics.
+Parser and runtime semantic failures share the same diagnostic shape: code,
+message, source span, and offending text. Interpreter and compiler consume this
+same analysis. If morphology needed to determine protected roles is
+itself invalid, the binding boundary reports `INVALID_BINDING` instead of
+letting an implementation exception escape. Condition-controlled loops carry
+the same typed result through predicate resolution; a failed pronoun or binding
+there stops the loop before its body executes.
+
+Source provenance is also retained on finite actions. When an error concerns
+the relationship among several words rather than one nominal, PaniniVM reports
+the smallest source interval covering the complete invocation. These locations
+are metadata and do not alter grammatical AST equality.
+
+An execution failure keeps this information as a structured diagnostic payload
+(`code`, `message`, `span`, and `offendingText`) in addition to its readable
+message. Tools therefore need not parse display text to highlight the erroneous
+Sanskrit segment; older message-based consumers remain compatible.
+The bytecode compiler preserves the same payload on compile-time semantic
+failures and on failures crossing a generated JVM method boundary. Static
+validation diagnostics implement the same source-aware contract, including
+parser semantic codes such as `RELATIVE_INSTRUMENTAL`.
 Further derivation does not automatically inherit the base noun's gender; when
 gender evidence is incomplete, use the declared name rather than relying on तद्.
 An explicit feminine suffix supplies evidence at the final derivational layer;

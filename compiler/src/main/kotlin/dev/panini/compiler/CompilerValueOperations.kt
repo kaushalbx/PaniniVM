@@ -3,7 +3,9 @@ package dev.panini.compiler
 import dev.panini.execution.semanticallyEquals
 
 import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionDiagnostic
 import dev.panini.execution.SanskritValue
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
 
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
@@ -88,11 +90,38 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
+    fun requireArgumentKind(
+        value: SanskritValue,
+        kind: String,
+        diagnosticCode: String,
+        diagnosticMessage: String,
+        spanStart: Int,
+        spanEndExclusive: Int,
+        offendingText: String,
+    ) {
+        val diagnostic = diagnosticCode.takeIf { it.isNotEmpty() }?.let {
+            ExecutionDiagnostic(
+                code = it,
+                message = diagnosticMessage,
+                span = if (spanStart >= 0 && spanEndExclusive >= spanStart)
+                    DocumentSourceSpan(spanStart, spanEndExclusive) else null,
+                offendingText = offendingText,
+            )
+        }
+        requireValueKind(value, kind, "argument", diagnostic)
+    }
+
+    @JvmStatic
     fun requireResultKind(value: SanskritValue, kind: String) {
         requireValueKind(value, kind, "result")
     }
 
-    private fun requireValueKind(value: SanskritValue, kind: String, role: String) {
+    private fun requireValueKind(
+        value: SanskritValue,
+        kind: String,
+        role: String,
+        diagnostic: ExecutionDiagnostic? = null,
+    ) {
         val valid = when (CompilerValueKind.valueOf(kind)) {
             CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
             CompilerValueKind.NUMBER -> dev.panini.execution.OperationValueType.NUMBER.accepts(value)
@@ -103,8 +132,11 @@ internal object CompilerValueOperations {
             CompilerValueKind.RECORD -> value is SanskritValue.Rupa
             CompilerValueKind.RANGE -> value is SanskritValue.Range
         }
-        if (!valid) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
-            "Procedure $role requires $kind, not ${value::class.simpleName}.")
+        if (!valid) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            diagnostic?.message ?: "Procedure $role requires $kind, not ${value::class.simpleName}.",
+            diagnostic = diagnostic,
+        )
     }
 
     @JvmStatic

@@ -219,6 +219,21 @@ class ForEachTest {
             compiled(source, "DirectSingularNext").getValue("LastResult")).value)
     }
 
+    @Test fun `plural relative operands reuse multiplication with compiler parity`() {
+        val source = """
+            एक + ङस् द्वि + ओस् त्रि + आम् च दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
+            तद् + ङस् + लुक् - उत्तर + टाप् + भिस्
+            गण + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals(6L, assertIs<SanskritValue.Sankhya>(
+            interpreted.filterIsInstance<ExecutionResult.Success>().last().typedValue).value)
+        assertEquals(6L, assertIs<SanskritValue.Sankhya>(
+            compiled(source, "RelativeGenericAction").getValue("LastResult")).value)
+    }
+
     @Test fun `nested loops restore outer member`() {
         val source = "$declaration\nसूची + ङस् सदस्य + अम् प्रति $loop"
         val results = PaniniVM().evalScript(source)

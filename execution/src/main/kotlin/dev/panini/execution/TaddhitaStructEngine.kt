@@ -19,6 +19,10 @@ import dev.panini.vyakaranam.ast.TaddhitaPratyayaClass
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.Vakya
+import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
+import dev.panini.vyakaranam.ast.SemanticDiagnostic
+import dev.panini.vyakaranam.ast.relationSpan
 import dev.panini.vyakaranam.ast.semanticKey
 import dev.panini.vyakaranam.parser.PaniniParser
 import dev.panini.execution.binding.NumeralAstNormalizer
@@ -67,39 +71,104 @@ data class TaddhitaAttributeReference(
 )
 
 object TaddhitaStructEngine {
+    data class FieldAssertionDiagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : SemanticDiagnostic<String>
+
+    sealed interface FieldAssertionAnalysis {
+        data object NotAssertion : FieldAssertionAnalysis
+        data class Resolved(val assertion: TaddhitaFieldAssertion) : FieldAssertionAnalysis
+        data class Invalid(val diagnostic: FieldAssertionDiagnostic) : FieldAssertionAnalysis
+    }
+
+    data class ResultSchemaDiagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : SemanticDiagnostic<String>
+
+    sealed interface ResultSchemaAnalysis {
+        data object NotSchema : ResultSchemaAnalysis
+        data class Resolved(val schema: TaddhitaStructSchema) : ResultSchemaAnalysis
+        data class Invalid(val diagnostic: ResultSchemaDiagnostic) : ResultSchemaAnalysis
+    }
+
+    data class AttributeAccessDiagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : SemanticDiagnostic<String>
+
+    sealed interface AttributeAccessAnalysis {
+        data object NotAccess : AttributeAccessAnalysis
+        data class Resolved(val access: TaddhitaAttributeAccess) : AttributeAccessAnalysis
+        data class Invalid(val diagnostic: AttributeAccessDiagnostic) : AttributeAccessAnalysis
+    }
+
+    data class AttributeReferenceDiagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : SemanticDiagnostic<String>
+
+    sealed interface AttributeReferenceAnalysis {
+        data object NotReference : AttributeReferenceAnalysis
+        data class Resolved(val reference: TaddhitaAttributeReference) : AttributeReferenceAnalysis
+        data class Invalid(val diagnostic: AttributeReferenceDiagnostic) : AttributeReferenceAnalysis
+    }
 
     private val parser = PaniniParser()
 
     /** Recognizes “the field of the possessor is value” from a finite copular clause. */
-    fun detectFieldAssertion(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaFieldAssertion? {
-        val ukti = parsed(sentenceText, preParsedUkti) ?: return null
-        val vakya = ukti.grammaticalVakyas().singleOrNull() ?: return null
-        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
+    fun analyzeFieldAssertion(sentenceText: String, preParsedUkti: Ukti? = null): FieldAssertionAnalysis {
+        val ukti = parsed(sentenceText, preParsedUkti) ?: return FieldAssertionAnalysis.NotAssertion
+        val vakya = ukti.grammaticalVakyas().singleOrNull() ?: return FieldAssertionAnalysis.NotAssertion
+        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()
+            ?: return FieldAssertionAnalysis.NotAssertion
         if (
             verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
             verb.ting.affix != TingAffix.TIP
-        ) return null
+        ) return FieldAssertionAnalysis.NotAssertion
         val owner = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
             pada.hasVibhakti(Vibhakti.SASTHI) && pada.pratipadika.isMatup()
-        } ?: return null
+        } ?: return FieldAssertionAnalysis.NotAssertion
         val nominatives = vakya.padas.filter { pada ->
             pada !== owner && pada.hasVibhakti(Vibhakti.PRATHAMA)
         }
-        if (nominatives.size != 2) return null
-        val field = nominatives[0] as? SubantaPada ?: return null
-        require(verb.lakara == dev.panini.core.Lakara.LAT &&
-            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty()) {
-            "A record field assertion requires the underived present copula अस्ति."
-        }
-        require(vakya.padas.size == 4) {
-            "A record field assertion cannot discard negation, extra participants, or modifiers."
-        }
-        return TaddhitaFieldAssertion(
+        if (nominatives.size != 2) return FieldAssertionAnalysis.NotAssertion
+        val field = nominatives[0] as? SubantaPada ?: return FieldAssertionAnalysis.NotAssertion
+        fun invalid(code: String, message: String) = FieldAssertionAnalysis.Invalid(FieldAssertionDiagnostic(
+            code, message, Invocation(vakya).relationSpan(), sentenceText))
+        if (!(verb.lakara == dev.panini.core.Lakara.LAT &&
+            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty())) return invalid(
+            "FIELD_ASSERTION_COPULA_MORPHOLOGY",
+            "A record field assertion requires the underived present copula अस्ति.",
+        )
+        if (vakya.padas.size != 4) return invalid(
+            "FIELD_ASSERTION_FRAME",
+            "A record field assertion cannot discard negation, extra participants, or modifiers.",
+        )
+        return FieldAssertionAnalysis.Resolved(TaddhitaFieldAssertion(
             ownerStem = owner.pratipadika.baseIdentity(),
             fieldStem = field.stemIdentity(),
             valueStem = nominatives[1].stemIdentity(),
             valuePada = nominatives[1],
-        )
+        ))
+    }
+
+    fun detectFieldAssertion(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaFieldAssertion? = when (
+        val analysis = analyzeFieldAssertion(sentenceText, preParsedUkti)
+    ) {
+        FieldAssertionAnalysis.NotAssertion -> null
+        is FieldAssertionAnalysis.Resolved -> analysis.assertion
+        is FieldAssertionAnalysis.Invalid -> throw PvmSemanticException(
+            ExecutionDiagnostic.from(analysis.diagnostic))
     }
 
     /** Interprets an asserted predicate nominal from its parsed morphology. */
@@ -125,9 +194,18 @@ object TaddhitaStructEngine {
     }
 
     /** Declares the field order of the automatic परिणाम value without assigning field values. */
-    fun detectResultSchema(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStructSchema? {
-        val ukti = parsed(sentenceText, preParsedUkti) ?: return null
-        return detectNaturalResultSchema(ukti)
+    fun analyzeResultSchema(sentenceText: String, preParsedUkti: Ukti? = null): ResultSchemaAnalysis {
+        val ukti = parsed(sentenceText, preParsedUkti) ?: return ResultSchemaAnalysis.NotSchema
+        return analyzeNaturalResultSchema(ukti, sentenceText)
+    }
+
+    fun detectResultSchema(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStructSchema? = when (
+        val analysis = analyzeResultSchema(sentenceText, preParsedUkti)
+    ) {
+        ResultSchemaAnalysis.NotSchema -> null
+        is ResultSchemaAnalysis.Resolved -> analysis.schema
+        is ResultSchemaAnalysis.Invalid -> throw PvmSemanticException(
+            ExecutionDiagnostic.from(analysis.diagnostic))
     }
 
     /**
@@ -135,36 +213,44 @@ object TaddhitaStructEngine {
      * coordinated nominative fields, a genitive schema, nominative plural क्षेत्र,
      * and a plural finite form of अस्.
      */
-    private fun detectNaturalResultSchema(ukti: Ukti): TaddhitaStructSchema? {
-        val vakya = ukti.grammaticalVakyas().singleOrNull() ?: return null
-        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
+    private fun analyzeNaturalResultSchema(ukti: Ukti, sourceText: String): ResultSchemaAnalysis {
+        val vakya = ukti.grammaticalVakyas().singleOrNull() ?: return ResultSchemaAnalysis.NotSchema
+        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()
+            ?: return ResultSchemaAnalysis.NotSchema
         if (
             verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
             verb.ting.affix != TingAffix.JHI
-        ) return null
+        ) return ResultSchemaAnalysis.NotSchema
         val role = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
             pada.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.BAHUVACANA) &&
                 (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
                 MulaPratipadikaIdentity.KSHETRA
-        } ?: return null
+        } ?: return ResultSchemaAnalysis.NotSchema
         val schema = vakya.padas.filterIsInstance<SubantaPada>().singleOrNull { pada ->
             pada !== role && pada.hasVibhakti(Vibhakti.SASTHI)
-        } ?: return null
-        require(verb.lakara == dev.panini.core.Lakara.LAT &&
-            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty()) {
-            "A record field declaration requires the underived present copula सन्ति."
-        }
-        require((role.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
-            "A derived क्षेत्र requires its own semantics, not a record field declaration."
-        }
-        require(vakya.padas.all { pada ->
+        } ?: return ResultSchemaAnalysis.NotSchema
+        fun invalid(code: String, message: String) = ResultSchemaAnalysis.Invalid(ResultSchemaDiagnostic(
+            code, message, Invocation(vakya).relationSpan(), sourceText))
+        if (!(verb.lakara == dev.panini.core.Lakara.LAT &&
+            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty())) return invalid(
+            "RESULT_SCHEMA_COPULA_MORPHOLOGY",
+            "A record field declaration requires the underived present copula सन्ति.",
+        )
+        if ((role.pratipadika as MulaPratipadika).vikaras.isNotEmpty()) return invalid(
+            "RESULT_SCHEMA_DERIVED_ROLE",
+            "A derived क्षेत्र requires its own semantics, not a record field declaration.",
+        )
+        if (!vakya.padas.all { pada ->
             pada === verb || pada === role || pada === schema || when (pada) {
                 is SubantaPada -> pada.hasVibhakti(Vibhakti.PRATHAMA)
                 is SamuccitaSubanta -> pada.members.all { it.hasVibhakti(Vibhakti.PRATHAMA) }
                 is AvyayaPada -> pada.form == "च"
                 else -> false
             }
-        }) { "A record field declaration cannot discard extra participants or modifiers." }
+        }) return invalid(
+            "RESULT_SCHEMA_FRAME",
+            "A record field declaration cannot discard extra participants or modifiers.",
+        )
         val fields = vakya.padas.flatMap { pada ->
             when (pada) {
                 is SamuccitaSubanta -> pada.members
@@ -174,8 +260,16 @@ object TaddhitaStructEngine {
         }.filter { pada ->
             pada !== role && pada !== schema && pada.hasVibhakti(Vibhakti.PRATHAMA)
         }.map { it.stemIdentity() }
-        return TaddhitaStructSchema(schema.pratipadika.referenceKey(), fields)
-            .takeIf { fields.size >= 2 }
+        if (fields.size < 2) return invalid(
+            "RESULT_SCHEMA_FIELD_CARDINALITY",
+            "A record field declaration requires at least two fields.",
+        )
+        val duplicates = fields.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+        if (duplicates.isNotEmpty()) return invalid(
+            "RESULT_SCHEMA_DUPLICATE_FIELDS",
+            "Duplicate fields in Panini schema '${schema.pratipadika.referenceKey()}': $duplicates.",
+        )
+        return ResultSchemaAnalysis.Resolved(TaddhitaStructSchema(schema.pratipadika.referenceKey(), fields))
     }
 
     /**
@@ -195,22 +289,36 @@ object TaddhitaStructEngine {
         return ukti.grammaticalVakyas().singleOrNull()?.let(::detectAttributeAccess)?.chain
     }
 
-    fun detectAttributeAccess(vakya: Vakya): TaddhitaAttributeAccess? {
-        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
-        if (verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.GRAH) return null
+    fun analyzeAttributeAccess(vakya: Vakya): AttributeAccessAnalysis {
+        val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()
+            ?: return AttributeAccessAnalysis.NotAccess
+        if (verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.GRAH) return AttributeAccessAnalysis.NotAccess
         val operands = vakya.padas.filter { it !== verb }
         if (operands.none { it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) &&
-                it.pratipadika.isMatup() }) return null
-        val access = requireNotNull(detectAttributeAccess(operands)) {
-            "Unsupported genitive field retrieval: extra participants or disconnected modifiers cannot be discarded."
-        }
-        require(access.resultSup.supports(Vibhakti.DVITIYA) &&
+                it.pratipadika.isMatup() }) return AttributeAccessAnalysis.NotAccess
+        fun invalid(code: String, message: String) = AttributeAccessAnalysis.Invalid(AttributeAccessDiagnostic(
+            code, message, Invocation(vakya).relationSpan(), vakya.sourceText))
+        val access = detectAttributeAccess(operands) ?: return invalid(
+            "ATTRIBUTE_ACCESS_FRAME",
+            "Unsupported genitive field retrieval: extra participants or disconnected modifiers cannot be discarded.",
+        )
+        if (!(access.resultSup.supports(Vibhakti.DVITIYA) &&
             verb.lakara == dev.panini.core.Lakara.LOT &&
             verb.ting.affix == TingAffix.SIP &&
-            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty()) {
-            "Field retrieval requires one accusative field and the underived imperative गृहाण."
-        }
-        return access
+            verb.upasargas.isEmpty() && verb.dhatu.sanadiPratyayas.isEmpty())) return invalid(
+            "ATTRIBUTE_ACCESS_MORPHOLOGY",
+            "Field retrieval requires one accusative field and the underived imperative गृहाण.",
+        )
+        return AttributeAccessAnalysis.Resolved(access)
+    }
+
+    fun detectAttributeAccess(vakya: Vakya): TaddhitaAttributeAccess? = when (
+        val analysis = analyzeAttributeAccess(vakya)
+    ) {
+        AttributeAccessAnalysis.NotAccess -> null
+        is AttributeAccessAnalysis.Resolved -> analysis.access
+        is AttributeAccessAnalysis.Invalid -> throw PvmSemanticException(
+            ExecutionDiagnostic.from(analysis.diagnostic))
     }
 
     fun detectAttributeAccess(padas: List<Pada>): TaddhitaAttributeAccess? {
@@ -227,26 +335,44 @@ object TaddhitaStructEngine {
     }
 
     /** Finds a leading genitive attribute expression embedded in a verbal condition. */
-    fun detectAttributeReference(vakya: Vakya, excludedReceivers: Set<Pada> = emptySet()): TaddhitaAttributeReference? {
+    fun analyzeAttributeReference(
+        vakya: Vakya,
+        excludedReceivers: Set<Pada> = emptySet(),
+    ): AttributeReferenceAnalysis {
         // A recognized member selector belongs to the collection frame; मतुप्
         // on its whole does not turn that relation into record field access.
-        if (CollectionMemberMorphology.protectedPadas(vakya.padas).isNotEmpty()) return null
+        if (CollectionMemberMorphology.protectedPadas(vakya.padas).isNotEmpty())
+            return AttributeReferenceAnalysis.NotReference
         val padas = vakya.padas
         val receiverIndices = padas.indices.filter { index ->
             val pada = padas[index] as? SubantaPada
             pada != null && pada.hasVibhakti(Vibhakti.SASTHI) && pada.pratipadika.isMatup() &&
                 excludedReceivers.none { it === pada }
         }
-        val first = receiverIndices.firstOrNull() ?: return null
+        val first = receiverIndices.firstOrNull() ?: return AttributeReferenceAnalysis.NotReference
         var lastReceiver = first
         while (lastReceiver + 1 in receiverIndices) lastReceiver++
         val keyIndex = lastReceiver + 1
-        require(padas.getOrNull(keyIndex) is SubantaPada) {
-            "Unsupported disconnected genitive field phrase: intervening words cannot be discarded."
-        }
-        val access = detectAttributeAccess(padas.subList(first, keyIndex + 1)) ?: return null
-        return TaddhitaAttributeReference(access, first..keyIndex)
+        fun invalid(code: String, message: String) = AttributeReferenceAnalysis.Invalid(
+            AttributeReferenceDiagnostic(code, message, Invocation(vakya).relationSpan(), vakya.sourceText))
+        if (padas.getOrNull(keyIndex) !is SubantaPada) return invalid(
+            "ATTRIBUTE_REFERENCE_DISCONNECTED",
+            "Unsupported disconnected genitive field phrase: intervening words cannot be discarded.",
+        )
+        val access = detectAttributeAccess(padas.subList(first, keyIndex + 1)) ?: return invalid(
+            "ATTRIBUTE_REFERENCE_FRAME",
+            "A genitive field reference requires one contiguous possessor chain and field.",
+        )
+        return AttributeReferenceAnalysis.Resolved(TaddhitaAttributeReference(access, first..keyIndex))
     }
+
+    fun detectAttributeReference(vakya: Vakya, excludedReceivers: Set<Pada> = emptySet()): TaddhitaAttributeReference? =
+        when (val analysis = analyzeAttributeReference(vakya, excludedReceivers)) {
+            AttributeReferenceAnalysis.NotReference -> null
+            is AttributeReferenceAnalysis.Resolved -> analysis.reference
+            is AttributeReferenceAnalysis.Invalid -> throw PvmSemanticException(
+                ExecutionDiagnostic.from(analysis.diagnostic))
+        }
 
     /**
      * Detects struct method header definition: "<struct> + मतुप् + ङस् <method> + ल्युट् + सुँ"

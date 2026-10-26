@@ -19,12 +19,14 @@ class ProcedureRegistryIdentityTest {
             source.replace("असँ", "त्रि + अम् असँ") to "cannot discard",
             source.replace("लट्", "लृट्") to "present copula",
         )) {
-            assertTrue(assertFailsWith<IllegalArgumentException> {
+            val direct = assertFailsWith<IllegalArgumentException> {
                 TaddhitaStructEngine.detectFieldAssertion(invalid)
-            }.message.orEmpty().contains(message))
-            assertTrue(assertFailsWith<IllegalArgumentException> {
-                PaniniVM().evalScript(invalid)
-            }.message.orEmpty().contains(message))
+            }
+            assertTrue(direct.message.orEmpty().contains(message))
+            val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(invalid).single())
+            val diagnostic = assertNotNull(failure.diagnostic)
+            assertTrue(diagnostic.code.startsWith("FIELD_ASSERTION_"))
+            assertNotNull(diagnostic.span)
         }
     }
 
@@ -38,6 +40,10 @@ class ProcedureRegistryIdentityTest {
                 TaddhitaStructEngine.detectResultSchema(invalid)
             }.message.orEmpty().contains(message))
             assertTrue(PrakriyaScriptValidator.validate(invalid).any { it.message.contains(message) })
+            val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(invalid).single())
+            val diagnostic = assertNotNull(failure.diagnostic)
+            assertTrue(diagnostic.code.startsWith("RESULT_SCHEMA_"))
+            assertNotNull(diagnostic.span)
         }
     }
 
@@ -48,9 +54,8 @@ class ProcedureRegistryIdentityTest {
             TaddhitaStructSchema("अवस्था", listOf("मूल्य", "मूल्य", "फल"))
         }.message.orEmpty().contains(message))
         assertTrue(PrakriyaScriptValidator.validate(source).any { it.message.contains(message) })
-        assertTrue(assertFailsWith<IllegalArgumentException> {
-            PaniniVM().evalScript(source)
-        }.message.orEmpty().contains(message))
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
+        assertEquals("RESULT_SCHEMA_DUPLICATE_FIELDS", assertNotNull(failure.diagnostic).code)
     }
 
     @Test fun `schema registration preserves the original contract after a conflicting declaration`() {

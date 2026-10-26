@@ -55,6 +55,18 @@ object PurvaparaPipelineEngine {
                     ),
                 )
             }
+            invocation.resolutionError?.let { message ->
+                val diagnostic = PipelineSemanticDiagnostics.atPipeline(
+                    pipeline,
+                    "AMBIGUOUS_PIPELINE_STAGE",
+                    message,
+                )
+                return listOf(ExecutionResult.Failure(
+                    ExecutionError.AMBIGUOUS_OPERATION,
+                    diagnostic.message,
+                    diagnostic = ExecutionDiagnostic.from(diagnostic),
+                ))
+            }
 
             val stageResults = vm.executePrakriyaInvocation(
                 invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile = callerSourceFile,

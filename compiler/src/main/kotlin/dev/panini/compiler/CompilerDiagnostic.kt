@@ -15,6 +15,7 @@ internal class CompilerUnsupportedException(
     val kind: CompilerUnsupportedKind,
     val source: String,
     detail: String,
+    val diagnostic: dev.panini.execution.ExecutionDiagnostic? = null,
 ) : IllegalArgumentException("[$kind] $detail Source: ${source.trim()}")
 
 internal object CompilerFailureClassifier {

@@ -66,11 +66,18 @@ class NativePrakriyaTest {
 
     @Test
     fun `nama procedure still requires nominative name and an asti declaration`() {
-        for (header in listOf(
-            "गणन + अम् नाम प्रक्रिया + सुँ असँ + लट् + तिप्",
-            "गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तस्",
-        )) assertFailsWith<IllegalArgumentException> {
-            parser.parseDocument("$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+        for ((header, code, phrase) in listOf(
+            Triple("गणन + अम् नाम प्रक्रिया + सुँ असँ + लट् + तिप्",
+                PaniniSemanticDiagnosticCode.PRAKRIYA_OPERATION_AGREEMENT, "गणन + अम्"),
+            Triple("गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तस्",
+                PaniniSemanticDiagnosticCode.PRAKRIYA_DECLARATION_PREDICATE,
+                "प्रक्रिया + सुँ असँ + लट् + तस्"),
+        )) {
+            val source = "$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+            val failure = assertFailsWith<PaniniSemanticException> { parser.parseDocument(source) }
+            assertEquals(code, failure.diagnostic.code)
+            assertEquals(phrase, source.substring(
+                failure.diagnostic.span.start, failure.diagnostic.span.endExclusive))
         }
     }
 

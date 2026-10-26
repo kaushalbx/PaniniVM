@@ -8,6 +8,24 @@ import dev.panini.vyakaranam.ast.*
 
 /** Preserves and validates substantival member selectors before binding loses morphology. */
 object CollectionMemberMorphology {
+    data class Diagnostic(
+        override val code: String,
+        override val message: String,
+        override val span: DocumentSourceSpan?,
+        override val offendingText: String,
+    ) : SemanticDiagnostic<String>
+
+    sealed interface Analysis {
+        data object Valid : Analysis
+        data class Invalid(val diagnostic: Diagnostic) : Analysis
+    }
+
+    private class InvalidMember(val code: String, message: String) : IllegalArgumentException(message)
+
+    private fun requireMember(value: Boolean, code: String, message: () -> String) {
+        if (!value) throw InvalidMember(code, message())
+    }
+
     private fun sup(pada: Pada): SupPratyaya? = when (pada) {
         is SubantaPada -> pada.sup
         is SankhyaPuranaPada -> pada.sup
@@ -21,7 +39,7 @@ object CollectionMemberMorphology {
     fun ordinalExpression(pada: Pada): ExecutionExpression.Pada? {
         val ordinal = PuranaPratyayaResolver.semanticValue(pada) ?: return null
         sup(pada) ?: return null
-        require(hasSlot(pada, SupAffix.AM)) {
+        requireMember(hasSlot(pada, SupAffix.AM), "COLLECTION_ORDINAL_SELECTOR_AGREEMENT") {
             "Ordinal-member extraction requires a positive singular accusative selector."
         }
         return ExecutionExpression.Pada(pada.sourceText,
@@ -32,8 +50,9 @@ object CollectionMemberMorphology {
     /** Preserve member-role morphology before procedure parameters rewrite nouns. */
     fun protectedPadas(padas: List<Pada>): List<Pada> {
         val verb = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return emptyList()
-        val projected = PriorActionLowering.expand(Invocation(AkhyataVakya(
+        val projected = (PriorActionLowering.analyze(Invocation(AkhyataVakya(
             padas.joinToString(" ") { it.sourceText }, padas, verb)))
+            as? PriorActionLowering.Analysis.Resolved)?.sequence
         if (projected != null) return projected.statements.filterIsInstance<Invocation>()
             .flatMap { protectedPadas(it.vakya.padas) }
         val nominals = padas.filterIsInstance<SubantaPada>()
@@ -57,26 +76,44 @@ object CollectionMemberMorphology {
         }
     }
 
+    fun analyze(node: Invocation): Analysis = try {
+        validateInternal(node)
+        Analysis.Valid
+    } catch (error: InvalidMember) {
+        Analysis.Invalid(Diagnostic(error.code, error.message.orEmpty(), node.relationSpan(), node.sourceText))
+    }
+
     fun validate(node: Invocation) {
+        val analysis = analyze(node)
+        if (analysis is Analysis.Invalid) throw PvmSemanticException(
+            ExecutionDiagnostic.from(analysis.diagnostic),
+        )
+    }
+
+    private fun validateInternal(node: Invocation) {
         val sentence = node.vakya as? AkhyataVakya ?: return
         if (sentence.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.HR ||
             Upasarga.UD !in sentence.tinganta.upasargaIdentities) return
         val nominals = sentence.padas.filterIsInstance<SubantaPada>()
         if (nominals.none { hasSlot(it, SupAffix.NGAS) }) return
-        require(nominals.none { pada ->
+        requireMember(nominals.none { pada ->
             val nominal = (pada.pratipadika as? MulaPratipadika)
             !hasSlot(pada, SupAffix.NGAS) &&
                 nominal?.lexicalIdentity?.ordinalValue != null &&
                 nominal.vikaras.any { !it.isRecognizedStriAffix }
-        }) { "A further-derived ordinal is not an unchanged collection member selector." }
+        }, "COLLECTION_DERIVED_ORDINAL_SELECTOR") {
+            "A further-derived ordinal is not an unchanged collection member selector."
+        }
         val ordinals = sentence.padas.filter {
             !hasSlot(it, SupAffix.NGAS) && PuranaPratyayaResolver.ordinalValue(it) != null
         }
         if (ordinals.isNotEmpty()) {
-            require(ordinals.size == 1 && nominals.none {
+            requireMember(ordinals.size == 1 && nominals.none {
                 !hasSlot(it, SupAffix.NGAS) &&
                     (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ANTIMA
-            }) { "Collection extraction requires one unambiguous member selector." }
+            }, "COLLECTION_MEMBER_SELECTOR_CARDINALITY") {
+                "Collection extraction requires one unambiguous member selector."
+            }
             ordinalExpression(ordinals.single())
         }
         val selectors = nominals.filter {
@@ -84,12 +121,15 @@ object CollectionMemberMorphology {
                 (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ANTIMA
         }
         if (selectors.isEmpty()) return
-        require(selectors.size == 1) { "Final-member extraction requires one unambiguous selector." }
+        requireMember(selectors.size == 1, "COLLECTION_FINAL_SELECTOR_CARDINALITY") {
+            "Final-member extraction requires one unambiguous selector."
+        }
         val selector = selectors.single()
-        require(hasSlot(selector, SupAffix.AM)) {
+        requireMember(hasSlot(selector, SupAffix.AM), "COLLECTION_FINAL_SELECTOR_AGREEMENT") {
             "Final-member extraction requires a singular accusative object."
         }
-        require((selector.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+        requireMember((selector.pratipadika as MulaPratipadika).vikaras.isEmpty(),
+            "COLLECTION_DERIVED_FINAL_SELECTOR") {
             "Derived final-member nouns require their own semantics, not plain अन्तिम selection."
         }
     }

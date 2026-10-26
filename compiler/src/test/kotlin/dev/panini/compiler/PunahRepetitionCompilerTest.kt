@@ -2,11 +2,30 @@ package dev.panini.compiler
 
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 
 class PunahRepetitionCompilerTest {
+    @Test
+    fun `conflicting repetition markers have interpreter compiler diagnostic parity`() {
+        val source = "पुनः त्रि + कृत्वसुच् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
+        val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)
+        assertEquals("REPETITION_MARKER_CONFLICT", interpretedDiagnostic.code)
+
+        val compiled = assertFailsWith<CompilerUnsupportedException> {
+            BytecodeCompiler.compile(source, "ConflictingRepetitionMarkers")
+        }
+        val compiledDiagnostic = assertNotNull(compiled.diagnostic)
+        assertEquals(interpretedDiagnostic.code, compiledDiagnostic.code)
+        assertEquals(interpretedDiagnostic.span, compiledDiagnostic.span)
+    }
+
     @Test
     fun `compiled punah performs a compatible connected action again once`() {
         val source = """

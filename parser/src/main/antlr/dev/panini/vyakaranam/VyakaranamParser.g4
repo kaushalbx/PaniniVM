@@ -84,8 +84,13 @@ utterance
 // The relative compound is interpreted structurally; it is not a lexical variable.
 naturalRelativeActionClause
     : collection=subantaPada quantifier=subantaPada member=subantaPada
-      relative=compoundSubantaPada relativeType=subantaPada action=tingantaPada
-      (TATAH conditional=conditionalExpression)?
+      relative=compoundSubantaPada relativeType=subantaPada? action=tingantaPada
+      (TATAH continuation=relativeActionContinuation)?
+    ;
+
+relativeActionContinuation
+    : conditionalExpression
+    | vakya
     ;
 
 // The written samāsa boundary keeps this clause syntactically distinct from

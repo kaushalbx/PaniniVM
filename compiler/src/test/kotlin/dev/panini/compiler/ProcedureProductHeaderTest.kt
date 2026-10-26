@@ -93,9 +93,11 @@ class ProcedureProductHeaderTest {
             val source = header.replace("जन् + णिच् + लट् + तिप्", predicate) +
                 "\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n$call"
             if (predicate.startsWith("प्र +")) {
-                // A prefixed declaration predicate is rejected during parsing,
+                // A prefixed declaration predicate is rejected semantically
                 // before a procedure signature exists to validate at invocation.
-                assertFailsWith<IllegalArgumentException>(predicate) { PaniniVM().evalScript(source) }
+                val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single(), predicate)
+                assertEquals("PRAKRIYA_DECLARATION_PREDICATE",
+                    assertNotNull(failure.diagnostic).code)
             } else assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last(), predicate)
             assertFailsWith<IllegalArgumentException>(predicate) {
                 CompilerFrontend.lower(source, "InvalidProductionMorphology$index")

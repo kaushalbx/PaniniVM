@@ -8,6 +8,16 @@ import dev.panini.vyakaranam.ast.WhileLoop
 
 /** Executes condition-controlled loops and materializes their structured outcome. */
 internal class PvmLoopExecutor {
+    sealed interface ConditionResolution {
+        data class Resolved(
+            val value: StructuredValueExecutor.ResolvedInvocation,
+        ) : ConditionResolution
+
+        data class Invalid(
+            val failure: ExecutionResult.Failure,
+        ) : ConditionResolution
+    }
+
     data class Request(
         val loop: WhileLoop,
         val scope: ExecutionScope,
@@ -16,7 +26,7 @@ internal class PvmLoopExecutor {
         val hostBudget: Long?,
         val executeNode: (ProgramNode, ExecutionScope, Boolean) -> List<ExecutionResult>,
         val evaluateCondition: (dev.panini.vyakaranam.ast.Invocation, ExecutionScope) -> ExecutionResult,
-        val resolveCondition: (dev.panini.vyakaranam.ast.Invocation) -> StructuredValueExecutor.ResolvedInvocation?,
+        val resolveCondition: (dev.panini.vyakaranam.ast.Invocation) -> ConditionResolution,
         val resolveValue: (String) -> SanskritValue? = { null },
         val onResult: ((ExecutionResult) -> Unit)?,
     )
@@ -107,14 +117,10 @@ internal class PvmLoopExecutor {
                 if (truthState != null) {
                     if (hasExplicitNegation) !truthState.boolean else truthState.boolean
                 } else {
-                    val resolved = try { request.resolveCondition(loop.condition) }
-                    catch (failure: IllegalArgumentException) {
-                        return results + ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                            failure.message ?: "Invalid loop predicate.")
-                    } ?: return results + ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "A structured attribute used by the loop condition could not be resolved.",
-                    )
+                    val resolved = when (val resolution = request.resolveCondition(loop.condition)) {
+                        is ConditionResolution.Resolved -> resolution.value
+                        is ConditionResolution.Invalid -> return results + resolution.failure
+                    }
                     val fieldTest = NaturalSemanticNormalizer.normalize(resolved.invocation)
                         as? NaturalSemanticNormalizer.Operation.TruthTest
                     if (fieldTest != null && resolved.environment.values.containsKey(fieldTest.stateName)) {

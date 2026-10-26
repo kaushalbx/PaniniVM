@@ -102,7 +102,8 @@ class PaniniVM(
     ): ExecutionResult {
         fun structured(node: dev.panini.vyakaranam.ast.ProgramNode): Boolean = when (node) {
             is dev.panini.vyakaranam.ast.Conditional, is dev.panini.vyakaranam.ast.WhileLoop,
-            is dev.panini.vyakaranam.ast.ForEach -> true
+            is dev.panini.vyakaranam.ast.ForEach,
+            is dev.panini.vyakaranam.ast.CollectionRelativeAction -> true
             is dev.panini.vyakaranam.ast.Scope -> true
             is dev.panini.vyakaranam.ast.Sequence -> node.statements.any(::structured)
             else -> false

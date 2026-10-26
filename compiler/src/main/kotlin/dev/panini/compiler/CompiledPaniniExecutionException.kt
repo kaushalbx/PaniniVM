@@ -1,6 +1,7 @@
 package dev.panini.compiler
 
 import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionDiagnostic
 import dev.panini.execution.ExecutionResult
 
 /** Preserves a PaniniVM execution failure across the generated JVM method boundary. */
@@ -8,6 +9,7 @@ class CompiledPaniniExecutionException(
     val error: ExecutionError,
     override val message: String,
     val trace: List<String> = emptyList(),
+    val diagnostic: ExecutionDiagnostic? = null,
 ) : IllegalStateException("$error: $message") {
     companion object {
         internal fun from(result: ExecutionResult, context: String): CompiledPaniniExecutionException =
@@ -16,6 +18,7 @@ class CompiledPaniniExecutionException(
                     result.error,
                     result.message,
                     result.trace,
+                    result.diagnostic,
                 )
                 is ExecutionResult.Ambiguous -> CompiledPaniniExecutionException(
                     ExecutionError.AMBIGUOUS_OPERATION,

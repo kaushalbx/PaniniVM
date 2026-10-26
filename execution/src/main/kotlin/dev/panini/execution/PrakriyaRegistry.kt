@@ -139,13 +139,9 @@ class PrakriyaRegistry {
             it.precedence == kriya.precedence &&
                 AntaratamaOverloadEngine.matchTypes(it.signature, argumentTypes) == bestMatch
         }
-        if (analyzedArgumentTypes != null) {
-            val match = AntaratamaOverloadEngine.matchTypes(kriya.signature, argumentTypes)
-            require(match == AntaratamaOverloadEngine.TypeMatch.MISMATCH || candidates.drop(1).none {
-                it.precedence == kriya.precedence &&
-                    AntaratamaOverloadEngine.matchTypes(it.signature, argumentTypes) == match
-            }) { "Ambiguous pipeline overload for '$operationStem' with analyzed argument types $argumentTypes." }
-        }
+        val ambiguityMessage = if (analyzedArgumentTypes != null)
+            "Ambiguous pipeline overload for '$operationStem' with analyzed argument types $argumentTypes."
+        else "Ambiguous procedure overload for '$operationStem'."
         return PrakriyaInvocation(
             kriya = kriya,
             karmaText = arguments.joinToString(" ") { it.term },
@@ -153,7 +149,7 @@ class PrakriyaRegistry {
             argumentValues = arguments.map(PrakriyaArgument::value),
             arguments = arguments,
             argumentSyntax = arguments.mapNotNull(PrakriyaArgument::pada),
-            resolutionError = if (ambiguous) "Ambiguous procedure overload for '$operationStem'." else null,
+            resolutionError = ambiguityMessage.takeIf { ambiguous },
         )
     }
 

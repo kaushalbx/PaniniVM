@@ -3,6 +3,7 @@ package dev.panini.execution
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class AntaratamaOverloadTest {
@@ -18,8 +19,9 @@ class AntaratamaOverloadTest {
         """.trimIndent()
         val results = PaniniVM().evalScript(source)
         val failure = kotlin.test.assertIs<ExecutionResult.Failure>(results.last(), results.toString())
-        assertEquals(ExecutionError.INVALID_VALUE, failure.error)
+        assertEquals(ExecutionError.AMBIGUOUS_OPERATION, failure.error)
         assertTrue(failure.message.contains("Ambiguous"))
+        assertEquals("AMBIGUOUS_PROCEDURE_OVERLOAD", assertNotNull(failure.diagnostic).code)
         assertTrue(results.none { it is ExecutionResult.Success && it.outputKind == OutputKind.CONSOLE })
     }
 

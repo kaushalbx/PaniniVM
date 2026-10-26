@@ -326,6 +326,7 @@ class PrakriyaMultiFileTest {
         val failure = results.filterIsInstance<ExecutionResult.Failure>().firstOrNull()
         assertNotNull(failure, "Evaluation with zero argument must trigger Niṣedha failure.")
         assertTrue(failure.message.contains("निषेध-प्रतिषेधः"), "Failure message must reference Niṣedha prohibition.")
+        assertEquals("PROCEDURE_PROHIBITION_TRIGGERED", assertNotNull(failure.diagnostic).code)
     }
 
     @Test

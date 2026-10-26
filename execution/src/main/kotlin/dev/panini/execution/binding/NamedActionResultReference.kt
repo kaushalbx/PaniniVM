@@ -27,7 +27,29 @@ data class NamedActionResultReference(
     }
 }
 
+data class ActionResultReferenceDiagnostic(
+    override val code: String,
+    override val message: String,
+    override val span: DocumentSourceSpan?,
+    override val offendingText: String,
+) : SemanticDiagnostic<String>
+
 object NamedActionResultReferenceResolver {
+    fun agreementDiagnostic(references: List<NamedActionResultReference>): ActionResultReferenceDiagnostic? {
+        val invalid = references.firstOrNull { !it.orderingAgrees } ?: return null
+        val participants = listOf(invalid.result) + invalid.orderingQualifiers
+        val spans = participants.mapNotNull { (it as? SourceLocatedNode)?.sourceSpan }
+        val span = spans.takeIf { it.isNotEmpty() }?.let {
+            DocumentSourceSpan(it.minOf(DocumentSourceSpan::start), it.maxOf(DocumentSourceSpan::endExclusive))
+        }
+        return ActionResultReferenceDiagnostic(
+            code = "RESULT_ORDERING_AGREEMENT",
+            message = "The ordering qualifier and फल must agree in case and number.",
+            span = span,
+            offendingText = participants.joinToString(" ") { it.sourceText },
+        )
+    }
+
     /** Consume genitive and ordering modifiers without consuming the referenced value. */
     fun operandPadas(padas: List<Pada>): List<Pada> {
         val references = resolve(padas)

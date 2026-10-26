@@ -4,6 +4,24 @@ import dev.panini.execution.*
 import kotlin.test.*
 
 class CompiledOverloadIdentityTest {
+    @Test fun `ordinary overload ambiguity has one diagnostic across static frontends`() {
+        val source = """
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ शब्द + सुँ इति मान + सुँ ।
+            मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            सञ्चित + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val compiled = assertFailsWith<CompilerUnsupportedException> {
+            BytecodeCompiler.compile(source, "AmbiguousOrdinaryOverload")
+        }
+        assertEquals("AMBIGUOUS_PROCEDURE_OVERLOAD", assertNotNull(compiled.diagnostic).code)
+        assertTrue(PrakriyaScriptValidator.validate(source)
+            .any { it.code == "AMBIGUOUS_PROCEDURE_OVERLOAD" })
+    }
+
     @Test fun `same file can invoke its private compiled procedure`() {
         val source = """
             रहस्य + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
@@ -128,10 +146,13 @@ class CompiledOverloadIdentityTest {
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
         """.trimIndent()
-        val failure = assertFailsWith<IllegalArgumentException> {
+        val failure = assertFailsWith<CompilerUnsupportedException> {
             BytecodeCompiler.compileAndLoad(source, "AmbiguousPipelineOverload")
         }
         assertTrue(failure.message.orEmpty().contains("Ambiguous"), failure.message)
+        val diagnostic = assertNotNull(failure.diagnostic)
+        assertEquals("AMBIGUOUS_PIPELINE_STAGE", diagnostic.code)
+        assertNotNull(diagnostic.span)
     }
 
     @Test fun `pipeline selects overload from the preceding declared result`() {

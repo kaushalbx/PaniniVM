@@ -8,7 +8,7 @@ import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.SequenceConnector
+import dev.panini.vyakaranam.ast.SequenceResultFlow
 import dev.panini.vyakaranam.ast.morphologicalKey
 import dev.panini.execution.binding.NamedActionResultReferenceResolver
 import dev.panini.execution.binding.CanonicalDhatuIdentity
@@ -27,7 +27,8 @@ object DirectResultAssignment {
         val candidates = statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
             val sequence = sentence.program as? Sequence ?: return@flatMap emptyList()
             sequence.statements.drop(1).mapIndexedNotNull { index, stage ->
-                if (sequence.connectorKinds.getOrNull(index) != SequenceConnector.ANANTARYA) return@mapIndexedNotNull null
+                if (sequence.boundaries.getOrNull(index)?.resultFlow != SequenceResultFlow.PREVIOUS_RESULT)
+                    return@mapIndexedNotNull null
                 val previous = sequence.statements[index] as? Invocation ?: return@mapIndexedNotNull null
                 verboseAssignment(stage as? Invocation ?: return@mapIndexedNotNull null, previous)
             }

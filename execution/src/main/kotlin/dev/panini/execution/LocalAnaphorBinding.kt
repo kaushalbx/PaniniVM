@@ -7,12 +7,58 @@ import dev.panini.execution.binding.referenceKey
 internal object LocalAnaphorBinding {
     data class Bound(val invocation: Invocation, val scope: ExecutionScope)
     data class BoundProgram(val program: ProgramNode, val scope: ExecutionScope)
+    sealed interface Diagnostic : SemanticDiagnostic<String> {
+
+        data class Anaphoric(
+            val detail: AnaphoricOperandProjection.Diagnostic<LocalReferentIdentity>,
+        ) : Diagnostic {
+            override val code: String get() = detail.code.name
+            override val message: String get() = detail.message
+            override val span: DocumentSourceSpan? get() = detail.span
+            override val offendingText: String get() = detail.offendingText
+        }
+
+        data class InvalidBinding(
+            override val message: String,
+            override val span: DocumentSourceSpan? = null,
+            override val offendingText: String = "",
+        ) : Diagnostic {
+            override val code: String = "INVALID_BINDING"
+        }
+    }
+
+    fun Diagnostic.render(): String = buildString {
+        append(code).append(": ").append(message)
+        span?.let { append(" at offsets ").append(it.start).append("..").append(it.endExclusive) }
+        if (offendingText.isNotEmpty()) append(" [").append(offendingText).append(']')
+    }
+
+    fun Diagnostic.executionDiagnostic(): ExecutionDiagnostic = ExecutionDiagnostic.from(this)
+    sealed interface Analysis<out T> {
+        data class Resolved<T>(val value: T) : Analysis<T>
+        data class Invalid(val diagnostic: Diagnostic) : Analysis<Nothing>
+    }
 
     /** One alias per identity lets runtime assignment maps serve later sequence stages. */
-    fun resolveLinear(node: ProgramNode, scope: ExecutionScope, operations: Set<String> = emptySet()): BoundProgram {
+    fun analyzeLinear(node: ProgramNode, scope: ExecutionScope,
+        operations: Set<String> = emptySet()): Analysis<BoundProgram> = try {
+        analyzeLinearUnchecked(node, scope, operations)
+    } catch (failure: IllegalArgumentException) {
+        val invocations = node.grammaticalInvocations()
+        val spans = invocations.mapNotNull(Invocation::relationSpan)
+        Analysis.Invalid(Diagnostic.InvalidBinding(
+            failure.message ?: "Invalid local binding.",
+            spans.takeIf { it.isNotEmpty() }?.let { DocumentSourceSpan(
+                it.minOf(DocumentSourceSpan::start), it.maxOf(DocumentSourceSpan::endExclusive)) },
+            node.sourceText,
+        ))
+    }
+
+    private fun analyzeLinearUnchecked(node: ProgramNode, scope: ExecutionScope,
+        operations: Set<String>): Analysis<BoundProgram> {
         fun linear(program: ProgramNode): Boolean = program is Invocation ||
             program is Sequence && program.statements.all(::linear)
-        if (!linear(node)) return BoundProgram(node, scope)
+        if (!linear(node)) return Analysis.Resolved(BoundProgram(node, scope))
         val candidates = scope.procedureBindings?.anaphoricReferents().orEmpty().map {
             AgreementCandidate(it.identity, ReferentAgreement(it.grammaticalNumbers, it.grammaticalGenders))
         }
@@ -20,15 +66,23 @@ internal object LocalAnaphorBinding {
         while (scope.procedureBindings?.names.orEmpty().any { it.startsWith(prefix) } ||
             scope.environment.values.keys.any { it.startsWith(prefix) }) prefix += "_"
         val aliases = linkedMapOf<LocalReferentIdentity, String>()
+        var invalid: AnaphoricOperandProjection.Diagnostic<LocalReferentIdentity>? = null
         fun project(program: ProgramNode): ProgramNode = when (program) {
-            is Invocation -> AnaphoricOperandProjection.project(program, candidates,
+            is Invocation -> when (val analysis = AnaphoricOperandProjection.analyze(program, candidates,
                 protectedPadas = PrakriyaAstArgumentBinder.protectedParameterPadas(program.vakya.padas, operations),
-                referenceName = { identity -> aliases.getOrPut(identity) { "$prefix${aliases.size}" } }).invocation
+                referenceName = { identity -> aliases.getOrPut(identity) { "$prefix${aliases.size}" } })) {
+                is AnaphoricOperandProjection.Analysis.Resolved -> analysis.projection.invocation
+                is AnaphoricOperandProjection.Analysis.Invalid -> {
+                    invalid = analysis.diagnostic
+                    program
+                }
+            }
             is Sequence -> program.copy(statements = program.statements.map(::project))
             else -> program
         }
         val projected = project(node)
-        if (aliases.isEmpty()) return BoundProgram(node, scope)
+        invalid?.let { return Analysis.Invalid(Diagnostic.Anaphoric(it)) }
+        if (aliases.isEmpty()) return Analysis.Resolved(BoundProgram(node, scope))
         fun unify(program: ProgramNode): ProgramNode = when (program) {
             is Invocation -> {
                 val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(program.vakya.padas, operations)
@@ -36,7 +90,8 @@ internal object LocalAnaphorBinding {
                     if (protected.any { it === pada }) return pada
                     val identity = scope.procedureBindings?.identity(pada.pratipadika.referenceKey()) ?: return pada
                     val name = aliases[identity] ?: return pada
-                    return pada.copy(sourceText = "$name + ${pada.sup.text}", pratipadika = MulaPratipadika(name, name))
+                    return pada.copy(sourceText = "$name + ${pada.sup.text}",
+                        pratipadika = MulaPratipadika(name, name)).inheritLocation(pada)
                 }
                 val padas = program.vakya.padas.map { pada ->
                     if (protected.any { it === pada }) pada else when (pada) {
@@ -58,23 +113,37 @@ internal object LocalAnaphorBinding {
         }
         val bindings = requireNotNull(scope.procedureBindings).withReferentAliases(
             aliases.entries.associate { (identity, name) -> name to identity })
-        return BoundProgram(unify(projected), scope.copy(procedureBindings = bindings,
-            environment = scope.environment.mergedWith(ValueEnvironment.live(bindings.values))))
+        return Analysis.Resolved(BoundProgram(unify(projected), scope.copy(procedureBindings = bindings,
+            environment = scope.environment.mergedWith(ValueEnvironment.live(bindings.values)))))
     }
 
-    fun resolve(node: Invocation, scope: ExecutionScope, operations: Set<String> = emptySet()): Bound {
+    fun analyze(node: Invocation, scope: ExecutionScope,
+        operations: Set<String> = emptySet()): Analysis<Bound> = try {
+        analyzeUnchecked(node, scope, operations)
+    } catch (failure: IllegalArgumentException) {
+        Analysis.Invalid(Diagnostic.InvalidBinding(
+            failure.message ?: "Invalid local binding.", node.relationSpan(), node.sourceText))
+    }
+
+    private fun analyzeUnchecked(node: Invocation, scope: ExecutionScope,
+        operations: Set<String>): Analysis<Bound> {
         val referents = scope.procedureBindings?.anaphoricReferents().orEmpty()
         var prefix = "__pvm_anaphor_"
         while (scope.procedureBindings?.names.orEmpty().any { it.startsWith(prefix) } ||
             scope.environment.values.keys.any { it.startsWith(prefix) }) prefix += "_"
-        val projection = AnaphoricOperandProjection.project(node, referents.map {
+        val projection = when (val analysis = AnaphoricOperandProjection.analyze(node, referents.map {
             AgreementCandidate(it.identity, ReferentAgreement(it.grammaticalNumbers, it.grammaticalGenders))
         }, prefix = prefix, protectedPadas = PrakriyaAstArgumentBinder.protectedParameterPadas(
-            node.vakya.padas, operations))
-        if (projection.operands.isEmpty()) return Bound(node, scope)
+            node.vakya.padas, operations))) {
+            is AnaphoricOperandProjection.Analysis.Resolved -> analysis.projection
+            is AnaphoricOperandProjection.Analysis.Invalid ->
+                return Analysis.Invalid(Diagnostic.Anaphoric(analysis.diagnostic))
+        }
+        if (projection.operands.isEmpty()) return Analysis.Resolved(Bound(node, scope))
         val bindings = requireNotNull(scope.procedureBindings).withReferentAliases(
             projection.operands.associate { it.name to it.identity })
-        return Bound(projection.invocation, scope.copy(procedureBindings = bindings,
-            environment = scope.environment.mergedWith(ValueEnvironment.live(bindings.values))))
+        return Analysis.Resolved(Bound(projection.invocation, scope.copy(procedureBindings = bindings,
+            environment = scope.environment.mergedWith(ValueEnvironment.live(bindings.values)))))
     }
+
 }

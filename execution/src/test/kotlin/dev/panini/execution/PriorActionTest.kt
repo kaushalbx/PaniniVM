@@ -11,6 +11,18 @@ import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.*
 
 class PriorActionTest {
+    @Test
+    fun `different prior and main agents expose a typed discourse diagnostic`() {
+        val source = "राम + सुँ एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+            "सीता + सुँ फल + अम् मुद्र् + णिच् + लट् + तिप् ।"
+        val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
+        val analysis = assertIs<PriorActionLowering.Analysis.Invalid>(PriorActionLowering.analyze(invocation))
+        assertEquals("PRIOR_ACTION_AGENT_IDENTITY", analysis.diagnostic.code)
+        assertNotNull(analysis.diagnostic.span)
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        assertEquals(analysis.diagnostic.code, assertNotNull(failure.diagnostic).code)
+    }
+
     @Test fun `prior action classification uses typed affix identity not display text`() {
         val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
         val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
@@ -18,7 +30,7 @@ class PriorActionTest {
         fun withSuffix(suffix: String): Invocation = invocation.copy(vakya = sentence.copy(
             padas = sentence.padas.map { pada ->
                 val derivation = (pada as? AvyayaPada)?.derivation as? AvyayaKridantaDerivation
-                if (derivation == null) pada else (pada as AvyayaPada).copy(
+                if (derivation == null) pada else pada.copy(
                     sourceText = "display only",
                     derivation = derivation.copy(pratyaya = suffix))
             }))

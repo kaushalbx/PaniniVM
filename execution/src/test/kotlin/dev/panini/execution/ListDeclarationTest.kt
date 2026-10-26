@@ -4,6 +4,19 @@ import kotlin.test.*
 
 class ListDeclarationTest {
     @Test
+    fun `invalid declaration exposes a typed morphological diagnostic`() {
+        val source = "एक + ङस् सूची + सुँ असँ + लट् + तस् ।"
+        val node = assertIs<dev.panini.vyakaranam.ast.Invocation>(
+            dev.panini.vyakaranam.parser.PaniniParser().parse(source).body)
+        val analysis = assertIs<ListDeclarationLowering.Analysis.Invalid>(
+            ListDeclarationLowering.analyze(node))
+        assertEquals("LIST_DECLARATION_COPULA_AGREEMENT", analysis.diagnostic.code)
+        assertNotNull(analysis.diagnostic.span)
+        val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+        assertEquals(analysis.diagnostic.code, assertNotNull(failure.diagnostic).code)
+    }
+
+    @Test
     fun `ordinal retrieval does not erase derivation from the value object`() {
         for (affix in listOf("मतुप्", "तरप्", "टाप्")) {
             val source = "सूची + ङस् प्रथम + अम् मूल्य + $affix + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
@@ -88,6 +101,16 @@ class ListDeclarationTest {
             )
             assertIs<ExecutionResult.Failure>(results.last(), suffix)
         }
+    }
+
+    @Test
+    fun `ordinal disagreement exposes a typed relation diagnostic`() {
+        val source = "सूची + ङस् प्रथम + टा मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        val node = assertIs<dev.panini.vyakaranam.ast.Invocation>(
+            dev.panini.vyakaranam.parser.PaniniParser().parse(source).body)
+        val analysis = assertIs<OrdinalObjectLowering.Analysis.Invalid>(OrdinalObjectLowering.analyze(node))
+        assertEquals("ORDINAL_OBJECT_CASE_NUMBER_AGREEMENT", analysis.diagnostic.code)
+        assertNotNull(analysis.diagnostic.span)
     }
 
     @Test

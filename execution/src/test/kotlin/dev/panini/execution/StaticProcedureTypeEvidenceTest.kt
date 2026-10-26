@@ -76,13 +76,13 @@ class StaticProcedureTypeEvidenceTest {
             listOf(argument), "", analyzedArgumentTypes = listOf(PrakriyaValueType.RUPA)))
         assertEquals(PrakriyaValueType.RUPA, selected.kriya.signature.parameters.single().type)
         assertNull(selected.arguments.single().value)
+        val unconstrained = assertNotNull(registry.resolveStructuredInvocation(
+            "परीक्षण", null, listOf(argument), "",
+            analyzedArgumentTypes = listOf(PrakriyaValueType.UNCONSTRAINED)))
+        assertContains(assertNotNull(unconstrained.resolutionError), "Ambiguous pipeline overload")
         assertFailsWith<IllegalArgumentException> {
-            registry.resolveStructuredInvocation("परीक्षण", null, listOf(argument), "",
-                analyzedArgumentTypes = listOf(PrakriyaValueType.UNCONSTRAINED))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            registry.resolveStructuredInvocation("परीक्षण", null, listOf(argument), "",
-                analyzedArgumentTypes = emptyList())
+            registry.resolveStructuredInvocation(
+                "परीक्षण", null, listOf(argument), "", analyzedArgumentTypes = emptyList())
         }
     }
 }

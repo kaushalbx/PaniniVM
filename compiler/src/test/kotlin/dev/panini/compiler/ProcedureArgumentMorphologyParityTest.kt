@@ -15,7 +15,13 @@ class ProcedureArgumentMorphologyParityTest {
                 पञ्च + अम् $call डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
             val results = PaniniVM().evalScript(source)
-            assertIs<ExecutionResult.Failure>(results.last(), "$call: $results")
+            val failure = assertIs<ExecutionResult.Failure>(results.last(), "$call: $results")
+            assertTrue(failure.message.startsWith("INVALID_BINDING:"), failure.message)
+            assertContains(failure.message, "at offsets")
+            val diagnostic = assertNotNull(failure.diagnostic)
+            assertEquals("INVALID_BINDING", diagnostic.code)
+            assertNotNull(diagnostic.span)
+            assertTrue(diagnostic.offendingText.isNotEmpty())
             assertFails(call) { BytecodeCompiler.compileAndLoad(source, "InvalidProcedureNumber$index") }
         }
     }
@@ -29,10 +35,21 @@ class ProcedureArgumentMorphologyParityTest {
                 राम + $ending पञ्च + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
             val interpreted = PaniniVM().evalScript(source)
-            assertIs<ExecutionResult.Failure>(interpreted.last(), "$ending: $interpreted")
-            assertFails("$ending must not compile as if राम were absent") {
+            val interpretedFailure = assertIs<ExecutionResult.Failure>(interpreted.last(), "$ending: $interpreted")
+            assertEquals("UNSUPPORTED_ARGUMENT_MORPHOLOGY",
+                assertNotNull(interpretedFailure.diagnostic).code)
+            val validation = PrakriyaScriptValidator.validate(source)
+                .first { it.code == "UNSUPPORTED_ARGUMENT_MORPHOLOGY" }
+            assertTrue(validation.length > 0)
+            assertTrue(validation.offendingText.startsWith("राम+$ending"), validation.offendingText)
+            val compiled = assertFailsWith<CompilerUnsupportedException>(
+                "$ending must not compile as if राम were absent") {
                 BytecodeCompiler.compileAndLoad(source, "InvalidProcedureOperand$index")
             }
+            val diagnostic = assertNotNull(compiled.diagnostic)
+            assertEquals("UNSUPPORTED_ARGUMENT_MORPHOLOGY", diagnostic.code)
+            assertTrue(diagnostic.offendingText.startsWith("राम+$ending"), diagnostic.offendingText)
+            assertNotNull(diagnostic.span)
         }
     }
 }
