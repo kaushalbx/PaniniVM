@@ -8,12 +8,13 @@ import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.psi.PsiDocumentManager
-import dev.panini.execution.ExecutionResult
-import dev.panini.execution.PaniniVM
-import dev.panini.execution.PvmScript
+import com.intellij.util.concurrency.AppExecutorUtil
 import dev.panini.execution.PvmUktiSadhaka
+import dev.panini.vyakaranam.ast.ProgramDocument
+import dev.panini.vyakaranam.ast.Ukti
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 /**
  * PvmEditorInlayListener updates inline hints dynamically as the user edits .pvm files.
@@ -21,15 +22,26 @@ import java.util.concurrent.Future
  */
 class PvmEditorInlayListener : EditorFactoryListener {
 
+    private companion object {
+        const val UPDATE_DELAY_MS = 300L
+    }
+
     private val documentListeners = ConcurrentHashMap<Editor, DocumentListener>()
     private val pendingComputations = ConcurrentHashMap<Editor, Future<*>>()
+
+    private data class InlaySnapshot(
+        val isPvmFile: Boolean,
+        val document: ProgramDocument?,
+        val text: String,
+        val modificationStamp: Long,
+    )
 
     override fun editorCreated(event: EditorFactoryEvent) {
         val editor = event.editor
 
         ApplicationManager.getApplication().invokeLater {
             if (!editor.isDisposed) {
-                updateInlays(editor)
+                scheduleInlayUpdate(editor)
             }
         }
 
@@ -37,7 +49,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
             override fun documentChanged(event: DocumentEvent) {
                 ApplicationManager.getApplication().invokeLater {
                     if (!editor.isDisposed) {
-                        updateInlays(editor)
+                        scheduleInlayUpdate(editor)
                     }
                 }
             }
@@ -51,92 +63,44 @@ class PvmEditorInlayListener : EditorFactoryListener {
         pendingComputations.remove(editor)?.cancel(true)
         val listener = documentListeners.remove(editor)
         if (listener != null) {
-            runCatching {
-                editor.document.removeDocumentListener(listener)
-            }
+            editor.document.removeDocumentListener(listener)
         }
     }
 
-    private fun updateInlays(editor: Editor) {
+    private fun scheduleInlayUpdate(editor: Editor) {
         val project = editor.project ?: return
         if (project.isDisposed) return
 
-        // Cancel previous pending task for this editor to avoid redundant calculations
+        // Debounce rapid edits and interrupt work that has not yet completed.
         pendingComputations.remove(editor)?.cancel(true)
 
-        // Verify the document is a PvmFile before doing any compute-heavy operations
-        val isPvm = runReadAction {
-            if (project.isDisposed) false
-            else {
-                val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
-                psiFile is PvmFile
-            }
+        val snapshot = runReadAction {
+            val psiFile = if (project.isDisposed) null
+            else PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+            val pvmFile = psiFile as? PvmFile
+            InlaySnapshot(
+                isPvmFile = pvmFile != null,
+                document = pvmFile?.canonicalDocument(),
+                text = editor.document.text,
+                modificationStamp = editor.document.modificationStamp,
+            )
         }
-        if (!isPvm) return
+        if (!snapshot.isPvmFile) return
 
-        val text = try {
-            editor.document.text
-        } catch (_: Throwable) {
-            return
-        }
-        if (text.isBlank()) return
+        val text = snapshot.text
+        val modificationStamp = snapshot.modificationStamp
 
-        val future = ApplicationManager.getApplication().executeOnPooledThread {
-            if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
+        val future = AppExecutorUtil.getAppScheduledExecutorService().schedule({
+            if (Thread.currentThread().isInterrupted) return@schedule
 
-            val sadhaka = PvmUktiSadhaka()
-            val vm = PaniniVM()
-            val lines = text.lines()
-            var currentOffset = 0
-
-            val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
-
-            for (line in lines) {
-                if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
-                val trimmed = line.trim()
-                val lineEnd = currentOffset + line.length
-
-                val codeWithoutComment = when {
-                    trimmed.startsWith("#") || trimmed.startsWith("//") -> ""
-                    trimmed.contains("#") -> trimmed.substringBefore("#").trim()
-                    trimmed.contains("//") -> trimmed.substringBefore("//").trim()
-                    else -> trimmed
-                }
-
-                if (codeWithoutComment.isNotEmpty()) {
-                    val lineHasDanda = codeWithoutComment.contains("।") || codeWithoutComment.contains("॥")
-
-                    var surface = try { sadhaka.sadhayaLine(codeWithoutComment) } catch (_: Throwable) { "" }
-                    if (surface.isBlank() || surface == codeWithoutComment) {
-                        val res = try { vm.eval(codeWithoutComment) } catch (_: Throwable) { null }
-                        if (res is ExecutionResult.Success && res.value.isNotBlank()) {
-                            surface = res.value
-                        }
-                    }
-
-                    if (surface.isNotBlank()) {
-                        val displayHint = if (!lineHasDanda) {
-                            surface
-                                .replace("॥", "")
-                                .replace("।", "")
-                                .replace(Regex("\\s+"), " ")
-                                .trim()
-                        } else {
-                            surface.trim()
-                        }
-
-                        if (displayHint.isNotBlank()) {
-                            inlineInlayEntries.add(Pair(lineEnd, displayHint))
-                        }
-                    }
-                }
-
-                currentOffset = lineEnd + 1
-            }
+            val inlineInlayEntries = snapshot.document?.let { canonicalDocument ->
+                PvmInlayHints.compute(text, canonicalDocument) { Thread.currentThread().isInterrupted }
+            }.orEmpty()
 
             // Once background computations are complete, schedule visual rendering on EDT
             ApplicationManager.getApplication().invokeLater {
                 if (editor.isDisposed) return@invokeLater
+                if (editor.document.modificationStamp != modificationStamp) return@invokeLater
 
                 // Dispose previous inline inlays so live edits replace stale sentence hints
                 val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
@@ -156,13 +120,30 @@ class PvmEditorInlayListener : EditorFactoryListener {
                     )
                 }
 
-                try {
-                    editor.contentComponent.repaint()
-                } catch (_: Throwable) {
-                }
+                editor.contentComponent.repaint()
             }
-        }
+        }, UPDATE_DELAY_MS, TimeUnit.MILLISECONDS)
 
         pendingComputations[editor] = future
+    }
+}
+
+/** Pure derivation previews: this path must never invoke [dev.panini.execution.PaniniVM]. */
+internal object PvmInlayHints {
+    fun compute(
+        source: String,
+        document: ProgramDocument,
+        isCanceled: () -> Boolean = { false },
+    ): List<Pair<Int, String>> {
+        val sadhaka = PvmUktiSadhaka()
+        return document.items.zip(document.itemSpans).mapNotNull { (item, span) ->
+            if (isCanceled()) return emptyList()
+            if (item !is Ukti || span.endExclusive > source.length) return@mapNotNull null
+            val itemSource = source.substring(span.start, span.endExclusive)
+            val surface = runCatching { sadhaka.sadhayaLine(itemSource) }.getOrDefault("")
+            val display = surface.replace("॥", "").replace("।", "")
+                .replace(Regex("\\s+"), " ").trim()
+            display.takeIf(String::isNotBlank)?.let { span.endExclusive to it }
+        }
     }
 }

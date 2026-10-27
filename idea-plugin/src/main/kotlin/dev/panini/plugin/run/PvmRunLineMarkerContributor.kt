@@ -16,7 +16,10 @@ class PvmRunLineMarkerContributor : RunLineMarkerContributor() {
         val psiFile = element.containingFile ?: return null
         if (psiFile !is PvmFile) return null
 
-        // Restrict to the absolute first leaf in the document to prevent duplicate markers
+        // LineMarkerProvider is invoked for both leaves and their parents; markers
+        // must be anchored to a leaf to avoid duplicate work and daemon warnings.
+        if (element.firstChild != null) return null
+        // Restrict to the absolute first leaf in the document to prevent duplicate markers.
         if (element.textRange.startOffset != 0) return null
         if (PsiTreeUtil.prevLeaf(element) != null) return null
 

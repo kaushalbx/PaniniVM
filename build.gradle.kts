@@ -16,6 +16,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
     implementation("org.ow2.asm:asm:9.7")
     implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation(project(":core"))
@@ -35,6 +36,11 @@ tasks.test {
 
 subprojects {
     plugins.withId("org.jetbrains.kotlin.jvm") {
+        if (name != "idea-plugin") {
+            dependencies {
+                add("implementation", kotlin("stdlib"))
+            }
+        }
         kotlin {
             jvmToolchain(25)
         }

@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -8,6 +9,17 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class PrakriyaTypeFlowTest {
+    @Test
+    fun `validator produces identical diagnostics from a canonical document`() {
+        val source = "पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।"
+        val document = PaniniParser().parseDocument(source)
+
+        assertEquals(
+            PrakriyaScriptValidator.validate(source),
+            PrakriyaScriptValidator.validate(source, document),
+        )
+    }
+
     @Test
     fun `validator preserves parser semantic code span and offending text`() {
         val source = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +

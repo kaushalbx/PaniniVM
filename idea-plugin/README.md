@@ -2,6 +2,10 @@
 
 IntelliJ IDEA plugin integration for PaniniVM.
 
+The plugin is compiled for Java 21 and therefore requires an IntelliJ Platform
+2024.2-based IDE (build 242) or newer. Older 2024.1-based IDEs use Java 17 and
+are intentionally rejected by the plugin descriptor.
+
 ## Overview
 
 Provides IDE integration features:
@@ -15,30 +19,29 @@ Provides IDE integration features:
 
 ### 1. Build the plugin artifact
 
-From the PaniniVM repository root, build the plugin JAR and its required
-runtime contents:
+From the PaniniVM repository root, build the standard IntelliJ plugin
+distribution and its required runtime libraries:
 
 ```sh
-./gradlew :idea-plugin:jar
+./gradlew :idea-plugin:buildPlugin
 ```
 
 On Windows:
 
 ```powershell
-.\gradlew.bat :idea-plugin:jar
+.\gradlew.bat :idea-plugin:buildPlugin
 ```
 
 The installable artifact is generated at:
 
 ```text
-idea-plugin/build/libs/idea-plugin.jar
+idea-plugin/build/distributions/idea-plugin-0.1.0.zip
 ```
 
-Use the JAR from `build/libs`, not a JAR from `build/tmp`, an individual module
-dependency, or the source directory. Do not extract the JAR before installing
-it. The build task packages the PaniniVM runtime dependencies and
-`META-INF/plugin.xml` into the artifact expected by the JetBrains plugin
-loader.
+Use the ZIP from `build/distributions`, not a JAR from `build/libs`, an
+individual module dependency, or the source directory. Do not extract the ZIP
+before installing it. `buildPlugin` assembles the standard plugin layout with
+the PaniniVM runtime libraries and patched plugin descriptor.
 
 ### 2. Open the plugin settings
 
@@ -57,7 +60,7 @@ built PaniniVM plugin.
 Choose:
 
 ```text
-<PaniniVM repository>/idea-plugin/build/libs/idea-plugin.jar
+<PaniniVM repository>/idea-plugin/build/distributions/idea-plugin-0.1.0.zip
 ```
 
 Confirm the selection. The IDE should show **PaniniVM Language Support** in the
@@ -84,7 +87,7 @@ Process**, click inside the Run console, enter a number, and press Enter.
 
 After changing plugin or runtime code:
 
-1. Rebuild with `./gradlew :idea-plugin:jar`.
+1. Rebuild with `./gradlew :idea-plugin:buildPlugin`.
 2. Open **Settings/Preferences → Plugins → Installed**.
 3. Use **Install Plugin from Disk…** again and select the newly built JAR.
 4. Confirm replacement of the existing plugin and restart the IDE.
@@ -94,8 +97,8 @@ loaded from the IDE's plugin directory during startup.
 
 ### Troubleshooting
 
-- **The JAR cannot be selected:** verify that the build completed and that you
-  selected `idea-plugin/build/libs/idea-plugin.jar` without extracting it.
+- **The ZIP cannot be selected:** verify that the build completed and that you
+  selected `idea-plugin/build/distributions/idea-plugin-0.1.0.zip` without extracting it.
 - **The plugin is installed but `.pvm` files remain plain text:** verify that
   the plugin is enabled, restart the IDE, and check that `.pvm` is not manually
   associated with **Text** under **Editor → File Types**.

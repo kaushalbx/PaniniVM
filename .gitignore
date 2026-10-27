@@ -1,4 +1,5 @@
 .gradle/
+.intellijPlatform/
 build/
 src/main/gen/
 out/

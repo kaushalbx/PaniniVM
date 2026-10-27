@@ -10,6 +10,22 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
+import dev.panini.dhatupatha.DhatuPathaRegistration
+import dev.panini.core.KrtAffix
+import dev.panini.core.Lakara
+import dev.panini.core.FrequencyAffix
+import dev.panini.core.SanadiAffix
+import dev.panini.core.StriAffix
+import dev.panini.core.SupAffix
+import dev.panini.core.TaddhitaAffix
+import dev.panini.core.TingAffix
+import dev.panini.core.Upasarga
+import dev.panini.unadipatha.UnadiPathaCatalog
+import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.vyakaranam.ast.Prakriya
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
+import dev.panini.vyakaranam.ast.Scope
+import dev.panini.vyakaranam.ast.Vikarana
 
 class PvmCompletionContributor : CompletionContributor() {
 
@@ -25,8 +41,6 @@ class PvmCompletionContributor : CompletionContributor() {
         private val keywords = listOf(
             Triple("च", "conjunction", "And / Join"),
             Triple("इति", "terminator", "End of expression / clause"),
-            Triple("अप", "उपसर्गः", "Upasarga preverb (Sūtra 1.4.59)"),
-            Triple("अधि", "उपसर्गः", "Upasarga preverb (Sūtra 1.4.59)"),
             Triple("वद्", "धातुः", "Dhātu root (वदँ व्यक्तायां वाचि)"),
             Triple("कृ", "धातुः", "Dhātu root (डुकृञ् करणे)"),
             Triple("यदि", "conditional", "If condition"),
@@ -43,135 +57,75 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("उणादि", "व्युत्पत्तिः", "Uṇādipāṭha nominal derivation")
         )
 
-        private val abhyasaAffixes = listOf(
-            Triple("कृत्वः", "सङ्ख्याभ्यासः", "Frequency repetition suffix"),
-            Triple("सुच्", "सङ्ख्याभ्यासः", "Frequency suffix for 2-4 (e.g. द्विः)"),
-            Triple("धा", "सङ्ख्याभ्यासः", "Distributive repetition suffix (e.g. त्रिधा)")
-        )
+        private val upasargas = Upasarga.entries.map {
+            Triple(it.upadesha, "उपसर्गः", "Upasarga preverb (Sūtra 1.4.59)")
+        }
 
-        private val unadiAffixes = listOf(
-            Triple("उण्", "उणादि-प्रत्ययः", "Unadi suffix (1.1) deriving nominal stems"),
-            Triple("सिः", "उणादि-प्रत्ययः", "Unadi suffix (2.8) deriving nominal stems")
-        )
+        private val frequencyAffixes = FrequencyAffix.entries.map {
+            Triple(it.upadesha, "सङ्ख्याभ्यासः", it.name)
+        }
 
-        private val supAffixes = listOf(
-            Triple("सुँ", "प्रथमा-एकवचनम्", "Nominative singular"),
-            Triple("अम्", "द्वितीया-एकवचनम्", "Accusative singular"),
-            Triple("औट्", "प्रथमा/द्वितीया-द्विवचनम्", "Dual affix"),
-            Triple("शस्", "द्वितीया-बहुवचनम्", "Accusative plural"),
-            Triple("टा", "तृतीया-एकवचनम्", "Instrumental singular"),
-            Triple("भ्याम्", "तृतीया/चतुर्थी/पञ्चमी-द्विवचनम्", "Dual instrumental/dative/ablative"),
-            Triple("भिसँ", "तृतीया-बहुवचनम्", "Instrumental plural"),
-            Triple("ङे", "चतुर्थी-एकवचनम्", "Dative singular"),
-            Triple("भ्यस्", "चतुर्थी/पञ्चमी-बहुवचनम्", "Plural dative/ablative"),
-            Triple("ङसिँ", "पञ्चमी-एकवचनम्", "Ablative singular"),
-            Triple("ङस्", "षष्ठी-एकवचनम्", "Genitive singular"),
-            Triple("ओस्", "षष्ठी/सप्तमी-द्विवचनम्", "Dual genitive/locative"),
-            Triple("आम्", "षष्ठी-बहुवचनम्", "Genitive plural"),
-            Triple("ङि", "सप्तमी-एकवचनम्", "Locative singular"),
-            Triple("सुप्", "सप्तमी-बहुवचनम्", "Locative plural")
-        )
+        private val unadiAffixes by lazy {
+            UnadiPathaCatalog.sutras
+                .filter { it.pratyaya.isNotBlank() }
+                .distinctBy { it.pratyaya }
+                .map { Triple(it.pratyaya, "उणादि-प्रत्ययः", "Uṇādipāṭha ${it.number}") }
+        }
 
-        private val lakaras = listOf(
-            Triple("लोट्", "लकारः", "Imperative mood"),
-            Triple("लट्", "लकारः", "Present tense"),
-            Triple("लङ्", "लकारः", "Past imperfect"),
-            Triple("लुट्", "लकारः", "First future (periphrastic)"),
-            Triple("लृट्", "लकारः", "Second future (simple)"),
-            Triple("लेट्", "लकारः", "Subjunctive mood"),
-            Triple("लिङ्", "लकारः", "Optative / Potential mood"),
-            Triple("लुङ्", "लकारः", "Aorist tense"),
-            Triple("लृङ्", "लकारः", "Conditional mood"),
-            Triple("लिट्", "लकारः", "Perfect tense")
-        )
+        private val supAffixes = SupAffix.entries.map {
+            Triple(it.initialSurface, "सुप्-प्रत्ययः", "${it.vibhakti.name.lowercase()} ${it.vacana.name.lowercase()}")
+        }.distinctBy { it.first }
 
-        private val sanadiAffixes = listOf(
-            Triple("णिच्", "सनादि-प्रत्ययः", "Causative affix (प्रेरणे/हेतुमति)"),
-            Triple("सन्", "सनादि-प्रत्ययः", "Desiderative affix (इच्छायाम्)"),
-            Triple("यङ्", "सनादि-प्रत्ययः", "Frequentative / Intensive affix (पौणःपुन्ये)"),
-            Triple("क्याच्", "सनादि-प्रत्ययः", "Denominative affix (आत्मनः इच्छायाम्)"),
-            Triple("काम्यच्", "सनादि-प्रत्ययः", "Denominative affix (इच्छायाम्)"),
-            Triple("क्यङ्", "सनादि-प्रत्ययः", "Denominative affix (आचारे)"),
-            Triple("क्यष्", "सनादि-प्रत्ययः", "Denominative affix (भृशादिभ्यः)")
-        )
+        private val lakaras = Lakara.entries.map { Triple(it.upadesha, "लकारः", it.name) }
 
-        private val krtAffixes = listOf(
-            Triple("क्त", "कृत्-प्रत्ययः", "Past passive participle (निष्ठा)"),
-            Triple("क्तवतुँ", "कृत्-प्रत्ययः", "Past active participle (निष्ठा)"),
-            Triple("तव्यत्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
-            Triple("अनीयर्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
-            Triple("यत्", "कृत्-प्रत्ययः", "Potential participle (कृत्य)"),
-            Triple("ण्वुल्", "कृत्-प्रत्ययः", "Agentive suffix (-अक)"),
-            Triple("तृच्", "कृत्-प्रत्ययः", "Agentive suffix (-तृ)"),
-            Triple("शतृ", "कृत्-प्रत्ययः", "Present active participle (परस्मैपद)"),
-            Triple("शानच्", "कृत्-प्रत्ययः", "Present active participle (आत्मनेपद)"),
-            Triple("क्त्वा", "कृत्-प्रत्ययः", "Gerund / Absolutive suffix (-त्वा)"),
-            Triple("ल्याप्", "कृत्-प्रत्ययः", "Prefixal gerund suffix (-य)"),
-            Triple("तुमुँन्", "कृत्-प्रत्ययः", "Infinitive suffix (-तुम्)"),
-            Triple("घञ्", "कृत्-प्रत्ययः", "Action / Abstract noun suffix")
-        )
+        private val sanadiAffixes = SanadiAffix.entries.map {
+            Triple(it.upadesha, "सनादि-प्रत्ययः", it.name)
+        }
 
-        private val taddhitaAffixes = listOf(
-            Triple("अण्", "तद्धित-प्रत्ययः", "Patronymic / General nominal affix (4.1.83)"),
-            Triple("इञ्", "तद्धित-प्रत्ययः", "Patronymic affix (-इ e.g. दाक्षिः, 4.1.95)"),
-            Triple("ढक्", "तद्धित-प्रत्ययः", "Patronymic affix (-एय e.g. वास्तेयः, 4.1.120)"),
-            Triple("यञ्", "तद्धित-प्रत्ययः", "Gotra lineage affix (-य e.g. गर्ग्यः, 4.1.105)"),
-            Triple("मतुप्", "तद्धित-प्रत्ययः", "Possessive affix (-वत्/-मत् e.g. धनवान्, 5.2.94)"),
-            Triple("विन्", "तद्धित-प्रत्ययः", "Possessive affix (-वी e.g. तेजस्वी, 5.2.121)"),
-            Triple("इन्", "तद्धित-प्रत्ययः", "Possessive affix (-ी e.g. दण्डी, 5.2.115)"),
-            Triple("त्व", "तद्धित-प्रत्ययः", "Abstract noun affix (-त्वम् e.g. महत्वम्, 5.1.119)"),
-            Triple("तल्", "तद्धित-प्रत्ययः", "Abstract noun affix (-ता e.g. सुन्दरता, 5.1.119)"),
-            Triple("मयट्", "तद्धित-प्रत्ययः", "Abundance/Material affix (-मय e.g. अन्नमयः, 4.3.143)"),
-            Triple("तरप्", "तद्धित-प्रत्ययः", "Comparative degree affix (-तर e.g. उच्चतरः, 5.3.57)"),
-            Triple("तमप्", "तद्धित-प्रत्ययः", "Superlative degree affix (-तम e.g. उच्चतमः, 5.3.55)"),
-            Triple("इष्ठन्", "तद्धित-प्रत्ययः", "Superlative degree affix (-इष्ठ e.g. ज्येष्ठः, 5.3.55)"),
-            Triple("ईयसुन्", "तद्धित-प्रत्ययः", "Comparative degree affix (-ईयान् e.g. श्रेयस्)"),
-            Triple("तसिँ", "तद्धित-प्रत्ययः", "Ablative adverbial suffix (-तः e.g. कुतः/सर्वतः, 5.3.7)"),
-            Triple("त्रल्", "तद्धित-प्रत्ययः", "Locative adverbial suffix (-त्र e.g. सर्वत्र/अत्र, 5.3.10)"),
-            Triple("दा", "तद्धित-प्रत्ययः", "Temporal adverbial suffix (-दा e.g. सर्वदा/यदा, 5.3.15)"),
-            Triple("था", "तद्धित-प्रत्ययः", "Manner adverbial suffix (-था e.g. सर्वथा/तथा, 5.3.23)")
-        )
+        private val krtAffixes = KrtAffix.entries.map { Triple(it.upadesha, "कृत्-प्रत्ययः", it.name) }
 
-        private val tingAffixes = listOf(
-            Triple("तिप्", "परस्मैपद-प्रथम-एक", "3rd person singular active"),
-            Triple("तस्", "परस्मैपद-प्रथम-द्वि", "3rd person dual active"),
-            Triple("झि", "परस्मैपद-प्रथम-बहु", "3rd person plural active"),
-            Triple("सिप्", "परस्मैपद-मध्यम-एक", "2nd person singular active"),
-            Triple("थस्", "परस्मैपद-मध्यम-द्वि", "2nd person dual active"),
-            Triple("थ", "परस्मैपद-मध्यम-बहु", "2nd person plural active"),
-            Triple("मिप्", "परस्मैपद-उत्तम-एक", "1st person singular active"),
-            Triple("वस्", "परस्मैपद-उत्तम-द्वि", "1st person dual active"),
-            Triple("मस्", "परस्मैपद-उत्तम-बहु", "1st person plural active"),
-            Triple("त", "आत्मनेपद-प्रथम-एक", "3rd person singular middle"),
-            Triple("आताम्", "आत्मनेपद-प्रथम-द्वि", "3rd person dual middle"),
-            Triple("झ", "आत्मनेपद-प्रथम-बहु", "3rd person plural middle"),
-            Triple("थास्", "आत्मनेपद-मध्यम-एक", "2nd person singular middle"),
-            Triple("आथाम्", "आत्मनेपद-मध्यम-द्वि", "2nd person dual middle"),
-            Triple("ध्वम्", "आत्मनेपद-मध्यम-बहु", "2nd person plural middle"),
-            Triple("इट्", "आत्मनेपद-उत्तम-एक", "1st person singular middle"),
-            Triple("वहि", "आत्मनेपद-उत्तम-द्वि", "1st person dual middle"),
-            Triple("महिङ्", "आत्मनेपद-उत्तम-बहु", "1st person plural middle")
-        )
+        private val taddhitaAffixes = TaddhitaAffix.entries.map {
+            Triple(it.upadesha, "तद्धित-प्रत्ययः", it.name)
+        }
 
-        private val numbers = listOf(
-            Triple("एक", "सङ्ख्या", "1"),
-            Triple("द्वि", "सङ्ख्या", "2"),
-            Triple("त्रि", "सङ्ख्या", "3"),
-            Triple("चतुर्", "सङ्ख्या", "4"),
-            Triple("पञ्च", "सङ्ख्या", "5"),
-            Triple("दश", "सङ्ख्या", "10"),
-            Triple("शत", "सङ्ख्या", "100"),
-            Triple("सहस्र", "सङ्ख्या", "1000")
-        )
+        private val tingAffixes = TingAffix.entries.map {
+            Triple(
+                it.upadesha,
+                "तिङ्-प्रत्ययः",
+                "${it.pada.name.lowercase()} ${it.purusha.name.lowercase()} ${it.vacana.name.lowercase()}",
+            )
+        }
 
-        private val dhatus = listOf(
-            Triple("भूँ", "स्वादि-धातुः", "to be / exist"),
-            Triple("स्थाञँ", "स्वादि-धातुः", "to stand / wait"),
-            Triple("गमॢँ", "स्वादि-धातुः", "to go / move"),
-            Triple("डुदाञ्", "जुहोत्यादि-धातुः", "to give / assign"),
-            Triple("लिखँ", "तुदादि-धातुः", "to write / draw"),
-            Triple("डुकृञ्", "तनादि-धातुः", "to do / make")
-        )
+        private val vikaranas = Vikarana.entries.map {
+            Triple(it.upadesha, "विकरणः", it.gana?.name?.lowercase() ?: "verbal stem marker")
+        }
+
+        private val striAffixes = StriAffix.entries.map {
+            Triple(it.upadesha, "स्त्री-प्रत्ययः", it.name)
+        }
+
+        private val numbers = PrimitiveSankhya.entries.map {
+            Triple(it.pratipadika, "सङ्ख्या", it.value.toString())
+        }
+
+        private val dhatus by lazy {
+            DhatuPathaRegistration.allDhatus.flatMap { dhatu ->
+                val description = dhatu.arthaEnglish.ifBlank { dhatu.artha }
+                listOf(dhatu.upadesha, dhatu.sourceSurface)
+                    .filter(String::isNotBlank)
+                    .distinct()
+                    .map { surface ->
+                        Triple(surface, "${dhatu.gana.name.lowercase()}-धातुः", description)
+                    }
+            }.distinctBy { it.first }
+        }
+
+        private val upasargaSurfaces = Upasarga.entries.mapTo(mutableSetOf()) { it.upadesha }
+
+        private fun sourceWordBeforePlus(sourceBeforeCaret: String): String? {
+            val beforePlus = sourceBeforeCaret.substringBeforeLast('+', missingDelimiterValue = "")
+            return Regex("[\\p{L}\\p{M}]+$").find(beforePlus.trimEnd())?.value
+        }
 
         private fun devanagariToIast(text: String): String {
             val result = StringBuilder()
@@ -277,56 +231,83 @@ class PvmCompletionContributor : CompletionContributor() {
             context: ProcessingContext,
             result: CompletionResultSet
         ) {
-            keywords.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc, bold = true))
+            val sourceBeforeCaret = parameters.editor.document.charsSequence
+                .subSequence(0, parameters.offset.coerceAtMost(parameters.editor.document.textLength))
+                .toString()
+            val beforeCurrentToken = sourceBeforeCaret.dropLastWhile {
+                it.isLetter() || Character.getType(it) == Character.NON_SPACING_MARK.toInt()
+            }
+            val afterSegmentSeparator = beforeCurrentToken.trimEnd().endsWith('+')
+
+            val precedingSegment = if (afterSegmentSeparator) sourceWordBeforePlus(sourceBeforeCaret) else null
+            val afterUpasarga = precedingSegment in upasargaSurfaces
+
+            if (!afterSegmentSeparator) {
+                keywords.forEach { (word, type, doc) ->
+                    result.addElement(buildLookup(word, type, doc, bold = true))
+                }
+
+                upasargas.forEach { (word, type, doc) ->
+                    result.addElement(buildLookup(word, type, doc))
+                }
             }
 
-            supAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
+            if (!afterSegmentSeparator || !afterUpasarga) {
+                sequenceOf(
+                    supAffixes,
+                    lakaras,
+                    sanadiAffixes,
+                    krtAffixes,
+                    taddhitaAffixes,
+                    tingAffixes,
+                    vikaranas,
+                    striAffixes,
+                    frequencyAffixes,
+                    unadiAffixes,
+                ).flatten().forEach { (word, type, doc) ->
+                    result.addElement(buildLookup(word, type, doc))
+                }
             }
 
-            lakaras.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
+            if (!afterSegmentSeparator || afterUpasarga) {
+                dhatus.forEach { (word, type, doc) ->
+                    result.addElement(buildLookup(word, type, doc))
+                }
             }
 
-            sanadiAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
+            if (!afterSegmentSeparator) {
+                numbers.forEach { (word, type, doc) ->
+                    result.addElement(buildLookup(word, type, doc))
+                }
+                GanaPatha.all.forEach { gana ->
+                    result.addElement(buildLookup(gana.name, "गणपाठः", "Sūtra: ${gana.sutra}"))
+                }
+                BhutasamkhyaLexicon.allSymbols.forEach { (word, value) ->
+                    result.addElement(buildLookup(word, "भूतसङ्ख्या", "Value: $value"))
+                }
             }
 
-            krtAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            taddhitaAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            tingAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            abhyasaAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            unadiAffixes.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            numbers.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            dhatus.forEach { (word, type, doc) ->
-                result.addElement(buildLookup(word, type, doc))
-            }
-
-            GanaPatha.all.forEach { gana ->
-                result.addElement(buildLookup(gana.name, "गणपाठः", "Sūtra: ${gana.sutra}"))
-            }
-
-            BhutasamkhyaLexicon.allSymbols.forEach { (word, value) ->
-                result.addElement(buildLookup(word, "भूतसङ्ख्या", "Value: $value"))
+            val currentFile = parameters.originalFile as? PvmFile ?: return
+            if (afterSegmentSeparator) return
+            val seenPrakriyas = mutableSetOf<Pair<String, String?>>()
+            PvmProjectFileIndex.declarationDocuments(currentFile).forEach { (sourceFile, document) ->
+                var activeDomain: String? = null
+                document.items.forEach itemLoop@{ item ->
+                    if (item is Scope) {
+                        activeDomain = item.domainIdentity
+                        return@itemLoop
+                    }
+                    val declaration = item as? Prakriya ?: return@itemLoop
+                    if (declaration.modifiers.visibility == PrakriyaVisibility.INTERNAL && sourceFile != currentFile) {
+                        return@itemLoop
+                    }
+                    val domain = declaration.domainIdentity ?: activeDomain
+                    if (!seenPrakriyas.add(declaration.nameIdentity to domain)) return@itemLoop
+                    val scope = domain?.let { "Domain: $it" } ?: "Unscoped project prakriyā"
+                    result.addElement(
+                        buildLookup(declaration.nameIdentity, "प्रक्रिया", scope, bold = true),
+                    )
+                }
             }
         }
     }

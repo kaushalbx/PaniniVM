@@ -16,7 +16,7 @@ class PvmRunExecutorTest {
     fun `interactive addition succeeds with typed IDE input`() {
         val result = execute("10\n२०\n")
 
-        assertEquals(0, result.exitCode)
+        assertEquals(0, result.exitCode, result.output)
         assertTrue(result.output.contains("Enter value for प्रथम (number):"))
         assertTrue(result.output.contains("Enter value for द्वितीय (number):"))
         assertTrue(result.output.contains("त्रिंशत्"))
@@ -27,7 +27,7 @@ class PvmRunExecutorTest {
         val result = execute("10\n:cancel\n")
 
         assertEquals(1, result.exitCode)
-        assertTrue(result.output.contains("Execution cancelled while reading द्वितीय."))
+        assertTrue(result.output.contains("Execution cancelled while reading द्वितीय."), result.output)
         assertFalse(result.output.contains("Exception"))
         assertFalse(result.output.contains("at dev.panini"))
     }
@@ -37,7 +37,7 @@ class PvmRunExecutorTest {
         val result = execute("10\n")
 
         assertEquals(1, result.exitCode)
-        assertTrue(result.output.contains("end of input while reading द्वितीय"))
+        assertTrue(result.output.contains("end of input while reading द्वितीय"), result.output)
     }
 
     @Test
@@ -50,13 +50,34 @@ class PvmRunExecutorTest {
                 PvmRunExecutor().execute(script, io.input, PrintStream(output, true, Charsets.UTF_8))
             }
 
-            waitUntil { output.toString(Charsets.UTF_8).contains("Enter value for प्रथम") }
+            waitUntil(output) { output.toString(Charsets.UTF_8).contains("Enter value for प्रथम") }
             io.close()
 
             assertEquals(1, execution.get(10, TimeUnit.SECONDS))
             assertTrue(output.toString(Charsets.UTF_8).contains("end of input"))
         } finally {
             io.close()
+            pool.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `destroying process handler cancels once and unblocks IDE input`() {
+        val handler = PvmProcessHandler()
+        handler.startNotify()
+        val pool = Executors.newSingleThreadExecutor()
+        try {
+            val read = pool.submit<Int> { handler.input.read() }
+
+            handler.destroyProcess()
+
+            assertEquals(-1, read.get(10, TimeUnit.SECONDS))
+            assertTrue(handler.cancellationRequested)
+            assertTrue(handler.isProcessTerminated)
+            assertEquals(PvmProcessHandler.CANCELLED_EXIT_CODE, handler.exitCode)
+            handler.terminate(0)
+            assertEquals(PvmProcessHandler.CANCELLED_EXIT_CODE, handler.exitCode)
+        } finally {
             pool.shutdownNow()
         }
     }
@@ -71,10 +92,12 @@ class PvmRunExecutorTest {
         return RunResult(exitCode, output.toString(Charsets.UTF_8))
     }
 
-    private fun waitUntil(condition: () -> Boolean) {
+    private fun waitUntil(output: ByteArrayOutputStream, condition: () -> Boolean) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
         while (!condition()) {
-            check(System.nanoTime() < deadline) { "Timed out waiting for the input prompt." }
+            check(System.nanoTime() < deadline) {
+                "Timed out waiting for the input prompt. Output: ${output.toString(Charsets.UTF_8)}"
+            }
             Thread.yield()
         }
     }
@@ -82,6 +105,10 @@ class PvmRunExecutorTest {
     private data class RunResult(val exitCode: Int, val output: String)
 
     private companion object {
-        val script = File("cli/examples/interactive_addition.pvm")
+        val script = File(
+            requireNotNull(PvmRunExecutorTest::class.java.getResource("/interactive_addition.pvm")) {
+                "Missing interactive_addition.pvm test resource."
+            }.toURI(),
+        )
     }
 }

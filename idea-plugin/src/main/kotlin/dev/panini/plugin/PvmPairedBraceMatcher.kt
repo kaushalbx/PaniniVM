@@ -8,7 +8,7 @@ import com.intellij.psi.tree.IElementType
 class PvmPairedBraceMatcher : PairedBraceMatcher {
 
     private val pairs = arrayOf(
-        BracePair(PvmTokenTypes.OPERATOR, PvmTokenTypes.OPERATOR, false),
+        BracePair(PvmTokenTypes.LEFT_PAREN, PvmTokenTypes.RIGHT_PAREN, false),
     )
 
     override fun getPairs(): Array<BracePair> = pairs

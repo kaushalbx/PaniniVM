@@ -1,18 +1,15 @@
 plugins {
     kotlin("jvm")
+    id("org.jetbrains.intellij.platform")
 }
 
+version = rootProject.version
+
 dependencies {
-    compileOnly("com.jetbrains.intellij.platform:core:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:core-impl:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:util:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:util-ui:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:analysis:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:editor:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:lang:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:lang-impl:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:execution:241.14494.240")
-    compileOnly("com.jetbrains.intellij.platform:execution-impl:241.14494.240")
+    intellijPlatform {
+        intellijIdeaCommunity("2024.2.4")
+        testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
+    }
     implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation(project(":core"))
     implementation(project(":execution"))
@@ -24,23 +21,33 @@ dependencies {
     implementation(project(":ashtadhyayi"))
     implementation(project(":derivation"))
     implementation(project(":unadipatha"))
+    implementation(project(":linganushasanam"))
     implementation(project(":analysis"))
     implementation(project(":aryabhatiya"))
     implementation(project(":katapayadi"))
     implementation(project(":bhutasamkhya"))
     testImplementation(kotlin("test"))
+    testImplementation("junit:junit:4.13.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.11.4")
 }
 
-tasks.jar {
-    dependsOn(configurations.runtimeClasspath)
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from({
-        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
-    })
+intellijPlatform {
+    pluginConfiguration {
+        version = project.version.toString()
+        ideaVersion {
+            sinceBuild = "242"
+        }
+    }
+}
+
+sourceSets.test {
+    resources.srcDir(rootProject.file("cli/examples"))
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    maxParallelForks = 1
+    systemProperty("junit.jupiter.execution.parallel.enabled", "false")
     workingDir = rootDir
     systemProperty("panini.idea.test.classpath", sourceSets.main.get().runtimeClasspath.asPath)
 }

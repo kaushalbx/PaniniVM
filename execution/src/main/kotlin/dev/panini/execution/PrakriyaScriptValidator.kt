@@ -8,6 +8,7 @@ import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.DocumentSourceSpan
+import dev.panini.vyakaranam.ast.ProgramDocument
 import dev.panini.vyakaranam.ast.SemanticDiagnostic
 import dev.panini.vyakaranam.parser.PaniniSemanticException
 
@@ -28,6 +29,10 @@ data class PrakriyaDiagnostic(
 /** Performs declaration and call checks without executing the script. */
 object PrakriyaScriptValidator {
     fun validate(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parse)
+
+    /** Validate an already parsed canonical document without reparsing editor text. */
+    fun validate(source: String, document: ProgramDocument): List<PrakriyaDiagnostic> =
+        validateWith(source) { PvmScript.fromDocument(document) }
 
     /** Inspects old block syntax to produce migration diagnostics; never used by execution. */
     fun validateLegacy(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parseLegacy)

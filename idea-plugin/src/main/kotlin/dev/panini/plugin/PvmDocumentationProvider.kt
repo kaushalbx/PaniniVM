@@ -5,6 +5,9 @@ import com.intellij.psi.PsiElement
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.PrakriyaSignatureCompiler
+import dev.panini.execution.PvmScript
+import dev.panini.execution.PvmScriptStatement
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.aryabhatiya.AryabhatiyaMapping
@@ -12,6 +15,23 @@ import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.katapayadi.KatapayadiMapping
 import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
+import dev.panini.core.KrtAffix
+import dev.panini.core.Lakara
+import dev.panini.core.SanadiAffix
+import dev.panini.core.SupAffix
+import dev.panini.core.TaddhitaAffix
+import dev.panini.core.TingAffix
+import dev.panini.core.Upasarga
+import dev.panini.linganushasanam.LinganushasanamRegistry
+import dev.panini.linganushasanam.PaninianPratipadikaLexicon
+import dev.panini.unadipatha.UnadiPathaCatalog
+import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.UnadyantaPratipadika
+import dev.panini.vyakaranam.ast.morphologicalKey
+import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
 
 class PvmDocumentationProvider : AbstractDocumentationProvider() {
 
@@ -19,6 +39,9 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         val target = originalElement ?: element ?: return null
         val text = target.text.trim()
         if (text.isEmpty()) return null
+
+        projectPrakriyaDoc(target)?.let { return it }
+        canonicalPadaDoc(target)?.let { return it }
 
         // 0. Check for Sandhi Expression containing '+'
         val parentText = target.parent?.text?.trim() ?: ""
@@ -82,37 +105,242 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             """.trimIndent()
         }
 
-        // 4. Check Sup / Ting affixes
+        // 4. Check the complete Uṇādipāṭha catalog by affix or sūtra text.
+        val unadiEntries = UnadiPathaCatalog.sutras.filter {
+            it.pratyaya == text || it.text == text || (text.length >= 3 && it.text.contains(text))
+        }.take(12)
+        if (unadiEntries.isNotEmpty()) {
+            return buildString {
+                append("<html><body><h2>Uṇādipāṭha</h2><ul>")
+                unadiEntries.forEach {
+                    append("<li><b>${it.number}</b> ${it.text}<br/><b>Pratyaya:</b> ${it.pratyaya}</li>")
+                }
+                append("</ul></body></html>")
+            }
+        }
+
+        // 5. Check the canonical Liṅgānuśāsanam corpus.
+        val lingaSutras = LinganushasanamRegistry.canonicalSutras.filter {
+            it.text == text || (text.length >= 3 && it.text.contains(text))
+        }.take(12)
+        if (lingaSutras.isNotEmpty()) {
+            return buildString {
+                append("<html><body><h2>Liṅgānuśāsanam</h2><ul>")
+                lingaSutras.forEach {
+                    append("<li><b>${it.number}</b> ${it.text}<br/>")
+                    append("<b>Liṅga:</b> ${it.targetLingas.joinToString()}<br/>")
+                    append("${it.hindiExplanation}</li>")
+                }
+                append("</ul></body></html>")
+            }
+        }
+
+        // 6. Check Sup / Ting affixes
         val affixDoc = getAffixDoc(text)
         if (affixDoc != null) {
             return affixDoc
         }
 
-        // 5. Check Control keywords
+        // 7. Check canonical upasarga identities.
+        val upasarga = Upasarga.fromUpadesha(text)
+        if (upasarga != null) {
+            return """
+                <html><body><h3>Upasarga</h3>
+                <p><b>${upasarga.upadesha}</b> (${upasarga.name}) is a canonical prādi identity used as an upasarga in verbal composition.</p>
+                </body></html>
+            """.trimIndent()
+        }
+
+        // 8. Check Control keywords
         val keywordDoc = getKeywordDoc(text)
         if (keywordDoc != null) {
             return keywordDoc
         }
 
-        // 6. Check Bhutasamkhya
+        // 9. Check Bhutasamkhya
         val bhutaDoc = getBhutasamkhyaDoc(text)
         if (bhutaDoc != null) {
             return bhutaDoc
         }
 
-        // 7. Check Aryabhatiya
+        // 10. Check Aryabhatiya
         val aryaDoc = getAryabhatiyaDoc(text)
         if (aryaDoc != null) {
             return aryaDoc
         }
 
-        // 8. Check Katapayadi
+        // 11. Check Katapayadi
         val kataDoc = getKatapayadiDoc(text)
         if (kataDoc != null) {
             return kataDoc
         }
 
         return null
+    }
+
+    private fun canonicalPadaDoc(target: PsiElement): String? {
+        var structural: PsiElement? = target
+        while (structural != null && structural.node.elementType !in setOf(
+                PvmTokenTypes.SUBANTA,
+                PvmTokenTypes.TINGANTA,
+            )) {
+            structural = structural.parent
+        }
+        val node = structural ?: return null
+        val file = node.containingFile as? PvmFile ?: return null
+        return when (val pada = file.canonicalPadaAt(node.textRange.startOffset)) {
+            is SubantaPada -> subantaDoc(pada)
+            is TingantaPada -> tingantaDoc(pada)
+            else -> null
+        }
+    }
+
+    private fun subantaDoc(pada: SubantaPada): String = buildString {
+        val stem = pada.pratipadika.semanticKey()
+        val lexical = runCatching { PaninianPratipadikaLexicon.findPratipadika(stem) }.getOrNull()
+        append("<html><body><h2>Subanta: ").append(html(pada.sourceText)).append("</h2><ul>")
+        append("<li><b>Prātipadika:</b> <code>").append(html(stem)).append("</code></li>")
+        append("<li><b>Morphology:</b> <code>")
+            .append(html(pada.pratipadika.morphologicalKey())).append("</code></li>")
+        val slots = pada.sup.affixCandidates.joinToString(", ") {
+            "${it.vibhakti.name.lowercase()} ${it.vacana.name.lowercase()}"
+        }.ifBlank { "unresolved (${pada.sup.text})" }
+        append("<li><b>Sup:</b> <code>").append(html(pada.sup.text)).append("</code> — ")
+            .append(html(slots)).append("</li>")
+        lexical?.let {
+            if (it.linga.isNotEmpty()) append("<li><b>Liṅga:</b> ")
+                .append(html(it.linga.joinToString { value -> value.name.lowercase() })).append("</li>")
+            if (it.lingaRuleIds.isNotEmpty()) append("<li><b>Liṅgānuśāsanam:</b> ")
+                .append(html(it.lingaRuleIds.joinToString())).append("</li>")
+            if (it.ganaNames.isNotEmpty()) append("<li><b>Gaṇapāṭha:</b> ")
+                .append(html(it.ganaNames.joinToString())).append("</li>")
+        }
+        when (val pratipadika = pada.pratipadika) {
+            is UnadyantaPratipadika -> {
+                val sutras = UnadiPathaCatalog.sutras.filter { it.pratyaya == pratipadika.unadiPratyaya }
+                append("<li><b>Uṇādi pratyaya:</b> ").append(html(pratipadika.unadiPratyaya))
+                if (sutras.isNotEmpty()) append(" — ").append(html(sutras.take(4).joinToString { it.number }))
+                append("</li>")
+            }
+            is KridantaPratipadika -> append("<li><b>Kṛt derivation:</b> ")
+                .append(html(pratipadika.dhatu.mulaDhatu)).append(" + ")
+                .append(html(pratipadika.krtPratyaya)).append("</li>")
+            else -> Unit
+        }
+        append("</ul></body></html>")
+    }
+
+    private fun tingantaDoc(pada: TingantaPada): String = buildString {
+        val dhatu = DhatuPatha.all.firstOrNull {
+            it.upadesha == pada.dhatu.mulaDhatu || it.sourceSurface == pada.dhatu.mulaDhatu ||
+                pada.dhatu.mulaDhatu in it.surfaceAliases
+        }
+        append("<html><body><h2>Tiṅanta: ").append(html(pada.sourceText)).append("</h2><ul>")
+        if (pada.upasargas.isNotEmpty()) append("<li><b>Upasarga:</b> ")
+            .append(html(pada.upasargas.joinToString(" + "))).append("</li>")
+        append("<li><b>Dhātu:</b> <code>").append(html(pada.dhatu.mulaDhatu)).append("</code>")
+        dhatu?.let { append(" — ").append(html(it.arthaEnglish.ifBlank { it.artha })) }
+        append("</li>")
+        dhatu?.let {
+            append("<li><b>Dhātupāṭha:</b> ").append(html(it.upadesha))
+                .append("; ").append(html(it.gana.name.lowercase())).append(" gaṇa</li>")
+        }
+        if (pada.dhatu.sanadiPratyayas.isNotEmpty()) append("<li><b>Sanādi:</b> ")
+            .append(html(pada.dhatu.sanadiPratyayas.joinToString(" + "))).append("</li>")
+        pada.vikarana?.let { append("<li><b>Vikaraṇa:</b> ").append(html(it.upadesha)).append("</li>") }
+        append("<li><b>Lakāra:</b> ").append(html(pada.lakara.upadesha))
+            .append(" (").append(pada.lakara.name.lowercase()).append(")</li>")
+        val ting = pada.ting.affix
+        append("<li><b>Tiṅ:</b> ").append(html(pada.ting.text))
+        ting?.let {
+            append(" — ${it.pada.name.lowercase()}, ${it.purusha.name.lowercase()}, ${it.vacana.name.lowercase()}")
+        }
+        append("</li></ul></body></html>")
+    }
+
+    private fun projectPrakriyaDoc(target: PsiElement): String? {
+        val currentFile = target.containingFile as? PvmFile ?: return null
+        val currentDocument = currentFile.canonicalDocument() ?: return null
+        val knownOperationStems = PvmProjectFileIndex.knownOperationStems(currentFile)
+        val identity = PvmSymbolResolver.prakriyaIdentityAt(
+            currentDocument, target.textOffset, knownOperationStems,
+        ) ?: return null
+        val documents = PvmProjectFileIndex.documentsForIdentity(currentFile, identity)
+
+        val definitions = buildList<Triple<PvmFile, PvmScriptStatement.PrakriyaDefinition, String?>> {
+            documents.forEach { (sourceFile, document) ->
+                var activeDomain: String? = null
+                PvmScript.fromDocument(document).forEach statementLoop@{ statement ->
+                    if (statement is PvmScriptStatement.AdhikaraDefinition) {
+                        activeDomain = statement.scope.domainIdentity
+                        return@statementLoop
+                    }
+                    val definition = statement as? PvmScriptStatement.PrakriyaDefinition
+                        ?: return@statementLoop
+                    val prakriya = definition.prakriya
+                    val domain = prakriya.domainIdentity ?: activeDomain
+                    if (prakriya.nameIdentity != identity.first || domain != identity.second) {
+                        return@statementLoop
+                    }
+                    if (prakriya.modifiers.visibility == PrakriyaVisibility.INTERNAL && sourceFile != currentFile) {
+                        return@statementLoop
+                    }
+                    add(Triple(sourceFile, definition, domain))
+                }
+            }
+        }
+        if (definitions.isEmpty()) return null
+
+        return buildString {
+            append("<html><body><h2>Project Prakriyā: ")
+            append(html(identity.first))
+            append("</h2>")
+            definitions.forEach { (sourceFile, definition, domain) ->
+                val prakriya = definition.prakriya
+                val signature = runCatching {
+                    PrakriyaSignatureCompiler.compile(
+                        definition.body, prakriya.declaredResult, prakriya.resultPredicate,
+                    )
+                }.getOrNull()
+                append("<h3>").append(html(sourceFile.name)).append("</h3><ul>")
+                append("<li><b>Canonical identity:</b> <code>").append(html(prakriya.nameIdentity))
+                    .append("</code></li>")
+                append("<li><b>Domain:</b> ").append(html(domain ?: "unscoped")).append("</li>")
+                append("<li><b>Visibility:</b> ").append(prakriya.modifiers.visibility.name.lowercase())
+                    .append("</li>")
+                append("<li><b>Precedence:</b> ").append(prakriya.modifiers.precedence.name.lowercase())
+                    .append("</li>")
+                append("<li><b>Body statements:</b> ").append(definition.body.size).append("</li>")
+                signature?.let {
+                    val parameters = it.parameters.joinToString(", ") { parameter ->
+                        "${parameter.nameStem}: ${parameter.type.sanskritName}"
+                    }.ifBlank { "none" }
+                    val result = it.resultType?.sanskritName ?: it.resultSchema ?: "unspecified"
+                    append("<li><b>Parameters:</b> ").append(html(parameters)).append("</li>")
+                    append("<li><b>Result:</b> ").append(html(result)).append("</li>")
+                    it.argumentType?.let { type ->
+                        append("<li><b>Argument guard:</b> ").append(html(type.sanskritName)).append("</li>")
+                    }
+                }
+                append("</ul>")
+            }
+            append("</body></html>")
+        }
+    }
+
+    private fun html(value: String): String = buildString(value.length) {
+        value.forEach { character ->
+            append(
+                when (character) {
+                    '&' -> "&amp;"
+                    '<' -> "&lt;"
+                    '>' -> "&gt;"
+                    '"' -> "&quot;"
+                    '\'' -> "&#39;"
+                    else -> character
+                },
+            )
+        }
     }
 
     private fun getSandhiDoc(expression: String): String? {
@@ -135,49 +363,37 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
     }
 
     private fun getAffixDoc(text: String): String? {
-        val map = mapOf(
-            "सुँ" to "<b>सुँ</b>: Sup affix for <i>Prathamā Ekavacana</i> (Nominative Singular).",
-            "अम्" to "<b>अम्</b>: Sup affix for <i>Dvitīyā Ekavacana</i> (Accusative Singular).",
-            "औट्" to "<b>औट्</b>: Sup affix for <i>Prathamā/Dvitīyā Dvivacana</i> (Dual).",
-            "शस्" to "<b>शस्</b>: Sup affix for <i>Dvitīyā Bahuvacana</i> (Accusative Plural).",
-            "टा" to "<b>टा</b>: Sup affix for <i>Tṛtīyā Ekavacana</i> (Instrumental Singular).",
-            "भ्याम्" to "<b>भ्याम्</b>: Sup affix for Dual <i>Tṛtīyā/Caturthī/Pañcamī</i>.",
-            "भिसँ" to "<b>भिसँ</b>: Sup affix for <i>Tṛtīyā Bahuvacana</i> (Instrumental Plural).",
-            "ङे" to "<b>ङे</b>: Sup affix for <i>Caturthī Ekavacana</i> (Dative Singular).",
-            "भ्यस्" to "<b>भ्यस्</b>: Sup affix for Plural <i>Caturthī/Pañcamī</i>.",
-            "ङसिँ" to "<b>ङसिँ</b>: Sup affix for <i>Pañcamī Ekavacana</i> (Ablative Singular).",
-            "ङस्" to "<b>ङस्</b>: Sup affix for <i>Ṣaṣṭhī Ekavacana</i> (Genitive Singular).",
-            "ओस्" to "<b>ओस्</b>: Sup affix for Dual <i>Ṣaṣṭhī/Saptamī</i>.",
-            "आम्" to "<b>आम्</b>: Sup affix for <i>Ṣaṣṭhī Bahuvacana</i> (Genitive Plural).",
-            "ङि" to "<b>ङि</b>: Sup affix for <i>Saptamī Ekavacana</i> (Locative Singular).",
-            "सुप्" to "<b>सुप्</b>: Sup affix for <i>Saptamī Bahuvacana</i> (Locative Plural).",
-            "तिप्" to "<b>तिप्</b>: Tiṅ affix for <i>Parasmaipada Prathama Puruṣa Ekavacana</i> (3rd Person Singular).",
-            "तस्" to "<b>तस्</b>: Tiṅ affix for <i>Parasmaipada Prathama Puruṣa Dvivacana</i> (3rd Person Dual).",
-            "झि" to "<b>झि</b>: Tiṅ affix for <i>Parasmaipada Prathama Puruṣa Bahuvacana</i> (3rd Person Plural).",
-            "सिप्" to "<b>सिप्</b>: Tiṅ affix for <i>Parasmaipada Madhyama Puruṣa Ekavacana</i> (2nd Person Singular).",
-            "थस्" to "<b>थस्</b>: Tiṅ affix for <i>Parasmaipada Madhyama Puruṣa Dvivacana</i> (2nd Person Dual).",
-            "थ" to "<b>थ</b>: Tiṅ affix for <i>Parasmaipada Madhyama Puruṣa Bahuvacana</i> (2nd Person Plural).",
-            "मिप्" to "<b>मिप्</b>: Tiṅ affix for <i>Parasmaipada Uttama Puruṣa Ekavacana</i> (1st Person Singular).",
-            "वस्" to "<b>वस्</b>: Tiṅ affix for <i>Parasmaipada Uttama Puruṣa Dvivacana</i> (1st Person Dual).",
-            "मस्" to "<b>मस्</b>: Tiṅ affix for <i>Parasmaipada Uttama Puruṣa Bahuvacana</i> (1st Person Plural).",
-            "णिच्" to "<b>णिच्</b>: Sanādi causative suffix (Hetumatī ṇic).",
-            "लोट्" to "<b>लोट्</b>: Lakāra for Imperative Mood (Ājñā/Prārthanā).",
-            "लट्" to "<b>लट्</b>: Lakāra for Present Tense (Vartamāna Kāla).",
-            "उण्" to "<b>उण्</b>: Uṇādi suffix (Rule 1.1) deriving nominal stems like <i>kāru</i> (artisan) or <i>vāyu</i> (wind) with ण्-it marker.",
-            "सि" to "<b>सि</b>: Uṇādi suffix (Rule 2.8) deriving nominal stems like <i>śrut</i>."
-        )
-        val doc = map[text] ?: return null
-        return "<html><body><h3>Paninian Affix Specification</h3><p>$doc</p></body></html>"
+        val sup = SupAffix.candidates(text)
+        if (sup.isNotEmpty()) {
+            val slots = sup.joinToString("<br/>") { "${it.vibhakti} ${it.vacana}" }
+            return affixHtml(text, "Sup", slots)
+        }
+
+        TingAffix.fromUpadesha(text)?.let {
+            return affixHtml(text, "Tiṅ", "${it.pada} ${it.purusha} ${it.vacana}")
+        }
+        Lakara.entries.singleOrNull { it.upadesha == text }?.let {
+            return affixHtml(text, "Lakāra", it.name)
+        }
+        SanadiAffix.fromUpadesha(text)?.let {
+            return affixHtml(text, "Sanādi", it.name)
+        }
+        KrtAffix.fromUpadesha(text)?.let {
+            return affixHtml(text, "Kṛt", it.name)
+        }
+        TaddhitaAffix.fromUpadesha(text)?.let {
+            return affixHtml(text, "Taddhita", it.name)
+        }
+        return null
     }
+
+    private fun affixHtml(upadesha: String, category: String, details: String): String =
+        "<html><body><h3>Paninian $category Specification</h3><p><b>$upadesha</b>: $details</p></body></html>"
 
     private fun getKeywordDoc(text: String): String? {
         val map = mapOf(
             "च" to "<b>च</b> (Conjunction): Joins multiple nominal or verbal expressions.",
             "इति" to "<b>इति</b> (Clause Terminator): Marks completion of a quotation, condition, or expression.",
-            "अप" to "<b>अप</b> (Upasarga): Preverb / Exception marker (Sūtra 1.4.59 <i>उपसर्गाः क्रियायोगे</i>). Used in Apavāda exception marker <code>अप + वद् + घञ् + सुँ</code>.",
-            "अधि" to "<b>अधि</b> (Upasarga): Preverb / Adhikāra marker (Sūtra 1.4.59 <i>उपसर्गाः क्रियायोगे</i>). Used in Adhikāra scope declaration <code>अधि + कृ + घञ् + सुँ</code>.",
-            "वद्" to "<b>वद्</b> (Dhātu): Bhūvādi root <i>वदँ व्यक्तायां वाचि</i> (1.1157). Used in Apavāda <code>अप + वद् + घञ् + सुँ</code>.",
-            "कृ" to "<b>कृ</b> (Dhātu): Tanādi root <i>डुकृञ् करणे</i> (8.10). Used in Adhikāra <code>अधि + कृ + घञ् + सुँ</code>.",
             "यदि" to "<b>यदि</b> (Conditional): Begins a conditional branch expression.",
             "तर्हि" to "<b>तर्हि</b> (Conditional Consequent): Marks the consequence of a <i>यदि</i> clause.",
             "हे" to "<b>हे</b> (Vocative Indicator): Address indicator used with Sambuddhi nominal forms.",

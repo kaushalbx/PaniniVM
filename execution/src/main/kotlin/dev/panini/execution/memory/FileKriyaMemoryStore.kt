@@ -8,11 +8,9 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
+import java.util.Base64
 
 /** Binary V3 memory retains participant snapshots; V2 remains readable. */
-@OptIn(ExperimentalEncodingApi::class)
 internal class FileKriyaMemoryStore(private val storageDir: File) {
     private val analysisCache = java.util.concurrent.ConcurrentHashMap<String, List<KriyaFrame>>()
 
@@ -92,12 +90,12 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     private fun fileFor(key: String): File = File(storageDir, encode(key) + EXTENSION)
 
     private fun encode(value: String): String =
-        if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
+        if (value.isEmpty()) "" else base64Encoder.encodeToString(value.toByteArray(Charsets.UTF_8))
 
     private companion object {
         const val HEADER_V2 = "PANINI_KRIYA_MEMORY_V2"
         const val HEADER_V3 = "PANINI_KRIYA_MEMORY_V3"
         const val EXTENSION = ".kriya-memory"
-        val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+        val base64Encoder: Base64.Encoder = Base64.getUrlEncoder()
     }
 }

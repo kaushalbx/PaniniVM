@@ -12,11 +12,9 @@ import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
+import java.util.Base64
 
 /** Versioned file store that round-trips complete conversation state. */
-@OptIn(ExperimentalEncodingApi::class)
 class FileStateStore(private val storageDir: File) : StateStore {
     init {
         require(storageDir.exists() || storageDir.mkdirs()) { "Cannot create state directory: $storageDir" }
@@ -112,10 +110,10 @@ class FileStateStore(private val storageDir: File) : StateStore {
     }
 
     private fun encode(value: String): String =
-        if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
+        if (value.isEmpty()) "" else base64Encoder.encodeToString(value.toByteArray(Charsets.UTF_8))
 
     private fun decode(value: String): String =
-        if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
+        if (value.isEmpty()) "" else String(base64Decoder.decode(value), Charsets.UTF_8)
 
     private fun encodeSamjnas(values: Set<Samjna>): String =
         values.joinToString(",", transform = PersistedSamjnaCodec::encode)
@@ -128,12 +126,12 @@ class FileStateStore(private val storageDir: File) : StateStore {
         val bytes = ByteArrayOutputStream().also { output ->
             DataOutputStream(output).use { PersistedSanskritValueCodec.write(it, value) }
         }.toByteArray()
-        return VALUE_V2_PREFIX + base64Codec.encode(bytes)
+        return VALUE_V2_PREFIX + base64Encoder.encodeToString(bytes)
     }
 
     private fun decodeTyped(type: String, display: String, samjnas: Set<Samjna>): SanskritValue? = when {
         type.startsWith(VALUE_V2_PREFIX) -> runCatching {
-            val bytes = base64Codec.decode(type.removePrefix(VALUE_V2_PREFIX))
+            val bytes = base64Decoder.decode(type.removePrefix(VALUE_V2_PREFIX))
             DataInputStream(ByteArrayInputStream(bytes)).use(PersistedSanskritValueCodec::read)
         }.getOrNull()
         else -> LegacySanskritValueCodec.decode(type, display, samjnas)
@@ -142,6 +140,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
     private companion object {
         const val EXTENSION = ".state"
         const val VALUE_V2_PREFIX = "VALUE_V2:"
-        val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+        val base64Encoder: Base64.Encoder = Base64.getUrlEncoder()
+        val base64Decoder: Base64.Decoder = Base64.getUrlDecoder()
     }
 }
