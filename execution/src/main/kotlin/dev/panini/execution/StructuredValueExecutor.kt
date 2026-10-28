@@ -15,18 +15,22 @@ internal class StructuredValueExecutor {
         invocation: Invocation,
         structStore: Map<String, TaddhitaStruct>,
         knownOperationStems: Set<String> = emptySet(),
+        resolveRuntimeValue: (String) -> SanskritValue? = { null },
     ): ResolvedInvocation? {
         val operands = linkedMapOf<String, SanskritValue>()
-        val resolved = replaceAttributeReferences(invocation, structStore, operands, knownOperationStems) ?: return null
+        val resolved = replaceAttributeReferences(
+            invocation, structStore, operands, knownOperationStems, resolveRuntimeValue,
+        ) ?: return null
         return ResolvedInvocation(resolved, ValueEnvironment(operands))
     }
 
     fun resolve(
         access: TaddhitaAttributeAccess,
         structStore: Map<String, TaddhitaStruct>,
+        resolveRuntimeValue: (String) -> SanskritValue? = { null },
     ): ExecutionResult {
         val chain = access.chain
-        var currentObject: TaddhitaStruct? = structStore[chain[0]]
+        var currentObject: Any? = structStore[chain[0]] ?: resolveRuntimeValue(chain[0])
         var resolvedValue: SanskritValue? = null
         var failedStep: String? = null
         for (index in 1 until chain.size) {
@@ -35,13 +39,21 @@ internal class StructuredValueExecutor {
                 failedStep = chain[index - 1]
                 break
             }
-            val typedAttribute = currentObject.typedAttributes[key]
-            val attribute = currentObject.attributes[key]
+            val typedAttribute = when (val record = currentObject) {
+                is TaddhitaStruct -> record.typedAttributes[key]
+                is SanskritValue.Rupa -> record.fields[key]
+                else -> null
+            }
+            val attribute = (currentObject as? TaddhitaStruct)?.attributes?.get(key)
             if (typedAttribute != null || attribute != null) {
                 if (index == chain.lastIndex) {
                     resolvedValue = typedAttribute ?: SanskritValue.of(requireNotNull(attribute))
                 } else {
-                    currentObject = attribute?.let(structStore::get)
+                    currentObject = when (val nested = typedAttribute) {
+                        is SanskritValue.Rupa -> nested
+                        is SanskritValue.Shabda -> structStore[nested.text] ?: resolveRuntimeValue(nested.text)
+                        else -> attribute?.let { structStore[it] ?: resolveRuntimeValue(it) }
+                    }
                 }
             } else if (index == chain.lastIndex) {
                 resolvedValue = SanskritValue.Lopa
@@ -67,10 +79,11 @@ internal class StructuredValueExecutor {
         pipeline: PvmSentenceSemantics.AttributePipeline,
         scope: ExecutionScope,
         structStore: Map<String, TaddhitaStruct>,
+        resolveRuntimeValue: (String) -> SanskritValue? = { null },
         executeTarget: (Invocation, ExecutionScope, SanskritValue) -> List<ExecutionResult>,
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
-        val source = resolve(pipeline.access, structStore)
+        val source = resolve(pipeline.access, structStore, resolveRuntimeValue)
         if (source !is ExecutionResult.Success) return listOf(source)
         var pipedValue = source.typedValue ?: return listOf(source)
         val results = mutableListOf<ExecutionResult>(source)
@@ -100,10 +113,11 @@ internal class StructuredValueExecutor {
         structStore: Map<String, TaddhitaStruct>,
         operands: MutableMap<String, SanskritValue>,
         knownOperationStems: Set<String> = emptySet(),
+        resolveRuntimeValue: (String) -> SanskritValue? = { null },
     ): Invocation? {
         val projection = AttributeOperandProjection.project(invocation, "__pvm_attribute_${operands.size}_", knownOperationStems)
         projection.operands.forEach { operand ->
-            val resolved = resolve(operand.access, structStore) as? ExecutionResult.Success ?: return null
+            val resolved = resolve(operand.access, structStore, resolveRuntimeValue) as? ExecutionResult.Success ?: return null
             operands[operand.name] = requireNotNull(resolved.typedValue)
         }
         return projection.invocation

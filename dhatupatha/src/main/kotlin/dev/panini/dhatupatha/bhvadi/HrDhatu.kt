@@ -2,6 +2,8 @@ package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.numeric.DivisionAction
 import dev.panini.actions.collection.ListPopAction
+import dev.panini.actions.collection.ListRemoveAtAction
+import dev.panini.actions.collection.ListRemoveFinalAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -30,6 +32,18 @@ class HrDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         DivisionAction.numericOp(),
+        ListRemoveAtAction.op {
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NIS))
+            requires(Karaka.KARMAN)
+            requires(Karaka.SAMBANDHA)
+            requires(Karaka.ADHIKARANA)
+            returns(Samjna.GANA)
+        },
+        ListRemoveFinalAction.op {
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NIS))
+            requires(Karaka.KARMAN)
+            returns(Samjna.SHABDA, Samjna.GANA)
+        },
         ListPopAction.op {
             triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.UD))
             requires(Karaka.KARMAN)

@@ -4,7 +4,7 @@ import dev.panini.execution.*
 import kotlin.test.*
 
 class OrdinalMemberExtractionTest {
-    private val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+    private val declaration = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।"
     private fun compiled(source: String, name: String): Map<String, SanskritValue> {
         val generated = BytecodeCompiler.compileAndLoad(source, name)
         @Suppress("UNCHECKED_CAST")

@@ -344,8 +344,18 @@ from display text. List-preserving operations retain the constraint, and an
 incompatible insertion or concatenation fails. Mapping derives a new numeric or
 textual constraint when every result has that category; otherwise its result is
 an unconstrained list. The constraint belongs to the list value, not permanently
-to the variable holding it. A bare `सङ्ख्यानां सूची अस्ति` does not create an
-empty list.
+to the variable holding it.
+
+A typed declaration without members creates an empty list directly. Give it a
+name when later sentences must refer to it:
+
+```pvm
+रिक्तक्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+This produces `[]` with the numeric member constraint. `शब्द + आम्`
+similarly creates a typed empty word list. An empty declaration without an
+explicit member type is rejected because its constraint cannot be inferred.
 
 The same grammatical construction supports a word/text member type:
 
@@ -795,6 +805,53 @@ single-member retrieval does not clip an invalid position.
 Run the complete example at
 [`examples/collections/ordinal_index.pvm`](../examples/collections/ordinal_index.pvm).
 It gathers three numbers and prints the second member.
+
+#### 7.10.1 Persistent indexed transformations
+
+Indexed transformations return a new list and never mutate the source value.
+The collection is genitive, the one-based position is locative, and an inserted
+or replacement value is accusative.
+
+```pvm
+# Replace position two.
+क्रम + ङस् द्वि + तीय + ङि नवन् + शस्
+स्था + णिच् + लोट् + सिप् ।
+
+# Insert before position two.
+क्रम + ङस् द्वि + तीय + ङि नवन् + शस्
+नि + क्षिप् + लोट् + सिप् ।
+
+# Remove position two.
+क्रम + ङस् द्वि + तीय + ङि सदस्य + अम्
+निस् + हृ + लोट् + सिप् ।
+```
+
+Replacement and removal accept positions `1..length`; insertion accepts
+`1..length + 1`, so position one can insert into an empty typed list. Cardinal
+and ordinal positions are accepted. A declared member constraint is preserved,
+and inserting or replacing with an incompatible value fails. Store the returned
+list through ordinary `फल` assignment when the new version should replace a binding.
+
+`निस् + हृ` with an accusative list removes its final member and returns
+a structured `सूचीनिष्कासपरिणाम` containing `शेषसूची` and
+`निष्कासितमूल्य` fields:
+
+```pvm
+क्रम + अम् निस् + हृ + लोट् + सिप् ।
+```
+
+Assign the result and retrieve either field with ordinary `मतुप्` record
+access:
+
+```pvm
+निष्कासन + मतुप् + ङस् शेषसूची + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+निष्कासन + मतुप् + ङस् निष्कासितमूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+An empty source fails because it has no final member. This operation differs
+from `उद् + हृ`, which only selects a member and leaves the list unchanged.
+See the complete executable example in
+[`persistent_updates.pvm`](../examples/collections/persistent_updates.pvm).
 
 ### 7.11 Final member extraction
 

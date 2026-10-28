@@ -142,10 +142,9 @@ object ListDeclarationLowering {
         val members = sentence.padas.filter { it !== target && it !== sentence.tinganta && it !== qualifier &&
             it !== name && it !in naming }
         if (members.isEmpty()) {
-            requireDeclaration(name == null, "LIST_DECLARATION_EMPTY_NAMED_LIST") {
-                "A named list declaration must supply its members explicitly."
+            requireDeclaration(qualifier != null, "LIST_DECLARATION_EMPTY_MEMBER_TYPE") {
+                "An empty list declaration requires an explicit member-type qualifier."
             }
-            return null
         }
         fun accusative(sup: SupPratyaya): SupPratyaya {
             val genitive = sup.affixCandidates.singleOrNull { it.vibhakti == Vibhakti.SASTHI }

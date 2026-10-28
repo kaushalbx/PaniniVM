@@ -413,7 +413,11 @@ internal enum class CollectionOperator {
     INDEX_OF,
     CONTAINS,
     APPEND,
+    REPLACE,
+    INSERT_AT,
+    REMOVE_AT,
     POP,
+    POP_PAIR,
     SLICE,
     FLATTEN,
 }
@@ -734,6 +738,10 @@ internal object CompilerIrLowering {
             "सूचीस्थानान्वेषणम्" -> CollectionOperator.INDEX_OF
             "सूच्यस्तित्वम्" -> CollectionOperator.CONTAINS
             "सूचीनिक्षेपणम्" -> CollectionOperator.APPEND
+            "सूचीप्रतिस्थापनम्" -> CollectionOperator.REPLACE
+            "सूचीस्थाननिक्षेपणम्" -> CollectionOperator.INSERT_AT
+            "सूचीस्थाननिष्कासनम्" -> CollectionOperator.REMOVE_AT
+            "सूच्यन्त्यनिष्कासनम्" -> CollectionOperator.POP_PAIR
             "सूच्युद्धरणम्" -> CollectionOperator.POP
             "सूचीविभागः" -> CollectionOperator.SLICE
             "सूचीप्रसारणम्" -> CollectionOperator.FLATTEN
@@ -755,9 +763,8 @@ internal object CompilerIrLowering {
                 subject.single() + standard.single() + CompilerInstruction.Compare(operator)
             }
             operation == "सूचीसङ्ग्रहः" &&
-                naturalOperation is NaturalOperation.CollectionFormation &&
-                operands.isNotEmpty() -> buildList {
-                val members = lowerParticipantOperands(naturalOperation.items)
+                naturalOperation is NaturalOperation.CollectionFormation -> buildList {
+                val members = naturalOperation.items?.let(::lowerParticipantOperands).orEmpty()
                 members.forEach(::addAll)
                 add(CompilerInstruction.BuildList(members.size,
                     plan.resolved.context.metadata["listMemberType"]?.let(dev.panini.execution.ListMemberType::valueOf)))
@@ -875,6 +882,31 @@ internal object CompilerIrLowering {
                     destination to inserted
                 }
                 list + item + CompilerInstruction.Collection(CollectionOperator.APPEND)
+            }
+            collection == CollectionOperator.REPLACE -> {
+                val frame = naturalOperation as? NaturalOperation.IndexedReplacement ?: return null
+                val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                val index = lowerNumericOperand(frame.index, allowOrdinal = true) ?: return null
+                val replacement = lowerOperand(frame.replacement) ?: return null
+                list + index + replacement + CompilerInstruction.Collection(CollectionOperator.REPLACE)
+            }
+            collection == CollectionOperator.INSERT_AT -> {
+                val frame = naturalOperation as? NaturalOperation.IndexedInsertion ?: return null
+                val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                val index = lowerNumericOperand(frame.index, allowOrdinal = true) ?: return null
+                val inserted = lowerOperand(frame.inserted) ?: return null
+                list + index + inserted + CompilerInstruction.Collection(CollectionOperator.INSERT_AT)
+            }
+            collection == CollectionOperator.REMOVE_AT -> {
+                val frame = naturalOperation as? NaturalOperation.IndexedRemoval ?: return null
+                val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                val index = lowerNumericOperand(frame.index, allowOrdinal = true) ?: return null
+                list + index + CompilerInstruction.Collection(CollectionOperator.REMOVE_AT)
+            }
+            collection == CollectionOperator.POP_PAIR -> {
+                val frame = naturalOperation as? NaturalOperation.FinalRemoval ?: return null
+                val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                list + CompilerInstruction.Collection(CollectionOperator.POP_PAIR)
             }
             collection == CollectionOperator.POP -> {
                 val frame = naturalOperation as? NaturalOperation.CollectionExtraction
@@ -1289,8 +1321,12 @@ internal object CompilerIrVerifier {
                     CollectionOperator.INDEX_OF,
                     CollectionOperator.CONTAINS,
                     CollectionOperator.APPEND,
+                    CollectionOperator.REMOVE_AT,
                     -> 2
-                    CollectionOperator.SLICE -> 3
+                    CollectionOperator.SLICE,
+                    CollectionOperator.REPLACE,
+                    CollectionOperator.INSERT_AT,
+                    -> 3
                     CollectionOperator.LENGTH,
                     CollectionOperator.SNAPSHOT,
                     CollectionOperator.QUANTIFIER_SNAPSHOT,
@@ -1298,6 +1334,7 @@ internal object CompilerIrVerifier {
                     CollectionOperator.SUM_NUMBER_MEMBERS,
                     CollectionOperator.REVERSE,
                     CollectionOperator.POP,
+                    CollectionOperator.POP_PAIR,
                     CollectionOperator.FLATTEN,
                     -> 1
                 }
@@ -1318,6 +1355,10 @@ internal object CompilerIrVerifier {
                         ValueKind.NUMBER, ValueKind.ORDINAL, ValueKind.UNKNOWN)) {
                         "IR collection index requires a cardinal or ordinal position at instruction $index"
                     }
+                    CollectionOperator.REPLACE, CollectionOperator.INSERT_AT, CollectionOperator.REMOVE_AT ->
+                        require(operands[1] in setOf(ValueKind.NUMBER, ValueKind.ORDINAL, ValueKind.UNKNOWN)) {
+                            "IR collection transformation requires a cardinal or ordinal position at instruction $index"
+                        }
                     CollectionOperator.SLICE -> {
                         requireKind(1, ValueKind.NUMBER)
                         requireKind(2, ValueKind.NUMBER)
@@ -1332,6 +1373,7 @@ internal object CompilerIrVerifier {
                     // Member type is determined by the collection's runtime
                     // payload, not an opaque scalar type or an integer guess.
                     CollectionOperator.INDEX, CollectionOperator.POP -> ValueKind.UNKNOWN
+                    CollectionOperator.POP_PAIR -> ValueKind.RECORD
                     else -> ValueKind.LIST
                 }
             }

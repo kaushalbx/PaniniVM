@@ -34,7 +34,7 @@ class GrahDhatu : Dhatu(
     operations = listOf(
         ListCollectAction.op {
             triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM))
-            requires(Karaka.KARMAN)
+            optional(Karaka.KARMAN)
             returns(Samjna.GANA, Samjna.SHABDA)
         },
         ListSliceAction.op {

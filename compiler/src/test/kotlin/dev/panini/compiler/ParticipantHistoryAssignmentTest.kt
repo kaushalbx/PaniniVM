@@ -192,7 +192,7 @@ class ParticipantHistoryAssignmentTest {
     }
 
     @Test fun `single collection participant remains the collection not its members or nested list`() {
-        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + अम् मूल्य + ङे दा + लोट् + सिप् ।\n" +
             "दा + ल्युट् + ङस् कर्मन् + अम् प्रतिलिपि + ङे दा + लोट् + सिप् ।\n" +
             "प्रतिलिपि + अम् मुद्र् + णिच् + लोट् + सिप् ।"

@@ -56,6 +56,20 @@ object CollectionMemberMorphology {
         if (projected != null) return projected.statements.filterIsInstance<Invocation>()
             .flatMap { protectedPadas(it.vakya.padas) }
         val nominals = padas.filterIsInstance<SubantaPada>()
+        if (verb.canonicalDhatuIdentity() == CanonicalDhatuIdentity.GRAH &&
+            nominals.any { hasSlot(it, SupAffix.NGASI) }
+        ) {
+            return padas.filter { pada ->
+                hasSlot(pada, SupAffix.NGI) && PuranaPratyayaResolver.ordinalValue(pada) != null
+            }
+        }
+        if (verb.canonicalDhatuIdentity() == CanonicalDhatuIdentity.GRAH &&
+            nominals.any { hasSlot(it, SupAffix.NGAS) }
+        ) {
+            return padas.filter { pada ->
+                hasSlot(pada, SupAffix.AM) && PuranaPratyayaResolver.ordinalValue(pada) != null
+            }
+        }
         if (nominals.none { hasSlot(it, SupAffix.NGAS) }) return emptyList()
         if (verb.canonicalDhatuIdentity() == CanonicalDhatuIdentity.HR && Upasarga.UD in verb.upasargaIdentities) {
             return padas.filter { pada ->

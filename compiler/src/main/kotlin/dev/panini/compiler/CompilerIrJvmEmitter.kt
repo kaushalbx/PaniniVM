@@ -389,7 +389,11 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.INDEX_OF -> "listIndexOf"
             CollectionOperator.CONTAINS -> "listContains"
             CollectionOperator.APPEND -> "listAppend"
+            CollectionOperator.REPLACE -> "listReplace"
+            CollectionOperator.INSERT_AT -> "listInsertAt"
+            CollectionOperator.REMOVE_AT -> "listRemoveAt"
             CollectionOperator.POP -> "listPop"
+            CollectionOperator.POP_PAIR -> "listPopPair"
             CollectionOperator.SLICE -> "listSlice"
             CollectionOperator.FLATTEN -> "listFlatten"
         }
@@ -400,8 +404,12 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.INDEX_OF,
             CollectionOperator.CONTAINS,
             CollectionOperator.APPEND,
+            CollectionOperator.REMOVE_AT,
             -> "($value$value)$value"
-            CollectionOperator.SLICE -> "($value$value$value)$value"
+            CollectionOperator.SLICE,
+            CollectionOperator.REPLACE,
+            CollectionOperator.INSERT_AT,
+            -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
             CollectionOperator.SNAPSHOT,
             CollectionOperator.QUANTIFIER_SNAPSHOT,
@@ -409,6 +417,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.SUM_NUMBER_MEMBERS,
             CollectionOperator.REVERSE,
             CollectionOperator.POP,
+            CollectionOperator.POP_PAIR,
             CollectionOperator.FLATTEN,
             -> "($value)$value"
         }

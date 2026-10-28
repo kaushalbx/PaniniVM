@@ -487,6 +487,23 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `persistent collection runtime helpers preserve types and return removal pair`() {
+        val one = SanskritValue.Sankhya(1, "एक")
+        val two = SanskritValue.Sankhya(2, "द्वि")
+        val nine = SanskritValue.Sankhya(9, "नवन्")
+        val list = SanskritValue.Suchi(listOf(one, two), dev.panini.execution.ListMemberType.NUMBER)
+
+        assertEquals(listOf(one, nine), assertIs<SanskritValue.Suchi>(
+            CompilerValueOperations.listReplace(list, two, nine)).items)
+        assertEquals(listOf(one, nine, two), assertIs<SanskritValue.Suchi>(
+            CompilerValueOperations.listInsertAt(list, two, nine)).items)
+        assertEquals(listOf(two), assertIs<SanskritValue.Suchi>(
+            CompilerValueOperations.listRemoveAt(list, one)).items)
+        val pair = assertIs<SanskritValue.Rupa>(CompilerValueOperations.listPopPair(list))
+        assertEquals(two, pair.fields.getValue(dev.panini.execution.LIST_REMOVAL_VALUE_FIELD))
+    }
+
+    @Test
     fun `IR verifier rejects value stack underflow`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Store("मान")))

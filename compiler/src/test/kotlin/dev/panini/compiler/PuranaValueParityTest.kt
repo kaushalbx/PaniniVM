@@ -90,7 +90,7 @@ class PuranaValueParityTest {
 
     @Test fun `lexical and productive ordinal selectors access the same one based member`() {
         for ((index, selector) in listOf("द्वितीय + अम्", "द्वि + तीय + अम्").withIndex()) {
-            val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् $selector उद् + हृ + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())

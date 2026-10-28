@@ -25,13 +25,38 @@ sealed interface NaturalOperation {
 
     /** Objects expressed as karman that are gathered into one ordered collection. */
     data class CollectionFormation(
-        val items: ExecutionExpression,
+        val items: ExecutionExpression?,
     ) : NaturalOperation
 
     data class IndexedRetrieval(
         val collection: ExecutionExpression,
         val index: ExecutionExpression,
         val result: ExecutionExpression,
+    ) : NaturalOperation
+
+    /** Returns a persistent copy with one one-based position replaced. */
+    data class IndexedReplacement(
+        val collection: ExecutionExpression,
+        val index: ExecutionExpression,
+        val replacement: ExecutionExpression,
+    ) : NaturalOperation
+
+    /** Returns a persistent copy with a member inserted at a one-based position. */
+    data class IndexedInsertion(
+        val collection: ExecutionExpression,
+        val index: ExecutionExpression,
+        val inserted: ExecutionExpression,
+    ) : NaturalOperation
+
+    /** Returns a persistent copy without the member at a one-based position. */
+    data class IndexedRemoval(
+        val collection: ExecutionExpression,
+        val index: ExecutionExpression,
+    ) : NaturalOperation
+
+    /** Returns a structured shortened-list/removed-value result. */
+    data class FinalRemoval(
+        val collection: ExecutionExpression,
     ) : NaturalOperation
 
     /** Finds the first one-based position of an item in a collection. */
@@ -90,13 +115,34 @@ object NaturalOperationResolver {
                 val destination = bindings[Karaka.ADHIKARANA] ?: return null
                 NaturalOperation.StatePlacement(value, destination)
             }
+            "सूचीप्रतिस्थापनम्" -> {
+                val collection = bindings[Karaka.SAMBANDHA] ?: return null
+                val index = bindings[Karaka.ADHIKARANA] ?: return null
+                val replacement = bindings[Karaka.KARMAN] ?: return null
+                NaturalOperation.IndexedReplacement(collection, index, replacement)
+            }
+            "सूचीस्थाननिक्षेपणम्" -> {
+                val collection = bindings[Karaka.SAMBANDHA] ?: return null
+                val index = bindings[Karaka.ADHIKARANA] ?: return null
+                val inserted = bindings[Karaka.KARMAN] ?: return null
+                NaturalOperation.IndexedInsertion(collection, index, inserted)
+            }
+            "सूचीस्थाननिष्कासनम्" -> {
+                val collection = bindings[Karaka.SAMBANDHA] ?: return null
+                val index = bindings[Karaka.ADHIKARANA] ?: return null
+                NaturalOperation.IndexedRemoval(collection, index)
+            }
+            "सूच्यन्त्यनिष्कासनम्" -> {
+                val collection = bindings[Karaka.KARMAN] ?: return null
+                NaturalOperation.FinalRemoval(collection)
+            }
             "सूचीनिक्षेपणम्" -> {
                 val item = bindings[Karaka.KARMAN] ?: return null
                 val collection = bindings[Karaka.ADHIKARANA] ?: return null
                 NaturalOperation.CollectionInsertion(item, collection)
             }
             "सूचीसङ्ग्रहः" -> {
-                val items = bindings[Karaka.KARMAN] ?: return null
+                val items = bindings[Karaka.KARMAN]
                 NaturalOperation.CollectionFormation(items)
             }
             "सूचीस्थानम्" -> {

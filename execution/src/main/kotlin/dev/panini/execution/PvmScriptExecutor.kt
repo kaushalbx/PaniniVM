@@ -115,7 +115,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     semantics,
                     context,
                 ).also(results::addAll)
-                is PvmSentenceSemantics.AttributeAccess -> structuredValueExecutor.resolve(semantics.access, structStore).let {
+                is PvmSentenceSemantics.AttributeAccess -> structuredValueExecutor.resolve(
+                    semantics.access, structStore,
+                ) { name -> vm.runtimeValue(effectiveSessionKey, name) }.let {
                     if (it is ExecutionResult.Success) it.typedValue?.let { value ->
                         vm.retainStructuredResult(effectiveSessionKey, value, speaker, listener, persistSession)
                     }
@@ -217,7 +219,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
             }
             TaddhitaStructEngine.detectAttributeAccess(node.vakya)?.let { access ->
-                val result = structuredValueExecutor.resolve(access, context.structStore)
+                val result = structuredValueExecutor.resolve(access, context.structStore) { name ->
+                    context.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
+                }
                 if (result is ExecutionResult.Success) result.typedValue?.let { value ->
                     vm.retainStructuredResult(context.sessionKey, value, context.speaker,
                         context.listener, context.persistSession)
@@ -378,8 +382,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             is LocalAnaphorBinding.Analysis.Resolved -> analysis.value
             is LocalAnaphorBinding.Analysis.Invalid -> return anaphorFailure(analysis.diagnostic, context)
         }
-        val resolved = structuredValueExecutor.resolveInvocation(bound.invocation, context.structStore,
-            operations)
+        val resolved = structuredValueExecutor.resolveInvocation(
+            bound.invocation, context.structStore, operations,
+        ) { name -> bound.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name) }
             ?: return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
                 "A structured field operand could not be resolved.")).also(context::publish)
         val operandContext = context.copy(scope = bound.scope.copy(environment =
@@ -918,6 +923,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         pipeline,
         context.scope,
         context.structStore,
+        { name -> context.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name) },
         executeTarget = { target, targetScope, pipedValue ->
             executeInvocationNode(
                 target,

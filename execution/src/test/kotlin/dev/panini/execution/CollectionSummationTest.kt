@@ -29,7 +29,7 @@ class CollectionSummationTest {
                 "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
                 "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
                 "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
-                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।",
         )
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -39,7 +39,7 @@ class CollectionSummationTest {
     @Test
     fun `nonfinite member sum supplies the omitted display object`() {
         val results = PaniniVM().evalScript(
-            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।",
         )
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -58,7 +58,7 @@ class CollectionSummationTest {
         for (source in listOf(
             "राम + ङस् सीता + ङस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।",
-            "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् सङ्ख्या + मतुप् + शस् युज् + णिच् + लोट् + सिप् ।",
         )) assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last(), source)
     }
@@ -76,7 +76,7 @@ class CollectionSummationTest {
                 (invocation.bindings[dev.panini.core.Karaka.KARMAN] as? ExecutionExpression.Pada)?.memberSelection,
                 invocation.toString())
             val results = PaniniVM().evalScript(
-                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                     "$phrase युज् + णिच् + लोट् + सिप् ।",
             )
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())

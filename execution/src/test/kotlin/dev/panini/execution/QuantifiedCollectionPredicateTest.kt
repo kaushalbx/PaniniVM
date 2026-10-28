@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFails
 
 class QuantifiedCollectionPredicateTest {
-    private val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+    private val declaration = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।"
 
     @Test
     fun `some member predicate returns true and short circuits`() {
@@ -24,7 +24,7 @@ class QuantifiedCollectionPredicateTest {
     @Test
     fun `some member predicate returns false when no member matches`() {
         val results = PaniniVM().evalScript(
-            "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$anySource",
+            "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$anySource",
         )
 
         assertEquals(

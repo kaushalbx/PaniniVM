@@ -2,6 +2,7 @@ package dev.panini.dhatupatha.tudadi
 
 import dev.panini.actions.collection.ListFoldAction
 import dev.panini.actions.collection.ListPushAction
+import dev.panini.actions.collection.ListInsertAtAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -28,6 +29,13 @@ class KshipDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
+        ListInsertAtAction.op {
+            requires(Karaka.KARMAN)
+            requires(Karaka.ADHIKARANA)
+            requires(Karaka.SAMBANDHA)
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.NI))
+            returns(Samjna.GANA)
+        },
         ListPushAction.op {
             requires(Karaka.KARMAN)      // the value being inserted
             requires(Karaka.ADHIKARANA)  // the collection receiving it

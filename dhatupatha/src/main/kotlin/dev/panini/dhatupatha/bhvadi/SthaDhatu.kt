@@ -1,6 +1,7 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListIndexAction
+import dev.panini.actions.collection.ListReplaceAction
 import dev.panini.actions.control.LoopBreakAction
 import dev.panini.actions.state.StateWaitAction
 import dev.panini.actions.state.VariableAssignAction
@@ -37,6 +38,13 @@ class SthaDhatu : Dhatu(
             optional(Karaka.KARTR)
             triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SHABDA)
+        },
+        ListReplaceAction.op {
+            requires(Karaka.KARMAN)       // replacement value
+            requires(Karaka.ADHIKARANA)   // one-based position
+            requires(Karaka.SAMBANDHA)    // source collection
+            triggeredBy(requiredSanadiIdentities = setOf(SanadiAffix.NIC))
+            returns(Samjna.GANA)
         },
         VariableAssignAction.op {
             requires(Karaka.KARMAN)

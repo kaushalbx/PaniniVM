@@ -338,6 +338,28 @@ internal object CompilerValueOperations {
         collectionItems(list) + item, list,
     )
 
+    private inline fun persistentListOperation(block: () -> SanskritValue): SanskritValue = try {
+        block()
+    } catch (error: dev.panini.execution.PersistentListOperationException) {
+        throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, error.message.orEmpty())
+    }
+
+    @JvmStatic
+    fun listReplace(list: SanskritValue, index: SanskritValue, replacement: SanskritValue): SanskritValue =
+        persistentListOperation { dev.panini.execution.replaceListMember(list, index, replacement) }
+
+    @JvmStatic
+    fun listInsertAt(list: SanskritValue, index: SanskritValue, inserted: SanskritValue): SanskritValue =
+        persistentListOperation { dev.panini.execution.insertListMember(list, index, inserted) }
+
+    @JvmStatic
+    fun listRemoveAt(list: SanskritValue, index: SanskritValue): SanskritValue =
+        persistentListOperation { dev.panini.execution.removeListMember(list, index) }
+
+    @JvmStatic
+    fun listPopPair(list: SanskritValue): SanskritValue =
+        persistentListOperation { dev.panini.execution.removeFinalListMember(list) }
+
     @JvmStatic
     fun listPop(list: SanskritValue): SanskritValue {
         if (list !is SanskritValue.Suchi && list !is SanskritValue.Gana) {

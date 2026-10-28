@@ -105,6 +105,19 @@ class PrakriyaAstArgumentBinderTest {
     }
 
     @Test
+    fun `indexed retrieval ordinals do not become procedure parameters`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (source in listOf(
+            "मान + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
+            "मान + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
+        )) {
+            val invocation = assertIs<Invocation>(parser.parse(source).body)
+            val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(invocation.vakya.padas)
+            assertEquals(1, protected.count { PuranaPratyayaResolver.ordinalValue(it) != null }, source)
+        }
+    }
+
+    @Test
     fun `collection nouns are ordinary names unless explicitly declared as parameters`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         for (phrase in listOf("समवाय + मतुप् + अम्", "समवाय + तरप् + अम्", "समवाय + ङस्")) {

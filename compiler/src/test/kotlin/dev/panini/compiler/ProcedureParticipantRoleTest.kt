@@ -20,7 +20,7 @@ class ProcedureParticipantRoleTest {
 
     @Test fun `extracted member composes with arithmetic using its runtime type`() {
         val source = """
-            एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
             फल + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
@@ -41,7 +41,7 @@ class ProcedureParticipantRoleTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ॥
-            एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।
             परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         assertTrue(CompilerFrontend.lower(source, "MemberRoleSignature").procedures.single().parameterNames.isEmpty())
