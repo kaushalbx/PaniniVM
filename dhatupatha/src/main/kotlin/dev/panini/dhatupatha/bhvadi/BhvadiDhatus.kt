@@ -8407,11 +8407,7 @@ object BhvadiDhatus {
                 "अवबन्धने विध्वंसने च", "गिर पड़ना, नष्ट होना", "to fall down, to get destroyed",
                 PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
             )
-            dhatu(
-                "01.1116", 1116, "मेङ्", "मे",
-                "प्रणिदाने", "विनिमय करना, सुपुर्द करना", "to exchange, to handover",
-                PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(MeDhatu())
             dhatu(
                 "01.1117", 1117, "देङ्", "दे",
                 "रक्षणे", "रक्षण करना, पोषण करना", "to protect",

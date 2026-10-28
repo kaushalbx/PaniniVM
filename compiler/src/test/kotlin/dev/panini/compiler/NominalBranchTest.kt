@@ -68,7 +68,7 @@ class NominalBranchTest {
     }
 
     @Test fun `nominal branch resolves a typed named list without invoking dana`() {
-        val source = "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$condition सूची + सुँ अन्यथा असत्य + सुँ ।"
+        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$condition सूची + सुँ अन्यथा असत्य + सुँ ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         val list = assertIs<SanskritValue.Suchi>(result.typedValue)
         assertEquals(2, list.items.size)
@@ -89,7 +89,7 @@ class NominalBranchTest {
             चयन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सूची + सुँ इति मान + सुँ ।
             यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि मान + सुँ अन्यथा असत्य + सुँ ॥
-            एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।
             सूची + अम् चयन + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)

@@ -243,7 +243,8 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
-        val body = context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
+        val body = context.reductionClause()?.let(::buildReductionClause)
+            ?: context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
             ?: context.naturalRelativeActionClause()?.let(::buildNaturalRelativeActionClause)
             ?: context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
             ?: context.distributiveClause()?.let(::buildDistributiveClause) ?: context.quotationClause()?.let { quotation ->
@@ -463,6 +464,42 @@ class VyakaranamAstBuilder {
         return ForEach(clause.text, collection, member, index, build(requireNotNull(clause.body)).body)
     }
 
+    private fun buildReductionClause(clause: PaniniyaVyakaranamParser.ReductionClauseContext): ForEach {
+        val collection = buildSubanta(requireNotNull(clause.collection))
+        val initial = buildSubanta(requireNotNull(clause.initial))
+        val accumulator = buildSubanta(requireNotNull(clause.accumulator))
+        val member = buildSubanta(requireNotNull(clause.member))
+        require(requireNotNull(clause.connector).text == "आरभ्य") {
+            "Reduction requires आरभ्य after प्रथम + अम्."
+        }
+        require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
+            "Reduction requires a genitive singular collection."
+        }
+        require(initial.pratipadika.semanticKey() == "प्रथम" &&
+            initial.sup.affixCandidates == listOf(SupAffix.AM)) {
+            "Reduction begins with the collection's first member: use प्रथम + अम् before आरभ्य."
+        }
+        require(accumulator.sup.affixCandidates == listOf(SupAffix.AM) &&
+            accumulator.pratipadika is MulaPratipadika &&
+            (accumulator.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "Reduction requires an underived singular accusative accumulator."
+        }
+        require(member.sup.affixCandidates == listOf(SupAffix.AM) &&
+            member.pratipadika is MulaPratipadika && (member.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "Reduction requires an underived singular accusative member."
+        }
+        require(accumulator.pratipadika.semanticKey() != member.pratipadika.semanticKey()) {
+            "Reduction accumulator and member require distinct referents."
+        }
+        return ForEach(
+            clause.text,
+            collection,
+            member,
+            body = build(requireNotNull(clause.body)).body,
+            reduction = CollectionReduction(initial, accumulator),
+        )
+    }
+
     private fun buildNaturalIndexedDistributiveClause(
         clause: PaniniyaVyakaranamParser.NaturalIndexedDistributiveClauseContext,
     ): ForEach {
@@ -540,6 +577,7 @@ class VyakaranamAstBuilder {
             indexRelation = relationOf(index),
             quantifier = quantifier,
             relativeSelections = relativeSelections,
+            sequential = clause.sequential != null,
         )
     }
 
@@ -689,7 +727,8 @@ class VyakaranamAstBuilder {
 
     private fun buildConditionalArm(
         context: PaniniyaVyakaranamParser.ConditionalArmContext,
-    ): ProgramNode = context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
+    ): ProgramNode = context.reductionClause()?.let(::buildReductionClause)
+        ?: context.naturalIndexedDistributiveClause()?.let(::buildNaturalIndexedDistributiveClause)
         ?: context.distributiveClause()?.let(::buildDistributiveClause)
         ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)
         ?: context.temporalConditionalExpression()?.let(::buildTemporalConditional)

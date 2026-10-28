@@ -349,6 +349,10 @@ internal object CompilerValueOperations {
         persistentListOperation { dev.panini.execution.replaceListMember(list, index, replacement) }
 
     @JvmStatic
+    fun listExchange(list: SanskritValue, first: SanskritValue, second: SanskritValue): SanskritValue =
+        persistentListOperation { dev.panini.execution.exchangeListMembers(list, first, second) }
+
+    @JvmStatic
     fun listInsertAt(list: SanskritValue, index: SanskritValue, inserted: SanskritValue): SanskritValue =
         persistentListOperation { dev.panini.execution.insertListMember(list, index, inserted) }
 

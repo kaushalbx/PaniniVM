@@ -390,6 +390,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.CONTAINS -> "listContains"
             CollectionOperator.APPEND -> "listAppend"
             CollectionOperator.REPLACE -> "listReplace"
+            CollectionOperator.EXCHANGE -> "listExchange"
             CollectionOperator.INSERT_AT -> "listInsertAt"
             CollectionOperator.REMOVE_AT -> "listRemoveAt"
             CollectionOperator.POP -> "listPop"
@@ -408,6 +409,7 @@ internal class CompilerIrJvmEmitter(
             -> "($value$value)$value"
             CollectionOperator.SLICE,
             CollectionOperator.REPLACE,
+            CollectionOperator.EXCHANGE,
             CollectionOperator.INSERT_AT,
             -> "($value$value$value)$value"
             CollectionOperator.LENGTH,

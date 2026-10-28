@@ -414,6 +414,7 @@ internal enum class CollectionOperator {
     CONTAINS,
     APPEND,
     REPLACE,
+    EXCHANGE,
     INSERT_AT,
     REMOVE_AT,
     POP,
@@ -739,6 +740,7 @@ internal object CompilerIrLowering {
             "सूच्यस्तित्वम्" -> CollectionOperator.CONTAINS
             "सूचीनिक्षेपणम्" -> CollectionOperator.APPEND
             "सूचीप्रतिस्थापनम्" -> CollectionOperator.REPLACE
+            "सूचीस्थानविनिमयः" -> CollectionOperator.EXCHANGE
             "सूचीस्थाननिक्षेपणम्" -> CollectionOperator.INSERT_AT
             "सूचीस्थाननिष्कासनम्" -> CollectionOperator.REMOVE_AT
             "सूच्यन्त्यनिष्कासनम्" -> CollectionOperator.POP_PAIR
@@ -889,6 +891,13 @@ internal object CompilerIrLowering {
                 val index = lowerNumericOperand(frame.index, allowOrdinal = true) ?: return null
                 val replacement = lowerOperand(frame.replacement) ?: return null
                 list + index + replacement + CompilerInstruction.Collection(CollectionOperator.REPLACE)
+            }
+            collection == CollectionOperator.EXCHANGE -> {
+                val frame = naturalOperation as? NaturalOperation.IndexedExchange ?: return null
+                val list = lowerSingleCollectionValue(frame.collection) ?: return null
+                val first = lowerNumericOperand(frame.firstIndex, allowOrdinal = true) ?: return null
+                val second = lowerNumericOperand(frame.secondIndex, allowOrdinal = true) ?: return null
+                list + first + second + CompilerInstruction.Collection(CollectionOperator.EXCHANGE)
             }
             collection == CollectionOperator.INSERT_AT -> {
                 val frame = naturalOperation as? NaturalOperation.IndexedInsertion ?: return null
@@ -1325,6 +1334,7 @@ internal object CompilerIrVerifier {
                     -> 2
                     CollectionOperator.SLICE,
                     CollectionOperator.REPLACE,
+                    CollectionOperator.EXCHANGE,
                     CollectionOperator.INSERT_AT,
                     -> 3
                     CollectionOperator.LENGTH,
@@ -1355,7 +1365,8 @@ internal object CompilerIrVerifier {
                         ValueKind.NUMBER, ValueKind.ORDINAL, ValueKind.UNKNOWN)) {
                         "IR collection index requires a cardinal or ordinal position at instruction $index"
                     }
-                    CollectionOperator.REPLACE, CollectionOperator.INSERT_AT, CollectionOperator.REMOVE_AT ->
+                    CollectionOperator.REPLACE, CollectionOperator.EXCHANGE,
+                    CollectionOperator.INSERT_AT, CollectionOperator.REMOVE_AT ->
                         require(operands[1] in setOf(ValueKind.NUMBER, ValueKind.ORDINAL, ValueKind.UNKNOWN)) {
                             "IR collection transformation requires a cardinal or ordinal position at instruction $index"
                         }

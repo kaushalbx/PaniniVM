@@ -162,7 +162,7 @@ class ForEachTest {
             "सूची + ङस् सदस्य + ङे प्रति सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )) assertFails { PvmScript.parseNative(source) }
     }
-    private val declaration = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।"
+    private val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
     private val loop = "सूची + ङस् सदस्य + अम् प्रति सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"
 
     @Test fun `host budget stops iteration in both backends`() {
@@ -206,7 +206,7 @@ class ForEachTest {
 
     @Test fun `direct singular next item action has interpreter compiler parity`() {
         val source = """
-            एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् च + इति दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
             तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + टा
             युज् + णिच् + लोट् + सिप् ।
@@ -221,7 +221,7 @@ class ForEachTest {
 
     @Test fun `plural relative operands reuse multiplication with compiler parity`() {
         val source = """
-            एक + सुँ द्वि + औ त्रि + जस् च + इति दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् त्रि + आम् च दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
             तद् + ङस् + लुक् - उत्तर + टाप् + भिस्
             गण + णिच् + लोट् + सिप् ।
@@ -254,6 +254,19 @@ class ForEachTest {
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         assertEquals(4, results.size) // declaration plus three body-sequence results
         assertEquals(2, assertIs<SanskritValue.Suchi>(compiled(source, "SnapshotForEach")["सूची"]).items.size)
+    }
+
+    @Test fun `sequential adjacent traversal threads collection updates through a dynamic bubble sort`() {
+        val source = java.io.File("examples/algorithms/bubble_sort.pvm").readText(Charsets.UTF_8)
+        val expected = listOf(1L, 2L, 3L, 4L, 5L, 8L)
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
+        assertEquals("[एक, द्वि, त्रि, चतुर्, पञ्चन्, अष्टन्]",
+            assertIs<ExecutionResult.Success>(interpreted.last()).value)
+        assertEquals(expected, assertIs<SanskritValue.Suchi>(
+            compiled(source, "SequentialBubbleSort").getValue("दत्तसूची")).items.map {
+            assertIs<SanskritValue.Sankhya>(it).value
+        })
     }
 
     @Test fun `outer member name survives the loop`() {

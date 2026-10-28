@@ -33,6 +33,24 @@ fun replaceListMember(list: SanskritValue, index: SanskritValue, replacement: Sa
     return source.copy(items = source.items.toMutableList().also { it[position.toInt() - 1] = replacement })
 }
 
+fun exchangeListMembers(list: SanskritValue, firstIndex: SanskritValue, secondIndex: SanskritValue): SanskritValue.Suchi {
+    val source = list.asPersistentList("Indexed exchange")
+    val first = firstIndex.oneBasedIndex("Indexed exchange")
+    val second = secondIndex.oneBasedIndex("Indexed exchange")
+    val bounds = 1L..source.items.size.toLong()
+    if (first !in bounds || second !in bounds) throw PersistentListOperationException(
+        "Exchange positions $first and $second must both be inside the one-based bounds 1..${source.items.size}.",
+    )
+    if (first == second) return source.copy(items = source.items.toList())
+    return source.copy(items = source.items.toMutableList().also { members ->
+        val left = first.toInt() - 1
+        val right = second.toInt() - 1
+        val value = members[left]
+        members[left] = members[right]
+        members[right] = value
+    })
+}
+
 fun insertListMember(list: SanskritValue, index: SanskritValue, inserted: SanskritValue): SanskritValue.Suchi {
     val source = list.asPersistentList("Indexed insertion")
     val position = index.oneBasedIndex("Indexed insertion")

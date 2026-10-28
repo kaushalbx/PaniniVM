@@ -64,7 +64,8 @@ prakriyaDeclaration
 
 // Reusable clause content: document/block entry rules own their delimiters and EOF.
 utterance
-    : quantifiedCollectionClause
+    : reductionClause
+    | quantifiedCollectionClause
     | naturalRelativeActionClause
     | naturalIndexedDistributiveClause
     | distributiveClause
@@ -114,6 +115,12 @@ distributiveClause
     : collection=subantaPada member=subantaPada index=subantaPada? PRATI body=utterance
     ;
 
+// Natural left reduction: “from this initial value, for each accumulated value and member …”.
+reductionClause
+    : collection=subantaPada initial=subantaPada connector=IDENTIFIER
+      accumulator=subantaPada member=subantaPada PRATI body=utterance
+    ;
+
 // Natural indexed iteration: “having taken each member of the collection and its index ...”.
 // Lexical and case constraints are checked by the AST builder rather than encoded
 // as unsegmented keywords: सूची + ङस् प्रत्येक + अम् सदस्य + अम्
@@ -122,6 +129,7 @@ naturalIndexedDistributiveClause
     : collection=subantaPada quantifier=subantaPada member=subantaPada
       (relations+=subantaPada selections+=subantaPada)+
       CHA acquisition=avyayaKridanta
+      sequential=KRAMASHAH?
       body=utterance
     ;
 
@@ -199,7 +207,8 @@ conditionClause
     ;
 
 conditionalArm
-    : naturalIndexedDistributiveClause
+    : reductionClause
+    | naturalIndexedDistributiveClause
     | distributiveClause
     | conditionalPipelineClause
     | conditionalActionSequence
@@ -920,6 +929,7 @@ mulaAvyaya
     | KRPAYA
     | SAHASAA
     | SHANAIH
+    | KRAMASHAH
     | PUNAH
     | NYUNATAYA
     | ADYA

@@ -41,6 +41,13 @@ sealed interface NaturalOperation {
         val replacement: ExecutionExpression,
     ) : NaturalOperation
 
+    /** Returns a persistent copy with the members at two one-based positions exchanged. */
+    data class IndexedExchange(
+        val collection: ExecutionExpression,
+        val firstIndex: ExecutionExpression,
+        val secondIndex: ExecutionExpression,
+    ) : NaturalOperation
+
     /** Returns a persistent copy with a member inserted at a one-based position. */
     data class IndexedInsertion(
         val collection: ExecutionExpression,
@@ -120,6 +127,12 @@ object NaturalOperationResolver {
                 val index = bindings[Karaka.ADHIKARANA] ?: return null
                 val replacement = bindings[Karaka.KARMAN] ?: return null
                 NaturalOperation.IndexedReplacement(collection, index, replacement)
+            }
+            "सूचीस्थानविनिमयः" -> {
+                val collection = bindings[Karaka.SAMBANDHA] ?: return null
+                val positions = bindings[Karaka.ADHIKARANA] as? ExecutionExpression.Coordination ?: return null
+                if (positions.members.size != 2) return null
+                NaturalOperation.IndexedExchange(collection, positions.members[0], positions.members[1])
             }
             "सूचीस्थाननिक्षेपणम्" -> {
                 val collection = bindings[Karaka.SAMBANDHA] ?: return null

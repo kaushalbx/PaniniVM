@@ -66,7 +66,7 @@ class StructuredBytecodeCompilerTest {
                 परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सूची + सुँ इति मान + सुँ ।
                 तद् + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा $objectPhrase मुद्र् + णिच् + लोट् + सिप् ॥
-                एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।
+                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
                 सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
             """.trimIndent()
             val interpreted = PaniniVM().evalScript(source)
@@ -87,7 +87,7 @@ class StructuredBytecodeCompilerTest {
                 परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सूची + सुँ इति मान + सुँ ।
                 तद् + ङस् $selector उद् + हृ + लोट् + सिप् ॥
-                एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।
+                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
                 सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
             """.trimIndent()
             val expected = if (index == 0) 2L else 3L
@@ -625,7 +625,7 @@ class StructuredBytecodeCompilerTest {
                 "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
                 "$name + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
                 "$prior $name + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
-                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + अम् नवन् + शस् च वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -653,7 +653,7 @@ class StructuredBytecodeCompilerTest {
             "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
             "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
             "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
-            "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -663,7 +663,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `nonfinite member sum prints through shared typed collection lowering`() {
-        val source = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -674,7 +674,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `genitive list number members sum through typed collection IR`() {
         for ((index, phrase) in listOf("सूची + ङस् सङ्ख्या + शस्", "सङ्ख्या + शस् सूची + ङस्").withIndex()) {
-            val source = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase युज् + णिच् + लोट् + सिप् ।"
             assertEquals(6L, (compileAndInspect(source, "CompiledMemberSum$index")
                 .values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -733,7 +733,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `indexed replacement has backend parity`() {
         val source = """
-            एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + ङस् द्वि + तीय + ङि नवन् + शस् स्था + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
@@ -746,7 +746,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `indexed insertion removal and final pair have backend parity`() {
-        val declaration = "एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val programs = listOf(
             declaration + "\nक्रम + ङस् द्वि + तीय + ङि नवन् + शस् नि + क्षिप् + लोट् + सिप् ।",
             declaration + "\nक्रम + ङस् द्वि + तीय + ङि सदस्य + अम् निस् + हृ + लोट् + सिप् ।",
@@ -765,7 +765,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `final removal record fields have backend parity`() {
         val source = """
-            एक + सुँ द्वि + औ च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + अम् निस् + हृ + लोट् + सिप्
                 ततः फल + अम् निष्कासन + ङि स्था + णिच् + लोट् + सिप् ।
             निष्कासन + मतुप् + ङस् निष्कासितमूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
@@ -787,7 +787,7 @@ class StructuredBytecodeCompilerTest {
                     "InvalidNonfiniteFinalMember")
             }
         }
-        val source = "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"
         assertEquals("द्वि", compileAndInspect(source, "CompiledNonfiniteFinalMember")
             .values.getValue("LastResult").toDisplayText())
@@ -803,7 +803,7 @@ class StructuredBytecodeCompilerTest {
             }
         }
         for ((index, phrase) in listOf("सूची + ङस् अन्तिम + अम्", "अन्तिम + अम् सूची + ङस्").withIndex()) {
-            val source = "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase उद् + हृ + लोट् + सिप् ।"
             assertEquals(2L, (compileAndInspect(source, "CompiledFinalMemberOrder$index")
                 .values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -942,7 +942,7 @@ class StructuredBytecodeCompilerTest {
             "मूल्य + अम् सूची + ङस् द्वितीय + अम्",
             "द्वि + तीय + अम् सूची + ङस् मूल्य + अम्",
         ).withIndex()) {
-            val source = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase ग्रहँ + श्ना + लोट् + सिप् ।"
             val result = compileAndInspect(source, "CompiledOrdinalWordOrder$index")
             assertEquals(2L, (result.values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -951,7 +951,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `compiled nama declaration and bare list reference follow the requested discourse`() {
-        val source = "एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
             "क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।\n" +
             "सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।"
         val result = compileAndInspect(source, "CompiledNamaListDiscourse")
@@ -1004,7 +1004,7 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `compiled genitive declaration creates an ordered list`() {
-        val source = "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।"
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
         val value = compileAndInspect(source, "CompiledNaturalList").values.getValue("सूची") as SanskritValue.Suchi
         assertEquals(listOf(1L, 2L, 3L), value.items.map { (it as SanskritValue.Sankhya).value })
     }

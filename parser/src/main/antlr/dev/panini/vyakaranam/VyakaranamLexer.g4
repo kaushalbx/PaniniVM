@@ -82,6 +82,7 @@ KUTAH       : 'कुतः';
 KRPAYA      : 'कृपया';
 SAHASAA     : 'सहसा';
 SHANAIH     : 'शनैः';
+KRAMASHAH   : 'क्रमशः';
 PUNAH       : 'पुनः';
 NYUNATAYA   : 'न्यूनतया';
 ADYA        : 'अद्य';

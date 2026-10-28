@@ -482,6 +482,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
         val nextIsPlural = nextSelection?.cardinality ==
             dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
+        val reduction = loop.reduction
+        val accumulatorName = reduction?.accumulator?.pratipadika?.referenceKey()
+        var accumulator: SanskritValue? = reduction?.let {
+            value.items.firstOrNull() ?: return listOf(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Reduction from प्रथम requires a non-empty list: '$source'.",
+            )).also(context::publish)
+        }
         data class Iteration(
             val ordinal: Int,
             val member: SanskritValue,
@@ -490,6 +498,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val next: SanskritValue?,
         )
         val iterations = items.mapIndexedNotNull { index, item ->
+            if (reduction != null && index == 0) return@mapIndexedNotNull null
             if (previousName != null && !previousIsPlural && index == 0 ||
                 nextName != null && !nextIsPlural && index == items.lastIndex) {
                 return@mapIndexedNotNull null
@@ -501,6 +510,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 if (nextIsPlural) SanskritValue.Suchi(items.drop(index + 1), value.memberType) else items.getOrNull(index + 1))
         }
         return buildList {
+            if (reduction != null && items.size == 1) {
+                val initial = requireNotNull(accumulator)
+                val result = ExecutionResult.Success(
+                    initial.toDisplayText(), "सङ्ग्रहः", typedValue = initial,
+                )
+                add(result)
+                context.publish(result)
+            }
             for (iteration in iterations) {
                 val budget = vm.executionLimits.maxConditionIterations
                 if (budget != null && iteration.ordinal.toLong() >= budget) {
@@ -510,21 +527,46 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.publish(failure)
                     break
                 }
+                val active = if (!loop.sequential) iteration else {
+                    val current = vm.runtimeValue(context.sessionKey, source)
+                        ?: context.scope.environment.values[source]
+                    if (current !is SanskritValue.Suchi || current.items.size != items.size) {
+                        val failure = ExecutionResult.Failure(
+                            ExecutionError.INVALID_VALUE,
+                            "क्रमशः collection iteration requires '$source' to remain a list of ${items.size} members.",
+                        )
+                        add(failure)
+                        context.publish(failure)
+                        break
+                    }
+                    val index = iteration.ordinal
+                    iteration.copy(
+                        member = current.items[index],
+                        previous = if (previousIsPlural)
+                            SanskritValue.Suchi(current.items.take(index), current.memberType)
+                        else current.items.getOrNull(index - 1),
+                        next = if (nextIsPlural)
+                            SanskritValue.Suchi(current.items.drop(index + 1), current.memberType)
+                        else current.items.getOrNull(index + 1),
+                    )
+                }
                 val memberBindings = ProcedureLocalBindings.member(context.scope.procedureBindings, name,
-                    iteration.member, loop.member)
+                    active.member, loop.member)
                 val indexBindings = if (indexName == null) memberBindings else ProcedureLocalBindings.member(
-                    memberBindings, indexName, iteration.index, loop.index)
+                    memberBindings, indexName, active.index, loop.index)
                 val previousBindings = if (previousName == null) indexBindings else ProcedureLocalBindings.member(
-                    indexBindings, previousName, requireNotNull(iteration.previous), previousSelection.binding)
+                    indexBindings, previousName, requireNotNull(active.previous), previousSelection.binding)
                 val loopBindings = if (nextName == null) previousBindings else ProcedureLocalBindings.member(
-                    previousBindings, nextName, requireNotNull(iteration.next), nextSelection.binding)
+                    previousBindings, nextName, requireNotNull(active.next), nextSelection.binding)
+                val reductionBindings = if (accumulatorName == null) loopBindings else ProcedureLocalBindings.member(
+                    loopBindings, accumulatorName, requireNotNull(accumulator), reduction.accumulator)
                 val loopEnvironment = context.scope.environment
                     .mergedWith(ValueEnvironment.live(memberBindings.values))
-                    .let { environment -> if (loopBindings === memberBindings) environment else
-                        environment.mergedWith(ValueEnvironment.live(loopBindings.values)) }
+                    .let { environment -> if (reductionBindings === memberBindings) environment else
+                        environment.mergedWith(ValueEnvironment.live(reductionBindings.values)) }
                 val scope = context.scope.copy(
                     environment = loopEnvironment,
-                    procedureBindings = loopBindings,
+                    procedureBindings = reductionBindings,
                 )
                 val executeBody = {
                     executeProgramNode(loop.body, context.copy(scope = scope,
@@ -537,8 +579,23 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         withRestored(names.drop(1), action)
                     }
                 }
-                val produced = withRestored(listOfNotNull(name, indexName, previousName, nextName), executeBody)
+                val produced = withRestored(
+                    listOfNotNull(name, indexName, previousName, nextName, accumulatorName), executeBody)
                 addAll(produced.map(ExecutionResult::consumeLoopBreak))
+                if (reduction != null && produced.all { it is ExecutionResult.Success } &&
+                    !produced.hasControlSignal()) {
+                    val next = produced.filterIsInstance<ExecutionResult.Success>().lastOrNull()?.typedValue
+                    if (next == null) {
+                        val failure = ExecutionResult.Failure(
+                            ExecutionError.INVALID_VALUE,
+                            "Reduction body must produce one typed result for the next accumulator.",
+                        )
+                        add(failure)
+                        context.publish(failure)
+                        break
+                    }
+                    accumulator = next
+                }
                 if (produced.hasControlSignal() || produced.any { it !is ExecutionResult.Success }) break
             }
         }

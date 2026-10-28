@@ -1,7 +1,6 @@
 package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.*
-import dev.panini.execution.binding.referenceKey
 
 /** Shared invocation/predicate binding; aliases retain live antecedent identity. */
 internal object LocalAnaphorBinding {
@@ -66,6 +65,9 @@ internal object LocalAnaphorBinding {
         while (scope.procedureBindings?.names.orEmpty().any { it.startsWith(prefix) } ||
             scope.environment.values.keys.any { it.startsWith(prefix) }) prefix += "_"
         val aliases = linkedMapOf<LocalReferentIdentity, String>()
+        scope.procedureBindings?.visibleReferents().orEmpty().forEach { referent ->
+            aliases.getOrPut(referent.identity) { "$prefix${aliases.size}" }
+        }
         var invalid: AnaphoricOperandProjection.Diagnostic<LocalReferentIdentity>? = null
         fun project(program: ProgramNode): ProgramNode = when (program) {
             is Invocation -> when (val analysis = AnaphoricOperandProjection.analyze(program, candidates,
@@ -88,7 +90,9 @@ internal object LocalAnaphorBinding {
                 val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(program.vakya.padas, operations)
                 fun nominal(pada: SubantaPada): SubantaPada {
                     if (protected.any { it === pada }) return pada
-                    val identity = scope.procedureBindings?.identity(pada.pratipadika.referenceKey()) ?: return pada
+                    val key = pada.pratipadika.semanticKey()
+                    if (key == "फल" && dev.panini.core.SupAffix.SU in pada.sup.affixCandidates) return pada
+                    val identity = scope.procedureBindings?.declaredIdentity(key) ?: return pada
                     val name = aliases[identity] ?: return pada
                     return pada.copy(sourceText = "$name + ${pada.sup.text}",
                         pratipadika = MulaPratipadika(name, name)).inheritLocation(pada)
@@ -131,18 +135,46 @@ internal object LocalAnaphorBinding {
         var prefix = "__pvm_anaphor_"
         while (scope.procedureBindings?.names.orEmpty().any { it.startsWith(prefix) } ||
             scope.environment.values.keys.any { it.startsWith(prefix) }) prefix += "_"
+        val aliases = linkedMapOf<LocalReferentIdentity, String>()
+        scope.procedureBindings?.visibleReferents().orEmpty().forEach { referent ->
+            aliases.getOrPut(referent.identity) { "$prefix${aliases.size}" }
+        }
         val projection = when (val analysis = AnaphoricOperandProjection.analyze(node, referents.map {
             AgreementCandidate(it.identity, ReferentAgreement(it.grammaticalNumbers, it.grammaticalGenders))
-        }, prefix = prefix, protectedPadas = PrakriyaAstArgumentBinder.protectedParameterPadas(
+        }, referenceName = { identity -> aliases.getOrPut(identity) { "$prefix${aliases.size}" } },
+            protectedPadas = PrakriyaAstArgumentBinder.protectedParameterPadas(
             node.vakya.padas, operations))) {
             is AnaphoricOperandProjection.Analysis.Resolved -> analysis.projection
             is AnaphoricOperandProjection.Analysis.Invalid ->
                 return Analysis.Invalid(Diagnostic.Anaphoric(analysis.diagnostic))
         }
-        if (projection.operands.isEmpty()) return Analysis.Resolved(Bound(node, scope))
+        if (aliases.isEmpty()) return Analysis.Resolved(Bound(node, scope))
+        val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(
+            projection.invocation.vakya.padas, operations)
+        fun nominal(pada: SubantaPada): SubantaPada {
+            if (protected.any { it === pada }) return pada
+            val key = pada.pratipadika.semanticKey()
+            if (key == "फल" && dev.panini.core.SupAffix.SU in pada.sup.affixCandidates) return pada
+            val identity = scope.procedureBindings?.declaredIdentity(key) ?: return pada
+            val name = aliases[identity] ?: return pada
+            return pada.copy(sourceText = "$name + ${pada.sup.text}",
+                pratipadika = MulaPratipadika(name, name)).inheritLocation(pada)
+        }
+        val padas = projection.invocation.vakya.padas.map { pada -> when (pada) {
+            is SubantaPada -> nominal(pada)
+            is SamuccitaSubanta -> pada.copy(members = pada.members.map {
+                if (it is SubantaPada) nominal(it) else it
+            })
+            else -> pada
+        } }
+        val vakya = when (val original = projection.invocation.vakya) {
+            is AkhyataVakya -> original.copy(padas = padas)
+            is NamaVakya -> original.copy(padas = padas)
+        }
+        val resolvedInvocation = projection.invocation.copy(vakya = vakya)
         val bindings = requireNotNull(scope.procedureBindings).withReferentAliases(
-            projection.operands.associate { it.name to it.identity })
-        return Analysis.Resolved(Bound(projection.invocation, scope.copy(procedureBindings = bindings,
+            aliases.entries.associate { (identity, name) -> name to identity })
+        return Analysis.Resolved(Bound(resolvedInvocation, scope.copy(procedureBindings = bindings,
             environment = scope.environment.mergedWith(ValueEnvironment.live(bindings.values)))))
     }
 

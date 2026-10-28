@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.semanticKey
+
 /** Opaque identity of one runtime local referent, independent of its current value. */
 class LocalReferentIdentity internal constructor()
 
@@ -47,6 +49,11 @@ class ProcedureLocalBindings private constructor(
 
     /** Uses the same nearest-binding rule as assignment; aliases share identity. */
     fun identity(name: String): LocalReferentIdentity? = slots[name]?.identity ?: parent?.identity(name)
+
+    /** Exact source names exclude internal positional aliases such as एक, द्वि, … . */
+    fun declaredIdentity(name: String): LocalReferentIdentity? =
+        slots.values.firstOrNull { it.declaration?.pratipadika?.semanticKey() == name }?.identity
+            ?: parent?.declaredIdentity(name)
 
     fun referent(name: String): LocalReferent? = slots[name]?.referent() ?: parent?.referent(name)
 

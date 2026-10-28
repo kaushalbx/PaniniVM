@@ -824,6 +824,10 @@ or replacement value is accusative.
 # Remove position two.
 क्रम + ङस् द्वि + तीय + ङि सदस्य + अम्
 निस् + हृ + लोट् + सिप् ।
+
+# Exchange positions one and three.
+क्रम + ङस् प्रथम + ङि त्रि + तीय + ङि च
+वि + नि + मे + लोट् + थास् ।
 ```
 
 Replacement and removal accept positions `1..length`; insertion accepts
@@ -831,6 +835,12 @@ Replacement and removal accept positions `1..length`; insertion accepts
 and ordinal positions are accepted. A declared member constraint is preserved,
 and inserting or replacing with an incompatible value fails. Store the returned
 list through ordinary `फल` assignment when the new version should replace a binding.
+
+The specialized `मेङ्` dhātu with `वि + नि` expresses exchange (`विनिमय`). It takes one
+genitive list and exactly two coordinated locative positions, and returns a new
+list with those members exchanged. Both positions must be within `1..length`;
+equal positions return an unchanged copy. This is a reusable indexed collection
+operation, not sorting syntax.
 
 `निस् + हृ` with an accusative list removes its final member and returns
 a structured `सूचीनिष्कासपरिणाम` containing `शेषसूची` and
@@ -1842,6 +1852,23 @@ Inside an active loop, the ordinary unprefixed imperative
 morphology retains the ordinary `स्था` meaning and does not emit a loop-control
 signal. Non-list sources fail.
 
+Add `क्रमशः` immediately after `गृहीत्वा` when later iterations must observe a
+new version assigned to the traversed collection:
+
+```pvm
+सूची + ङस् प्रत्येक + अम् सदस्य + अम्
+तद् + ङस् क्रम + अम् तद् + ङस् उत्तर + अम् च
+ग्रह् + क्त्वा क्रमशः
+...
+```
+
+Ordinary iteration reads every member and neighbour from the entry snapshot.
+`क्रमशः` instead re-reads the current member and requested `पूर्व`/`उत्तर`
+selection from the collection value produced by earlier iterations. The entry
+length still fixes the visited positions, so assigning a collection of a
+different length is an error. This makes state-threaded adjacent transformations
+possible without weakening the predictable bounds of a foreach loop.
+
 `वि + रम् + लोट् + सिप्` (`विरम`; write `शप्` when lexical disambiguation is
 needed) has a wider boundary: it terminates the
 current top-level script, crossing nested loops and conditions. Thus `तिष्ठ`
@@ -1932,7 +1959,41 @@ For new programs and examples, use the natural `प्रत्येकम् �
 गृहीत्वा` construction. Value-only iteration retains the concise
 `सूची + ङस् सदस्य + अम् प्रति` form.
 
-### 17.1 Local pronoun references
+The concise dynamic Bubble Sort example combines the general mechanisms above:
+an outer value-only traversal supplies one pass per input member, and an inner
+`क्रमशः` traversal compares adjacent values and persistently exchanges their
+two positions with `वि + नि + मेङ्`. It introduces no sorting-specific action and never
+computes the collection length explicitly. See
+[`bubble_sort.pvm`](../examples/algorithms/bubble_sort.pvm).
+
+### 17.1 First-member reduction
+
+Use `प्रथमम् आरभ्य` when one result must be accumulated from every member of a
+non-empty list:
+
+```pvm
+सूची + ङस् प्रथम + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति
+सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप् ।
+```
+
+This derives as `सूच्याः प्रथमम् आरभ्य सञ्चितं सदस्यं प्रति …`: “starting
+with the first of the list, for the accumulated value and each member …”. The
+first member becomes `सञ्चित`; traversal begins at the second member. After
+each iteration, the reducer body's typed result becomes the next `सञ्चित`.
+The final reducer result is the result of the complete reduction.
+
+No artificial `शून्यम्` or `एकम्` seed is needed. Consequently the same
+construct supports addition, multiplication, and non-arithmetic selection such
+as retaining the greater of `सञ्चित` and `सदस्य`. A one-member list returns its
+only member without running the body. An empty list fails because it has no
+first member. Both scoped names disappear after the reduction, and the body
+uses the ordinary host iteration budget.
+
+See [`reduction.pvm`](../examples/collections/reduction.pvm) for sum, product,
+and maximum reducers. This is a general left reduction, not a special sum or
+product action.
+
+### 17.2 Local pronoun references
 
 Underived `तद्` can refer to a grammatically compatible declared procedure
 participant or foreach member. Its सुप् ending supplies its role in the current

@@ -29,7 +29,7 @@ class ListDeclarationTest {
     @Test
     fun `indexed replacement returns a new typed list`() {
         val source = """
-            एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + ङस् द्वि + तीय + ङि नवन् + शस् स्था + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)
@@ -41,7 +41,7 @@ class ListDeclarationTest {
 
     @Test
     fun `indexed insertion and removal return persistent typed lists`() {
-        val declaration = "एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val insert = PaniniVM().evalScript(declaration + "\n" +
             "क्रम + ङस् द्वि + तीय + ङि नवन् + शस् नि + क्षिप् + लोट् + सिप् ।")
         assertTrue(insert.all { it is ExecutionResult.Success }, insert.toString())
@@ -60,7 +60,7 @@ class ListDeclarationTest {
     @Test
     fun `final removal returns shortened list and removed value`() {
         val results = PaniniVM().evalScript(
-            "एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "क्रम + अम् निस् + हृ + लोट् + सिप् ।")
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         val pair = assertIs<SanskritValue.Rupa>(assertIs<ExecutionResult.Success>(results.last()).typedValue)
@@ -72,7 +72,7 @@ class ListDeclarationTest {
     @Test
     fun `final removal fields are accessible from the assigned runtime record`() {
         val source = """
-            एक + सुँ द्वि + औ च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + ङस् द्वि + ओस् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + अम् निस् + हृ + लोट् + सिप्
                 ततः फल + अम् निष्कासन + ङि स्था + णिच् + लोट् + सिप् ।
             निष्कासन + मतुप् + ङस् शेषसूची + अम् ग्रहँ + श्ना + लोट् + सिप्
@@ -88,7 +88,7 @@ class ListDeclarationTest {
 
     @Test
     fun `persistent list operations report bounds member type and empty failures`() {
-        val declaration = "एक + सुँ द्वि + औ च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "एक + ङस् द्वि + ओस् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val invalidOperations = mapOf(
             "क्रम + ङस् त्रि + तीय + ङि नवन् + शस् स्था + णिच् + लोट् + सिप् ।" to "Replacement index 3",
             "क्रम + ङस् चतुर् + ङि नवन् + शस् नि + क्षिप् + लोट् + सिप् ।" to "Insertion index 4",
@@ -148,7 +148,7 @@ class ListDeclarationTest {
     fun `feminine ordinal morphology cannot qualify a neuter value object`() {
         for (ordinal in listOf("प्रथमा", "द्वितीया", "तृतीया", "प्रथम + टाप्")) {
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                     "सूची + ङस् $ordinal + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
             )
             assertIs<ExecutionResult.Failure>(results.last(), ordinal)
@@ -163,7 +163,7 @@ class ListDeclarationTest {
             "द्वि + तीय + अम् सूची + ङस् मूल्य + अम्",
         )) {
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                     "$phrase ग्रहँ + श्ना + लोट् + सिप् ।",
             )
             assertTrue(results.all { it is ExecutionResult.Success }, "$phrase: $results")
@@ -185,7 +185,7 @@ class ListDeclarationTest {
     fun `ordinal object phrase selects one member rather than two objects`() {
         for (ordinal in listOf("द्वितीय", "द्वि + तीय")) {
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                     "सूची + ङस् $ordinal + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
             )
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -230,7 +230,7 @@ class ListDeclarationTest {
     @Test
     fun `nama follows the members and bare list refers to that declaration after printing`() {
         val results = PaniniVM().evalScript(
-            "एक + सुँ द्वि + औ त्रि + जस् च + इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।\n" +
                 "सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।",
         )
@@ -327,7 +327,7 @@ class ListDeclarationTest {
     @Test
     fun `genitive members declare an ordered numeric list`() {
         val results = PaniniVM().evalScript(
-            "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -346,7 +346,7 @@ class ListDeclarationTest {
     @Test
     fun `declared list supports existing one based selection`() {
         val results = PaniniVM().evalScript(
-            "एक + सुँ द्वि + औ त्रि + जस् च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङसिँ प्रथम + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
         )
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())

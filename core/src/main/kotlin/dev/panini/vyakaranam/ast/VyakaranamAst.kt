@@ -200,7 +200,16 @@ data class ForEach(
     val quantifier: SubantaPada? = null,
     /** Typed collection operations; their meaning does not depend on the binding's variable name. */
     val relativeSelections: List<CollectionRelativeSelection> = emptyList(),
+    /** क्रमशः makes each step read members from the collection state produced by earlier steps. */
+    val sequential: Boolean = false,
+    /** आरभ्य reduction threads each body result into this scoped accumulator. */
+    val reduction: CollectionReduction? = null,
 ) : ProgramNode
+
+data class CollectionReduction(
+    val initial: SubantaPada,
+    val accumulator: SubantaPada,
+)
 
 enum class CollectionRelativeDirection { PREVIOUS, NEXT }
 enum class CollectionRelativeCardinality { ITEM, ITEMS }

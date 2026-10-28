@@ -239,6 +239,10 @@ class PvmUktiSadhaka(
         override fun visitRecurrence(node: dev.panini.vyakaranam.ast.Recurrence): String =
             "पुनः ${render(node.body)}"
         override fun visitForEach(node: ForEach): String {
+            node.reduction?.let { reduction ->
+                return "${sadhayaSubanta(node.collection)} ${sadhayaSubanta(reduction.initial)} आरभ्य " +
+                    "${sadhayaSubanta(reduction.accumulator)} ${sadhayaSubanta(node.member)} प्रति ${render(node.body)}"
+            }
             val selections = listOfNotNull(
                 node.index?.let { node.indexRelation to it },
             ) + node.relativeSelections.map { it.relation to it.binding }
@@ -249,8 +253,9 @@ class PvmUktiSadhaka(
                 "${relation?.let(::sadhayaSubanta) ?: "तस्य"} ${sadhayaSubanta(selection)}"
             }
             val quantifier = node.quantifier?.let(::sadhayaSubanta) ?: "प्रत्येकं"
+            val sequential = if (node.sequential) " क्रमशः" else ""
             return "${sadhayaSubanta(node.collection)} $quantifier ${sadhayaSubanta(node.member)} " +
-                "$related च गृहीत्वा ${render(node.body)}"
+                "$related च गृहीत्वा$sequential ${render(node.body)}"
         }
         override fun visitCollectionRelativeAction(node: dev.panini.vyakaranam.ast.CollectionRelativeAction): String =
             buildString {

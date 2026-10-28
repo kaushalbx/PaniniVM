@@ -22,6 +22,7 @@ import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -581,6 +582,37 @@ class ProgramAstTest {
         assertEquals("सूची", loop.collection.pratipadika.semanticKey())
         assertEquals("सदस्य", loop.member.pratipadika.semanticKey())
         assertEquals("क्रम", assertNotNull(loop.index).pratipadika.semanticKey())
+        assertFalse(loop.sequential)
+    }
+
+    @Test
+    fun `natural reduction starts from the first member and binds an accumulator`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रथम + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति " +
+                "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertEquals("प्रथम", assertNotNull(loop.reduction).initial.pratipadika.semanticKey())
+        assertEquals("सञ्चित", loop.reduction!!.accumulator.pratipadika.semanticKey())
+        assertEquals("सदस्य", loop.member.pratipadika.semanticKey())
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "सूची + ङस् शून्य + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति " +
+                    "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप् ।",
+            )
+        }
+    }
+
+    @Test
+    fun `kramashah opts natural indexed iteration into evolving collection state`() {
+        val loop = assertIs<ForEach>(parser.parse(
+            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
+                "तद् + ङस् उत्तर + अम् च ग्रह् + क्त्वा क्रमशः " +
+                "सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+
+        assertTrue(loop.sequential)
+        assertEquals("उत्तर", loop.relativeSelections.single().binding.pratipadika.semanticKey())
     }
 
     @Test

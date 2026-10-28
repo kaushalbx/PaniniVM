@@ -1307,12 +1307,14 @@ internal object CompilerFrontend {
             }
             val previousName = previousSelection?.binding?.pratipadika?.referenceKey()
             val nextName = nextSelection?.binding?.pratipadika?.referenceKey()
+            val reduction = node.reduction
+            val accumulatorName = reduction?.accumulator?.pratipadika?.referenceKey()
             val previousIsPlural = previousSelection?.cardinality ==
                 dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
             val nextIsPlural = nextSelection?.cardinality ==
                 dev.panini.vyakaranam.ast.CollectionRelativeCardinality.ITEMS
             val previousReferents = referents
-            val loopNames = setOfNotNull(member, indexName, previousName, nextName)
+            val loopNames = setOfNotNull(member, indexName, previousName, nextName, accumulatorName)
             referents = referents.filterNot { it.identity in loopNames } +
                 dev.panini.execution.AgreementCandidate(
                     member, dev.panini.execution.ReferentAgreement.fromDeclaration(node.member)) +
@@ -1325,15 +1327,30 @@ internal object CompilerFrontend {
                 }, nextSelection?.binding?.let {
                     dev.panini.execution.AgreementCandidate(nextName!!,
                         dev.panini.execution.ReferentAgreement.fromDeclaration(it))
+                }, reduction?.accumulator?.let {
+                    dev.panini.execution.AgreementCandidate(accumulatorName!!,
+                        dev.panini.execution.ReferentAgreement.fromDeclaration(it))
                 })
             val body = try { withinLoop { lower(node.body) } } finally { referents = previousReferents }
             fun number(value: Long) = CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Sankhya(
                 value, dev.panini.execution.renderSankhyaResult(value) ?: value.toString()))
             return buildList {
+                fun loadIterationList() {
+                    add(if (node.sequential) CompilerInstruction.Load(source)
+                        else CompilerInstruction.LoadLocal("${prefix}_list"))
+                }
+                reduction?.let {
+                    add(CompilerInstruction.Load(source))
+                    add(number(1))
+                    add(CompilerInstruction.Collection(CollectionOperator.INDEX))
+                    add(CompilerInstruction.StoreLocal("${prefix}_accumulator"))
+                    add(CompilerInstruction.LoadLocal("${prefix}_accumulator"))
+                    add(CompilerInstruction.Store("LastResult"))
+                }
                 add(CompilerInstruction.Load(source))
                 add(CompilerInstruction.Collection(CollectionOperator.SNAPSHOT))
                 add(CompilerInstruction.StoreLocal("${prefix}_list"))
-                add(number(if (previousName == null || previousIsPlural) 1 else 2))
+                add(number(if (reduction != null || previousName != null && !previousIsPlural) 2 else 1))
                 add(CompilerInstruction.StoreLocal("${prefix}_index"))
                 add(CompilerInstruction.Label("${prefix}_check"))
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
@@ -1350,12 +1367,12 @@ internal object CompilerFrontend {
                 }
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 add(CompilerInstruction.CheckCollectionIteration)
-                add(CompilerInstruction.LoadLocal("${prefix}_list"))
+                loadIterationList()
                 add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 add(CompilerInstruction.Collection(CollectionOperator.INDEX))
                 if (indexName != null) add(CompilerInstruction.LoadLocal("${prefix}_index"))
                 if (previousName != null) {
-                    add(CompilerInstruction.LoadLocal("${prefix}_list"))
+                    loadIterationList()
                     if (previousIsPlural) {
                         add(number(1)); add(CompilerInstruction.LoadLocal("${prefix}_index")); add(number(1))
                         add(CompilerInstruction.Arithmetic(ArithmeticOperator.SUBTRACT))
@@ -1367,18 +1384,23 @@ internal object CompilerFrontend {
                     }
                 }
                 if (nextName != null) {
-                    add(CompilerInstruction.LoadLocal("${prefix}_list")); add(CompilerInstruction.LoadLocal("${prefix}_index"))
+                    loadIterationList(); add(CompilerInstruction.LoadLocal("${prefix}_index"))
                     add(number(1)); add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
                     if (nextIsPlural) {
-                        add(CompilerInstruction.LoadLocal("${prefix}_list"));
+                        loadIterationList()
                         add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
                         add(CompilerInstruction.Collection(CollectionOperator.SLICE))
                     } else add(CompilerInstruction.Collection(CollectionOperator.INDEX))
                 }
+                if (accumulatorName != null) add(CompilerInstruction.LoadLocal("${prefix}_accumulator"))
                 add(CompilerInstruction.EnterFrame(
-                    listOfNotNull(member, indexName, previousName, nextName), scopedBinding = true))
+                    listOfNotNull(member, indexName, previousName, nextName, accumulatorName), scopedBinding = true))
                 addAll(body)
                 add(CompilerInstruction.ExitFrame)
+                if (accumulatorName != null) {
+                    add(CompilerInstruction.LoadLastResult)
+                    add(CompilerInstruction.StoreLocal("${prefix}_accumulator"))
+                }
                 add(CompilerInstruction.IsProcedureReturnRequested)
                 add(CompilerInstruction.Branch("${prefix}_done", whenTrue = true))
                 add(CompilerInstruction.ConsumeBreak)

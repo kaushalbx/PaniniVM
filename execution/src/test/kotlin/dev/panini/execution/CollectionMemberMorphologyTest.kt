@@ -26,7 +26,7 @@ class CollectionMemberMorphologyTest {
             val invocation = PaniniParser().parse(source).body as Invocation
             assertFailsWith<IllegalArgumentException>(affix) { PriorActionLowering.expand(invocation) }
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$source")
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source")
             assertIs<ExecutionResult.Failure>(results.last(), results.toString())
         }
     }
@@ -39,7 +39,7 @@ class CollectionMemberMorphologyTest {
                 CollectionMemberMorphology.validate(invocation)
             }
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$source")
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source")
             assertIs<ExecutionResult.Failure>(results.last(), results.toString())
         }
     }
@@ -67,11 +67,11 @@ class CollectionMemberMorphologyTest {
             val invocation = PaniniParser().parse(source).body as Invocation
             assertFailsWith<IllegalArgumentException>(selector) { PriorActionLowering.expand(invocation) }
             assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$source",
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source",
             ).last(), selector)
         }
         val results = PaniniVM().evalScript(
-            "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -88,7 +88,7 @@ class CollectionMemberMorphologyTest {
                 CollectionMemberMorphology.validate(invocation)
             }
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n$source",
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$source",
             )
             assertIs<ExecutionResult.Failure>(results.last(), selector)
         }
@@ -98,7 +98,7 @@ class CollectionMemberMorphologyTest {
     fun `plain final member supports either nominal word order`() {
         for (phrase in listOf("सूची + ङस् अन्तिम + अम्", "अन्तिम + अम् सूची + ङस्")) {
             val results = PaniniVM().evalScript(
-                "एक + सुँ द्वि + औ च + इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
                     "$phrase उद् + हृ + लोट् + सिप् ।",
             )
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
