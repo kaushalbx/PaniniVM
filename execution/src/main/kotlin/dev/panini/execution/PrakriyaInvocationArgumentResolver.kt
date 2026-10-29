@@ -39,7 +39,7 @@ object PrakriyaInvocationArgumentResolver {
             return checked(PrakriyaArgumentResolution.Success(
                 sourceArguments.mapIndexed { index, argument ->
                     ResolvedPrakriyaArgument(
-                        parameter = signature.parameters.getOrNull(index),
+                        parameter = expectedParameters.getOrNull(index),
                         argument = argument,
                         bindingKind = if (argument.origin == PrakriyaArgumentOrigin.PIPE) {
                             PrakriyaArgumentBindingKind.PIPE
@@ -62,13 +62,14 @@ object PrakriyaInvocationArgumentResolver {
                 grammatical.argument
             }
             ResolvedPrakriyaArgument(
-                parameter = grammatical.parameter ?: signature.parameters.getOrNull(index),
+                parameter = grammatical.parameter ?: expectedParameters.getOrNull(index),
                 argument = source,
                 bindingKind = when {
                     source.origin == PrakriyaArgumentOrigin.PIPE -> PrakriyaArgumentBindingKind.PIPE
                     resolution.named -> PrakriyaArgumentBindingKind.NAMED
                     else -> PrakriyaArgumentBindingKind.POSITIONAL
                 },
+                parameterPada = grammatical.parameterPada,
             )
         }
         // Named ordering must consume every supplied operand, including piped values.

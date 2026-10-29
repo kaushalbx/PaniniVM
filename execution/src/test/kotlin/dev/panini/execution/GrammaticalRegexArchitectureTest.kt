@@ -186,8 +186,7 @@ class GrammaticalRegexArchitectureTest {
             repository,
             "execution/src/main/kotlin/dev/panini/execution/PvmProjectLoader.kt",
         ).readText()
-        assertTrue("prakriya.nameIdentity" in projectLoader)
-        assertTrue("prakriya.domainIdentity" in projectLoader)
+        assertTrue("registry.registerDeclarations" in projectLoader)
         assertFalse("derivePrakriyaStem" in projectLoader)
 
         val resolvedCallFrameSource = File(

@@ -18,12 +18,72 @@ import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.vyakaranam.ast.SourceLocatedNode
+import dev.panini.vyakaranam.ast.grammaticalInvocations
 
 /** Rebinds prakriyā placeholders in the already-parsed body AST. */
 object PrakriyaAstArgumentBinder {
     private const val KEY_PREFIX = "__pvm_parameter_"
 
     fun referenceKey(index: Int): String = "$KEY_PREFIX$index"
+
+    /** Canonical source parameter use discovered by the same binder used at execution time. */
+    data class ParameterReference(
+        val parameter: PrakriyaParameter,
+        val pada: SubantaPada,
+    )
+
+    /** Source padas that execution will bind to declared parameters. */
+    fun parameterReferences(
+        body: List<PvmScriptStatement.Sentence>,
+        parameters: List<PrakriyaParameter>,
+        knownOperationStems: Set<String> = emptySet(),
+    ): List<ParameterReference> {
+        val declarationSpans = PrakriyaParameterDeclarations.resolve(parameters, body)
+            .values
+            .mapNotNullTo(mutableSetOf()) { (it as SourceLocatedNode).sourceSpan }
+        return body.flatMap { sentence ->
+        val program = sentence.program ?: return@flatMap emptyList()
+        val originals = program.grammaticalInvocations()
+            .flatMap { it.vakya.padas }
+            .flatMap(::subantaLeaves)
+            .mapNotNull { pada ->
+                (pada as SourceLocatedNode).sourceSpan?.let { it to pada }
+            }
+            .toMap()
+        bind(program, parameters, parameters.size, knownOperationStems)
+            .grammaticalInvocations()
+            .flatMap { it.vakya.padas }
+            .flatMap(::subantaLeaves)
+            .mapNotNull { bound ->
+                val index = parameterReferenceIndex(bound) ?: return@mapNotNull null
+                val parameter = parameters.getOrNull(index) ?: return@mapNotNull null
+                val span = (bound as SourceLocatedNode).sourceSpan ?: return@mapNotNull null
+                originals[span]
+                    ?.takeUnless { original ->
+                        (original as SourceLocatedNode).sourceSpan in declarationSpans
+                    }
+                    ?.let { ParameterReference(parameter, it) }
+            }
+        }.distinctBy { reference ->
+            val span = (reference.pada as SourceLocatedNode).sourceSpan
+            reference.parameter.nameStem to span
+        }
+    }
+
+    private fun parameterReferenceIndex(pada: SubantaPada): Int? =
+        pada.pratipadika.semanticKey()
+            .takeIf { it.startsWith(KEY_PREFIX) }
+            ?.removePrefix(KEY_PREFIX)
+            ?.toIntOrNull()
+
+    private fun subantaLeaves(pada: Pada): List<SubantaPada> = when (pada) {
+        is SubantaPada -> listOf(pada)
+        is SamuccitaSubanta -> pada.members.flatMap { subantaLeaves(it) }
+        is dev.panini.vyakaranam.ast.ParyantaRangePada ->
+            listOf(pada.lowerLimit, pada.upperLimit, pada.marker).flatMap(::subantaLeaves)
+        else -> emptyList()
+    }
 
     /** Nominals with an established member/history/call role are not positional placeholders. */
     fun protectedParameterPadas(padas: List<Pada>, knownOperationStems: Set<String> = emptySet()): Set<Pada> {

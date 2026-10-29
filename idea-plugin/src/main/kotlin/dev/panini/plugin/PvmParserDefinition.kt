@@ -25,6 +25,19 @@ class PvmParserDefinition : ParserDefinition {
     override fun getWhitespaceTokens(): TokenSet = WHITE_SPACES
     override fun getCommentTokens(): TokenSet = COMMENTS
     override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
-    override fun createElement(node: ASTNode): PsiElement = PvmPsiElement(node)
+    override fun createElement(node: ASTNode): PsiElement = when (node.elementType) {
+        PvmTokenTypes.PRAKRIYA_DECLARATION -> PvmPrakriyaDeclarationPsi(node)
+        PvmTokenTypes.PRAKRIYA_HEADER -> PvmPrakriyaHeaderPsi(node)
+        PvmTokenTypes.PRAKRIYA_NAME -> PvmPrakriyaNamePsi(node)
+        PvmTokenTypes.SCOPE_DECLARATION -> PvmScopeDeclarationPsi(node)
+        PvmTokenTypes.RANGE_DECLARATION -> PvmRangeDeclarationPsi(node)
+        PvmTokenTypes.UKTI -> PvmUktiPsi(node)
+        PvmTokenTypes.INVOCATION -> PvmInvocationPsi(node)
+        PvmTokenTypes.INVOCATION_ARGUMENT -> PvmInvocationArgumentPsi(node)
+        PvmTokenTypes.PRAKRIYA_PARAMETER -> PvmPrakriyaParameterPsi(node)
+        PvmTokenTypes.SUBANTA -> PvmSubantaPsi(node)
+        PvmTokenTypes.TINGANTA -> PvmTingantaPsi(node)
+        else -> PvmPsiElement(node)
+    }
     override fun createFile(viewProvider: FileViewProvider): PsiFile = PvmFile(viewProvider)
 }

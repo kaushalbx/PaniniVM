@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.SemanticDiagnostic
+import dev.panini.vyakaranam.ast.SourceCorrection
 
 enum class OutputKind { INTERNAL, CONSOLE, EXTERNAL }
 enum class ExecutionControlSignal { BREAK_LOOP, RETURN_PROCEDURE, HALT_SCRIPT }
@@ -13,6 +14,7 @@ data class ExecutionDiagnostic(
     val message: String,
     val span: DocumentSourceSpan? = null,
     val offendingText: String = "",
+    val corrections: List<SourceCorrection> = emptyList(),
 ) {
     companion object {
         fun from(diagnostic: SemanticDiagnostic<*>): ExecutionDiagnostic = ExecutionDiagnostic(
@@ -20,6 +22,7 @@ data class ExecutionDiagnostic(
             message = diagnostic.message,
             span = diagnostic.span,
             offendingText = diagnostic.offendingText,
+            corrections = diagnostic.corrections,
         )
     }
 }

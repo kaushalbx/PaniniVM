@@ -10,10 +10,13 @@ import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.PsiElementResolveResult
+import com.intellij.psi.PsiReference
+import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import com.intellij.util.IncorrectOperationException
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.execution.PrakriyaArgumentBindingKind
 
 /** Native IntelliJ references backed by canonical AST identities and project documents. */
 class PvmReferenceContributor : PsiReferenceContributor() {
@@ -29,7 +32,21 @@ class PvmReferenceContributor : PsiReferenceContributor() {
         )
     }
 
-    private fun referencesIn(host: PvmPsiElement): Array<PvmPrakriyaReference> {
+    private fun referencesIn(host: PvmPsiElement): Array<PsiReference> {
+        if (host is PvmInvocationArgumentPsi) {
+            val file = host.containingFile as? PvmFile
+            val callReference = file?.let {
+                PvmPrakriyaCallSemantics.resolvedParameterReferenceAt(it, host.textOffset)
+            }
+            val bodyReference = file?.let {
+                PvmPrakriyaCallSemantics.bodyParameterAt(it, host.textOffset)
+            }
+            if (callReference?.parameter != null || bodyReference != null) {
+                val renameLexicalRoot = bodyReference != null ||
+                    callReference?.bindingKind == PrakriyaArgumentBindingKind.NAMED
+                return arrayOf(PvmPrakriyaParameterReference(host, renameLexicalRoot))
+            }
+        }
         if (host.node.elementType !in REFERENCE_HOST_TYPES) return emptyArray()
         val file = host.containingFile as? PvmFile ?: return emptyArray()
         val document = file.canonicalDocument() ?: return emptyArray()
@@ -48,7 +65,7 @@ class PvmReferenceContributor : PsiReferenceContributor() {
                 )
             }
             .toList()
-            .toTypedArray()
+            .toTypedArray<PsiReference>()
     }
 
     private companion object {
@@ -59,6 +76,46 @@ class PvmReferenceContributor : PsiReferenceContributor() {
             PvmTokenTypes.PROGRAM_ITEM,
             PvmTokenTypes.UTTERANCE,
         )
+    }
+}
+
+private class PvmPrakriyaParameterReference(
+    private val argument: PvmInvocationArgumentPsi,
+    private val renameLexicalRoot: Boolean,
+) : PsiReferenceBase<PvmInvocationArgumentPsi>(argument, TextRange(0, argument.textLength), false) {
+    override fun resolve(): PsiElement? = argument.parameterDeclaration()
+
+    override fun isReferenceTo(target: PsiElement): Boolean = resolve()?.let {
+        it.manager.areElementsEquivalent(it, target)
+    } == true
+
+    override fun handleElementRename(newElementName: String): PsiElement {
+        // Positional values are linked semantically to a slot, but their own
+        // lexical identity is data and must not change when the slot is renamed.
+        if (!renameLexicalRoot) return argument
+        if (!isPvmLexicalRoot(newElementName)) {
+            throw IncorrectOperationException(
+                "Rename only the lexical root; PaniniVM preserves derivational affixes and case endings",
+            )
+        }
+        val root = PsiTreeUtil.collectElements(argument) {
+            it.firstChild == null && it.node.elementType in PvmTokenTypes.SEMANTIC_SYMBOLS
+        }.firstOrNull() ?: throw IncorrectOperationException("Missing parameter-reference lexical root")
+        val file = argument.containingFile as? PvmFile
+            ?: throw IncorrectOperationException("Missing PaniniVM file")
+        val start = root.textRange.startOffset
+        val end = root.textRange.endOffset
+        val source = file.text.replaceRange(start, end, newElementName)
+        if (runCatching { PaniniParser().parseDocument(source) }.isFailure) {
+            throw IncorrectOperationException("The renamed parameter reference would not be grammatically valid")
+        }
+        val document = file.viewProvider.document
+            ?: throw IncorrectOperationException("PaniniVM document is not editable")
+        document.replaceString(start, end, newElementName)
+        PsiDocumentManager.getInstance(file.project).commitDocument(document)
+        return file.findElementAt(start)?.let { renamed ->
+            PsiTreeUtil.getParentOfType(renamed, PvmInvocationArgumentPsi::class.java, false)
+        } ?: argument
     }
 }
 

@@ -16,11 +16,12 @@ class PvmFindUsagesProvider : FindUsagesProvider {
     )
 
     override fun canFindUsagesFor(psiElement: PsiElement): Boolean =
-        identityAt(psiElement) != null
+        identityAt(psiElement) != null || parameterAt(psiElement) != null
 
     override fun getHelpId(psiElement: PsiElement): String? = null
 
     override fun getType(element: PsiElement): String {
+        if (parameterAt(element) != null) return "prakriyā parameter"
         val file = element.containingFile as? PvmFile ?: return "PaniniVM symbol"
         val document = file.canonicalDocument() ?: return "PaniniVM symbol"
         return if (document.prakriyaNameSpans.values.any {
@@ -33,7 +34,7 @@ class PvmFindUsagesProvider : FindUsagesProvider {
     }
 
     override fun getDescriptiveName(element: PsiElement): String =
-        identityAt(element)?.let(::renderIdentity) ?: element.text
+        parameterAt(element)?.nameStem ?: identityAt(element)?.let(::renderIdentity) ?: element.text
 
     override fun getNodeText(element: PsiElement, useFullName: Boolean): String =
         if (useFullName) getDescriptiveName(element) else element.text
@@ -43,6 +44,10 @@ class PvmFindUsagesProvider : FindUsagesProvider {
         val document = file.canonicalDocument() ?: return null
         val knownNames = PvmProjectFileIndex.knownOperationStems(file)
         return PvmSymbolResolver.prakriyaIdentityAt(document, element.textOffset, knownNames)
+    }
+
+    private fun parameterAt(element: PsiElement) = (element.containingFile as? PvmFile)?.let {
+        PvmPrakriyaCallSemantics.declaredParameterAt(it, element.textOffset)
     }
 
     private fun renderIdentity(identity: Pair<String, String?>): String =

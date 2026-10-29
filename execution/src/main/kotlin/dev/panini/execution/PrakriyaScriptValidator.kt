@@ -10,6 +10,7 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.ProgramDocument
 import dev.panini.vyakaranam.ast.SemanticDiagnostic
+import dev.panini.vyakaranam.ast.SourceCorrection
 import dev.panini.vyakaranam.parser.PaniniSemanticException
 
 enum class PrakriyaDiagnosticSeverity { ERROR, WARNING }
@@ -22,6 +23,8 @@ data class PrakriyaDiagnostic(
     val replacement: String? = null,
     override val code: String = "VALIDATION",
     override val offendingText: String = "",
+    override val corrections: List<SourceCorrection> = emptyList(),
+    val missingParameters: List<PrakriyaParameter> = emptyList(),
 ) : SemanticDiagnostic<String> {
     override val span: DocumentSourceSpan = DocumentSourceSpan(offset, offset + length)
 }
@@ -58,12 +61,16 @@ object PrakriyaScriptValidator {
         }
         val statements = runCatching { parseSource(source) }.getOrElse { error ->
             val semantic = (error as? PaniniSemanticException)?.diagnostic
+            val executionSemantic = (error as? PvmSemanticException)?.diagnostic
             diagnostics += PrakriyaDiagnostic(
-                offset = semantic?.span?.start ?: 0,
-                length = semantic?.span?.let { it.endExclusive - it.start } ?: source.length.coerceAtLeast(1),
+                offset = semantic?.span?.start ?: executionSemantic?.span?.start ?: 0,
+                length = semantic?.span?.let { it.endExclusive - it.start }
+                    ?: executionSemantic?.span?.let { it.endExclusive - it.start }
+                    ?: source.length.coerceAtLeast(1),
                 message = "Source contains invalid Sanskrit: ${error.message.orEmpty()}",
-                code = semantic?.code?.name ?: "INVALID_SOURCE",
-                offendingText = semantic?.offendingText.orEmpty(),
+                code = semantic?.code?.name ?: executionSemantic?.code ?: "INVALID_SOURCE",
+                offendingText = semantic?.offendingText ?: executionSemantic?.offendingText.orEmpty(),
+                corrections = executionSemantic?.corrections.orEmpty(),
             )
             return diagnostics
         }
@@ -283,10 +290,13 @@ object PrakriyaScriptValidator {
                     message = semantic.message,
                     code = semantic.code,
                     offendingText = semantic.offendingText,
+                    missingParameters = semantic.missingParameters,
                 )
             } ?: diagnostic(source, callName, semantic.message).copy(
                 code = semantic.code,
                 offendingText = semantic.offendingText,
+                corrections = semantic.corrections,
+                missingParameters = semantic.missingParameters,
             )
             return
         }
@@ -372,9 +382,11 @@ object PrakriyaScriptValidator {
             message = semantic.message,
             code = semantic.code,
             offendingText = semantic.offendingText,
+            corrections = semantic.corrections,
         )
     } ?: diagnostic(source, token, semantic.message).copy(
         code = semantic.code,
         offendingText = semantic.offendingText,
+        corrections = semantic.corrections,
     )
 }

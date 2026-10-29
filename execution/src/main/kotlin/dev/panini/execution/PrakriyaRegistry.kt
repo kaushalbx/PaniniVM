@@ -276,6 +276,43 @@ class PrakriyaRegistry {
 
 }
 
+/** Registers canonical parsed declarations without making consumers rebuild runtime kriyās. */
+fun PrakriyaRegistry.registerDeclarations(
+    statements: List<PvmScriptStatement>,
+    sourceFile: String?,
+    includeExecutionModifiers: Boolean = true,
+) {
+    var activeDomain: String? = null
+    statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
+        TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)?.let(::registerInheritance)
+    }
+    statements.forEach { statement ->
+        if (statement is PvmScriptStatement.AdhikaraDefinition) {
+            activeDomain = statement.scope.domainIdentity
+            return@forEach
+        }
+        val definition = statement as? PvmScriptStatement.PrakriyaDefinition ?: return@forEach
+        val declaration = definition.prakriya
+        register(
+            Prakriya(
+                nameSegmented = declaration.name,
+                nameStem = declaration.nameIdentity,
+                body = definition.body,
+                sourceFile = sourceFile,
+                domainStem = declaration.domainIdentity ?: activeDomain,
+                visibility = declaration.modifiers.visibility,
+                precedence = if (includeExecutionModifiers) {
+                    declaration.modifiers.precedence
+                } else {
+                    PrakriyaPrecedence.DEFAULT
+                },
+                headerResult = declaration.declaredResult,
+                headerPredicate = declaration.resultPredicate,
+            ),
+        )
+    }
+}
+
 data class PrakriyaInvocation(
     val kriya: Prakriya,
     val karmaText: String,

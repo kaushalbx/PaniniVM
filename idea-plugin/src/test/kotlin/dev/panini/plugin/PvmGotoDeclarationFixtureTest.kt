@@ -13,10 +13,163 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.PsiDocumentManager
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
+import kotlin.test.assertSame
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
+
+    fun testCanonicalDocumentCacheInvalidatesOnlyForItsOwnSourceFile() {
+        val file = myFixture.addFileToProject(
+            "cache-target.pvm",
+            "राम + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ) as PvmFile
+        val unrelated = myFixture.addFileToProject(
+            "cache-unrelated.pvm",
+            "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ) as PvmFile
+        val original = requireNotNull(file.canonicalDocument())
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            unrelated.viewProvider.document!!.insertString(0, "# अन्यः\n")
+            PsiDocumentManager.getInstance(project).commitDocument(unrelated.viewProvider.document!!)
+        }
+        assertSame(original, file.canonicalDocument())
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            file.viewProvider.document!!.insertString(0, "# स्वकीयः\n")
+            PsiDocumentManager.getInstance(project).commitDocument(file.viewProvider.document!!)
+        }
+        assertNotSame(original, file.canonicalDocument())
+    }
+
+    fun testCanonicalGrammarAnalysisIsSharedAndSourceStampInvalidated() {
+        val file = myFixture.configureByText(
+            PvmFileType.INSTANCE,
+            "राम + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ) as PvmFile
+        val original = file.canonicalGrammarAnalyses()
+        assertEquals(1, original.size)
+        assertSame(original, file.canonicalGrammarAnalyses())
+
+        val document = requireNotNull(file.viewProvider.document)
+        WriteCommandAction.runWriteCommandAction(project) {
+            document.insertString(0, "देव + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।\n")
+        }
+        PsiDocumentManager.getInstance(project).commitDocument(document)
+
+        val updated = file.canonicalGrammarAnalyses()
+        assertNotSame(original, updated)
+        assertEquals(2, updated.size)
+    }
+
+    fun testIndexedFilesShareOneInvalidatingCanonicalPrakriyaRegistry() {
+        val declaration = myFixture.addFileToProject(
+            "registry-declaration.pvm",
+            """
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            """.trimIndent(),
+        ) as PvmFile
+        val caller = myFixture.addFileToProject(
+            "registry-caller.pvm",
+            "द्वि + अम् योजन + टा कृ + लोट् + सिप् ।",
+        ) as PvmFile
+        val unrelated = myFixture.addFileToProject("registry-unrelated.txt", "plain text")
+
+        val shared = PvmProjectFileIndex.registry(declaration)
+        assertSame(shared, PvmProjectFileIndex.registry(caller))
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            unrelated.viewProvider.document!!.insertString(0, "changed ")
+            PsiDocumentManager.getInstance(project).commitDocument(unrelated.viewProvider.document!!)
+        }
+        assertSame(shared, PvmProjectFileIndex.registry(caller))
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            declaration.viewProvider.document!!.insertString(0, "# परिवर्तनम्\n")
+            PsiDocumentManager.getInstance(project).commitDocument(declaration.viewProvider.document!!)
+        }
+        assertNotSame(shared, PvmProjectFileIndex.registry(caller))
+    }
+
+    fun testResolvedCallBindingsIgnoreUnrelatedLanguageEditsAndTrackPvmChanges() {
+        val declaration = myFixture.addFileToProject(
+            "binding-declaration.pvm",
+            """
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            """.trimIndent(),
+        ) as PvmFile
+        val caller = myFixture.addFileToProject(
+            "binding-caller.pvm",
+            "द्वि + अम् योजन + टा कृ + लोट् + सिप् ।",
+        ) as PvmFile
+        val unrelated = myFixture.addFileToProject("binding-unrelated.txt", "plain text")
+        val argument = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+            caller,
+            PvmInvocationArgumentPsi::class.java,
+        ).single { it.resolvedPrakriyaArgument()?.parameter?.nameStem == "वाम" }
+        val original = requireNotNull(argument.resolvedPrakriyaArgument())
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            unrelated.viewProvider.document!!.insertString(0, "changed ")
+            PsiDocumentManager.getInstance(project).commitDocument(unrelated.viewProvider.document!!)
+        }
+        assertSame(original, argument.resolvedPrakriyaArgument())
+
+        WriteCommandAction.runWriteCommandAction(project) {
+            declaration.viewProvider.document!!.insertString(0, "# परिवर्तनम्\n")
+            PsiDocumentManager.getInstance(project).commitDocument(declaration.viewProvider.document!!)
+        }
+        assertNotSame(original, argument.resolvedPrakriyaArgument())
+    }
+
+    fun testParameterRenameUpdatesDeclarationBodyAndNamedSlotsButNotPositionalValues() {
+        val library = myFixture.addFileToProject(
+            "rename-library.pvm",
+            """
+            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
+            """.trimIndent(),
+        ) as PvmFile
+        val namedCall = myFixture.addFileToProject(
+            "rename-named.pvm",
+            "दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।",
+        ) as PvmFile
+        val positionalCall = myFixture.addFileToProject(
+            "rename-positional.pvm",
+            "पञ्च + अम् द्वि + अम् च व्यवकलन + टा कृ + लोट् + सिप् ।",
+        ) as PvmFile
+        val parameter = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+            library,
+            PvmPrakriyaParameterPsi::class.java,
+        ).single { it.name == "वाम" }
+
+        assertFailsWith<com.intellij.util.IncorrectOperationException> {
+            WriteCommandAction.runWriteCommandAction(project) { parameter.setName("दक्षिण") }
+        }
+
+        myFixture.renameElement(parameter, "पूर्व")
+
+        assertTrue(library.text.contains("पूर्व + सुँ सङ्ख्या"))
+        assertTrue(library.text.contains("पूर्व + अम् दक्षिण + अम्"))
+        assertTrue(namedCall.text.contains("पूर्व + ङि पञ्च + अम्"))
+        assertEquals(
+            "पञ्च + अम् द्वि + अम् च व्यवकलन + टा कृ + लोट् + सिप् ।",
+            positionalCall.text,
+        )
+        assertNotNull(library.canonicalDocument())
+        assertNotNull(namedCall.canonicalDocument())
+        assertNotNull(positionalCall.canonicalDocument())
+    }
 
     fun testRenameChangesOnlyLexicalRootAndKeepsCanonicalGrammar() {
         val library = myFixture.addFileToProject(
@@ -178,19 +331,27 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val statement = declaration.children.single {
             it.node.elementType == PvmTokenTypes.PRAKRIYA_STATEMENT
         }
-        val subanta = statement.children.first { it.node.elementType == PvmTokenTypes.SUBANTA }
-        val tinganta = statement.children.single { it.node.elementType == PvmTokenTypes.TINGANTA }
+        val invocation = statement.children.single { it.node.elementType == PvmTokenTypes.INVOCATION }
+        val subanta = com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+            invocation,
+            PvmSubantaPsi::class.java,
+        )!!
+        val tinganta = com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+            invocation,
+            PvmTingantaPsi::class.java,
+        )!!
 
         assertTrue(provider.acceptElement(declaration))
         assertEquals("प्रक्रिया गण + ल्युट्", provider.getElementInfo(declaration))
         assertEquals("शीर्षकम् गण + ल्युट्", provider.getElementInfo(header))
         assertEquals("गण + ल्युट्", provider.getElementInfo(name))
-        assertTrue(provider.getElementInfo(subanta).startsWith("सुबन्तम् पञ्च + अम्"))
-        assertTrue(provider.getElementInfo(tinganta).startsWith("तिङन्तम् युज् + णिच्"))
+        assertTrue(provider.getElementInfo(invocation).startsWith("क्रिया पञ्च + अम्"))
+        assertTrue(provider.getElementInfo(subanta).startsWith("कर्मन् पञ्च + अम्"))
+        assertTrue(provider.getElementInfo(tinganta).startsWith("क्रिया युज् + णिच्"))
     }
 
     fun testParameterInfoUsesCanonicalProjectPrakriyaSignature() {
-        myFixture.addFileToProject(
+        val library = myFixture.addFileToProject(
             "library.pvm",
             """
             योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
@@ -199,12 +360,18 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
             सूची + सुँ इति परिणाम + सुँ ।
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
-        )
+        ) as PvmFile
         val file = myFixture.configureByText(
             "main.pvm",
-            "द्वि + अम् राम + अम् च <caret>योजन + टा कृ + लोट् + सिप् ।",
+            "<caret>द्वि + अम् राम + अम् च योजन + टा कृ + लोट् + सिप् ।",
         ) as PvmFile
         val handler = PvmParameterInfoHandler()
+
+        val declarationParameters = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+            library,
+            PvmPrakriyaParameterPsi::class.java,
+        )
+        assertEquals(2, declarationParameters.size)
 
         val signatures = handler.signaturesAt(file, myFixture.editor.caretModel.offset)
 
@@ -217,6 +384,74 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         assertEquals(1, handler.activeParameterAt(file, file.text.indexOf("राम")))
         assertNull(handler.activeParameterAt(file, file.text.indexOf("योजन")))
         assertEquals(1, handler.signaturesAt(file, file.text.indexOf("राम")).size)
+
+        val argumentPsi = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+            file,
+            PvmInvocationArgumentPsi::class.java,
+        )
+        val resolvedArguments = argumentPsi.mapNotNull { it.resolvedPrakriyaArgument() }
+        assertEquals(listOf("वाम", "दक्षिण"), resolvedArguments.mapNotNull { it.parameter?.nameStem })
+        val firstResolvedPsi = argumentPsi.first { it.resolvedPrakriyaArgument()?.parameter?.nameStem == "वाम" }
+        val documentation = PvmDocumentationProvider().generateDoc(firstResolvedPsi, firstResolvedPsi)
+        assertTrue(documentation?.contains("प्रक्रिया-मानम्: वाम") == true)
+        assertTrue(documentation?.contains("सङ्ख्या") == true)
+        val parameterTarget = firstResolvedPsi.references.single().resolve()
+        assertTrue(parameterTarget is PvmPrakriyaParameterPsi)
+        assertEquals("वाम + सुँ", parameterTarget?.text?.trim())
+        assertEquals("वाम", (parameterTarget as PvmPrakriyaParameterPsi).name)
+        assertEquals(
+            dev.panini.execution.PrakriyaValueType.SANKHYA,
+            parameterTarget.canonicalParameter()?.type,
+        )
+        val parameterDocumentation = requireNotNull(
+            PvmDocumentationProvider().generateDoc(parameterTarget, parameterTarget),
+        )
+        assertTrue(parameterDocumentation.contains("प्रक्रिया-मानस्थानम्: वाम"))
+        assertTrue(parameterDocumentation.contains("प्रकारः:</b> सङ्ख्या"))
+        assertTrue(parameterDocumentation.contains("प्रक्रिया:</b> योजन"))
+        assertEquals(
+            "वाम: सङ्ख्या",
+            PvmStructureViewElement(parameterTarget).presentableText,
+        )
+        val breadcrumbs = PvmBreadcrumbsProvider()
+        assertEquals("मानस्थानम् वाम: सङ्ख्या", breadcrumbs.getElementInfo(parameterTarget))
+        val argumentStructureLabel = PvmStructureViewElement(firstResolvedPsi).presentableText.orEmpty()
+        assertTrue(argumentStructureLabel.startsWith("वाम = "))
+        assertTrue(argumentStructureLabel.contains("द्वि"))
+        assertTrue(breadcrumbs.getElementInfo(firstResolvedPsi).startsWith("मानम् वाम = "))
+        assertTrue(myFixture.getReferenceAtCaretPositionWithAssertion().isReferenceTo(parameterTarget))
+        val findUsages = PvmFindUsagesProvider()
+        assertTrue(findUsages.canFindUsagesFor(parameterTarget))
+        assertEquals("prakriyā parameter", findUsages.getType(parameterTarget))
+        assertEquals("वाम", findUsages.getDescriptiveName(parameterTarget))
+        val parameterUsages = ReferencesSearch.search(
+            parameterTarget,
+            LocalSearchScope(file),
+            false,
+        ).findAll()
+        assertEquals(1, parameterUsages.size)
+        assertTrue(parameterUsages.single().element.text.contains("द्वि"))
+
+        val bodyUse = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(
+            library,
+            PvmInvocationArgumentPsi::class.java,
+        ).single { it.resolvedBodyParameter()?.nameStem == "वाम" }
+        assertTrue(bodyUse.references.single().isReferenceTo(parameterTarget))
+        assertEquals(parameterTarget, bodyUse.references.single().resolve())
+        val bodyDocumentation = PvmDocumentationProvider().generateDoc(bodyUse, bodyUse)
+        assertTrue(bodyDocumentation?.contains("प्रक्रिया-मान-सन्दर्भः: वाम") == true)
+        assertTrue(bodyDocumentation?.contains("सङ्ख्या") == true)
+        assertEquals("वाम · सन्दर्भः", PvmStructureViewElement(bodyUse).presentableText)
+        assertEquals("सन्दर्भः वाम", breadcrumbs.getElementInfo(bodyUse))
+
+        val projectUsages = ReferencesSearch.search(
+            parameterTarget,
+            GlobalSearchScope.projectScope(project),
+            false,
+        ).findAll()
+        assertEquals(2, projectUsages.size)
+        assertTrue(projectUsages.any { it.element.containingFile == library })
+        assertTrue(projectUsages.any { it.element.containingFile == file })
     }
 
     fun testPrakriyaNameOwnershipAndUseScopeFollowCanonicalVisibility() {
@@ -270,6 +505,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
             युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥
             एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            त्रि + शस् सम् + ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -277,6 +513,17 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         assertTrue(PvmTokenTypes.SCOPE_DECLARATION in topLevelTypes)
         assertTrue(PvmTokenTypes.PRAKRIYA_DECLARATION in topLevelTypes)
         assertTrue(PvmTokenTypes.RANGE_DECLARATION in topLevelTypes)
+        assertTrue(PvmTokenTypes.UKTI in topLevelTypes)
+        val range = file.children.single { it.node.elementType == PvmTokenTypes.RANGE_DECLARATION }
+        assertTrue(range is PvmRangeDeclarationPsi)
+        val canonicalRange = requireNotNull((range as PvmRangeDeclarationPsi).canonicalDeclaration())
+        assertEquals("एक+ङसिँदशन्+शस्परि+अन्त+अम्", canonicalRange.boundary.sourceText)
+        assertEquals("सीमा+सुँ", canonicalRange.marker.sourceText)
+        val ukti = file.children.single { it.node.elementType == PvmTokenTypes.UKTI }
+        assertTrue(ukti is PvmUktiPsi)
+        val canonicalUkti = requireNotNull((ukti as PvmUktiPsi).canonicalUkti())
+        assertEquals("त्रि+शस्सम्+ग्रहँ+श्ना+लोट्+सिप्", canonicalUkti.sourceText)
+        assertEquals(1, canonicalUkti.grammaticalVakyas().size)
 
         val prakriya = file.children.single { it.node.elementType == PvmTokenTypes.PRAKRIYA_DECLARATION }
         val header = prakriya.children.single { it.node.elementType == PvmTokenTypes.PRAKRIYA_HEADER }
@@ -284,12 +531,18 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         assertTrue(name.text.contains("युज्"))
 
         val statement = prakriya.children.single { it.node.elementType == PvmTokenTypes.PRAKRIYA_STATEMENT }
-        val grammaticalNodes = statement.children.filter {
+        val invocation = statement.children.single { it.node.elementType == PvmTokenTypes.INVOCATION }
+        val grammaticalNodes = com.intellij.psi.util.PsiTreeUtil.collectElements(invocation) {
             it.node.elementType == PvmTokenTypes.SUBANTA || it.node.elementType == PvmTokenTypes.TINGANTA
-        }
+        }.toList()
         assertEquals(2, grammaticalNodes.count { it.node.elementType == PvmTokenTypes.SUBANTA })
         assertEquals(1, grammaticalNodes.count { it.node.elementType == PvmTokenTypes.TINGANTA })
         assertEquals("युज् + णिच् + लोट् + सिप्", grammaticalNodes.last().text.trim())
+
+        val statementStructure = PvmStructureViewElement(statement)
+        val invocationStructure = statementStructure.children.single() as PvmStructureViewElement
+        assertEquals(PvmTokenTypes.INVOCATION, (invocationStructure.value as com.intellij.psi.PsiElement).node.elementType)
+        assertEquals(3, invocationStructure.children.size)
 
         val scope = file.children.single { it.node.elementType == PvmTokenTypes.SCOPE_DECLARATION }
         val domain = scope.children.single { it.node.elementType == PvmTokenTypes.SCOPE_DOMAIN }
@@ -392,7 +645,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
             myFixture.file.text.substring(it.startOffset, it.endOffset)
         }.toSet())
 
-        val fix = requireNotNull(myFixture.findSingleIntention("Replace with 'पञ्चन्'"))
+        val fix = requireNotNull(myFixture.findSingleIntention("Apply grammatical fix: 'पञ्चन्'"))
         myFixture.launchAction(fix)
         assertTrue(myFixture.file.text.startsWith("पञ्चन् + शस्"))
         assertTrue(myFixture.doHighlighting().none {
@@ -400,11 +653,99 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         })
     }
 
+    fun testCanonicalKriyaFrameDiagnosticUsesParticipantSpan() {
+        val source = "देव + भ्याम् मुद्र् + णिच् + लोट् + सिप् ।"
+        myFixture.configureByText(PvmFileType.INSTANCE, source)
+
+        val warning = myFixture.doHighlighting().single {
+            it.severity == HighlightSeverity.WARNING &&
+                it.description?.contains("multiple kāraka candidates") == true
+        }
+        assertEquals("देव + भ्याम्", source.substring(warning.startOffset, warning.endOffset))
+    }
+
+    fun testQuickDocumentationShowsResolvedKarakaKriyaAndSutraEvidence() {
+        val file = myFixture.configureByText(
+            PvmFileType.INSTANCE,
+            "राम + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        val phala = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(file, PvmSubantaPsi::class.java)
+            .single { it.canonicalPada()?.sourceText == "फल+अम्" }
+
+        val documentation = requireNotNull(PvmDocumentationProvider().generateDoc(phala, phala))
+        assertTrue(documentation.contains("कारकम्:</b> कर्मन्"), documentation)
+        assertTrue(documentation.contains("क्रिया:</b> <code>मुद्र्+णिच्+लोट्+सिप्"), documentation)
+        assertTrue(documentation.contains("अष्टाध्यायी-प्रमाणम्:"), documentation)
+        assertTrue(documentation.contains("1.4.49"), documentation)
+    }
+
+    fun testOrdinaryUktiStructureAndBreadcrumbsShowResolvedSemanticRoles() {
+        val file = myFixture.configureByText(
+            PvmFileType.INSTANCE,
+            "राम + सुँ फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        val ukti = file.children.single { it.node.elementType == PvmTokenTypes.UKTI }
+        val invocation = (PvmStructureViewElement(ukti).children.single() as PvmStructureViewElement)
+        assertEquals(PvmTokenTypes.INVOCATION, (invocation.value as com.intellij.psi.PsiElement).node.elementType)
+
+        val subantas = com.intellij.psi.util.PsiTreeUtil.findChildrenOfType(file, PvmSubantaPsi::class.java)
+        val kartr = subantas.single { it.canonicalPada()?.sourceText == "राम+सुँ" }
+        val karman = subantas.single { it.canonicalPada()?.sourceText == "फल+अम्" }
+        val tinganta = requireNotNull(
+            com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, PvmTingantaPsi::class.java),
+        )
+        assertEquals("कर्तृ · राम+सुँ", PvmStructureViewElement(kartr).presentableText)
+        assertEquals("कर्मन् · फल+अम्", PvmStructureViewElement(karman).presentableText)
+        assertTrue(PvmStructureViewElement(tinganta).presentableText.orEmpty().startsWith("क्रिया · मुद्र्"))
+
+        val breadcrumbs = PvmBreadcrumbsProvider()
+        assertEquals("कर्तृ राम + सुँ", breadcrumbs.getElementInfo(kartr))
+        assertEquals("कर्मन् फल + अम्", breadcrumbs.getElementInfo(karman))
+        assertTrue(breadcrumbs.getElementInfo(tinganta).startsWith("क्रिया मुद्र् + णिच्"))
+    }
+
+    fun testStructuralPsiUsesTypedCanonicalAstFacades() {
+        val source = """
+            गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+        val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
+
+        val declaration = requireNotNull(com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+            file,
+            PvmPrakriyaDeclarationPsi::class.java,
+        ))
+        assertEquals("गण + ल्युट्", declaration.canonicalDeclaration()?.nameIdentity)
+
+        val subanta = com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, PvmSubantaPsi::class.java)
+        assertNotNull(subanta?.canonicalPada())
+        val tinganta = com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, PvmTingantaPsi::class.java)
+        assertNotNull(tinganta?.canonicalPada())
+
+        val invocation = com.intellij.psi.util.PsiTreeUtil.findChildOfType(file, PvmInvocationPsi::class.java)
+        assertNotNull(invocation?.canonicalInvocation())
+        val argument = com.intellij.psi.util.PsiTreeUtil.findChildOfType(
+            invocation,
+            PvmInvocationArgumentPsi::class.java,
+        )
+        assertNotNull(argument?.canonicalArgument())
+    }
+
+    fun testMissingArgumentQuickFixBuildsCanonicalNamedSlotMorphology() {
+        val parameter = dev.panini.execution.PrakriyaParameter(
+            "दक्षिण",
+            dev.panini.execution.PrakriyaValueType.SANKHYA,
+        )
+        val fix = PvmSupplyMissingArgumentQuickFix(0, parameter)
+        assertEquals("Supply 'दक्षिण' value (सङ्ख्या)", fix.text)
+        assertEquals(" दक्षिण + ङि त्रि + अम्", fix.insertion(" त्रि "))
+    }
+
     fun testCanonicalSemanticErrorPreservesParserSpanInEditor() {
         val source = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
             "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
             "युज् + णिच् + लोट् + सिप् ।"
-        myFixture.configureByText(PvmFileType.INSTANCE, source)
+        val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
 
         val error = myFixture.doHighlighting().single {
             it.severity == HighlightSeverity.ERROR &&
@@ -429,15 +770,41 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         assertTrue("कोटि" in myFixture.lookupElementStrings.orEmpty())
     }
 
+    fun testCompletionDoesNotOfferGanapathaCatalogHeadingsAsSourceTerms() {
+        myFixture.configureByText(PvmFileType.INSTANCE, "भिक्षा<caret>")
+
+        myFixture.completeBasic()
+
+        assertTrue("भिक्षादिः" !in myFixture.lookupElementStrings.orEmpty())
+    }
+
     fun testCompletionKeepsValueCatalogsOutOfSuffixPosition() {
         myFixture.configureByText(PvmFileType.INSTANCE, "भू + त<caret>")
 
         myFixture.completeBasic()
         val suggestions = myFixture.lookupElementStrings.orEmpty()
-        assertTrue("तिप्" in suggestions)
+        assertTrue("तिप्" !in suggestions)
         assertTrue("त्रि" !in suggestions)
         assertTrue("तर्हि" !in suggestions)
         assertTrue("तृच्" in suggestions)
+    }
+
+    fun testEveryMorphologicalCompletionIsAcceptedByCanonicalParserContext() {
+        for (prefix in listOf(
+            "भू + ",
+            "भू + शप् + ",
+            "भू + लट् + ",
+            "राम + ",
+            "द्वि + ",
+        )) {
+            myFixture.configureByText(PvmFileType.INSTANCE, "${prefix}<caret>")
+            myFixture.completeBasic()
+            val expected = dev.panini.vyakaranam.parser.PaniniCompletionContext.expectedTokenNames(prefix)
+            val rejected = myFixture.lookupElementStrings.orEmpty().filter { suggestion ->
+                !dev.panini.vyakaranam.parser.PaniniCompletionContext.acceptsNextToken(prefix, suggestion)
+            }
+            assertTrue(rejected.isEmpty(), "$prefix rejected $rejected; expected $expected")
+        }
     }
 
     fun testCompletionUsesCanonicalVikaranaAndStriAffixCatalogs() {
@@ -460,6 +827,45 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val suggestions = myFixture.lookupElementStrings.orEmpty()
         assertTrue("भज्" in suggestions)
         assertTrue("भिस्" !in suggestions)
+    }
+
+    fun testCompletionAfterLakaraOffersOnlyTingEndings() {
+        myFixture.configureByText(PvmFileType.INSTANCE, "भू + लट् + त<caret>")
+
+        myFixture.completeBasic()
+        val suggestions = myFixture.lookupElementStrings.orEmpty()
+        assertTrue("तिप्" in suggestions)
+        assertTrue("तृच्" !in suggestions)
+        assertTrue("टाप्" !in suggestions)
+        assertTrue("शप्" !in suggestions)
+    }
+
+    fun testCompletionAfterVikaranaOffersLakaraInsteadOfTing() {
+        myFixture.configureByText(PvmFileType.INSTANCE, "भू + शप् + ल<caret>")
+
+        myFixture.completeBasic()
+        val suggestions = myFixture.lookupElementStrings.orEmpty()
+        assertTrue("लट्" in suggestions)
+        assertTrue("तिप्" !in suggestions)
+        assertTrue("घञ्" !in suggestions)
+    }
+
+    fun testCompletionUsesParserUṇadiSyntaxInsteadOfBareCatalogSuffixes() {
+        myFixture.configureByText(PvmFileType.INSTANCE, "भू + उ<caret>")
+
+        myFixture.completeBasic()
+        val suggestions = myFixture.lookupElementStrings.orEmpty()
+        assertTrue("उणादि" in suggestions)
+    }
+
+    fun testFrequencyAffixesAreRestrictedToNumeralRepetitionRule() {
+        myFixture.configureByText(PvmFileType.INSTANCE, "राम + क<caret>")
+        myFixture.completeBasic()
+        assertTrue("कृत्वसुच्" !in myFixture.lookupElementStrings.orEmpty())
+
+        myFixture.configureByText(PvmFileType.INSTANCE, "द्वि + क<caret>")
+        myFixture.completeBasic()
+        assertTrue("कृत्वसुच्" in myFixture.lookupElementStrings.orEmpty())
     }
     fun testPipelineStageNavigatesThroughEditorPsiToCanonicalDeclaration() {
         val source = """
@@ -486,7 +892,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
             राम + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
-        myFixture.configureByText(PvmFileType.INSTANCE, source)
+        val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
 
         val semanticKeys = myFixture.doHighlighting().mapNotNull { it.forcedTextAttributesKey }.toSet()
 
@@ -495,6 +901,40 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         assertTrue(PvmSyntaxHighlighter.DOMAIN_DECLARATION in semanticKeys)
         assertTrue(PvmSyntaxHighlighter.DOMAIN_REFERENCE in semanticKeys)
         assertTrue(PvmSyntaxHighlighter.NOMINAL_STEM in semanticKeys, semanticKeys.toString())
+    }
+
+    fun testResolvedPrakriyaParametersAndArgumentsHaveDistinctSemanticColors() {
+        val source = """
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दक्षिण + सुँ शब्द + सुँ इति मान + सुँ ।
+            वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            द्वि + अम् राम + अम् च योजन + टा कृ + लोट् + सिप् ।
+            वाम + ङि पञ्च + अम् दक्षिण + ङि राम + अम् योजन + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
+
+        val semanticKeys = myFixture.doHighlighting().mapNotNull { it.forcedTextAttributesKey }.toSet()
+        assertTrue(PvmSyntaxHighlighter.PRAKRIYA_PARAMETER in semanticKeys, semanticKeys.toString())
+        assertTrue(PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT in semanticKeys, semanticKeys.toString())
+        assertTrue(PvmSyntaxHighlighter.PRAKRIYA_PARAMETER_REFERENCE in semanticKeys, semanticKeys.toString())
+        assertTrue(
+            PvmSyntaxHighlighter.PRAKRIYA_PARAMETER.defaultAttributes.foregroundColor !=
+                PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT.defaultAttributes.foregroundColor,
+        )
+        val namedCall = source.lastIndexOf("वाम + ङि")
+        val slotReference = requireNotNull(file.findReferenceAt(namedCall))
+        val slotTarget = requireNotNull(slotReference.resolve())
+        assertTrue(slotTarget is PvmPrakriyaParameterPsi)
+        assertEquals("वाम", (slotTarget as PvmPrakriyaParameterPsi).name)
+        val slotPsi = generateSequence(requireNotNull(file.findElementAt(namedCall))) { it.parent }
+            .filterIsInstance<PvmInvocationArgumentPsi>()
+            .first()
+        assertEquals("वाम", slotPsi.resolvedParameterReference()?.parameter?.nameStem)
+        val slotDocumentation = PvmDocumentationProvider().generateDoc(slotPsi, slotPsi)
+        assertTrue(slotDocumentation?.contains("प्रक्रिया-मानस्थानम्: वाम") == true)
+        assertTrue(slotDocumentation?.contains("वाम+ङि") == true)
+        assertNull(file.findReferenceAt(source.indexOf("पञ्च + अम्", namedCall)))
     }
 
     fun testPipelineStageNavigatesToPublicDeclarationInProjectFile() {

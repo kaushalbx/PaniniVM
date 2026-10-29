@@ -132,6 +132,7 @@ class PvmParameterInfoHandler : ParameterInfoHandler<PsiElement, PrakriyaSignatu
 
     private companion object {
         val PARAMETER_OWNER_TYPES = setOf(
+            PvmTokenTypes.INVOCATION,
             PvmTokenTypes.PRAKRIYA_HEADER,
             PvmTokenTypes.PRAKRIYA_STATEMENT,
             PvmTokenTypes.UKTI,

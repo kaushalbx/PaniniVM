@@ -120,7 +120,7 @@ class PvmLexerAdapter : LexerBase() {
             name in STRI_TOKEN_NAMES -> PvmTokenTypes.STRI_AFFIX
             name in setOf("LUK", "SHLU", "LUP", "ALUK") -> PvmTokenTypes.LOPA
             name == "UNADI" -> PvmTokenTypes.DERIVATION_MARKER
-            name == "SUC" -> PvmTokenTypes.ABHYASA_AFFIX
+            name in setOf("KRITVAS", "SUC") -> PvmTokenTypes.ABHYASA_AFFIX
             name == "INTERJECTION" -> PvmTokenTypes.INTERJECTION
             name in setOf(
                 "HE", "BHOH", "CHA", "VAA", "ATHA", "TATAH", "ANANTARAM", "KINTU",
@@ -131,7 +131,7 @@ class PvmLexerAdapter : LexerBase() {
                 "YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT",
                 "KATAPAYADI", "ARYABHATIYA", "BHUTASAMKHYA", "PRAKRIYA_NOUN", "NAAMA",
                 "KASHCHIT", "PRATYEKAH", "ADHIKA", "UNA",
-                "SAKRIT", "DVIH", "TRIH", "CHATUH", "KRITVAS"
+                "SAKRIT", "DVIH", "TRIH", "CHATUH"
             ) -> PvmTokenTypes.KEYWORD
             name == "WS" -> PvmTokenTypes.WHITE_SPACE
             name == "LINE_COMMENT" -> PvmTokenTypes.COMMENT

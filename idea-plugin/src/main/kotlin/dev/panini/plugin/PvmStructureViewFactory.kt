@@ -16,6 +16,7 @@ import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.RangeDeclaration
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.analysis.FrameKarakaResolution
 import javax.swing.Icon
 
 class PvmStructureViewFactory : PsiStructureViewFactory {
@@ -42,6 +43,12 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
     override fun getPresentation(): ItemPresentation = this
     override fun getPresentableText(): String? = when {
         element is PsiFile -> element.name
+        element is PvmPrakriyaParameterPsi -> element.canonicalParameter()?.let { parameter ->
+            "${parameter.nameStem}: ${parameter.type.sanskritName}"
+        } ?: compact(element.text, 60)
+        element is PvmInvocationArgumentPsi -> canonicalArgumentLabel(element)
+        element is PvmSubantaPsi -> semanticSubantaLabel(element)
+        element is PvmTingantaPsi -> semanticTingantaLabel(element)
         element.node.elementType in TOP_LEVEL_TYPES -> canonicalLabel() ?: compact(element.text, 100)
         element.node.elementType in PRESENTATION_CHILD_TYPES -> compact(element.text, 60)
         else -> compact(element.text, 60)
@@ -52,6 +59,9 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
         element.node.elementType == PvmTokenTypes.PRAKRIYA_STATEMENT -> "body"
         element.node.elementType == PvmTokenTypes.PRAKRIYA_NAME -> "name"
         element.node.elementType == PvmTokenTypes.SCOPE_DOMAIN -> "domain"
+        element.node.elementType == PvmTokenTypes.INVOCATION -> "invocation"
+        element.node.elementType == PvmTokenTypes.INVOCATION_ARGUMENT -> "argument"
+        element.node.elementType == PvmTokenTypes.PRAKRIYA_PARAMETER -> "parameter"
         element.node.elementType == PvmTokenTypes.SUBANTA -> "subanta"
         element.node.elementType == PvmTokenTypes.TINGANTA -> "tinganta"
         element.node.elementType == PvmTokenTypes.GRAMMATICAL_TERM -> "pada"
@@ -71,7 +81,11 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
             element.node.elementType == PvmTokenTypes.PRAKRIYA_DECLARATION -> DECLARATION_CHILD_TYPES
             element.node.elementType == PvmTokenTypes.SCOPE_DECLARATION -> setOf(PvmTokenTypes.SCOPE_DOMAIN)
             element.node.elementType == PvmTokenTypes.PRAKRIYA_HEADER -> setOf(PvmTokenTypes.PRAKRIYA_NAME)
-            element.node.elementType == PvmTokenTypes.PRAKRIYA_STATEMENT -> GRAMMATICAL_NODE_TYPES
+            element.node.elementType == PvmTokenTypes.PRAKRIYA_STATEMENT -> setOf(PvmTokenTypes.INVOCATION)
+            element.node.elementType == PvmTokenTypes.UKTI -> setOf(PvmTokenTypes.INVOCATION)
+            element.node.elementType == PvmTokenTypes.INVOCATION -> INVOCATION_CHILD_TYPES
+            element.node.elementType == PvmTokenTypes.INVOCATION_ARGUMENT -> setOf(PvmTokenTypes.SUBANTA)
+            element.node.elementType == PvmTokenTypes.PRAKRIYA_PARAMETER -> setOf(PvmTokenTypes.SUBANTA)
             else -> setOf(PvmTokenTypes.GRAMMATICAL_TERM)
         }
         return element.children
@@ -87,6 +101,36 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
 
     private fun canonicalItem() =
         (element.containingFile as? PvmFile)?.canonicalItemAt(element.textRange.startOffset)
+
+    private fun canonicalArgumentLabel(argument: PvmInvocationArgumentPsi): String {
+        val resolved = argument.resolvedPrakriyaArgument()
+        val parameter = resolved?.parameter
+        if (parameter != null) {
+            val value = resolved.argument.pada?.sourceText ?: resolved.argument.term
+            return "${parameter.nameStem} = ${compact(value, 45)}"
+        }
+        argument.resolvedBodyParameter()?.let { parameter ->
+            return "${parameter.nameStem} · सन्दर्भः"
+        }
+        return compact(argument.text, 60)
+    }
+
+    private fun semanticSubantaLabel(subanta: PvmSubantaPsi): String {
+        val source = subanta.canonicalPada()?.sourceText ?: compact(subanta.text, 45)
+        val relation = (subanta.containingFile as? PvmFile)
+            ?.canonicalSemanticFrameAt(subanta.textOffset)?.second
+        val resolved = relation?.resolution as? FrameKarakaResolution.Resolved
+        return resolved?.let { "${it.karaka.sanskritName} · ${compact(source, 45)}" }
+            ?: compact(source, 60)
+    }
+
+    private fun semanticTingantaLabel(tinganta: PvmTingantaPsi): String {
+        val source = tinganta.canonicalPada()?.sourceText ?: compact(tinganta.text, 45)
+        val frame = (tinganta.containingFile as? PvmFile)
+            ?.canonicalSemanticFrameAt(tinganta.textOffset)?.first
+        return frame?.let { "क्रिया · ${compact(source, 40)} [${it.prayoga.name.lowercase()}]" }
+            ?: "क्रिया · ${compact(source, 50)}"
+    }
 
     private fun canonicalLabel(): String? = when (val item = canonicalItem()) {
         is Prakriya -> "प्रक्रिया ${compact(item.name, 70)}"
@@ -119,7 +163,14 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
             PvmTokenTypes.PRAKRIYA_STATEMENT,
         )
         val GRAMMATICAL_NODE_TYPES = setOf(PvmTokenTypes.SUBANTA, PvmTokenTypes.TINGANTA)
-        val PRESENTATION_CHILD_TYPES = DECLARATION_CHILD_TYPES + GRAMMATICAL_NODE_TYPES + setOf(
+        val INVOCATION_CHILD_TYPES = setOf(
+            PvmTokenTypes.INVOCATION_ARGUMENT,
+            PvmTokenTypes.PRAKRIYA_PARAMETER,
+            PvmTokenTypes.TINGANTA,
+        )
+        val PRESENTATION_CHILD_TYPES = DECLARATION_CHILD_TYPES + GRAMMATICAL_NODE_TYPES +
+            INVOCATION_CHILD_TYPES + setOf(
+            PvmTokenTypes.INVOCATION,
             PvmTokenTypes.PRAKRIYA_NAME,
             PvmTokenTypes.SCOPE_DOMAIN,
             PvmTokenTypes.GRAMMATICAL_TERM,
@@ -129,6 +180,10 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
             PvmTokenTypes.SCOPE_DECLARATION,
             PvmTokenTypes.PRAKRIYA_HEADER,
             PvmTokenTypes.PRAKRIYA_STATEMENT,
+            PvmTokenTypes.INVOCATION,
+            PvmTokenTypes.INVOCATION_ARGUMENT,
+            PvmTokenTypes.PRAKRIYA_PARAMETER,
+            PvmTokenTypes.UKTI,
             PvmTokenTypes.UTTERANCE,
         )
     }

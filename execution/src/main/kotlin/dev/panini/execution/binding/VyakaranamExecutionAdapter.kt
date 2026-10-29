@@ -100,6 +100,9 @@ object VyakaranamExecutionAdapter {
     // this cache collectible. Bound it explicitly while retaining AST identity.
     private val analysisCache = WeakIdentityMap<Ukti, UktiAnalysis>(maxEntries = 256)
 
+    /** Canonical grammar-only analysis for IDEs and other non-executing consumers. */
+    fun analyzeGrammar(ukti: Ukti): UktiAnalysis? = analyzeForMemory(ukti)
+
     internal fun analyzeForMemory(text: String): UktiAnalysis? {
         val ukti = try {
             parser.parse(text)

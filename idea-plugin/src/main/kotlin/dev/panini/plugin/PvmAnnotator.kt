@@ -8,8 +8,12 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import dev.panini.analysis.FrameDiagnostic
+import dev.panini.analysis.FrameDiagnosticSeverity
+import dev.panini.analysis.KriyaFrame
 import dev.panini.execution.PrakriyaScriptValidator
 import dev.panini.execution.PrakriyaDiagnosticSeverity
+import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.SourceLocatedNode
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -56,8 +60,34 @@ class PvmAnnotator : Annotator {
                 element, holder, PvmSymbolResolver.domainReferenceSpans(canonicalDocument),
                 PvmSyntaxHighlighter.DOMAIN_REFERENCE,
             )
+            highlightSemanticIdentifiers(
+                element,
+                holder,
+                PsiTreeUtil.findChildrenOfType(element, PvmPrakriyaParameterPsi::class.java).map {
+                    dev.panini.vyakaranam.ast.DocumentSourceSpan(it.textOffset, it.textRange.endOffset)
+                },
+                PvmSyntaxHighlighter.PRAKRIYA_PARAMETER,
+            )
+            highlightSemanticIdentifiers(
+                element,
+                holder,
+                PsiTreeUtil.findChildrenOfType(element, PvmInvocationArgumentPsi::class.java)
+                    .mapNotNull { argument ->
+                        val resolved = argument.resolvedPrakriyaArgument() ?: return@mapNotNull null
+                        (resolved.argument.pada as? SourceLocatedNode)?.sourceSpan
+                    },
+                PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT,
+            )
+            highlightSemanticIdentifiers(
+                element,
+                holder,
+                PvmPrakriyaCallSemantics.namedParameterReferenceSpans(element) +
+                    PvmPrakriyaCallSemantics.bodyParameterReferenceSpans(element),
+                PvmSyntaxHighlighter.PRAKRIYA_PARAMETER_REFERENCE,
+            )
             annotateUnresolvedProjectReferences(element, canonicalDocument, holder)
             annotateDiagnostics(holder, text, PrakriyaScriptValidator.validate(text, canonicalDocument))
+            annotateKriyaFrameDiagnostics(element, holder)
             return
         }
 
@@ -86,6 +116,62 @@ class PvmAnnotator : Annotator {
         } catch (_: Exception) {
             // Ignore syntax validation errors during live editing
         }
+    }
+
+    /** Render the analyzer's own kāraka/kriyā diagnostics at canonical AST spans. */
+    private fun annotateKriyaFrameDiagnostics(
+        file: PvmFile,
+        holder: AnnotationHolder,
+    ) {
+        val emitted = mutableSetOf<Triple<dev.panini.analysis.FrameDiagnosticCode, Int, Int>>()
+        for (analysis in file.canonicalGrammarAnalyses()) {
+            ProgressManager.checkCanceled()
+            for (frame in analysis.frames) {
+                for (diagnostic in frame.diagnostics) {
+                    val span = diagnosticSpan(frame, diagnostic) ?: continue
+                    if (!emitted.add(Triple(diagnostic.code, span.start, span.endExclusive))) continue
+                    holder.newAnnotation(diagnostic.severity.highlightSeverity(), diagnostic.message)
+                        .range(TextRange(span.start, span.endExclusive))
+                        .create()
+                }
+            }
+            for (diagnostic in analysis.diagnostics) {
+                val frame = analysis.frames.firstOrNull { it.vakya.sourceText == diagnostic.sourceText }
+                    ?: continue
+                val span = diagnosticSpan(frame, diagnostic) ?: continue
+                if (!emitted.add(Triple(diagnostic.code, span.start, span.endExclusive))) continue
+                holder.newAnnotation(diagnostic.severity.highlightSeverity(), diagnostic.message)
+                    .range(TextRange(span.start, span.endExclusive))
+                    .create()
+            }
+        }
+    }
+
+    private fun diagnosticSpan(frame: KriyaFrame, diagnostic: FrameDiagnostic): DocumentSourceSpan? {
+        val exact = buildList {
+            frame.relations.forEach { add(it.participant.pada) }
+            frame.kriya?.analysis?.pada?.let(::add)
+        }.filter { it.sourceText == diagnostic.sourceText }
+            .mapNotNull { (it as? SourceLocatedNode)?.sourceSpan }
+        if (exact.isNotEmpty()) return exact.minByOrNull { it.endExclusive - it.start }
+
+        if (diagnostic.sourceText != frame.vakya.sourceText) return null
+        val spans = buildList {
+            frame.relations.forEach { relation ->
+                (relation.participant.pada as? SourceLocatedNode)?.sourceSpan?.let(::add)
+            }
+            (frame.kriya?.analysis?.pada as? SourceLocatedNode)?.sourceSpan?.let(::add)
+        }
+        return if (spans.isEmpty()) null else DocumentSourceSpan(
+            spans.minOf(DocumentSourceSpan::start),
+            spans.maxOf(DocumentSourceSpan::endExclusive),
+        )
+    }
+
+    private fun FrameDiagnosticSeverity.highlightSeverity(): HighlightSeverity = when (this) {
+        FrameDiagnosticSeverity.ERROR -> HighlightSeverity.ERROR
+        FrameDiagnosticSeverity.WARNING -> HighlightSeverity.WARNING
+        FrameDiagnosticSeverity.INFO -> HighlightSeverity.INFORMATION
     }
 
     private fun annotateUnresolvedProjectReferences(
@@ -124,8 +210,22 @@ class PvmAnnotator : Annotator {
                 },
                 diagnostic.message,
             ).range(range)
-            diagnostic.replacement?.let { replacement ->
-                annotation.withFix(PvmSourceReplacementQuickFix(range, replacement))
+            diagnostic.corrections.forEach { correction ->
+                val correctionRange = TextRange(
+                    correction.span.start.coerceIn(0, text.length),
+                    correction.span.endExclusive.coerceIn(0, text.length),
+                )
+                annotation.withFix(PvmSourceReplacementQuickFix(
+                    correctionRange,
+                    correction.replacement,
+                    correction.description,
+                ))
+            }
+            diagnostic.replacement?.takeIf { diagnostic.corrections.isEmpty() }?.let { replacement ->
+                annotation.withFix(PvmSourceReplacementQuickFix(range, replacement, diagnostic.message))
+            }
+            diagnostic.missingParameters.forEach { parameter ->
+                annotation.withFix(PvmSupplyMissingArgumentQuickFix(range.endOffset, parameter))
             }
             annotation.create()
         }

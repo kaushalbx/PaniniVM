@@ -38,4 +38,19 @@ class ProcedureArgumentMorphologyTest {
         assertEquals(listOf("राम"), resolved.terms)
         assertFalse(resolved.named)
     }
+
+    @Test fun `missing named arguments retain canonical parameter declarations`() {
+        val signature = PrakriyaSignature(parameters = listOf(
+            PrakriyaParameter("वाम", PrakriyaValueType.SANKHYA),
+            PrakriyaParameter("दक्षिण", PrakriyaValueType.SANKHYA),
+        ))
+        val padas = PaniniParser().parse("वाम + ङि द्वि + अम् ।")
+            .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>()
+        val failure = assertIs<PrakriyaArgumentResolution.Failure>(
+            NamedPrakriyaArgumentResolver.resolve(padas, signature),
+        )
+        assertEquals("MISSING_NAMED_ARGUMENT", failure.diagnostic.code)
+        assertEquals(listOf(signature.parameters[1]), failure.diagnostic.missingParameters)
+        assertTrue(failure.diagnostic.corrections.isEmpty())
+    }
 }

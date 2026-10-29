@@ -15,6 +15,7 @@ object OrdinalObjectLowering {
         override val message: String,
         override val span: DocumentSourceSpan?,
         override val offendingText: String,
+        override val corrections: List<SourceCorrection> = emptyList(),
     ) : SemanticDiagnostic<String>
 
     sealed interface Analysis {
@@ -23,16 +24,31 @@ object OrdinalObjectLowering {
         data class Invalid(val diagnostic: Diagnostic) : Analysis
     }
 
-    private class InvalidOrdinalObject(val code: String, message: String) : IllegalArgumentException(message)
+    private class InvalidOrdinalObject(
+        val code: String,
+        message: String,
+        val correction: SourceCorrection? = null,
+    ) : IllegalArgumentException(message)
 
-    private fun requireOrdinal(value: Boolean, code: String, message: () -> String) {
-        if (!value) throw InvalidOrdinalObject(code, message())
+    private fun requireOrdinal(
+        value: Boolean,
+        code: String,
+        correction: SourceCorrection? = null,
+        message: () -> String,
+    ) {
+        if (!value) throw InvalidOrdinalObject(code, message(), correction)
     }
 
     fun analyze(node: Invocation): Analysis = try {
         expandInternal(node)?.let(Analysis::Resolved) ?: Analysis.NotOrdinalObject
     } catch (error: InvalidOrdinalObject) {
-        Analysis.Invalid(Diagnostic(error.code, error.message.orEmpty(), node.relationSpan(), node.sourceText))
+        Analysis.Invalid(Diagnostic(
+            error.code,
+            error.message.orEmpty(),
+            error.correction?.span ?: node.relationSpan(),
+            node.sourceText,
+            listOfNotNull(error.correction),
+        ))
     }
 
     fun expand(node: Invocation): Sequence? = when (val analysis = analyze(node)) {
@@ -75,7 +91,11 @@ object OrdinalObjectLowering {
         }
         // Locative position frames remain supported independently of object phrases.
         if (sup.affixCandidates == listOf(SupAffix.NGI)) return null
-        requireOrdinal(sup.affixCandidates == head.sup.affixCandidates, "ORDINAL_OBJECT_CASE_NUMBER_AGREEMENT") {
+        requireOrdinal(
+            sup.affixCandidates == head.sup.affixCandidates,
+            "ORDINAL_OBJECT_CASE_NUMBER_AGREEMENT",
+            ordinalCorrection(ordinal, head.sup),
+        ) {
             "The ordinal must agree with its singular accusative object."
         }
         val headGenders = dev.panini.execution.binding.NominalGenderAgreement.genders(head)
@@ -116,5 +136,23 @@ object OrdinalObjectLowering {
             }
         }
         return Sequence(node.sourceText, listOf(Invocation(sentence.copy(padas = projected))), emptyList())
+    }
+
+    private fun ordinalCorrection(ordinal: Pada, expected: SupPratyaya): SourceCorrection? {
+        val located = ordinal as? SourceLocatedNode ?: return null
+        val span = located.sourceSpan ?: return null
+        val stem = when (ordinal) {
+            is SubantaPada -> ordinal.pratipadika.sourceText
+            is SankhyaPuranaPada -> buildList {
+                addAll(ordinal.stems)
+                ordinal.striAffix?.let { add(it.upadesha) }
+            }.joinToString(" + ")
+            else -> return null
+        }
+        return SourceCorrection(
+            span = span,
+            replacement = "$stem + ${expected.sourceText}",
+            description = "Make the ordinal agree with its object in case and number.",
+        )
     }
 }

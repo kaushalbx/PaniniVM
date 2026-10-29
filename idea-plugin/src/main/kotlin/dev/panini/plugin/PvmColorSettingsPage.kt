@@ -30,10 +30,18 @@ class PvmColorSettingsPage : ColorSettingsPage {
         AttributesDescriptor("Semantic//Prakriya reference", PvmSyntaxHighlighter.PRAKRIYA_REFERENCE),
         AttributesDescriptor("Semantic//Domain declaration", PvmSyntaxHighlighter.DOMAIN_DECLARATION),
         AttributesDescriptor("Semantic//Domain reference", PvmSyntaxHighlighter.DOMAIN_REFERENCE),
+        AttributesDescriptor("Semantic//Prakriya parameter", PvmSyntaxHighlighter.PRAKRIYA_PARAMETER),
+        AttributesDescriptor("Semantic//Prakriya argument", PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT),
+        AttributesDescriptor(
+            "Semantic//Prakriya parameter reference",
+            PvmSyntaxHighlighter.PRAKRIYA_PARAMETER_REFERENCE,
+        ),
         AttributesDescriptor("Semantic//Nominal stem", PvmSyntaxHighlighter.NOMINAL_STEM),
         AttributesDescriptor("Number", PvmSyntaxHighlighter.NUMBER),
         AttributesDescriptor("Dhatu", PvmSyntaxHighlighter.DHATU),
         AttributesDescriptor("Phala result", PvmSyntaxHighlighter.PHALA),
+        AttributesDescriptor("Inlay hints//Derived surface", PvmSyntaxHighlighter.INLAY_SURFACE),
+        AttributesDescriptor("Inlay hints//Parameter", PvmSyntaxHighlighter.INLAY_PARAMETER),
         AttributesDescriptor("Identifier", PvmSyntaxHighlighter.IDENTIFIER),
         AttributesDescriptor("Operator", PvmSyntaxHighlighter.OPERATOR),
         AttributesDescriptor("Delimiter", PvmSyntaxHighlighter.DELIMITER),
@@ -53,6 +61,9 @@ class PvmColorSettingsPage : ColorSettingsPage {
             <domainDeclaration>गणित</domainDeclaration> + सुँ इति अधि + कृ + घञ् + सुँ ।
             <domainReference>गणित</domainReference> + ङस् <prakriyaDeclaration>गण</prakriyaDeclaration> + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             <nominalStem>राम</nominalStem> + सुँ भू + लट् + तिप् ।
+            <prakriyaParameter>वाम</prakriyaParameter> + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            <prakriyaArgument>द्वि</prakriyaArgument> + अम् गण + टा कृ + लोट् + सिप् ।
+            <prakriyaParameterReference>वाम</prakriyaParameterReference> + ङि द्वि + अम् गण + टा कृ + लोट् + सिप् ।
             पञ्च + अम् द्वि + अम् च <domainReference>गणित</domainReference> + ङस् <prakriyaReference>गण</prakriyaReference> + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
     }
@@ -62,6 +73,9 @@ class PvmColorSettingsPage : ColorSettingsPage {
         "prakriyaReference" to PvmSyntaxHighlighter.PRAKRIYA_REFERENCE,
         "domainDeclaration" to PvmSyntaxHighlighter.DOMAIN_DECLARATION,
         "domainReference" to PvmSyntaxHighlighter.DOMAIN_REFERENCE,
+        "prakriyaParameter" to PvmSyntaxHighlighter.PRAKRIYA_PARAMETER,
+        "prakriyaArgument" to PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT,
+        "prakriyaParameterReference" to PvmSyntaxHighlighter.PRAKRIYA_PARAMETER_REFERENCE,
         "nominalStem" to PvmSyntaxHighlighter.NOMINAL_STEM,
     )
     override fun getAttributeDescriptors(): Array<AttributesDescriptor> = descriptors

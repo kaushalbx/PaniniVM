@@ -12,7 +12,7 @@ class PvmPluginDescriptorTest {
         val descriptor = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(File("idea-plugin/src/main/resources/META-INF/plugin.xml"))
 
-        assertEquals("0.1.0", descriptor.getElementsByTagName("version").item(0).textContent.trim())
+        assertEquals("0.1.1", descriptor.getElementsByTagName("version").item(0).textContent.trim())
         assertEquals(
             "242",
             descriptor.getElementsByTagName("idea-version").item(0).attributes

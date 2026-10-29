@@ -2,6 +2,10 @@ package dev.panini.plugin
 
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
+import dev.panini.analysis.FrameKarakaResolution
+import dev.panini.analysis.KarakaRelation
+import dev.panini.analysis.KriyaFrame
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
@@ -40,7 +44,9 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         val text = target.text.trim()
         if (text.isEmpty()) return null
 
+        prakriyaParameterDeclarationDoc(target)?.let { return it }
         projectPrakriyaDoc(target)?.let { return it }
+        prakriyaArgumentDoc(target)?.let { return it }
         canonicalPadaDoc(target)?.let { return it }
 
         // 0. Check for Sandhi Expression containing '+'
@@ -178,6 +184,76 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         return null
     }
 
+    private fun prakriyaParameterDeclarationDoc(target: PsiElement): String? {
+        val parameterPsi = generateSequence(target) { it.parent }
+            .filterIsInstance<PvmPrakriyaParameterPsi>()
+            .firstOrNull() ?: return null
+        val parameter = parameterPsi.canonicalParameter() ?: return null
+        val owner = PsiTreeUtil.getParentOfType(
+            parameterPsi,
+            PvmPrakriyaDeclarationPsi::class.java,
+            false,
+        )?.canonicalDeclaration()
+        return buildString {
+            append("<html><body><h2>प्रक्रिया-मानस्थानम्: ")
+            append(html(parameter.nameStem))
+            append("</h2><ul><li><b>प्रकारः:</b> ")
+            append(html(parameter.type.sanskritName))
+            owner?.let {
+                append("</li><li><b>प्रक्रिया:</b> ")
+                append(html(it.nameIdentity))
+                it.domainIdentity?.let { domain ->
+                    append("</li><li><b>अधिकारः:</b> ").append(html(domain))
+                }
+            }
+            append("</li><li><b>घोषणा:</b> <code>")
+            append(html(parameterPsi.text.trim()))
+            append("</code></li></ul></body></html>")
+        }
+    }
+
+    private fun prakriyaArgumentDoc(target: PsiElement): String? {
+        val argumentPsi = generateSequence(target) { it.parent }
+            .filterIsInstance<PvmInvocationArgumentPsi>()
+            .firstOrNull() ?: return null
+        val valueBinding = argumentPsi.resolvedPrakriyaArgument()
+        val parameterBinding = argumentPsi.resolvedParameterReference()
+        val bodyParameter = argumentPsi.resolvedBodyParameter()
+        if (valueBinding == null && parameterBinding == null && bodyParameter != null) {
+            return buildString {
+                append("<html><body><h2>प्रक्रिया-मान-सन्दर्भः: ")
+                append(html(bodyParameter.nameStem))
+                append("</h2><ul><li><b>प्रकारः:</b> ")
+                append(html(bodyParameter.type.sanskritName))
+                append("</li><li><b>प्रयोगः:</b> <code>")
+                append(html(argumentPsi.canonicalArgument()?.sourceText ?: argumentPsi.text.trim()))
+                append("</code></li></ul></body></html>")
+            }
+        }
+        val resolved = valueBinding ?: parameterBinding ?: return null
+        val parameter = resolved.parameter ?: return null
+        return buildString {
+            append("<html><body><h2>")
+            append(if (parameterBinding != null && valueBinding == null) {
+                "प्रक्रिया-मानस्थानम्: "
+            } else {
+                "प्रक्रिया-मानम्: "
+            })
+            append(html(parameter.nameStem))
+            append("</h2><ul><li><b>प्रकारः:</b> ")
+            append(html(parameter.type.sanskritName))
+            append("</li><li><b>बन्धः:</b> ")
+            append(html(resolved.bindingKind.name.lowercase()))
+            append("</li><li><b>मूल्यम्:</b> <code>")
+            append(html(if (parameterBinding != null && valueBinding == null) {
+                resolved.parameterPada?.sourceText ?: parameter.nameStem
+            } else {
+                resolved.argument.pada?.sourceText ?: resolved.argument.term
+            }))
+            append("</code></li></ul></body></html>")
+        }
+    }
+
     private fun canonicalPadaDoc(target: PsiElement): String? {
         var structural: PsiElement? = target
         while (structural != null && structural.node.elementType !in setOf(
@@ -188,14 +264,19 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         }
         val node = structural ?: return null
         val file = node.containingFile as? PvmFile ?: return null
+        val semantic = file.canonicalSemanticFrameAt(node.textRange.startOffset)
         return when (val pada = file.canonicalPadaAt(node.textRange.startOffset)) {
-            is SubantaPada -> subantaDoc(pada)
-            is TingantaPada -> tingantaDoc(pada)
+            is SubantaPada -> subantaDoc(pada, semantic?.first, semantic?.second)
+            is TingantaPada -> tingantaDoc(pada, semantic?.first)
             else -> null
         }
     }
 
-    private fun subantaDoc(pada: SubantaPada): String = buildString {
+    private fun subantaDoc(
+        pada: SubantaPada,
+        frame: KriyaFrame?,
+        relation: KarakaRelation?,
+    ): String = buildString {
         val stem = pada.pratipadika.semanticKey()
         val lexical = runCatching { PaninianPratipadikaLexicon.findPratipadika(stem) }.getOrNull()
         append("<html><body><h2>Subanta: ").append(html(pada.sourceText)).append("</h2><ul>")
@@ -227,10 +308,32 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
                 .append(html(pratipadika.krtPratyaya)).append("</li>")
             else -> Unit
         }
+        if (frame != null && relation != null) {
+            append("<li><b>प्रयोगः:</b> ").append(html(frame.prayoga.name.lowercase())).append("</li>")
+            frame.kriya?.analysis?.pada?.let { kriya ->
+                append("<li><b>क्रिया:</b> <code>").append(html(kriya.sourceText)).append("</code></li>")
+            }
+            when (val resolution = relation.resolution) {
+                is FrameKarakaResolution.Resolved -> append("<li><b>कारकम्:</b> ")
+                    .append(html(resolution.karaka.sanskritName)).append("</li>")
+                is FrameKarakaResolution.Ambiguous -> append("<li><b>कारकम्:</b> unresolved — ")
+                    .append(html(resolution.candidates.joinToString { it.sanskritName })).append("</li>")
+                is FrameKarakaResolution.Unassigned -> append("<li><b>कारकम्:</b> unresolved — ")
+                    .append(html(resolution.reason)).append("</li>")
+            }
+            if (relation.evidence.isNotEmpty()) {
+                append("<li><b>अष्टाध्यायी-प्रमाणम्:</b><ul>")
+                relation.evidence.forEach { evidence ->
+                    append("<li>").append(html(evidence.sutra)).append(" ")
+                        .append(html(evidence.text)).append(" — ").append(html(evidence.reason)).append("</li>")
+                }
+                append("</ul></li>")
+            }
+        }
         append("</ul></body></html>")
     }
 
-    private fun tingantaDoc(pada: TingantaPada): String = buildString {
+    private fun tingantaDoc(pada: TingantaPada, frame: KriyaFrame?): String = buildString {
         val dhatu = DhatuPatha.all.firstOrNull {
             it.upadesha == pada.dhatu.mulaDhatu || it.sourceSurface == pada.dhatu.mulaDhatu ||
                 pada.dhatu.mulaDhatu in it.surfaceAliases
@@ -254,6 +357,15 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         append("<li><b>Tiṅ:</b> ").append(html(pada.ting.text))
         ting?.let {
             append(" — ${it.pada.name.lowercase()}, ${it.purusha.name.lowercase()}, ${it.vacana.name.lowercase()}")
+        }
+        frame?.let {
+            append("</li><li><b>प्रयोगः:</b> ").append(html(it.prayoga.name.lowercase()))
+            val resolved = it.relations.mapNotNull { relation ->
+                (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka?.sanskritName
+            }
+            if (resolved.isNotEmpty()) {
+                append("</li><li><b>कारक-आकृतिः:</b> ").append(html(resolved.joinToString()))
+            }
         }
         append("</li></ul></body></html>")
     }

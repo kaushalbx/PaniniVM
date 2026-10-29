@@ -2,6 +2,7 @@ package dev.panini.plugin
 
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
@@ -40,11 +41,21 @@ class PvmSyntaxHighlighter : SyntaxHighlighterBase() {
         val PRAKRIYA_REFERENCE = key("PVM_PRAKRIYA_REFERENCE", 0x69D2E7)
         val DOMAIN_DECLARATION = key("PVM_DOMAIN_DECLARATION", 0xC792EA)
         val DOMAIN_REFERENCE = key("PVM_DOMAIN_REFERENCE", 0xA5A6FF)
+        val PRAKRIYA_PARAMETER = key("PVM_PRAKRIYA_PARAMETER", 0xFF9F68)
+        val PRAKRIYA_ARGUMENT = key("PVM_PRAKRIYA_ARGUMENT", 0x4DD6A8)
+        val PRAKRIYA_PARAMETER_REFERENCE = key("PVM_PRAKRIYA_PARAMETER_REFERENCE", 0xF6C177)
 
         val NOMINAL_STEM = key("PVM_NOMINAL_STEM", 0xE6A6A1)
         val NUMBER = key("PVM_NUMBER", 0xF7C66F)
         val DHATU = key("PVM_DHATU", 0x82CFFF)
         val PHALA = key("PVM_PHALA", 0xFF85B3)
+
+        val INLAY_SURFACE = key("PVM_INLAY_SURFACE", 0x8BE9FD)
+        val INLAY_PARAMETER = key("PVM_INLAY_PARAMETER", 0xFFCB6B)
+        // Semantic role hints deliberately use IntelliJ's subdued native
+        // parameter-hint appearance instead of language-category colors.
+        val INLAY_KARAKA = DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT
+        val INLAY_KRIYA = DefaultLanguageHighlighterColors.INLINE_PARAMETER_HINT
 
         val IDENTIFIER = key("PVM_IDENTIFIER", 0xD6DEEB)
         val OPERATOR = key("PVM_OPERATOR", 0xC5CDD8)

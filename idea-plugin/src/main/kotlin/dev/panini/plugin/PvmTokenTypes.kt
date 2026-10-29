@@ -16,6 +16,9 @@ object PvmTokenTypes {
     val RANGE_DECLARATION = IElementType("PVM_RANGE_DECLARATION", PvmLanguage.INSTANCE)
     val UKTI = IElementType("PVM_UKTI", PvmLanguage.INSTANCE)
     val PROGRAM_ITEM = IElementType("PVM_PROGRAM_ITEM", PvmLanguage.INSTANCE)
+    val INVOCATION = IElementType("PVM_INVOCATION", PvmLanguage.INSTANCE)
+    val INVOCATION_ARGUMENT = IElementType("PVM_INVOCATION_ARGUMENT", PvmLanguage.INSTANCE)
+    val PRAKRIYA_PARAMETER = IElementType("PVM_PRAKRIYA_PARAMETER", PvmLanguage.INSTANCE)
     val SUBANTA = IElementType("PVM_SUBANTA", PvmLanguage.INSTANCE)
     val TINGANTA = IElementType("PVM_TINGANTA", PvmLanguage.INSTANCE)
 

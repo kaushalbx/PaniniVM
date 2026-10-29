@@ -20,6 +20,14 @@ document
     : documentItem* (trailingHeader=prakriyaHeader | trailing=utterance)? EOF
     ;
 
+// IDE completion entry points deliberately require EOF. This keeps error recovery
+// inside the active morphology rule so expected tokens at a caret are authoritative.
+completionSubantaEntry : subantaPada EOF ;
+completionKridantaEntry : kridantaPratipadika EOF ;
+completionUnadyantaEntry : unadyantaPratipadika EOF ;
+completionAvyayaKridantaEntry : avyayaKridanta EOF ;
+completionSankhyaAbhyasaEntry : sankhyaAbhyasaPada EOF ;
+
 documentItem
     : prakriyaBlock
     | prakriyaHeader DANDA

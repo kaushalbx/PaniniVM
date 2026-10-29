@@ -8,7 +8,6 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
-import dev.panini.ganapatha.GanaPatha
 import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.core.KrtAffix
@@ -20,12 +19,12 @@ import dev.panini.core.SupAffix
 import dev.panini.core.TaddhitaAffix
 import dev.panini.core.TingAffix
 import dev.panini.core.Upasarga
-import dev.panini.unadipatha.UnadiPathaCatalog
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Vikarana
+import dev.panini.vyakaranam.parser.PaniniCompletionContext
 
 class PvmCompletionContributor : CompletionContributor() {
 
@@ -65,12 +64,9 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple(it.upadesha, "सङ्ख्याभ्यासः", it.name)
         }
 
-        private val unadiAffixes by lazy {
-            UnadiPathaCatalog.sutras
-                .filter { it.pratyaya.isNotBlank() }
-                .distinctBy { it.pratyaya }
-                .map { Triple(it.pratyaya, "उणादि-प्रत्ययः", "Uṇādipāṭha ${it.number}") }
-        }
+        private val unadiMarker = listOf(
+            Triple("उणादि", "उणादि-व्युत्पत्तिः", "Continue as उणादि(<pratyaya>); Uṇādipāṭha supplies the derivation data"),
+        )
 
         private val supAffixes = SupAffix.entries.map {
             Triple(it.initialSurface, "सुप्-प्रत्ययः", "${it.vibhakti.name.lowercase()} ${it.vacana.name.lowercase()}")
@@ -120,7 +116,18 @@ class PvmCompletionContributor : CompletionContributor() {
             }.distinctBy { it.first }
         }
 
+        private fun parserAccepted(
+            catalog: List<Triple<String, String, String>>,
+            tokenNames: Set<String>,
+        ): List<Triple<String, String, String>> = catalog.filter {
+            PaniniCompletionContext.tokenName(it.first) in tokenNames
+        }
+
+        private val parserSanadi by lazy { parserAccepted(sanadiAffixes, setOf("SAN", "NIC", "YAN", "YUK_SAN", "KYACH", "KAAMYACH", "KYASH", "KYANG")) }
+        private val parserVikaranas by lazy { parserAccepted(vikaranas, setOf("SHAP", "SHYAN", "SHNU", "SHNAM", "SHNA", "U_VIKARANA", "YAK", "SHAH", "SYA", "TAS_VIKARANA", "CLI", "SIC", "ANG", "CHANG", "KSA")) }
+        private val parserTaddhitas by lazy { parserAccepted(taddhitaAffixes, setOf("MATUP", "VATUP", "MAT", "VAT", "INI", "TVA", "TAL", "TARAP", "TAMAP", "MAYAT", "TASIL", "AN", "INJ", "DHAK", "THAJ", "CHHA", "KA", "KAN", "YAT", "AYANA", "IYA", "INA", "DAA", "DHAA", "TYAP", "TYA")) }
         private val upasargaSurfaces = Upasarga.entries.mapTo(mutableSetOf()) { it.upadesha }
+        private val numberSurfaces = numbers.mapTo(mutableSetOf()) { it.first }
 
         private fun sourceWordBeforePlus(sourceBeforeCaret: String): String? {
             val beforePlus = sourceBeforeCaret.substringBeforeLast('+', missingDelimiterValue = "")
@@ -239,8 +246,18 @@ class PvmCompletionContributor : CompletionContributor() {
             }
             val afterSegmentSeparator = beforeCurrentToken.trimEnd().endsWith('+')
 
-            val precedingSegment = if (afterSegmentSeparator) sourceWordBeforePlus(sourceBeforeCaret) else null
-            val afterUpasarga = precedingSegment in upasargaSurfaces
+            val afterUpasarga = afterSegmentSeparator && sourceWordBeforePlus(beforeCurrentToken) in upasargaSurfaces
+            val precedingSegment = if (afterSegmentSeparator) sourceWordBeforePlus(beforeCurrentToken) else null
+            // Grammar acceptance depends on the lexer token class, not on which
+            // Dhātupāṭha/catalog surface produced that class. Avoid invoking
+            // ANTLR once per catalog entry in large completion lists.
+            val parserAcceptanceByToken = mutableMapOf<String, Boolean>()
+            fun parserAccepts(word: String): Boolean {
+                val tokenName = PaniniCompletionContext.tokenName(word) ?: return false
+                return parserAcceptanceByToken.getOrPut(tokenName) {
+                    PaniniCompletionContext.acceptsNextToken(beforeCurrentToken, word)
+                }
+            }
 
             if (!afterSegmentSeparator) {
                 keywords.forEach { (word, type, doc) ->
@@ -252,25 +269,33 @@ class PvmCompletionContributor : CompletionContributor() {
                 }
             }
 
-            if (!afterSegmentSeparator || !afterUpasarga) {
-                sequenceOf(
+            if (afterSegmentSeparator) {
+                val parserCatalogs = sequenceOf(
+                    upasargas,
                     supAffixes,
                     lakaras,
-                    sanadiAffixes,
+                    parserSanadi,
                     krtAffixes,
-                    taddhitaAffixes,
+                    parserTaddhitas,
                     tingAffixes,
-                    vikaranas,
+                    parserVikaranas,
                     striAffixes,
                     frequencyAffixes,
-                    unadiAffixes,
-                ).flatten().forEach { (word, type, doc) ->
+                    unadiMarker,
+                ).flatten().filter { (_, type) ->
+                    !afterUpasarga || type == "उपसर्गः"
+                }.filter { (_, type) ->
+                    type != "सङ्ख्याभ्यासः" || precedingSegment in numberSurfaces
+                }.filter { (word) ->
+                    parserAccepts(word)
+                }
+                parserCatalogs.distinctBy { it.first }.forEach { (word, type, doc) ->
                     result.addElement(buildLookup(word, type, doc))
                 }
             }
 
-            if (!afterSegmentSeparator || afterUpasarga) {
-                dhatus.forEach { (word, type, doc) ->
+            dhatus.forEach { (word, type, doc) ->
+                if (!afterSegmentSeparator || parserAccepts(word)) {
                     result.addElement(buildLookup(word, type, doc))
                 }
             }
@@ -278,9 +303,6 @@ class PvmCompletionContributor : CompletionContributor() {
             if (!afterSegmentSeparator) {
                 numbers.forEach { (word, type, doc) ->
                     result.addElement(buildLookup(word, type, doc))
-                }
-                GanaPatha.all.forEach { gana ->
-                    result.addElement(buildLookup(gana.name, "गणपाठः", "Sūtra: ${gana.sutra}"))
                 }
                 BhutasamkhyaLexicon.allSymbols.forEach { (word, value) ->
                     result.addElement(buildLookup(word, "भूतसङ्ख्या", "Value: $value"))

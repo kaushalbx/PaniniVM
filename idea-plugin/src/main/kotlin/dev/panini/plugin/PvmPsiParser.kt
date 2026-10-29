@@ -7,6 +7,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.tree.IElementType
 import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.Prakriya
+import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.ProgramDocument
 import dev.panini.vyakaranam.ast.RangeDeclaration
 import dev.panini.vyakaranam.ast.Scope
@@ -14,7 +15,13 @@ import dev.panini.vyakaranam.ast.SourceLocatedNode
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.VyakaranamNode
+import dev.panini.vyakaranam.ast.grammaticalInvocations
+import dev.panini.vyakaranam.ast.relationSpan
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.execution.PrakriyaParameterDeclarations
+import dev.panini.execution.PrakriyaSignatureCompiler
+import dev.panini.execution.PvmScript
+import dev.panini.execution.PvmScriptStatement
 
 class PvmPsiParser : PsiParser {
     override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
@@ -88,13 +95,17 @@ class PvmPsiParser : PsiParser {
             ))
         }
         document.prakriyaBodySpans[itemIndex].orEmpty().forEach {
-            add(CanonicalRegion(it, PvmTokenTypes.PRAKRIYA_STATEMENT, padaRegions(item, it)))
+            add(CanonicalRegion(
+                it,
+                PvmTokenTypes.PRAKRIYA_STATEMENT,
+                invocationRegions(item, it, parameterDeclarationSpans(document, itemIndex, item)),
+            ))
         }
         document.scopeDomainSpans[itemIndex]?.let {
             add(CanonicalRegion(it, PvmTokenTypes.SCOPE_DOMAIN))
         }
         if (document.prakriyaBodySpans[itemIndex].isNullOrEmpty()) {
-            addAll(padaRegions(item, itemSpan))
+            addAll(invocationRegions(item, itemSpan))
         }
     }.filter {
         it.span.start >= itemSpan.start && it.span.endExclusive <= itemSpan.endExclusive
@@ -122,6 +133,75 @@ class PvmPsiParser : PsiParser {
             }
             .distinctBy { it.span }
             .sortedBy { it.span.start }
+
+    private fun invocationRegions(
+        item: VyakaranamNode,
+        within: DocumentSourceSpan,
+        parameterSpans: Set<DocumentSourceSpan> = emptySet(),
+    ): List<CanonicalRegion> {
+        val invocations = item.canonicalProgramNodes()
+            .flatMap { it.grammaticalInvocations() }
+            .mapNotNull { invocation ->
+                val span = invocation.relationSpan() ?: return@mapNotNull null
+                if (span.start < within.start || span.endExclusive > within.endExclusive) return@mapNotNull null
+                invocation to span
+            }
+            .distinctBy { it.second }
+            .sortedBy { it.second.start }
+        if (invocations.isEmpty()) return padaRegions(item, within)
+
+        return invocations.map { (invocation, span) ->
+            val children = invocation.vakya.padas
+                .flatMap(Pada::sourceLocatedLeaves)
+                .mapNotNull { pada ->
+                    val padaSpan = (pada as SourceLocatedNode).sourceSpan ?: return@mapNotNull null
+                    if (padaSpan.start < span.start || padaSpan.endExclusive > span.endExclusive) {
+                        return@mapNotNull null
+                    }
+                    val padaType = if (pada is TingantaPada) PvmTokenTypes.TINGANTA else PvmTokenTypes.SUBANTA
+                    if (pada is TingantaPada) {
+                        CanonicalRegion(padaSpan, padaType)
+                    } else if (padaSpan in parameterSpans) {
+                        CanonicalRegion(
+                            padaSpan,
+                            PvmTokenTypes.PRAKRIYA_PARAMETER,
+                            listOf(CanonicalRegion(padaSpan, padaType)),
+                        )
+                    } else {
+                        CanonicalRegion(
+                            padaSpan,
+                            PvmTokenTypes.INVOCATION_ARGUMENT,
+                            listOf(CanonicalRegion(padaSpan, padaType)),
+                        )
+                    }
+                }
+                .distinctBy { it.span }
+                .sortedBy { it.span.start }
+            CanonicalRegion(span, PvmTokenTypes.INVOCATION, children)
+        }
+    }
+
+    private fun parameterDeclarationSpans(
+        document: ProgramDocument,
+        itemIndex: Int,
+        item: VyakaranamNode,
+    ): Set<DocumentSourceSpan> {
+        val prakriya = item as? Prakriya ?: return emptySet()
+        val definitions = PvmScript.fromDocument(document)
+            .filterIsInstance<PvmScriptStatement.PrakriyaDefinition>()
+        val declarationOrdinal = document.items.take(itemIndex + 1).count { it is Prakriya } - 1
+        val definition = definitions.getOrNull(declarationOrdinal) ?: return emptySet()
+        val signature = runCatching {
+            PrakriyaSignatureCompiler.compile(
+                definition.body,
+                prakriya.declaredResult,
+                prakriya.resultPredicate,
+            )
+        }.getOrNull() ?: return emptySet()
+        return PrakriyaParameterDeclarations.resolve(signature.parameters, definition.body)
+            .values
+            .mapNotNullTo(linkedSetOf()) { (it as SourceLocatedNode).sourceSpan }
+    }
 
     private fun consumeUntil(builder: PsiBuilder, endOffset: Int) {
         while (!builder.eof() && builder.currentOffset < endOffset) builder.advanceLexer()

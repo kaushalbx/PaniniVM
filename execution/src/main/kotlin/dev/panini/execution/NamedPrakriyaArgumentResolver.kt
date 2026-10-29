@@ -44,6 +44,8 @@ data class PrakriyaArgumentDiagnostic(
     override val message: String,
     override val span: DocumentSourceSpan? = null,
     override val offendingText: String = "",
+    /** Canonical declaration slots absent from a named call; values are intentionally not invented. */
+    val missingParameters: List<PrakriyaParameter> = emptyList(),
 ) : SemanticDiagnostic<String>
 
 enum class PrakriyaArgumentBindingKind { POSITIONAL, NAMED, PIPE }
@@ -53,6 +55,8 @@ data class ResolvedPrakriyaArgument(
     val parameter: PrakriyaParameter?,
     val argument: PrakriyaArgument,
     val bindingKind: PrakriyaArgumentBindingKind,
+    /** Written सप्तमी/षष्ठी slot label for a named binding, retained for IDE/source tooling. */
+    val parameterPada: SubantaPada? = null,
 ) {
     /** Whether this operand is the grammatical discourse anaphor for the preceding result. */
     val isPriorResult: Boolean
@@ -82,7 +86,11 @@ data class ResolvedPrakriyaArgument(
 
 /** Binds natural सप्तमी parameter slots (and legacy षष्ठी labels) to द्वितीया values. */
 object NamedPrakriyaArgumentResolver {
-    private data class NamedValue(val name: String, val pada: SubantaPada)
+    private data class NamedValue(
+        val name: String,
+        val pada: SubantaPada,
+        val parameterPada: SubantaPada,
+    )
 
     /** Resolves argument order from the canonical AST without rendering and reparsing it. */
     fun resolve(padas: List<SubantaPada>, signature: PrakriyaSignature): PrakriyaArgumentResolution {
@@ -123,7 +131,7 @@ object NamedPrakriyaArgumentResolver {
                     message = "कारकदोषः: '${pada.stem()}' इति मानस्थानस्य अनन्तरं द्वितीयान्तं मूल्यम् अपेक्षितम्।",
                     padas = listOf(pada),
                 )
-            NamedValue(pada.stem(), value)
+            NamedValue(pada.stem(), value, pada)
         }
         if (pairs.isEmpty()) return PrakriyaArgumentResolution.Success.fromPadas(positionalPadas)
         if (pairs.size != positionalPadas.size) {
@@ -137,7 +145,7 @@ object NamedPrakriyaArgumentResolver {
         if (duplicates.isNotEmpty()) {
             return failure("DUPLICATE_NAMED_ARGUMENT", "पुनरुक्तमानानि: $duplicates।", padas)
         }
-        val supplied = pairs.associate { it.name to it.pada }
+        val supplied = pairs.associateBy(NamedValue::name)
         val expected = signature.parameters.map(PrakriyaParameter::nameStem)
         val unknown = supplied.keys - expected.toSet()
         if (unknown.isNotEmpty()) {
@@ -145,11 +153,17 @@ object NamedPrakriyaArgumentResolver {
         }
         val missing = expected.filterNot(supplied::containsKey)
         if (missing.isNotEmpty()) {
-            return failure("MISSING_NAMED_ARGUMENT", "लुप्तमानानि: $missing।", padas)
+            return failure(
+                "MISSING_NAMED_ARGUMENT",
+                "लुप्तमानानि: $missing।",
+                padas,
+                missingParameters = signature.parameters.filter { it.nameStem in missing },
+            )
         }
         return PrakriyaArgumentResolution.Success(
             signature.parameters.map { parameter ->
-                val value = supplied.getValue(parameter.nameStem)
+                val named = supplied.getValue(parameter.nameStem)
+                val value = named.pada
                 ResolvedPrakriyaArgument(
                     parameter = parameter,
                     argument = PrakriyaArgument(
@@ -158,6 +172,7 @@ object NamedPrakriyaArgumentResolver {
                         origin = PrakriyaArgumentOrigin.WRITTEN,
                     ),
                     bindingKind = PrakriyaArgumentBindingKind.NAMED,
+                    parameterPada = named.parameterPada,
                 )
             },
             named = true,
@@ -171,6 +186,7 @@ object NamedPrakriyaArgumentResolver {
         code: String,
         message: String,
         padas: List<SubantaPada>,
+        missingParameters: List<PrakriyaParameter> = emptyList(),
     ): PrakriyaArgumentResolution.Failure {
         val spans = padas.mapNotNull { (it as SourceLocatedNode).sourceSpan }
         val span = spans.takeIf { it.isNotEmpty() }?.let {
@@ -181,6 +197,7 @@ object NamedPrakriyaArgumentResolver {
             message = message,
             span = span,
             offendingText = padas.joinToString(" ") { it.sourceText },
+            missingParameters = missingParameters,
         ))
     }
 }

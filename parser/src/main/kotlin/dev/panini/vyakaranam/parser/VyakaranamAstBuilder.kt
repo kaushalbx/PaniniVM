@@ -1030,7 +1030,10 @@ class VyakaranamAstBuilder {
                 sourceText = context.supPratyaya()!!.text,
                 text = context.supPratyaya()!!.text,
             ),
-        )
+        ).locatedAt(DocumentSourceSpan(
+            requireNotNull(context.start).startIndex,
+            requireNotNull(context.stop).stopIndex + 1,
+        ))
     }
 
     private fun buildSankhyaAbhyasaPada(

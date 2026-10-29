@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -18,35 +17,7 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null,
         statements: List<PvmScriptStatement>,
         sourceFile: String?,
         includeExecutionModifiers: Boolean = true,
-    ) {
-        var activeDomain: String? = null
-        registerInheritances(registry, statements)
-        statements.forEach { statement ->
-            if (statement is PvmScriptStatement.AdhikaraDefinition) {
-                activeDomain = statement.scope.domainIdentity
-                return@forEach
-            }
-            val definition = statement as? PvmScriptStatement.PrakriyaDefinition ?: return@forEach
-            val prakriya = definition.prakriya
-            registry.register(
-                Prakriya(
-                    nameSegmented = prakriya.name,
-                    nameStem = prakriya.nameIdentity,
-                    body = definition.body,
-                    headerResult = prakriya.declaredResult,
-                    headerPredicate = prakriya.resultPredicate,
-                    sourceFile = sourceFile,
-                    domainStem = prakriya.domainIdentity ?: activeDomain,
-                    visibility = prakriya.modifiers.visibility,
-                    precedence = if (includeExecutionModifiers) {
-                        prakriya.modifiers.precedence
-                    } else {
-                        PrakriyaPrecedence.DEFAULT
-                    },
-                ),
-            )
-        }
-    }
+    ) = registry.registerDeclarations(statements, sourceFile, includeExecutionModifiers)
 
     fun loadLibraryRegistry(entryFile: File): PrakriyaRegistry {
         val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
@@ -95,17 +66,6 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null,
         return directory?.walkTopDown()?.any {
             it.isFile && it.extension == "pvm" && it.canonicalPath != file.canonicalPath
         } == true
-    }
-
-    private fun registerInheritances(
-        registry: PrakriyaRegistry,
-        statements: List<PvmScriptStatement>,
-    ) {
-        statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-            TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)?.let {
-                registry.registerInheritance(it)
-            }
-        }
     }
 
 }

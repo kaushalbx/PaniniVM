@@ -17,7 +17,7 @@ import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.parser.PaniniParser
 
-class PvmPsiElement(node: ASTNode) : ASTWrapperPsiElement(node), ContributedReferenceHost, PsiNameIdentifierOwner {
+open class PvmPsiElement(node: ASTNode) : ASTWrapperPsiElement(node), ContributedReferenceHost, PsiNameIdentifierOwner {
     override fun getReferences(): Array<PsiReference> =
         ReferenceProvidersRegistry.getReferencesFromProviders(this)
 
@@ -27,16 +27,17 @@ class PvmPsiElement(node: ASTNode) : ASTWrapperPsiElement(node), ContributedRefe
 
     override fun setName(name: String): PsiElement {
         if (node.elementType != PvmTokenTypes.PRAKRIYA_HEADER &&
-            node.elementType != PvmTokenTypes.PRAKRIYA_NAME
+            node.elementType != PvmTokenTypes.PRAKRIYA_NAME &&
+            node.elementType != PvmTokenTypes.PRAKRIYA_PARAMETER
         ) {
-            throw IncorrectOperationException("Only PaniniVM prakriyā declarations can be renamed")
+            throw IncorrectOperationException("Only PaniniVM prakriyā and parameter declarations can be renamed")
         }
         if (!isPvmLexicalRoot(name)) {
             throw IncorrectOperationException(
                 "Rename only the lexical root; PaniniVM preserves derivational affixes and case endings",
             )
         }
-        val identifier = getNameIdentifier() ?: throw IncorrectOperationException("Missing prakriyā name")
+        val identifier = getNameIdentifier() ?: throw IncorrectOperationException("Missing declaration name")
         val root = PsiTreeUtil.collectElements(identifier) {
             it.firstChild == null && it.node.elementType in PvmTokenTypes.SEMANTIC_SYMBOLS
         }.firstOrNull() ?: throw IncorrectOperationException("Missing prakriyā lexical root")
@@ -68,8 +69,12 @@ class PvmPsiElement(node: ASTNode) : ASTWrapperPsiElement(node), ContributedRefe
 
     override fun getUseScope(): SearchScope {
         if (node.elementType == PvmTokenTypes.PRAKRIYA_HEADER ||
-            node.elementType == PvmTokenTypes.PRAKRIYA_NAME
+            node.elementType == PvmTokenTypes.PRAKRIYA_NAME ||
+            node.elementType == PvmTokenTypes.PRAKRIYA_PARAMETER
         ) {
+            if (node.elementType == PvmTokenTypes.PRAKRIYA_PARAMETER) {
+                return GlobalSearchScope.projectScope(project)
+            }
             val file = containingFile as? PvmFile
             val declaration = file?.canonicalItemAt(textOffset) as? Prakriya
             if (declaration?.modifiers?.visibility == PrakriyaVisibility.INTERNAL) {

@@ -3,6 +3,7 @@ package dev.panini.plugin
 import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.colors.EditorFontType
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -11,26 +12,17 @@ import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.RenderingHints
 
-class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRenderer {
-
-    companion object {
-        private val resolvedFontName: String by lazy {
-            try {
-                val ge = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
-                val families = ge.availableFontFamilyNames.toSet()
-                val preferred = listOf("Nirmala UI", "Mangal", "Sanskrit Text", "Arial Unicode MS")
-                preferred.firstOrNull { it in families } ?: "SansSerif"
-            } catch (_: Throwable) {
-                "SansSerif"
-            }
-        }
-    }
+class PvmInlineInlayRenderer(
+    val surfaceText: String,
+    val explanation: String? = null,
+    val attributesKey: TextAttributesKey = PvmSyntaxHighlighter.INLAY_SURFACE,
+) : EditorCustomElementRenderer {
 
     private fun getHintFont(inlay: Inlay<*>): java.awt.Font {
         val editor = inlay.editor
         val baseFont = editor.colorsScheme.getFont(EditorFontType.PLAIN)
-        val hintFontSize = (baseFont.size * 0.9f).coerceAtLeast(10f)
-        return java.awt.Font(resolvedFontName, java.awt.Font.PLAIN, hintFontSize.toInt())
+        val hintFontSize = (baseFont.size * 0.86f).coerceAtLeast(9f)
+        return PvmUiFonts.forText(baseFont, surfaceText, hintFontSize)
     }
 
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
@@ -39,7 +31,11 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
     }
 
     override fun calcHeightInPixels(inlay: Inlay<*>): Int {
-        return inlay.editor.lineHeight
+        val metrics = inlay.editor.component.getFontMetrics(getHintFont(inlay))
+        // Devanagari fonts commonly have taller ascent/descent than the editor's
+        // Latin font. Reserve their real shaped height so mātrās and conjuncts
+        // are never clipped at the top or bottom of an inline chip.
+        return maxOf(inlay.editor.lineHeight, metrics.height + 6)
     }
 
     override fun paint(inlay: Inlay<*>, g: Graphics, r: Rectangle, textAttributes: TextAttributes) {
@@ -67,11 +63,9 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
                 Color(0, 0, 0, 30)
             }
 
-            val textColor = if (isDark) {
-                Color(141, 141, 141) // Muted grey text
-            } else {
-                Color(158, 158, 158)
-            }
+            val textColor = editor.colorsScheme.getAttributes(attributesKey).foregroundColor
+                ?: attributesKey.defaultAttributes.foregroundColor
+                ?: if (isDark) Color(141, 141, 141) else Color(98, 98, 98)
 
             val badgeY = r.y + 2
             val badgeHeight = r.height - 4

@@ -213,6 +213,9 @@ class ListDeclarationTest {
         val analysis = assertIs<OrdinalObjectLowering.Analysis.Invalid>(OrdinalObjectLowering.analyze(node))
         assertEquals("ORDINAL_OBJECT_CASE_NUMBER_AGREEMENT", analysis.diagnostic.code)
         assertNotNull(analysis.diagnostic.span)
+        val correction = assertNotNull(analysis.diagnostic.corrections.singleOrNull())
+        assertEquals("प्रथम + अम्", correction.replacement)
+        assertEquals("प्रथम + टा", source.substring(correction.span.start, correction.span.endExclusive))
     }
 
     @Test

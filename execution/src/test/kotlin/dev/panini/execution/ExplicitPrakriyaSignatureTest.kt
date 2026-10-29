@@ -144,8 +144,26 @@ class ExplicitPrakriyaSignatureTest {
 
         assertEquals(listOf("वाम", "दक्षिण"), resolution.arguments.map { it.parameter?.nameStem })
         assertEquals(listOf("पञ्च", "द्वि"), resolution.arguments.map { it.argument.term })
+        assertEquals(listOf("वाम+ङि", "दक्षिण+ङि"), resolution.arguments.map {
+            it.parameterPada?.sourceText
+        })
         assertTrue(resolution.arguments.all { it.argument.pada != null })
         assertTrue(resolution.arguments.all { it.bindingKind == PrakriyaArgumentBindingKind.NAMED })
+
+        val bodyReferences = PrakriyaAstArgumentBinder.parameterReferences(
+            definition.body,
+            invocation.kriya.signature.parameters,
+        )
+        assertEquals(
+            listOf("वाम", "दक्षिण"),
+            bodyReferences.map { it.parameter.nameStem },
+            bodyReferences.joinToString { reference ->
+                "${reference.parameter.nameStem}:${(reference.pada as dev.panini.vyakaranam.ast.SourceLocatedNode).sourceSpan}"
+            },
+        )
+        assertTrue(bodyReferences.all {
+            (it.pada as dev.panini.vyakaranam.ast.SourceLocatedNode).sourceSpan != null
+        })
 
         val readable = PvmUktiSadhaka().sadhayaLine(call.text)
         assertTrue("दक्षिणे द्वि" in readable, readable)

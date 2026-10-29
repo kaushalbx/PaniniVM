@@ -1,6 +1,7 @@
 package dev.panini.plugin
 
 import com.intellij.psi.tree.IElementType
+import dev.panini.core.FrequencyAffix
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -40,10 +41,15 @@ class PvmColorCoverageTest {
             PvmSyntaxHighlighter.PRAKRIYA_REFERENCE,
             PvmSyntaxHighlighter.DOMAIN_DECLARATION,
             PvmSyntaxHighlighter.DOMAIN_REFERENCE,
+            PvmSyntaxHighlighter.PRAKRIYA_PARAMETER,
+            PvmSyntaxHighlighter.PRAKRIYA_ARGUMENT,
+            PvmSyntaxHighlighter.PRAKRIYA_PARAMETER_REFERENCE,
             PvmSyntaxHighlighter.NOMINAL_STEM,
             PvmSyntaxHighlighter.NUMBER,
             PvmSyntaxHighlighter.DHATU,
             PvmSyntaxHighlighter.PHALA,
+            PvmSyntaxHighlighter.INLAY_SURFACE,
+            PvmSyntaxHighlighter.INLAY_PARAMETER,
             PvmSyntaxHighlighter.IDENTIFIER,
             PvmSyntaxHighlighter.OPERATOR,
             PvmSyntaxHighlighter.DELIMITER,
@@ -71,6 +77,42 @@ class PvmColorCoverageTest {
         COLORABLE_TOKEN_TYPES.forEach { tokenType ->
             assertTrue(tokenType in emitted, "$tokenType was not emitted by the coverage sample")
         }
+    }
+
+    @Test
+    fun `every canonical frequency affix receives the abhyasa color`() {
+        val highlighter = PvmSyntaxHighlighter()
+        FrequencyAffix.entries.forEach { affix ->
+            val lexer = PvmLexerAdapter()
+            lexer.start(affix.upadesha, 0, affix.upadesha.length, 0)
+            assertEquals(PvmTokenTypes.ABHYASA_AFFIX, lexer.tokenType, affix.upadesha)
+            assertEquals(
+                listOf(PvmSyntaxHighlighter.ABHYASA_AFFIX),
+                highlighter.getTokenHighlights(requireNotNull(lexer.tokenType)).toList(),
+                affix.upadesha,
+            )
+        }
+    }
+
+    @Test
+    fun `dhatu and phala are emitted with different configured colors`() {
+        fun tokenType(surface: String): IElementType {
+            val lexer = PvmLexerAdapter()
+            lexer.start(surface, 0, surface.length, 0)
+            return requireNotNull(lexer.tokenType)
+        }
+
+        val highlighter = PvmSyntaxHighlighter()
+        val dhatuType = tokenType("भू")
+        val phalaType = tokenType("फल")
+        assertEquals(PvmTokenTypes.DHATU, dhatuType)
+        assertEquals(PvmTokenTypes.PHALA, phalaType)
+        assertEquals(listOf(PvmSyntaxHighlighter.DHATU), highlighter.getTokenHighlights(dhatuType).toList())
+        assertEquals(listOf(PvmSyntaxHighlighter.PHALA), highlighter.getTokenHighlights(phalaType).toList())
+        assertTrue(
+            PvmSyntaxHighlighter.DHATU.defaultAttributes.foregroundColor !=
+                PvmSyntaxHighlighter.PHALA.defaultAttributes.foregroundColor,
+        )
     }
 
     private companion object {

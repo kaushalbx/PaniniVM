@@ -9,10 +9,11 @@ import com.intellij.psi.PsiFile
 class PvmSourceReplacementQuickFix(
     private val range: TextRange,
     private val replacement: String,
+    private val explanation: String,
 ) : IntentionAction {
-    override fun getText(): String = "Replace with '$replacement'"
+    override fun getText(): String = "Apply grammatical fix: '$replacement'"
 
-    override fun getFamilyName(): String = "Simplify PaniniVM source"
+    override fun getFamilyName(): String = explanation
 
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean =
         editor != null && file is PvmFile && range.endOffset <= editor.document.textLength

@@ -11,8 +11,12 @@ class CopularAgreementTest {
         val analysis = assertIs<CopularAgreement.Analysis.Invalid>(CopularAgreement.analyze(invocation))
         assertEquals("COPULAR_PREDICATE_NUMBER_AGREEMENT", analysis.diagnostic.code)
         assertNotNull(analysis.diagnostic.span)
+        val correction = assertNotNull(analysis.diagnostic.corrections.singleOrNull())
+        assertEquals("न्यून + सुँ", correction.replacement)
+        assertEquals("न्यून + औ", source.substring(correction.span.start, correction.span.endExclusive))
         val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
         assertEquals(analysis.diagnostic.code, assertNotNull(failure.diagnostic).code)
+        assertEquals(correction, failure.diagnostic?.corrections?.singleOrNull())
     }
 
     @Test fun `copular gender check rejects established mismatch without guessing unknown names`() {
@@ -28,6 +32,20 @@ class CopularAgreementTest {
             val source = "वस्तु + $ending मान + ङसिँ न्यून + सुँ असँ + लट् + तिप् ।"
             val node = PaniniParser().parse(source).body as Invocation
             assertFailsWith<IllegalArgumentException>(ending) { CopularAgreement.validate(node) }
+        }
+    }
+
+    @Test fun `subject disagreement offers canonical nominal and ting alternatives`() {
+        val source = "वस्तु + औ मान + ङसिँ न्यून + औ असँ + लट् + तिप् ।"
+        val node = PaniniParser().parse(source).body as Invocation
+        val invalid = assertIs<CopularAgreement.Analysis.Invalid>(CopularAgreement.analyze(node))
+        assertEquals("COPULAR_SUBJECT_NUMBER_AGREEMENT", invalid.diagnostic.code)
+        assertEquals(
+            setOf("वस्तु + सुँ", "असँ + लट् + तस्"),
+            invalid.diagnostic.corrections.map { it.replacement }.toSet(),
+        )
+        invalid.diagnostic.corrections.forEach { correction ->
+            assertTrue(source.substring(correction.span.start, correction.span.endExclusive).isNotBlank())
         }
     }
 

@@ -33,12 +33,20 @@ data class DocumentSourceSpan(val start: Int, val endExclusive: Int) {
     init { require(start >= 0 && endExclusive >= start) }
 }
 
+/** A canonical, analyzer-produced edit; IDE clients render it without re-deriving grammar. */
+data class SourceCorrection(
+    val span: DocumentSourceSpan,
+    val replacement: String,
+    val description: String,
+)
+
 /** Common shape for semantic failures produced at any analysis phase. */
 interface SemanticDiagnostic<out C> {
     val code: C
     val message: String
     val span: DocumentSourceSpan?
     val offendingText: String
+    val corrections: List<SourceCorrection> get() = emptyList()
 }
 
 /** Orthographic provenance kept separate from grammatical equality. */
@@ -691,7 +699,13 @@ data class SankhyaPuranaPada(
     override val value: Long? = null,
     override val sup: SupPratyaya,
     val striAffix: StriAffix? = null,
-) : SankhyaBoundaryPada
+) : SankhyaBoundaryPada, SourceLocatedNode {
+    /** Provenance is excluded from grammatical equality. */
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+
+    fun locatedAt(span: DocumentSourceSpan?): SankhyaPuranaPada = apply { sourceSpan = span }
+}
 
 data class SankhyaAbhyasaPada(
     override val sourceText: String,
