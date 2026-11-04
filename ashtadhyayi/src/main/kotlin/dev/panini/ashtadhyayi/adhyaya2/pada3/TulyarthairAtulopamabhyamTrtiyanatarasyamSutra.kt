@@ -1,6 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -23,10 +27,19 @@ object TulyarthairAtulopamabhyamTrtiyanatarasyamSutra : Sutra<VibhaktiRuleContex
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+    anuvrtti = setOf("2.3.50"),
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SASTHI)
+    fun hasSeshaComparison(context: VibhaktiRuleContext): Boolean {
+        val p = context.participant ?: return false
+        val stem = p.governingNominal?.pratipadika as? MulaPratipadika ?: return false
+        return stem.vikaras.all { it.isRecognizedStriAffix } &&
+            stem.text in setOf("तुल्य", "सदृश", "समान", "सम") &&
+            SemanticRelation.EQUAL_COMPARISON in p.semanticRelations &&
+            SemanticRelation.SESHA_RELATION in p.semanticRelations
+    }
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        !context.abhihita &&
-            SemanticRelation.EQUAL_COMPARISON in context.participant?.semanticRelations.orEmpty() &&
+        !context.abhihita && context.karaka == Karaka.ANIRDHARITA && hasSeshaComparison(context) &&
             (Vibhakti.TRTIYA in context.morphologicalCandidates || Vibhakti.SASTHI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

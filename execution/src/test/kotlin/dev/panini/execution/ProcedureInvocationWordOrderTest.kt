@@ -31,11 +31,12 @@ class ProcedureInvocationWordOrderTest {
             पञ्च + अम् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val baseline = PaniniVM().evalScript("पञ्च + अम् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।")
-        val expected = assertIs<ExecutionResult.Success>(baseline.last())
+        val expected = assertIs<ExecutionResult.Failure>(baseline.last(), baseline.toString())
         val results = PaniniVM().evalScript(source)
-        val actual = assertIs<ExecutionResult.Success>(results.last(), results.toString())
-        assertEquals(expected.typedValue, actual.typedValue)
-        assertEquals(expected.value, actual.value)
+        val actual = assertIs<ExecutionResult.Failure>(results.last(), results.toString())
+        assertEquals(ExecutionError.INVALID_VALUE, actual.error)
+        assertTrue(actual.message.contains("no grammatical role accepted"), actual.message)
+        assertEquals(expected.message, actual.message)
         assertEquals(baseline.filterIsInstance<ExecutionResult.Success>().filter { it.outputKind == OutputKind.CONSOLE }.map { it.value },
             results.filterIsInstance<ExecutionResult.Success>().filter { it.outputKind == OutputKind.CONSOLE }.map { it.value })
     }

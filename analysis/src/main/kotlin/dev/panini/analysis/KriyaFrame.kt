@@ -18,6 +18,9 @@ data class KriyaHead(
     val analysis: TingantaAnalysis,
     val dhatu: Dhatu?,
 ) {
+    val nonfiniteDerivation: dev.panini.vyakaranam.ast.AvyayaKridantaDerivation?
+        get() = analysis.pada.priorAction
+    val isFinite: Boolean get() = nonfiniteDerivation == null
     /** Unknown morphological identities must not become a less-specific action. */
     val actionIdentity: dev.panini.core.ActionIdentity?
         get() {
@@ -36,7 +39,11 @@ sealed interface FrameKarakaResolution {
             require(candidates.size > 1) { "An ambiguous kāraka relation requires multiple candidates." }
         }
     }
-    data class Unassigned(val reason: String) : FrameKarakaResolution
+    data class Unassigned(
+        val reason: String,
+        /** Morphological hypotheses retained even though no saṃjñā rule resolved them. */
+        val candidates: Set<Karaka> = emptySet(),
+    ) : FrameKarakaResolution
 }
 
 data class KarakaRelation(
@@ -44,6 +51,14 @@ data class KarakaRelation(
     val participant: SubantaAnalysis,
     val resolution: FrameKarakaResolution,
     val evidence: List<KarakaEvidence> = emptyList(),
+    val alternatives: List<KarakaAlternative> = emptyList(),
+    val rejectedRules: List<RejectedKarakaRule> = emptyList(),
+    val resolvedVibhakti: dev.panini.core.Vibhakti? = null,
+    val nominalDesignations: List<NominalDesignationResult> = emptyList(),
+    val additionalDesignations: Set<KarakaDesignation> = emptySet(),
+    val unresolvedObjectMediators: Map<String, Set<Karaka>> = emptyMap(),
+    val primaryOptionalDecision: KarakaEvidence? = null,
+    val coexistingKarakas: Set<Karaka> = emptySet(),
 )
 
 enum class KriyaQualificationKind {
@@ -54,6 +69,10 @@ enum class KriyaQualificationKind {
     COURTESY,
     TEMPORAL_EXTENT,
     OTHER,
+    TIME,
+    PLACE,
+    DEGREE,
+    DISTRIBUTION,
 }
 
 data class KriyaQualification(
@@ -61,6 +80,11 @@ data class KriyaQualification(
     val source: PadaAnalysis,
     val kind: KriyaQualificationKind,
     val value: String,
+    val sourceIndex: Int? = null,
+    val semantics: AdverbialSemantics? = null,
+    val morphology: AdverbialMorphology = AdverbialMorphology.INDECLINABLE,
+    /** Nominal readings remain possible for adverbially used case forms. */
+    val competingNominalReading: Boolean = false,
 )
 
 sealed interface KriyaLink {
@@ -97,6 +121,11 @@ sealed interface KriyaLink {
         override val source: KriyaId,
         override val target: KriyaId,
         val participantSource: String,
+        val karaka: Karaka,
+        /** Frames in which this participant was morphologically explicit. */
+        val explicitIn: Set<KriyaId>,
+        /** Frames whose omitted participant is reconstructed by this link. */
+        val omittedIn: Set<KriyaId>,
     ) : KriyaLink
 
     /** Re-evaluation of a loop test, not grammatical prior-action attachment. */
@@ -110,12 +139,19 @@ sealed interface KriyaLink {
 }
 
 enum class FrameDiagnosticCode {
+    PRIOR_ACTION_STRUCTURE,
     UNKNOWN_DHATU,
     AMBIGUOUS_KARAKA,
     UNASSIGNED_PARTICIPANT,
     AGREEMENT_MISMATCH,
     UNCLASSIFIED_PADA,
     CONFLICTING_SHARED_AGENT,
+    OPTIONAL_KARAKA,
+    OPTIONAL_VIBHAKTI,
+    AMBIGUOUS_VIBHAKTI,
+    UNVALIDATED_VIBHAKTI,
+    COMPETING_KARAKA_ANALYSIS,
+    AMBIGUOUS_OBJECT_MEDIATION,
 }
 
 enum class FrameDiagnosticSeverity { INFO, WARNING, ERROR }
@@ -123,9 +159,16 @@ enum class FrameDiagnosticSeverity { INFO, WARNING, ERROR }
 /** Central policy for whether a grammatical diagnostic may reach execution planning. */
 object FrameDiagnosticPolicy {
     fun severity(code: FrameDiagnosticCode): FrameDiagnosticSeverity = when (code) {
-        FrameDiagnosticCode.UNKNOWN_DHATU -> FrameDiagnosticSeverity.ERROR
+        FrameDiagnosticCode.UNKNOWN_DHATU,
+        FrameDiagnosticCode.PRIOR_ACTION_STRUCTURE -> FrameDiagnosticSeverity.ERROR
         FrameDiagnosticCode.UNCLASSIFIED_PADA -> FrameDiagnosticSeverity.INFO
+        FrameDiagnosticCode.OPTIONAL_KARAKA,
+        FrameDiagnosticCode.OPTIONAL_VIBHAKTI -> FrameDiagnosticSeverity.INFO
         FrameDiagnosticCode.AMBIGUOUS_KARAKA,
+        FrameDiagnosticCode.AMBIGUOUS_VIBHAKTI,
+        FrameDiagnosticCode.UNVALIDATED_VIBHAKTI,
+        FrameDiagnosticCode.COMPETING_KARAKA_ANALYSIS,
+        FrameDiagnosticCode.AMBIGUOUS_OBJECT_MEDIATION,
         FrameDiagnosticCode.UNASSIGNED_PARTICIPANT,
         FrameDiagnosticCode.AGREEMENT_MISMATCH,
         FrameDiagnosticCode.CONFLICTING_SHARED_AGENT,
@@ -140,6 +183,8 @@ data class FrameDiagnostic(
     val code: FrameDiagnosticCode,
     val message: String,
     val sourceText: String? = null,
+    /** Flattened nominal occurrence, when the diagnostic concerns one participant. */
+    val nominalIndex: Int? = null,
 ) {
     val severity: FrameDiagnosticSeverity get() = FrameDiagnosticPolicy.severity(code)
 }
@@ -152,4 +197,15 @@ data class KriyaFrame(
     val relations: List<KarakaRelation>,
     val qualifications: List<KriyaQualification>,
     val diagnostics: List<FrameDiagnostic> = emptyList(),
+    val nominalRelations: NominalRelationAnalysis? = null,
+    val nominalCaseLinks: NominalCaseLinkAnalysis? = null,
+    val nominalKarakas: List<NominalKarakaRelation> = emptyList(),
+    val purposeKarakas: List<PurposeKarakaRelation> = emptyList(),
+    /** Original written clause when this is one action's grammatical projection. */
+    val sourceVakya: Vakya = vakya,
 )
+
+/** Relations to a nominal action, separate from the finite head's participants. */
+data class NominalKarakaRelation(val dependent: Int, val governor: Int, val relation: KarakaRelation)
+
+data class PurposeKarakaRelation(val dependent: Int, val governor: PurposeActionGovernor, val relation: KarakaRelation)

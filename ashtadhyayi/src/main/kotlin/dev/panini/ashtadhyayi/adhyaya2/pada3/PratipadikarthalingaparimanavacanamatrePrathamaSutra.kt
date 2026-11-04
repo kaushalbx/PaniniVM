@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.SemanticRelation
 
 /**
  * Sūtra 2.3.46 प्रातिपदिकार्थलिङ्गपरिमाणवचनमात्रे प्रथमा.
@@ -26,7 +27,10 @@ object PratipadikarthalingaparimanavacanamatrePrathamaSutra : Sutra<VibhaktiRule
     adhikara = emptySet(),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        (context.abhihita || context.karaka == Karaka.ANIRDHARITA) &&
+        context.karaka != Karaka.SAMBODHANA &&
+            SemanticRelation.DIRECT_ADDRESS !in context.participant?.semanticRelations.orEmpty() &&
+            (context.abhihita || (context.karaka == Karaka.ANIRDHARITA &&
+                SemanticRelation.BARE_NOMINAL_MEANING in context.participant?.semanticRelations.orEmpty())) &&
             Vibhakti.PRATHAMA in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

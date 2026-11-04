@@ -672,9 +672,7 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
-        if (tinganta.dhatu.mulaDhatu == "रम्" && tinganta.upasargas == listOf("वि") &&
-            tinganta.dhatu.sanadiPratyayas.isEmpty() && tinganta.lakara == dev.panini.core.Lakara.LOT &&
-            tinganta.ting.text == "सिप्") return "विरम"
+        if (NaturalScriptStop.matchesHead(tinganta)) return "विरम"
         if (tinganta.hasContradictoryActiveCausativeVikarana()) return tinganta.sourceText
         tinganta.priorAction?.let { derivation ->
             val source = (derivation.upasargas + derivation.dhatu.sourceText + derivation.pratyaya)

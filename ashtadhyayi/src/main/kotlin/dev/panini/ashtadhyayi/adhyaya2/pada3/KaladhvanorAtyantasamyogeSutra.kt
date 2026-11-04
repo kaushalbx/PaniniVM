@@ -23,11 +23,10 @@ object KaladhvanorAtyantasamyogeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     adhikara = setOf("2.3.1"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean {
-        val hasSpecificRelation = context.participant?.semanticRelations.orEmpty().any {
-            it !in setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.INDIFFERENT_OBJECT, SemanticRelation.MOTION_GOAL)
-        }
+        val relations = context.participant?.semanticRelations.orEmpty()
         return !context.abhihita &&
-            !hasSpecificRelation &&
+            SemanticRelation.CONTINUOUS_TIME_DISTANCE_EXTENT in relations &&
+            SemanticRelation.COMPLETION_LIMIT !in relations &&
             (context.karaka == Karaka.KARMAN || context.karaka == Karaka.ANIRDHARITA) &&
             Vibhakti.DVITIYA in context.morphologicalCandidates
     }

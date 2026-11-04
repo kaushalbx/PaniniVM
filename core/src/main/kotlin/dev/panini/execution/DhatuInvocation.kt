@@ -13,7 +13,11 @@ data class DhatuInvocation(
     val grammaticalFeatures: GrammaticalFeatures = GrammaticalFeatures(),
     val ambiguousBindings: List<AmbiguousKarakaBinding> = emptyList(),
     val karakaTrace: List<String> = emptyList(),
+    val nominalBindings: Map<NominalOperandRole, ExecutionExpression> = emptyMap(),
+    val copularPredicate: CopularPredicate? = null,
+    val historyParticipants: List<HistoryParticipant> = emptyList(),
 ) {
+    val operandExpressions: List<ExecutionExpression> get() = bindings.values.toList() + nominalBindings.values + historyParticipants.map { it.expression }
     init {
         require(id.isNotBlank()) { "A dhātu invocation requires an id." }
     }

@@ -247,13 +247,17 @@ internal sealed interface CompilerInstruction {
     data class CallParticipantGroup(val dhatuUpadesha: String,
         val features: dev.panini.execution.GrammaticalFeatures, val selectedOperation: String? = null,
         val otherBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
-        val actionIdentity: dev.panini.core.ActionIdentity? = null) : CompilerInstruction
+        val actionIdentity: dev.panini.core.ActionIdentity? = null,
+        val historyParticipants: List<dev.panini.execution.HistoryParticipant> = emptyList()) : CompilerInstruction
 
     data class LoadLocal(val name: String) : CompilerInstruction
 
     data class StoreLocal(val name: String) : CompilerInstruction
 
     data object LoadLastResult : CompilerInstruction
+
+    /** Freeze a participant before the action can mutate its structured value. */
+    data object SnapshotHistoryValue : CompilerInstruction
 
     data object Duplicate : CompilerInstruction
 
@@ -302,6 +306,8 @@ internal sealed interface CompilerInstruction {
         val operationName: String,
         val requiredSanadi: String,
         val bindings: Map<Karaka, ExecutionExpression>,
+        val nominalBindings: Map<dev.panini.execution.NominalOperandRole, ExecutionExpression> = emptyMap(),
+        val copularPredicate: dev.panini.execution.CopularPredicate? = null,
     ) : CompilerInstruction
 
     data class EnterFrame(
@@ -630,6 +636,8 @@ internal object CompilerIrLowering {
             operationName = plan.resolved.operation.name,
             requiredSanadi = plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
             bindings = plan.resolved.context.bindings,
+            nominalBindings = plan.resolved.context.nominalBindings,
+            copularPredicate = plan.resolved.context.copularPredicate,
         )
     }
 
@@ -674,7 +682,7 @@ internal object CompilerIrLowering {
         if (plan.resolved.operation.name == "न्यूनता") {
             val operator = copularOrderOperator(plan)
             val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
-            val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+            val standard = plan.resolved.context.nominalBindings[dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD]?.let(::lowerOperands)
             if (operator != null && subject?.size == 1 && standard?.size == 1) {
                 return subject.single() + standard.single() + CompilerInstruction.Compare(operator)
             }
@@ -699,7 +707,7 @@ internal object CompilerIrLowering {
     }
 
     private fun copularOrderOperator(plan: ExecutionPlan): ComparisonOperator? =
-        when (dev.panini.execution.CopularPredicate.from(plan.resolved.context.bindings[Karaka.KARMAN])) {
+        when (plan.resolved.context.copularPredicate) {
             dev.panini.execution.CopularPredicate.LESS_THAN -> ComparisonOperator.LESS_THAN
             dev.panini.execution.CopularPredicate.GREATER_THAN -> ComparisonOperator.GREATER_THAN
             else -> null
@@ -760,7 +768,7 @@ internal object CompilerIrLowering {
             operation == "न्यूनता" -> {
                 val operator = copularOrderOperator(plan) ?: return null
                 val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
-                val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+                val standard = plan.resolved.context.nominalBindings[dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD]?.let(::lowerOperands)
                 if (subject?.size != 1 || standard?.size != 1) return null
                 subject.single() + standard.single() + CompilerInstruction.Compare(operator)
             }
@@ -966,6 +974,12 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Store("LastResult"))
             destination?.let { add(CompilerInstruction.Store(it)) }
         }.also(CompilerIrVerifier::verify)
+    }
+
+    internal fun lowerHistoryOperands(expression: ExecutionExpression): List<List<CompilerInstruction>> = when (expression) {
+        is ExecutionExpression.Coordination -> expression.members.flatMap(::lowerHistoryOperands)
+        is ExecutionExpression.Reference -> listOf(listOf(CompilerInstruction.Load(expression.name)))
+        else -> lowerParticipantOperands(expression)
     }
 
     internal fun lowerParticipantOperands(expression: ExecutionExpression): List<List<CompilerInstruction>> = when (expression) {
@@ -1219,6 +1233,9 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.LoadActionParticipants -> before + ValueKind.UNKNOWN
             is CompilerInstruction.LoadOrdinalActionParticipants -> before + ValueKind.UNKNOWN
             is CompilerInstruction.CallParticipantGroup -> {
+                require(instruction.historyParticipants.all { it.projection != null && it.ambiguousIndex == null }) {
+                    "Compiled participant history requires resolved occurrence projections"
+                }
                 require(instruction.dhatuUpadesha.isNotBlank()) { "Participant-group calls require canonical dhātu identity" }
                 require(instruction.otherBindings.keys.none { it == Karaka.KARMAN || it == Karaka.ANIRDHARITA }) {
                     "Participant-group auxiliary bindings must not replace its object group"
@@ -1388,6 +1405,7 @@ internal object CompilerIrVerifier {
                     else -> ValueKind.LIST
                 }
             }
+            CompilerInstruction.SnapshotHistoryValue -> { pop(); before }
             is CompilerInstruction.Store, is CompilerInstruction.StoreLocal,
             is CompilerInstruction.RecordActionResult -> pop().first
             is CompilerInstruction.RecordActionFrame -> {

@@ -18,7 +18,7 @@ import dev.panini.analysis.VibhaktiRuleResult
  */
 object PratinidhiPratidaneCaYasmatSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.11", text = "प्रतिनिधिप्रतिदाने च यस्मात्",
-    hindiExplanation = "प्रतिनिधि तथा प्रतिदान अर्थ में जिससे प्रति/अभि का योग हो, उसमें पञ्चमी होती है।",
+    hindiExplanation = "प्रतिनिधि तथा प्रतिदान के मूल सन्दर्भ से कर्मप्रवचनीय प्रति के योग में पञ्चमी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230011,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
@@ -27,7 +27,16 @@ object PratinidhiPratidaneCaYasmatSutra : Sutra<VibhaktiRuleContext, VibhaktiRul
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             SemanticRelation.REPRESENTATIVE_EXCHANGE in context.participant?.semanticRelations.orEmpty() &&
+            hasReferenceConstruction(context) &&
             Vibhakti.PANCHAMI in context.morphologicalCandidates
+
+    fun hasReferenceConstruction(context: VibhaktiRuleContext): Boolean {
+        val relations = context.participant?.semanticRelations.orEmpty()
+        return SemanticRelation.REPRESENTATIVE_EXCHANGE in relations &&
+            SemanticRelation.REPRESENTATIVE_EXCHANGE_REFERENCE in relations &&
+            SemanticRelation.KARMAPRAVACANIYA_GOVERNANCE in relations &&
+            SemanticRelation.PRATI_KARMAPRAVACANIYA_LINK in relations
+    }
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.PANCHAMI,

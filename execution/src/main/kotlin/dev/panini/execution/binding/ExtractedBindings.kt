@@ -16,4 +16,7 @@ internal data class ExtractedBindings(
     val bindings: Map<Karaka, ExecutionExpression>,
     val ambiguous: List<AmbiguousKarakaBinding>,
     val trace: List<String>,
+    val nominalBindings: Map<dev.panini.execution.NominalOperandRole, ExecutionExpression> = emptyMap(),
+    val copularPredicate: dev.panini.execution.CopularPredicate? = null,
+    val historyParticipants: List<dev.panini.execution.HistoryParticipant> = emptyList(),
 )

@@ -12,18 +12,22 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.isSelectedInstrument
+import dev.panini.analysis.CoexistentKarakaRuleOutcome
 
 object DivahKarmaCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.43", text = "दिवः कर्म च",
     hindiExplanation = "दिव् धातु के साधकतम (करण) कारक की कर्म संज्ञा भी होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = true, kramaValue = 140043,
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140043,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
-) {
+    anuvrtti = setOf("1.4.42"),
+), CoexistentKarakaRuleOutcome {
+    override val coexistingKarakas = setOf(Karaka.KARMAN, Karaka.KARANA)
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isDiv = KarakaDhatuDomains.isDiv(context.dhatu)
-        return isDiv && SemanticRelation.INSTRUMENT in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
+        val isDiv = KarakaDhatuDomains.isDiv(context)
+        return isDiv && context.participant.isSelectedInstrument()
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
@@ -31,7 +35,8 @@ object DivahKarmaCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         KarakaEvidence(
             number,
             text,
-            "The instrument of root div is optionally designated as karma."
+            "The most effective instrument of div bears both karman and karaṇa designations (ca)."
         ),
+        coexistingKarakas = coexistingKarakas,
     )
 }

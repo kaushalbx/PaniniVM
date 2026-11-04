@@ -83,11 +83,9 @@ class CopularReferencePlanningTest {
                 "शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertIs<ExecutionResult.Failure>(results.last(), results.toString())
-            val generated = BytecodeCompiler.compileAndLoad(source, "DerivedPredicate")
-            val failure = assertFailsWith<java.lang.reflect.InvocationTargetException> {
-                generated.getMethod("execute").invoke(null)
+            assertFailsWith<IllegalArgumentException> {
+                BytecodeCompiler.compileAndLoad(source, "DerivedPredicate")
             }
-            assertIs<CompiledPaniniExecutionException>(failure.cause)
         }
     }
 

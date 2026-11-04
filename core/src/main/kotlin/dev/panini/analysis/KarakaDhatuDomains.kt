@@ -12,73 +12,329 @@ import java.util.concurrent.ConcurrentHashMap
  * search Devanāgarī text.
  */
 object KarakaDhatuDomains {
+    /** The action being analyzed may belong to a nominal, rather than the enclosing verb. */
+    fun actionRoot(context: KarakaRuleContext): String? = context.governingKrt?.dhatu?.mulaDhatu
+        ?: (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada)?.dhatu?.mulaDhatu
+
+    fun actionPrefixes(context: KarakaRuleContext): List<String>? = context.governingKrt?.upasargas
+        ?: (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada)?.upasargas
+
+    fun governingRoot(context: VibhaktiRuleContext): DhatuIdentity? {
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return context.dhatu
+        if (verb.upasargaIdentities.any { it == null }) return null
+        return DhatuIdentity(verb.dhatu.mulaDhatu)
+    }
+
+    fun isJna(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("ज्ञा") == true
+
+    fun isRemembering(context: VibhaktiRuleContext): Boolean {
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+        val root = governingRoot(context) ?: return false
+        if (root.exact("स्मृ", "स्मर्")) return true
+        if (verb == null) return root.exact("अधी")
+        return root.exact("इ", "इक्") && verb.upasargaIdentities == listOf(dev.panini.core.Upasarga.ADHI)
+    }
+
+    fun isDay(dhatu: DhatuIdentity): Boolean = dhatu.exact("दय्", "दय")
+    fun isIsh(dhatu: DhatuIdentity): Boolean = dhatu.exact("ईश्", "ईश")
+
+    fun isKr(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("कृ", "कृञ्") == true
+    fun isNath(context: VibhaktiRuleContext): Boolean =
+        governingRoot(context)?.exact("नाथ्", "नाथ", "नाध्", "नाध") == true
+
+    fun isVyavahrOrPan(context: VibhaktiRuleContext): Boolean {
+        val root = governingRoot(context) ?: return false
+        if (root.exact("पण्", "पण")) return true
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+            ?: return root.exact("व्यवहृ")
+        return root.exact("हृ") && verb.upasargaIdentities ==
+            listOf(dev.panini.core.Upasarga.VI, dev.panini.core.Upasarga.AVA)
+    }
+
+    fun isPrefixedDiv(context: VibhaktiRuleContext): Boolean {
+        val root = governingRoot(context) ?: return false
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        return root.exact("दिव्", "दिव", "दीव्") && verb.upasargaIdentities.isNotEmpty()
+    }
+
+    fun isDivTransactionRoot(context: VibhaktiRuleContext): Boolean =
+        governingRoot(context)?.exact("दिव्", "दिव", "दीव्") == true
+    fun isYaj(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("यज्", "यज") == true
+
+    fun isPresyaOrBruhi(context: VibhaktiRuleContext): Boolean {
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        val root = governingRoot(context) ?: return false
+        if (verb.lakara != dev.panini.core.Lakara.LOT ||
+            verb.ting.affix != dev.panini.core.TingAffix.SIP ||
+            verb.dhatu.sanadiPratyayas.isNotEmpty() || verb.vikarana == dev.panini.vyakaranam.ast.Vikarana.YAK) return false
+        if (root.exact("ब्रू")) return true
+        val lexical = context.baseDhatu ?: return false
+        return root.exact("इष्", "इष") && verb.upasargaIdentities == listOf(dev.panini.core.Upasarga.PRA) &&
+            lexical.gana == dev.panini.core.DhatuGana.DIVADI && DhatuIdentity(lexical.sourceSurface).exact("इष्", "इष")
+    }
+
+    fun isSpecifiedInjuryVerb(context: VibhaktiRuleContext): Boolean {
+        val root = governingRoot(context) ?: return false
+        if (root.exact("जस्", "जस")) {
+            val lexical = context.baseDhatu ?: return false
+            return lexical.gana == dev.panini.core.DhatuGana.CURADI &&
+                DhatuIdentity(lexical.sourceSurface).exact("जस्", "जस")
+        }
+        if (root.exact("नट्", "नट", "क्रथ्", "क्रथ", "पिष्", "पिष")) return true
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+        if (verb == null) return root.exact("निप्रहन्", "प्रणिहन्", "निहन्", "प्रहन्")
+        if (!root.exact("हन्", "हन")) return false
+        val ni = dev.panini.core.Upasarga.NI
+        val pra = dev.panini.core.Upasarga.PRA
+        return verb.upasargaIdentities in listOf(listOf(ni), listOf(pra), listOf(ni, pra), listOf(pra, ni))
+    }
+
+    fun isExcludedDiseaseVerb(context: VibhaktiRuleContext): Boolean {
+        val root = governingRoot(context) ?: return false
+        if (root.exact("ज्वर्", "ज्वर", "सन्तप्", "संतप्", "सन्ताप्", "संताप्")) return true
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+        return root.exact("तप्", "तप") && dev.panini.core.Upasarga.SAM in verb?.upasargaIdentities.orEmpty()
+    }
+
+    /** Verified lexical slice of the open rujārtha class; sense still requires independent evidence. */
+    fun isDiseasePainVerb(context: VibhaktiRuleContext): Boolean =
+        !isExcludedDiseaseVerb(context) && governingRoot(context)?.exact("रुज्", "रुज", "अम्", "अम") == true
+
+    /** Causation is independent of active/passive voice; yak does not erase ṇic. */
+    fun isCausativeConstruction(context: KarakaRuleContext): Boolean =
+        context.governingKrt?.let { dev.panini.core.SanadiAffix.NIC in it.dhatu.sanadiAffixes } ?: (
+        context.prayoga == dev.panini.core.Prayoga.CAUSATIVE ||
+            (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada)?.dhatu?.sanadiAffixes
+                ?.contains(dev.panini.core.SanadiAffix.NIC) == true)
+
     private val forms = ConcurrentHashMap<String, List<Varna>>()
 
     private fun form(value: String): List<Varna> = forms.computeIfAbsent(value) { it.toVarnas() }
-    private fun List<Varna>.startsWith(prefix: List<Varna>): Boolean =
-        size >= prefix.size && subList(0, prefix.size) == prefix
-    private fun List<Varna>.endsWith(suffix: List<Varna>): Boolean =
-        size >= suffix.size && subList(size - suffix.size, size) == suffix
-    private fun List<Varna>.contains(sequence: List<Varna>): Boolean =
-        sequence.isEmpty() || indices.any { start ->
-            start + sequence.size <= size && subList(start, start + sequence.size) == sequence
-        }
 
     private fun DhatuIdentity.exact(vararg values: String): Boolean = values.any { varnas == form(it) }
-    private fun DhatuIdentity.starts(vararg values: String): Boolean = values.any { varnas.startsWith(form(it)) }
-    private fun DhatuIdentity.ends(vararg values: String): Boolean = values.any { varnas.endsWith(form(it)) }
-    private fun DhatuIdentity.containsAny(vararg values: String): Boolean = values.any { varnas.contains(form(it)) }
-    private fun DhatuIdentity.overlaps(vararg values: String): Boolean = values.any {
-        val candidate = form(it)
-        varnas.contains(candidate) || candidate.contains(varnas)
+
+    fun isAbhinivish(context: KarakaRuleContext): Boolean {
+        context.governingKrt?.let { governor ->
+            return governor.upasargaIdentities.none { it == null } &&
+                governor.dhatu.mulaDhatu in setOf("विश्", "विश") &&
+                governor.upasargaIdentities.takeLast(2) == listOf(dev.panini.core.Upasarga.ABHI, dev.panini.core.Upasarga.NI)
+        }
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+            ?: return false
+        if (verb.upasargaIdentities.any { it == null }) return false
+        return verb.dhatu.mulaDhatu in setOf("विश्", "विश") &&
+            verb.upasargaIdentities.takeLast(2) == listOf(dev.panini.core.Upasarga.ABHI, dev.panini.core.Upasarga.NI)
     }
 
-    fun isAbhinivish(dhatu: DhatuIdentity): Boolean = dhatu.starts("अभिनिविश")
+    fun isExcludedAdhikaranaLocus(context: KarakaRuleContext): Boolean {
+        if (isAbhinivishLocativeUsage(context)) return false
+        val rawPrefixes = actionPrefixes(context).orEmpty()
+        val prefixes = rawPrefixes.map(dev.panini.core.Upasarga::fromUpadesha)
+        if (prefixes.any { it == null }) return true
+        val root = actionRoot(context)
+        if (isFastingVas(context)) return false
+        return isAbhinivish(context) ||
+            (dev.panini.core.Upasarga.ADHI in prefixes && root in setOf("शी", "शीङ्", "स्था", "आस्", "आस")) ||
+            (isResidenceVas(context) && prefixes.any { it in setOf(
+                dev.panini.core.Upasarga.UPA, dev.panini.core.Upasarga.ANU,
+                dev.panini.core.Upasarga.ADHI, dev.panini.core.Upasarga.ANG,
+            ) }) || (isResidenceVas(context) && "आ" in rawPrefixes)
+    }
 
-    fun isExcludedAdhikaranaLocus(dhatu: DhatuIdentity): Boolean =
-        dhatu.exact("अधिशी", "अधिस्था", "अधिआस्", "अधिशे", "अधितिष्ठ्", "अध्यास्", "उपवस्", "अनुवस्", "अधिवस्", "आवस्") ||
-            dhatu.starts("अधिशे", "अधितिष्ठ", "अध्यास्", "उपवस", "अनुवस", "अधिवस", "आवस", "अभिनिविश")
+    fun isAbhinivishLocativeUsage(context: KarakaRuleContext): Boolean =
+        isAbhinivish(context) && context.participant.meaningEvidenceStrength(SemanticRelation.ABHINIVESH_LOCATIVE_USAGE) >= 2
 
-    fun isDvikarmaka(dhatu: DhatuIdentity): Boolean = dhatu.overlaps(
-        "दुह्", "याच्", "रुध्", "प्रच्छ्", "चि", "ब्रू", "शास्", "जि", "मन्थ्", "मुष्", "नी", "हृ", "कृष्", "वह्",
-        "दोह्", "रोध्", "चे", "जे", "मोष्", "ने", "हार", "कर्ष", "वाह",
+    /** Śap in vasati selects bhvādi nivāsa, not adādi ācchādana. */
+    fun isResidenceVas(context: KarakaRuleContext): Boolean {
+        return actionRoot(context) in setOf("वस", "वस्") &&
+            (context.baseDhatu == null || context.baseDhatu.gana == dev.panini.core.DhatuGana.BHVADI)
+    }
+
+    fun isFastingVas(context: KarakaRuleContext): Boolean {
+        return actionRoot(context) in setOf("वस", "वस्") &&
+            (context.participant.meaningEvidenceStrength(SemanticRelation.FASTING_SENSE) >= 2 ||
+                SemanticRelation.FASTING_SENSE in context.baseDhatu?.semanticRelations.orEmpty())
+    }
+
+    fun isDvikarmaka(dhatu: DhatuIdentity): Boolean = dhatu.exact(
+        "दुह्", "याच्", "रुध्", "प्रच्छ्", "भिक्ष्", "चि", "ब्रू", "शास्", "जि", "मन्थ्", "मथ्", "मुष्", "नी", "हृ", "कृष्", "वह्", "पच्", "दण्ड्",
     )
 
-    fun isLearning(dhatu: DhatuIdentity): Boolean = dhatu.exact("अधी", "पठ") || dhatu.starts("अधी", "पठ")
-    fun isHiding(dhatu: DhatuIdentity): Boolean = dhatu.exact("निली", "तिरोभू") || dhatu.starts("निली", "तिरोभ")
+    fun isDvikarmaka(context: KarakaRuleContext): Boolean {
+        return isDvikarmaka(actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu)
+    }
+
+    fun isHiding(dhatu: DhatuIdentity): Boolean = dhatu.exact("निली", "तिरोभू")
+
+    fun isHiding(context: KarakaRuleContext): Boolean {
+        if (context.participant.hasEstablishedMeaning(SemanticRelation.SELF_CONCEALMENT)) return true
+        val prefixes = actionPrefixes(context) ?: return isHiding(context.dhatu)
+        if (prefixes.any { dev.panini.core.Upasarga.fromUpadesha(it) == null }) return false
+        if (actionRoot(context)?.let { isHiding(DhatuIdentity(it)) } == true) return true
+        return actionRoot(context) in setOf("ली", "लीङ्") &&
+            dev.panini.core.Upasarga.NI in prefixes.map(dev.panini.core.Upasarga::fromUpadesha)
+    }
     fun isFearOrProtection(dhatu: DhatuIdentity): Boolean =
-        dhatu.exact("भी", "बिभ", "त्रा", "त्राय") || dhatu.starts("बिभे", "त्राय")
+        dhatu.exact("भी", "बिभ", "बिभेति", "बिभ्यति", "बिभ्यात्", "भीति", "त्रा", "त्राय", "त्रायते", "त्रै", "रक्ष्", "रक्ष", "उद्विज्", "उद्विज")
     fun isOriginBhu(dhatu: DhatuIdentity): Boolean =
-        dhatu.exact("भू", "भव्", "प्रभू", "प्रभव्") || dhatu.starts("भव", "प्रभव")
-    fun isBirth(dhatu: DhatuIdentity): Boolean = dhatu.exact("जन्", "जाय्", "जायते") || dhatu.starts("जन")
-    fun isParaji(dhatu: DhatuIdentity): Boolean = dhatu.exact("पराजि", "पराजय") || dhatu.starts("पराजय")
-    fun isVarana(dhatu: DhatuIdentity): Boolean = dhatu.exact("वृ", "वारय") || dhatu.starts("वारय")
+        dhatu.exact("भू", "भव्", "भव", "प्रभू", "प्रभव्", "प्रभव")
+    fun isBirth(dhatu: DhatuIdentity): Boolean = dhatu.exact("जन्", "जन", "जाय", "जाय्", "जायते")
+    fun isParaji(dhatu: DhatuIdentity): Boolean = dhatu.exact("पराजि", "पराजय", "पराजयते")
 
-    fun isExcludedGeneralApadana(dhatu: DhatuIdentity): Boolean =
-        isOriginBhu(dhatu) || isBirth(dhatu) || isFearOrProtection(dhatu) || isParaji(dhatu) ||
-            isLearning(dhatu) || isVarana(dhatu) || isHiding(dhatu)
+    fun isParaji(context: KarakaRuleContext): Boolean {
+        context.governingKrt?.let { governor ->
+            return governor.upasargaIdentities.none { it == null } &&
+                dev.panini.core.Upasarga.PARA in governor.upasargaIdentities &&
+                governor.dhatu.mulaDhatu in setOf("जि", "जि॒")
+        }
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+            ?: return isParaji(context.dhatu)
+        return verb.upasargaIdentities.none { it == null } &&
+            dev.panini.core.Upasarga.PARA in verb.upasargaIdentities &&
+            verb.dhatu.mulaDhatu in setOf("जि", "जि॒")
+    }
+    fun isVarana(dhatu: DhatuIdentity): Boolean = dhatu.exact("वृ", "वारय")
 
-    fun isDiv(dhatu: DhatuIdentity): Boolean = dhatu.exact("दिव", "दीव्") || dhatu.starts("दीव्य")
-    fun isDhari(dhatu: DhatuIdentity): Boolean = dhatu.exact("धृ", "धारय") || dhatu.starts("धारय")
-    fun isHrKr(dhatu: DhatuIdentity): Boolean = dhatu.overlaps("हृ", "कृ", "हार", "कार", "हर", "कर")
+    fun isVarana(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context) ?: return isVarana(context.dhatu)
+        val prefixes = actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha)
+        if (prefixes.any { it == null }) return false
+        if (isVarana(DhatuIdentity(root))) return true
+        return root in setOf("वृत्", "वृत") && dev.panini.core.Upasarga.NI in prefixes &&
+            isCausativeConstruction(context)
+    }
+
+    fun isDiv(dhatu: DhatuIdentity): Boolean = dhatu.exact("दिव्", "दिव", "दीव्")
+    fun isDiv(context: KarakaRuleContext): Boolean =
+        isDiv(actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu)
+    fun isDhari(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return root.exact("धृ") && isCausativeConstruction(context)
+    }
+    fun isHrKr(context: KarakaRuleContext): Boolean =
+        (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu).exact("हृ", "कृ")
+
+    fun isCausativeObjectDomain(context: KarakaRuleContext): Boolean {
+        if (SemanticRelation.PRIOR_CAUSATIVE_AGENT in context.participant.semanticRelations) return false
+        val verb = (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada).takeIf { context.governingKrt == null }
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        if (isAbhivadSalutation(context)) return false
+        if (root.exact("दृश्", "दृश")) return verb != null &&
+            verb.upasargaIdentities.none { it == null } &&
+            verb.ting.affix?.pada == dev.panini.core.PadaType.PARASMAIPADA
+        // Kāśikā's nī and adi/khādi prohibitions override general semantic classes.
+        if (root.exact("नी", "अद्", "अद", "खाद्", "खाद")) return false
+        if (root.exact("वह्", "वह")) {
+            val construction = context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty()
+            return SemanticRelation.VAH_NIYANTR_KARTRKA in construction &&
+                SemanticRelation.VAH_ANIYANTR_KARTRKA !in construction
+        }
+        if (root.exact("भक्ष्", "भक्ष")) {
+            val senses = context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty()
+            return SemanticRelation.BHAKS_INJURIOUS_SENSE in senses &&
+                SemanticRelation.BHAKS_NONINJURIOUS_SENSE !in senses
+        }
+        if (context.baseDhatu?.karmatva == dev.panini.shiksha.Karmatva.AKARMAKA) return true
+        val classes = context.baseDhatu?.semanticRelations.orEmpty()
+        if (classes.any { it in setOf(SemanticRelation.MOTION, SemanticRelation.COGNITION,
+                SemanticRelation.CONSUMPTION, SemanticRelation.WORD_AS_OBJECT) }) return true
+        return root.exact("गम्", "ज्ञा", "बुध्", "पठ्", "पठ", "अधी")
+    }
+
+    fun isAbhivadSalutation(context: KarakaRuleContext): Boolean {
+        val prefixes = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha) ?: return false
+        return actionRoot(context) in setOf("वद्", "वद") &&
+            prefixes.none { it == null } && dev.panini.core.Upasarga.ABHI in prefixes &&
+            SemanticRelation.ABHIVAD_SALUTATION_SENSE in
+                (context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty())
+    }
+
+    fun isAtmanepadaOptionalCauseeExtension(context: KarakaRuleContext): Boolean {
+        if (context.governingKrt != null) return false
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        // Passive endings alone do not establish the underlying causative's lexical pada.
+        if (verb.vikarana == dev.panini.vyakaranam.ast.Vikarana.YAK) return false
+        return verb.ting.affix?.pada == dev.panini.core.PadaType.ATMANEPADA &&
+            verb.upasargaIdentities.none { it == null } &&
+            (verb.dhatu.mulaDhatu in setOf("दृश्", "दृश") || isAbhivadSalutation(context))
+    }
     fun isJugupsaViramaPramada(dhatu: DhatuIdentity): Boolean =
-        dhatu.overlaps("जुगुप्स्", "रम्", "मद्", "जुगुप्सते", "विराम", "प्रमाद्यति")
+        dhatu.exact("जुगुप्स्", "जुगुप्स", "जुगुप्सते", "विरम्", "विरम", "विराम", "प्रमद्", "प्रमद", "प्रमाद्यति")
 
-    fun isAnger(dhatu: DhatuIdentity): Boolean =
-        dhatu.containsAny("क्रुध्", "क्रुध", "द्रुह्", "द्रुह") ||
-            dhatu.exact("ईर्ष्या", "असूया") || dhatu.starts("ईर्ष्य", "असूय")
-    fun hasAngerUpasarga(dhatu: DhatuIdentity): Boolean = dhatu.starts("अभि", "प्र", "प्रति", "अनु")
-    fun isPrefixedKrudhDruh(dhatu: DhatuIdentity): Boolean = hasAngerUpasarga(dhatu) &&
-        (dhatu.ends("क्रुध्", "द्रुह्", "क्रुध", "द्रुह") || dhatu.containsAny("क्रुध्य", "द्रुह्य"))
+    fun isJugupsaViramaPramada(context: KarakaRuleContext): Boolean {
+        val verb = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+            ?: return isJugupsaViramaPramada(context.dhatu)
+        val prefixes = verb.upasargaIdentities
+        if (prefixes.any { it == null }) return false
+        val root = verb.dhatu.mulaDhatu
+        return root in setOf("जुगुप्स्", "जुगुप्स") ||
+            (root in setOf("रम्", "रम") && dev.panini.core.Upasarga.VI in prefixes) ||
+            (root in setOf("मद्", "मद") && dev.panini.core.Upasarga.PRA in prefixes)
+    }
 
-    fun isRuc(dhatu: DhatuIdentity): Boolean = dhatu.exact("रुच", "रोच") || dhatu.starts("रोच")
-    fun isSprha(dhatu: DhatuIdentity): Boolean = dhatu.exact("स्पृह", "स्पृहय्") || dhatu.starts("स्पृह")
-    fun isShlaghHnuSthaShap(dhatu: DhatuIdentity): Boolean =
-        dhatu.exact("श्लाघ", "ह्नु", "स्था", "शप") || dhatu.starts("श्लाघ", "ह्नु", "तिष्ठ", "शप")
-    fun isParikrayana(dhatu: DhatuIdentity): Boolean = dhatu.exact("परिक्री", "क्री") || dhatu.starts("परिक्री", "क्री")
+    private val krudhDruhForms = arrayOf("क्रुध्", "क्रुध", "द्रुह्", "द्रुह", "क्रुध्य", "द्रुह्य")
+    private fun isAngerRoot(dhatu: DhatuIdentity): Boolean = dhatu.exact(*krudhDruhForms) ||
+        dhatu.exact("ईर्ष्या", "ईर्ष्य", "ईर्ष्य्", "असूया", "असूय", "असूय्")
+    private fun isComposedKrudhDruh(dhatu: DhatuIdentity): Boolean =
+        dev.panini.core.Upasarga.entries.any { prefix -> krudhDruhForms.any { root ->
+            dhatu.varnas == form(prefix.upadesha) + form(root)
+        } }
 
-    fun isExcludedGeneralSampradana(dhatu: DhatuIdentity): Boolean =
-        isAnger(dhatu) || isRuc(dhatu) || isSprha(dhatu) || isDhari(dhatu) || isShlaghHnuSthaShap(dhatu) ||
-            dhatu.exact("प्रतिश्रु", "आश्रु", "अनुगृ", "प्रतिगृ") ||
-            dhatu.starts("प्रतिशृ", "आशृ", "अनुगृ", "प्रतिगृ")
+    fun isAnger(context: KarakaRuleContext): Boolean = actionRoot(context)?.let {
+        isAngerRoot(DhatuIdentity(it))
+    } ?: (isAngerRoot(context.dhatu) || isComposedKrudhDruh(context.dhatu))
+
+    /** A supplied AST is authoritative; unknown prefixes must not fall back to spelling guesses. */
+    fun hasAngerUpasarga(context: KarakaRuleContext): Boolean? {
+        val prefixes = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha)
+            ?: return isComposedKrudhDruh(context.dhatu)
+        if (prefixes.any { it == null }) return null
+        return prefixes.isNotEmpty()
+    }
+
+    fun isPrefixedKrudhDruh(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: return isComposedKrudhDruh(context.dhatu)
+        return hasAngerUpasarga(context) == true &&
+            root.exact(*krudhDruhForms)
+    }
+
+    fun isRuc(context: KarakaRuleContext): Boolean =
+        (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu).exact("रुच्", "रुच", "रोच", "स्वद्", "स्वद")
+    fun isDestinyInquiry(context: KarakaRuleContext): Boolean {
+        if (actionPrefixes(context)?.any { dev.panini.core.Upasarga.fromUpadesha(it) == null } == true) return false
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return root.exact("राध्", "राध", "ईक्ष्", "ईक्ष")
+    }
+
+    /** The written action, including a linked kṛt, owns both root and prefixes. */
+    private fun hasPriorRecipientPrefix(context: KarakaRuleContext, vararg prefixes: dev.panini.core.Upasarga): Boolean {
+        val actual = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha) ?: return false
+        return actual.none { it == null } && actual.any { it in prefixes }
+    }
+
+    fun isPromiseShru(context: KarakaRuleContext): Boolean =
+        actionRoot(context)?.let { DhatuIdentity(it).exact("श्रु", "श्रुँ") } == true &&
+            hasPriorRecipientPrefix(context, dev.panini.core.Upasarga.PRATI, dev.panini.core.Upasarga.ANG) &&
+            (context.baseDhatu == null || DhatuIdentity(context.baseDhatu.sourceSurface).exact("श्रु", "श्रुँ"))
+
+    fun isEncouragementGri(context: KarakaRuleContext): Boolean =
+        actionRoot(context)?.let { DhatuIdentity(it).exact("गृ", "गॄ") } == true &&
+            hasPriorRecipientPrefix(context, dev.panini.core.Upasarga.ANU, dev.panini.core.Upasarga.PRATI) &&
+            context.baseDhatu?.gana == dev.panini.core.DhatuGana.KRYADI &&
+            DhatuIdentity(context.baseDhatu.sourceSurface).exact("गृ", "गॄ")
+
+    /** An unproved prior-action reading cannot be replaced by generic recipient intent. */
+    fun isPriorActionRecipientDomain(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: return false
+        return (root.exact("श्रु", "श्रुँ") &&
+            hasPriorRecipientPrefix(context, dev.panini.core.Upasarga.PRATI, dev.panini.core.Upasarga.ANG)) ||
+            (root.exact("गृ", "गॄ") &&
+                hasPriorRecipientPrefix(context, dev.panini.core.Upasarga.ANU, dev.panini.core.Upasarga.PRATI))
+    }
+    fun isSprha(context: KarakaRuleContext): Boolean =
+        (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu).exact("स्पृह", "स्पृह्", "स्पृहय्", "स्पृहय")
+    fun isShlaghHnuSthaShap(context: KarakaRuleContext): Boolean =
+        (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu)
+            .exact("श्लाघ", "श्लाघ्", "ह्नु", "स्था", "तिष्ठ", "शप", "शप्")
+
 }

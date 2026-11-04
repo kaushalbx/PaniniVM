@@ -109,7 +109,13 @@ object SanskritGranthaSourceCompiler {
                 invocation.copy(
                     id = localIds.getValue(invocation.id),
                     bindings = rewrittenBindings,
+                    nominalBindings = invocation.nominalBindings.mapValues { (_, expression) ->
+                        expression.rewriteReferences(referenceIds)
+                    },
                     ambiguousBindings = invocation.ambiguousBindings.map {
+                        it.copy(expression = it.expression.rewriteReferences(referenceIds))
+                    },
+                    historyParticipants = invocation.historyParticipants.map {
                         it.copy(expression = it.expression.rewriteReferences(referenceIds))
                     },
                 )
@@ -119,7 +125,7 @@ object SanskritGranthaSourceCompiler {
                     add(ActionDependency(localIds.getValue(it.before), localIds.getValue(it.after)))
                 }
                 globalInvocations.forEach { invocation ->
-                    invocation.bindings.values.flatMap { it.references() }
+                    invocation.operandExpressions.flatMap { it.references() }
                         .filter { it in knownIds }
                         .forEach { add(ActionDependency(it, invocation.id)) }
                 }

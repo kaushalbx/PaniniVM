@@ -2,17 +2,22 @@ package dev.panini.dhatupatha
 
 import dev.panini.actions.comparison.CopularOrderAction
 import dev.panini.actions.comparison.CopularEqualityAction
+import dev.panini.actions.collection.ListContainsAction
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.adadi.AsDhatu
 import dev.panini.execution.OperationValueType
+import dev.panini.execution.NominalOperandRole
 import dev.panini.execution.SanskritValue
 import kotlin.test.*
 
 class CopularOrderContractTest {
     @Test fun `equality signature requires one participant per role without restricting payload structure`() {
         val signature = AsDhatu().operations.single { it.action == CopularEqualityAction }.signature
-        assertEquals(setOf(Karaka.KARTR, Karaka.KARANA, Karaka.KARMAN),
+        assertEquals(setOf(Karaka.KARTR),
             signature.requirements.map { it.karaka }.toSet())
+        val standard = signature.nominalRequirements.single()
+        assertEquals(NominalOperandRole.COMPARISON_STANDARD, standard.role)
+        assertNull(standard.valueType)
         for (requirement in signature.requirements) {
             assertEquals(1, requirement.minimumMembers)
             assertEquals(1, requirement.maximumMembers)
@@ -20,29 +25,32 @@ class CopularOrderContractTest {
         }
     }
 
-    @Test fun `legacy membership cannot consume comparison or locative frames`() {
-        val legacy = AsDhatu().operations.single {
-            it.signature.requirements.map { requirement -> requirement.karaka } == listOf(Karaka.KARMAN)
-        }
-        assertEquals(setOf(Karaka.KARTR, Karaka.APADANA, Karaka.ADHIKARANA),
-            legacy.signature.forbiddenKarakas)
+    @Test fun `membership requires an entity and collection locus without a legacy object alias`() {
+        val signature = AsDhatu().operations.single { it.action == ListContainsAction }.signature
+        assertEquals(setOf(Karaka.KARTR, Karaka.ADHIKARANA), signature.requirements.map { it.karaka }.toSet())
+        assertTrue(signature.nominalRequirements.isEmpty())
+        assertEquals(OperationValueType.COLLECTION,
+            signature.requirements.single { it.karaka == Karaka.ADHIKARANA }.valueType)
         assertFailsWith<IllegalArgumentException> {
-            dev.panini.execution.OperationSignature(legacy.signature.requirements,
-                forbiddenKarakas = setOf(Karaka.KARMAN))
+            dev.panini.execution.OperationSignature(signature.requirements,
+                forbiddenKarakas = setOf(Karaka.KARTR))
         }
     }
 
     @Test fun `ordering requires one scalar subject and one scalar standard`() {
         val operation = AsDhatu().operations.single { it.action == CopularOrderAction }
-        for (role in listOf(Karaka.KARTR, Karaka.APADANA)) {
-            val requirement = operation.signature.requirements.single { it.karaka == role }
-            assertEquals(1, requirement.minimumMembers)
-            assertEquals(1, requirement.maximumMembers)
-            assertEquals(OperationValueType.NUMBER, requirement.valueType)
+        val requirement = operation.signature.requirements.single()
+        assertEquals(Karaka.KARTR, requirement.karaka)
+        assertEquals(1, requirement.minimumMembers)
+        assertEquals(1, requirement.maximumMembers)
+        val standard = operation.signature.nominalRequirements.single()
+        assertEquals(NominalOperandRole.COMPARISON_STANDARD, standard.role)
+        for (type in listOf(requirement.valueType, standard.valueType)) {
+            assertEquals(OperationValueType.NUMBER, type)
             val number = SanskritValue.Sankhya(1L, "एक")
-            assertTrue(requirement.valueType!!.accepts(number))
-            assertFalse(requirement.valueType!!.accepts(SanskritValue.Suchi(listOf(number))))
-            assertFalse(requirement.valueType!!.accepts(SanskritValue.Gana(listOf(number))))
+            assertTrue(type!!.accepts(number))
+            assertFalse(type.accepts(SanskritValue.Suchi(listOf(number))))
+            assertFalse(type.accepts(SanskritValue.Gana(listOf(number))))
         }
     }
 }

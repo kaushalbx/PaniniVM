@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.37", text = "क्रुधद्रुहेर्ष्यासूयार्थानां यं प्रति कोपः",
@@ -20,11 +21,14 @@ object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, K
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isAngerVerb = KarakaDhatuDomains.isAnger(context.dhatu)
-        val hasUpasarga = KarakaDhatuDomains.hasAngerUpasarga(context.dhatu)
-        return !hasUpasarga && isAngerVerb && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val isAngerVerb = KarakaDhatuDomains.isAnger(context)
+        val hasUpasarga = KarakaDhatuDomains.hasAngerUpasarga(context)
+        return hasUpasarga != null && !KarakaDhatuDomains.isPrefixedKrudhDruh(context) &&
+            isAngerVerb && context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.ANGER_TARGET)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

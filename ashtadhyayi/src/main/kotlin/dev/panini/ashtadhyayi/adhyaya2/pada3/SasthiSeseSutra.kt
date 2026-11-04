@@ -11,11 +11,12 @@ import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.SemanticRelation
 
 /** Sūtra 2.3.50 षष्ठी शेषे. Assigns Ṣaṣṭhī for remaining non-kāraka relations (possession, relationship, etc.). */
 object SasthiSeseSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.50", text = "षष्ठी शेषे",
-    hindiExplanation = "कमीद्यतिरिक्तः स्वस्वामिसम्बन्धादिः शेषः, तत्र षष्ठी स्यात्।",
+    hindiExplanation = "कारक और प्रातिपदिकार्थ से अतिरिक्त स्वस्वामिभावादि सम्बन्ध शेष है; उसमें षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230050,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
@@ -23,6 +24,32 @@ object SasthiSeseSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            context.participant?.governingAvyaya == null &&
+            !dev.panini.analysis.ExclusionDirectionGovernance.hasConstruction(context) &&
+            !TumarthacCaBhavavacanatSutra.hasPurposeActionNoun(context) &&
+            !NamahSvastiSvahaSutra.hasConstruction(context) &&
+            SemanticRelation.SESHA_RELATION in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.DIRECT_ADDRESS !in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.ACTION_MARKING !in context.participant?.semanticRelations.orEmpty() &&
+            !dev.panini.analysis.DistanceCaseConstructions.isReference(context) &&
+            !dev.panini.analysis.DistanceCaseConstructions.isNonSubstanceWord(context) &&
+            !TulyarthairAtulopamabhyamTrtiyanatarasyamSutra.hasSeshaComparison(context) &&
+            !CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra.hasSeshaBenediction(context) &&
+            !JnyoAvidarthasyaKaraneSutra.hasSeshaInstrumentConstruction(context) &&
+            !AdhigarthaDayesamKarmaniSutra.hasSeshaObjectConstruction(context) &&
+            !KrjahPratiyatneSutra.hasSeshaPratiyatnaObject(context) &&
+            !RujarthanamBhavavacananamAjvarehSutra.hasSeshaBhavaAgentObject(context) &&
+            !AsisiNathahSutra.hasSeshaWishObject(context) &&
+            !JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.hasSeshaInjuryObject(context) &&
+            !VyavahruPanohSamarthayohSutra.hasSeshaTransactionObject(context) &&
+            !DivasTadarthasyaSutra.hasSeshaDivObject(context) &&
+            !PresyabruvorHavisoDevatasampradaneSutra.hasRitualOblationObject(context) &&
+            !CaturthyartheBahulamChandasiSutra.hasLicensedUse(context) &&
+            !YajesCaKaraneSutra.hasLicensedUse(context) &&
+            !KrtvorthaPrayogeKaleAdhikaraneSutra.hasSeshaTimeFrequency(context) &&
+            !PancamiVibhakteSutra.hasDistinctReference(context) &&
+            !SadhuNipunabhyamSutra.hasArchaConstruction(context) &&
+            !PrasitotsukabhyamTrtiyaCaSutra.hasAttachmentConstruction(context) &&
             (context.karaka == Karaka.ANIRDHARITA) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 

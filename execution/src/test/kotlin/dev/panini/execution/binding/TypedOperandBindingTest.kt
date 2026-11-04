@@ -74,8 +74,14 @@ class TypedOperandBindingTest {
                 .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
         }
         val vakya = parser.parse("मूल्य + अम् दा + लोट् + सिप् ।").grammaticalVakyas().single()
-        val frame = dev.panini.analysis.KriyaFrame(dev.panini.analysis.KriyaId("mixed"),
-            vakya, null, dev.panini.core.Prayoga.KARTARI, emptyList(), emptyList())
+        val id = dev.panini.analysis.KriyaId("mixed")
+        val relations = members.zip(listOf(Karaka.KARMAN, Karaka.SAMPRADANA)).map { (noun, role) ->
+            dev.panini.analysis.KarakaRelation(id,
+                dev.panini.analysis.SubantaAnalysis(noun, null, SupAffix.candidates(noun.sup.text), emptySet()),
+                dev.panini.analysis.FrameKarakaResolution.Resolved(role))
+        }
+        val frame = dev.panini.analysis.KriyaFrame(id,
+            vakya, null, dev.panini.core.Prayoga.KARTARI, relations, emptyList())
         val ctx = BindingContext(null, 0, dev.panini.dhatupatha.juhotyadi.DaDhatu(), frame,
             previousDhatus = emptyList())
         val coordinated = dev.panini.vyakaranam.ast.SamuccitaSubanta("", members)
@@ -93,14 +99,20 @@ class TypedOperandBindingTest {
             for ((ending, expected) in listOf(
                 "भ्याम्" to setOf(
                     if (prayoga == dev.panini.core.Prayoga.KARTARI) Karaka.KARANA else Karaka.KARTR,
+                    Karaka.KARANA,
                     Karaka.SAMPRADANA, Karaka.APADANA,
                 ),
                 "भ्यस्" to setOf(Karaka.SAMPRADANA, Karaka.APADANA),
                 "ओस्" to setOf(Karaka.SAMBANDHA, Karaka.ADHIKARANA),
             )) {
                 val vakya = parser.parse("राम + $ending दा + लोट् + सिप् ।").grammaticalVakyas().single()
-                val frame = dev.panini.analysis.KriyaFrame(dev.panini.analysis.KriyaId("ambiguous"),
-                    vakya, null, prayoga, emptyList(), emptyList())
+                val noun = vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+                val id = dev.panini.analysis.KriyaId("ambiguous")
+                val relation = dev.panini.analysis.KarakaRelation(id,
+                    dev.panini.analysis.SubantaAnalysis(noun, null, SupAffix.candidates(noun.sup.text), emptySet()),
+                    dev.panini.analysis.FrameKarakaResolution.Ambiguous(expected))
+                val frame = dev.panini.analysis.KriyaFrame(id,
+                    vakya, null, prayoga, listOf(relation), emptyList())
                 val ctx = BindingContext(null, 0, lexicalDhatu, frame, previousDhatus = emptyList())
                 val result = KarakaExtractor.extractKarakas(vakya.padas, ctx)
                 assertEquals(emptyMap(), result.bindings, "$prayoga $ending")
@@ -128,7 +140,7 @@ class TypedOperandBindingTest {
     }
 
     @Test
-    fun `missing frame relation retains all shared ending candidates before role selection`() {
+    fun `missing frame relation cannot invent grammatical roles from an ending`() {
         val vakya = dev.panini.vyakaranam.parser.PaniniParser()
             .parse("राम + भ्याम् दा + लोट् + सिप् ।").grammaticalVakyas().single()
         val frame = dev.panini.analysis.KriyaFrame(
@@ -138,11 +150,8 @@ class TypedOperandBindingTest {
         val ctx = BindingContext(null, 0, dev.panini.dhatupatha.juhotyadi.DaDhatu(), frame,
             previousDhatus = emptyList())
         val result = KarakaExtractor.extractKarakas(vakya.padas, ctx)
-        assertEquals(emptyMap(), result.bindings)
-        assertEquals(
-            setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
-            result.ambiguous.single().candidates,
-        )
+        assertEquals(setOf(Karaka.ANIRDHARITA), result.bindings.keys)
+        assertEquals(emptyList(), result.ambiguous)
     }
 
     @Test
@@ -152,6 +161,7 @@ class TypedOperandBindingTest {
             SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
         ))
         val bindings = binding.ukti.invocations.single().bindings
+        kotlin.test.assertTrue(Karaka.SAMPRADANA in bindings, binding.ukti.toString())
         assertIs<ExecutionExpression.Coordination>(bindings.getValue(Karaka.SAMPRADANA))
         kotlin.test.assertFalse(Karaka.KARANA in bindings)
     }

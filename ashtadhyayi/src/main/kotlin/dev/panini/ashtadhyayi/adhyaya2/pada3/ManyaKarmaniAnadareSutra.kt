@@ -11,6 +11,8 @@ import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 
 /**
  * Sūtra 2.3.17 मन्यकर्मण्यनादरे विभाषाऽप्राणिषु.
@@ -23,10 +25,12 @@ object ManyaKarmaniAnadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.CHATURTHI)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             context.karaka == Karaka.KARMAN &&
+            SemanticRelation.MAN_INANIMATE_DISREGARD_OBJECT in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.CHATURTHI in context.morphologicalCandidates || Vibhakti.DVITIYA in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

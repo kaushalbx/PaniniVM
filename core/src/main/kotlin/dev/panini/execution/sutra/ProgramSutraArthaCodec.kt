@@ -9,6 +9,33 @@ import dev.panini.core.SupAffix
 import dev.panini.sutra.runtime.SutraArthaValue
 
 object ProgramSutraArthaCodec {
+    fun encodeHistoryParticipant(participant: dev.panini.execution.HistoryParticipant): SutraArthaValue.Record =
+        SutraArthaValue.Record(buildMap {
+            put("expression", encodeExpression(participant.expression))
+            participant.projection?.let { put("projection", SutraArthaValue.Symbol(it.name)) }
+            participant.ambiguousIndex?.let { put("ambiguousIndex", SutraArthaValue.Number(it.toLong())) }
+            put("coexistingKarakas", SutraArthaValue.Sequence(participant.coexistingKarakas.map { SutraArthaValue.Symbol(it.name) }))
+            put("implicit", SutraArthaValue.Truth(participant.implicit))
+        })
+
+    fun decodeHistoryParticipant(value: SutraArthaValue): dev.panini.execution.HistoryParticipant {
+        val fields = (value as? SutraArthaValue.Record)?.fields ?: error("History participant must be a record.")
+        val names = fields.sequence("coexistingKarakas").map {
+            Karaka.valueOf((it as? SutraArthaValue.Symbol)?.name ?: error("A coexisting name must be a symbol."))
+        }
+        require(names.distinct().size == names.size) { "Duplicate coexisting names." }
+        val projection = fields["projection"]?.let {
+            Karaka.valueOf((it as? SutraArthaValue.Symbol)?.name ?: error("History projection must be a symbol."))
+        }
+        val index = fields["ambiguousIndex"]?.let {
+            val number = (it as? SutraArthaValue.Number)?.value ?: error("History ambiguity index must be a number.")
+            require(number in 0..Int.MAX_VALUE.toLong()) { "History ambiguity index is out of range." }
+            number.toInt()
+        }
+        return dev.panini.execution.HistoryParticipant(decodeExpression(requireNotNull(fields["expression"])), projection,
+            names.toSet(), index, fields.truth("implicit"))
+    }
+
     fun encodeAmbiguousBinding(binding: AmbiguousKarakaBinding): SutraArthaValue.Record =
         SutraArthaValue.Record(
             mapOf(

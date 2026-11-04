@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":ganapatha"))
     implementation(project(":linganushasanam"))
     testImplementation(kotlin("test"))
+    testImplementation("com.google.code.gson:gson:2.11.0")
 }
 
 tasks.withType<Test> {
@@ -27,6 +28,7 @@ tasks.withType<Test> {
         rootProject.fileTree("examples") {
             include("**/*.pvm", "**/*.txt")
         },
+        rootProject.fileTree("projects") { include("**/*.pvm") },
     )
 }
 

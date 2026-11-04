@@ -6,14 +6,13 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 
-/** Governing sūtra 1.4.23 कारके (A Kaḍārād Ekā Saṃjñā 1.4.1). Ensures mutual exclusivity of kāraka designations. */
+/** 1.4.23 कारके governs the action-related domain of the following designations. */
 object KarakeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.23", text = "कारके",
-    hindiExplanation = "अधिकारोऽयम्। इत ऊर्ध्वं या इतः प्राक् कडारादुक्ताः ताः कारके इत्यधिकारस्थत्वात् कारकाख्यत्वं लभन्ते। एका च संज्ञेति नियम्यते।",
+    hindiExplanation = "अधिकारोऽयम्। क्रियासम्बन्धिनि कारके अपादानादिसंज्ञाः विधीयन्ते।",
     type = SutraType.ADHIKARA, chapter = 1, pada = 4, optional = false, kramaValue = 140023,
     role = SutraRole.Adhikara(endKrama = 140055), action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
@@ -21,8 +20,6 @@ object KarakeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean = false
 
-    override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
-        context.candidates.first(),
-        KarakaEvidence(number, text, "Kāraka governing domain (1.4.23): mutual exclusivity governs kāraka designations."),
-    )
+    override fun apply(context: KarakaRuleContext): KarakaRuleResult =
+        throw UnsupportedOperationException("1.4.23 is an adhikāra; it does not assign a participant's kāraka.")
 }

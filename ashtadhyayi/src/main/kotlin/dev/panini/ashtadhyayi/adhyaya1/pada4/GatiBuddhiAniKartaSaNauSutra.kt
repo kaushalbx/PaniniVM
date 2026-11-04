@@ -27,13 +27,15 @@ object GatiBuddhiAniKartaSaNauSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140052,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
-    adhikara = setOf("1.4.23", "1.4.49"),
+    adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.49"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isHrKr = KarakaDhatuDomains.isHrKr(context.dhatu)
-        return context.prayoga == Prayoga.CAUSATIVE &&
+        val isHrKr = KarakaDhatuDomains.isHrKr(context)
+        return KarakaDhatuDomains.isCausativeConstruction(context) &&
             !isHrKr &&
-            SemanticRelation.PROMPTER_CAUSE !in context.participant.semanticRelations &&
+            KarakaDhatuDomains.isCausativeObjectDomain(context) &&
+            SemanticRelation.CAUSEE_AGENT in context.participant.semanticRelations &&
             Karaka.KARMAN in context.candidates
     }
 

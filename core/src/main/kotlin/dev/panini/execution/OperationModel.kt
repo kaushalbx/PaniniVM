@@ -106,8 +106,12 @@ data class OperationSignature(
     val forbiddenKarakas: Set<Karaka> = emptySet(),
     /** A recognized copular predicate constrains overload selection, not host payloads. */
     val copularPredicates: Set<CopularPredicate> = emptySet(),
+    val nominalRequirements: List<NominalOperandRequirement> = emptyList(),
 ) {
     init {
+        require(nominalRequirements.map { it.role }.distinct().size == nominalRequirements.size) {
+            "An operation cannot repeat a nominal operand requirement."
+        }
         require(requirements.none { it.karaka in forbiddenKarakas } &&
             optionalKarakas.intersect(forbiddenKarakas).isEmpty()) {
             "An accepted kāraka cannot also be forbidden."
@@ -120,7 +124,8 @@ data class OperationSignature(
         }
     }
 
-    internal val specificity: Int get() = requirements.sumOf { it.specificity }
+    internal val specificity: Int get() = requirements.sumOf { it.specificity } +
+        nominalRequirements.sumOf { 1 + if (it.valueType == null) 0 else 1 }
 
     companion object {
         fun fromKarmatva(

@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object BhuvahPrabhavahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.31", text = "भुवः प्रभवः",
@@ -20,10 +21,12 @@ object BhuvahPrabhavahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.24", "1.4.30"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isBhu = KarakaDhatuDomains.isOriginBhu(context.dhatu)
-        return isBhu && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        return isBhu && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.FIRST_MANIFESTATION_SOURCE)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
@@ -31,7 +34,7 @@ object BhuvahPrabhavahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         KarakaEvidence(
             number,
             text,
-            "The participant is the origin/place of first appearance of a generator agent."
+            "The participant is the place where the bhū-agent first becomes manifest."
         ),
     )
 }

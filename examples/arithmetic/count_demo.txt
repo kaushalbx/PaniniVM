@@ -2,7 +2,7 @@
 # Counts the number of items in a set/sequence
 
 # Step 1: Form a list containing 1, 2, and 3, then count that list.
-एकस्य द्वि+ङस् त्रि+ङस् च सूची अस्ति ।
+एकस्य द्वयोः त्रयाणां च सूची अस्ति ।
 सूचीं गणय ।
 
 # Step 2: Print total counted result (3 = त्रीणि)

@@ -37,5 +37,5 @@ class KruDhatu : Dhatu(
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
         },
     ),
-    semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.PROMPTER_CAUSE, SemanticRelation.INSTRUMENT),
+    semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.INSTRUMENT),
 )

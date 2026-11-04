@@ -19,7 +19,11 @@ object KartrkaranayostrtiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
     override fun matches(context: VibhaktiRuleContext) =
-        !context.abhihita && context.karaka in setOf(Karaka.KARTR, Karaka.KARANA) && Vibhakti.TRTIYA in context.morphologicalCandidates
+        !context.abhihita && context.karaka in setOf(Karaka.KARTR, Karaka.KARANA) &&
+            Vibhakti.TRTIYA in context.morphologicalCandidates && !KrtyanamKartariVaSutra.matches(context) &&
+            !StokanAlpaKrcchraSutra.hasNonSubstanceInstrument(context) &&
+            !KasyaCaVartamaneSutra.matches(context.copy(morphologicalCandidates = setOf(Vibhakti.SASTHI))) &&
+            !AdhikaranavacinacCaSutra.matches(context.copy(morphologicalCandidates = setOf(Vibhakti.SASTHI)))
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.TRTIYA,
         KarakaEvidence(number, text, "तृतीया realizes ${context.karaka} in this construction."),

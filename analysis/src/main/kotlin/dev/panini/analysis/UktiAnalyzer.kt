@@ -39,12 +39,46 @@ class UktiAnalyzer(
     constructor(vakyaAnalyzer: VakyaAnalyzer) : this(vakyaAnalyzer::analyze)
 
     fun analyze(ukti: Ukti): UktiAnalysis {
-        val initialFrames = ukti.body.grammaticalInvocations().mapIndexed { index, invocation ->
-            analyzeVakya(invocation.vakya, KriyaId("kriya-${index + 1}"))
-        }
         val diagnostics = mutableListOf<FrameDiagnostic>()
-        val links = buildLinks(ukti, initialFrames, diagnostics)
+        val sourceVakyas = java.util.IdentityHashMap<dev.panini.vyakaranam.ast.Vakya, dev.panini.vyakaranam.ast.Vakya>()
+        val grammaticalBody = object : dev.panini.vyakaranam.ast.ProgramNodeTransformer() {
+            override fun visitInvocation(node: Invocation): ProgramNode =
+                when (val prior = priorActionStructure(node)) {
+                    dev.panini.vyakaranam.ast.PriorActionStructure.Analysis.NotPriorAction -> node
+                    is dev.panini.vyakaranam.ast.PriorActionStructure.Analysis.Resolved -> prior.sequence.also {
+                        it.statements.filterIsInstance<Invocation>().forEach { action -> sourceVakyas[action.vakya] = node.vakya }
+                    }
+                    is dev.panini.vyakaranam.ast.PriorActionStructure.Analysis.Invalid -> {
+                        diagnostics += FrameDiagnostic(FrameDiagnosticCode.PRIOR_ACTION_STRUCTURE,
+                            "${prior.diagnostic.code}: ${prior.diagnostic.message}", node.sourceText)
+                        node
+                    }
+                }
+        }.transform(ukti.body)
+        val initialFrames = grammaticalBody.grammaticalInvocations().mapIndexed { index, invocation ->
+            analyzeVakya(invocation.vakya, KriyaId("kriya-${index + 1}")).copy(
+                sourceVakya = sourceVakyas[invocation.vakya] ?: invocation.vakya)
+        }
+        val links = buildLinks(ukti.copy(body = grammaticalBody), initialFrames, diagnostics)
         return UktiAnalysis(ukti, initialFrames, links, diagnostics)
+    }
+
+    private fun priorActionStructure(node: Invocation): dev.panini.vyakaranam.ast.PriorActionStructure.Analysis {
+        val structure = dev.panini.vyakaranam.ast.PriorActionStructure
+        val initial = structure.analyze(node)
+        if (initial !is dev.panini.vyakaranam.ast.PriorActionStructure.Analysis.Invalid ||
+            initial.diagnostic.code != "PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL") return initial
+        val candidate = structure.passiveOwnershipCandidate(node) ?: return initial
+        val frame = analyzeVakya(candidate, KriyaId("prior-ownership-candidate"))
+        val agents = frame.relations.filter { relation ->
+            (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == dev.panini.core.Karaka.KARTR &&
+                relation.resolvedVibhakti == dev.panini.core.Vibhakti.TRTIYA &&
+                relation.evidence.flatMap { it.semanticEvidence }.any {
+                    it.relation in setOf(SemanticRelation.INDEPENDENT_AGENT, SemanticRelation.PROMPTER_CAUSE) &&
+                        it.source in setOf(SemanticEvidenceSource.LEXICAL_ENTRY, SemanticEvidenceSource.CLAUSE_CONTEXT)
+                }
+        }.map { it.participant.pada }
+        return if (agents.isEmpty()) initial else structure.analyze(node, establishedFiniteAgents = agents)
     }
 
     private fun buildLinks(
@@ -83,7 +117,8 @@ class UktiAnalyzer(
                     }.map { it.participant.pada }
                     fun uncertainAgent(frame: KriyaFrame) = frame.relations.any {
                         val resolution = it.resolution
-                        resolution is FrameKarakaResolution.Unassigned ||
+                        (resolution is FrameKarakaResolution.Unassigned &&
+                            dev.panini.core.Karaka.KARTR in resolution.candidates) ||
                             resolution is FrameKarakaResolution.Ambiguous && dev.panini.core.Karaka.KARTR in resolution.candidates
                     }
                     fun identities(padas: List<dev.panini.vyakaranam.ast.SupBearingPada>) = padas.map {
@@ -105,15 +140,59 @@ class UktiAnalyzer(
                     }
                     val omittedPriorAgent = isPurvakalika && (sourceAgents.isEmpty() || targetAgents.isEmpty())
                     if ((explicitMatch || omittedPriorAgent) && !uncertainAgent(source) && !uncertainAgent(target)) {
+                        val explicitIn = buildSet {
+                            if (sourceAgents.isNotEmpty()) add(source.id)
+                            if (targetAgents.isNotEmpty()) add(target.id)
+                        }
+                        val omittedIn = setOf(source.id, target.id) - explicitIn
                         (sourceAgents.ifEmpty { targetAgents }).forEach { agent ->
-                            add(KriyaLink.SharedParticipant(source.id, target.id, agent.sourceText))
+                            add(KriyaLink.SharedParticipant(
+                                source.id,
+                                target.id,
+                                agent.sourceText,
+                                dev.panini.core.Karaka.KARTR,
+                                explicitIn,
+                                omittedIn,
+                            ))
                         }
                     }
                 }
             }
         }
 
-        return structuralLinks + semanticLinks
+        // A written chain may contain several prior actions. Adjacent temporal
+        // edges alone cannot carry the finite action's agent to the first one.
+        val chainAgents = buildList {
+            frames.filter { it.kriya?.isFinite == true }.forEach { main ->
+                val agents = main.relations.filter {
+                    (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == dev.panini.core.Karaka.KARTR
+                }
+                fun uncertain(frame: KriyaFrame) = frame.relations.any {
+                    when (val resolution = it.resolution) {
+                        is FrameKarakaResolution.Unassigned -> dev.panini.core.Karaka.KARTR in resolution.candidates
+                        is FrameKarakaResolution.Ambiguous -> dev.panini.core.Karaka.KARTR in resolution.candidates
+                        else -> false
+                    }
+                }
+                if (uncertain(main)) return@forEach
+                frames.filter { prior ->
+                    prior.sourceVakya === main.sourceVakya && prior !== main &&
+                        prior.kriya?.nonfiniteDerivation?.krtAffix in setOf(
+                            dev.panini.core.KrtAffix.KTVA, dev.panini.core.KrtAffix.LYAP)
+                }.forEach { prior ->
+                    if (!uncertain(prior) && prior.relations.none {
+                            (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == dev.panini.core.Karaka.KARTR
+                        }) {
+                        agents.forEach { agent ->
+                            add(KriyaLink.SharedParticipant(prior.id, main.id,
+                                agent.participant.pada.sourceText, dev.panini.core.Karaka.KARTR,
+                                setOf(main.id), setOf(prior.id)))
+                        }
+                    }
+                }
+            }
+        }
+        return (structuralLinks + semanticLinks + chainAgents).distinct()
     }
 
     private data class FrameBoundary(val entry: KriyaId, val exits: Set<KriyaId>)

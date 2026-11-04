@@ -10,14 +10,15 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
-import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.NominalDesignation
+import dev.panini.analysis.NominalDesignationResult
 
 /**
- * Sūtra 2.3.48 साऽऽमन्त्रिते.
+ * Sūtra 2.3.48 सामन्त्रितम्.
  * Assigns āmantrita saṃjñā to Prathamā used in address / vocative (sambodhana).
  */
-object SamantriteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.48", text = "साऽऽमन्त्रिते",
+object SamantriteSutra : Sutra<VibhaktiRuleContext, NominalDesignationResult>(
+    number = "2.3.48", text = "सामन्त्रितम्",
     hindiExplanation = "सम्बोधन अर्थ में प्रयुक्त प्रथमा विभक्ति की आमन्त्रित संज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 2, pada = 3, optional = false, kramaValue = 230048,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
@@ -27,8 +28,8 @@ object SamantriteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         context.karaka == Karaka.SAMBODHANA && Vibhakti.PRATHAMA in context.morphologicalCandidates
 
-    override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
-        Vibhakti.PRATHAMA,
+    override fun apply(context: VibhaktiRuleContext) = NominalDesignationResult(
+        NominalDesignation.AMANTRITA,
         KarakaEvidence(number, text, "प्रथमा in vocative is designated as āmantrita (2.3.48)."),
     )
 }

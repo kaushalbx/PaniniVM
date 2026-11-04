@@ -60,6 +60,7 @@ class GrahDhatu : Dhatu(
             bindsResultTo(Karaka.KARMAN)
         },
     ),
-    semanticRelations = setOf(SemanticRelation.RECIPIENT, SemanticRelation.DESIRED_OBJECT),
+    semanticRelations = setOf(SemanticRelation.RECIPIENT, SemanticRelation.DESIRED_OBJECT,
+        SemanticRelation.SOURCE, SemanticRelation.SEPARATION_REFERENCE),
     surfaceAliases = setOf("अनुगृ", "प्रतिगृ", "गृह्णाति", "गृह्ण", "गृह्णीहि"),
 )

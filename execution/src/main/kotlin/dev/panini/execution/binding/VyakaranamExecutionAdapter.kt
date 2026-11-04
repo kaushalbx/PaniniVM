@@ -100,8 +100,8 @@ object VyakaranamExecutionAdapter {
     // this cache collectible. Bound it explicitly while retaining AST identity.
     private val analysisCache = WeakIdentityMap<Ukti, UktiAnalysis>(maxEntries = 256)
 
-    /** Canonical grammar-only analysis for IDEs and other non-executing consumers. */
-    fun analyzeGrammar(ukti: Ukti): UktiAnalysis? = analyzeForMemory(ukti)
+    /** Grammar-only consumers receive partial frames with blocking diagnostics for unresolved heads. */
+    fun analyzeGrammar(ukti: Ukti): UktiAnalysis? = analyze(ukti)
 
     internal fun analyzeForMemory(text: String): UktiAnalysis? {
         val ukti = try {
@@ -126,31 +126,49 @@ object VyakaranamExecutionAdapter {
         analyzeUncached(ukti)
     }
 
-    /** Performs grammar-only analysis; callers reuse it across dynamic executions of the same AST. */
-    private fun analyzeUncached(ukti: Ukti): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
+    /** Structural object evidence is analyzed separately from the cached grammar-only result. */
+    private fun analyzeUncached(ukti: Ukti, suppliedObjectVakyas: Set<Vakya> = emptySet()): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
         val akhyata = vakya as? AkhyataVakya
         if (akhyata == null) {
             VakyaAnalyzer(
                 PadaAnalyzer(
                     object : VyakaranamLexicon {
-                        override fun findPratipadika(text: String): PratipadikaEntry? = null
+                        override fun findPratipadika(text: String): PratipadikaEntry? =
+                            dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika(text)
                         override fun findDhatu(text: String): Dhatu? = null
                     },
                     sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             ).analyze(vakya, frameId)
         } else {
-            val dhatu = requireNotNull(DhatuCache.resolve(akhyata.tinganta))
-            VakyaAnalyzer(
+            val dhatu = DhatuCache.resolve(akhyata.tinganta)
+            val analyzer = VakyaAnalyzer(
                 PadaAnalyzer(
                     object : VyakaranamLexicon {
-                        override fun findPratipadika(text: String): PratipadikaEntry? = null
-                        override fun findDhatu(text: String): Dhatu = dhatu
+                        override fun findPratipadika(text: String): PratipadikaEntry? =
+                            dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika(text)
+                        override fun findDhatu(text: String): Dhatu? = dhatu
                     },
                     validatePadaCompatibility = false,
+                    allowUnresolvedDhatu = true,
                     sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
-            ).analyze(vakya, frameId)
+            )
+            val frame = analyzer.analyze(vakya, frameId)
+            if (vakya !in suppliedObjectVakyas || dhatu == null ||
+                dhatu.operations.none { it.resultBindingKaraka == Karaka.SAMPRADANA }) frame else {
+                // A structurally supplied कर्मन् (e.g. a pipeline result) is
+                // evidence of an omitted object. No runtime value or operation
+                // compatibility is consulted to manufacture recipient meaning.
+                val recipients = frame.nominalRelations?.nominalPadas.orEmpty().mapIndexedNotNull { index, nominal ->
+                    val relation = frame.relations.firstOrNull { it.participant.pada === nominal.pada }
+                    index.takeIf { relation?.resolution is dev.panini.analysis.FrameKarakaResolution.Unassigned &&
+                        relation.unresolvedObjectMediators.isEmpty() && nominal.supCandidates.isNotEmpty() &&
+                        nominal.supCandidates.all { it.vibhakti == Vibhakti.CHATURTHI } }
+                }.associateWith<Int, Int?> { null }
+                if (recipients.isEmpty()) frame else analyzer.analyze(vakya, frameId,
+                    dev.panini.analysis.VakyaSemanticContext(intendedObjects = recipients))
+            }
         }
     }.analyze(ukti)
 
@@ -398,7 +416,7 @@ object VyakaranamExecutionAdapter {
                 "Unknown verbal action/dhātu: ${unresolved.tinganta.sourceText}",
             ))
         }
-        val utteranceAnalysis = analyze(executableUkti)
+        var utteranceAnalysis = analyze(executableUkti)
         utteranceAnalysis.blockingDiagnostics.firstOrNull()?.let { diagnostic ->
             return AnalyzedExecutionBinding(
                 ExecutionBindingResult.Invalid(diagnostic.message),
@@ -420,10 +438,18 @@ object VyakaranamExecutionAdapter {
             executableUkti.body
         } else lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
-        val framesByVakyaIdentity = IdentityHashMap<Vakya, dev.panini.analysis.KriyaFrame>().apply {
-            utteranceAnalysis.frames.forEach { frame -> put(frame.vakya, frame) }
-        }
         val pipelineKarmanSources = pipelineKarmanSources(executionBody)
+        val suppliedObjectVakyas = java.util.Collections.newSetFromMap(IdentityHashMap<Vakya, Boolean>()).apply {
+            executionVakyas.forEachIndexed { index, vakya ->
+                if (Karaka.KARMAN in injectedBindings || pipelineKarmanSources[index + 1] != null) add(vakya)
+            }
+        }
+        if (suppliedObjectVakyas.isNotEmpty()) {
+            utteranceAnalysis = analyzeUncached(executableUkti, suppliedObjectVakyas)
+        }
+        val framesByVakyaIdentity = IdentityHashMap<Vakya, MutableList<dev.panini.analysis.KriyaFrame>>().apply {
+            utteranceAnalysis.frames.forEach { frame -> getOrPut(frame.sourceVakya) { mutableListOf() }.add(frame) }
+        }
 
         executionVakyas.forEachIndexed { index, vakya ->
             val padas = vakya.padas
@@ -439,7 +465,9 @@ object VyakaranamExecutionAdapter {
                         ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha."),
                     )
             }
-            val frame = framesByVakyaIdentity[vakya]
+            val actionFrames = framesByVakyaIdentity[vakya].orEmpty()
+            val frame = actionFrames.singleOrNull { it.vakya === vakya }
+                ?: actionFrames.singleOrNull { it.kriya?.analysis?.pada === tinganta }
                 ?: return AnalyzedExecutionBinding(
                     ExecutionBindingResult.Invalid(
                         "Executable clause has no identity-preserving semantic frame: ${vakya.sourceText}",
@@ -451,6 +479,7 @@ object VyakaranamExecutionAdapter {
                 clauseIndex = index,
                 dhatu = dhatu,
                 frame = frame,
+                actionFrames = actionFrames,
                 memory = memory,
                 previousDhatus = invocations.map { it.dhatu },
                 localVariables = localVariables,
@@ -469,8 +498,8 @@ object VyakaranamExecutionAdapter {
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
                 quotedVakya = quotations[vakya],
                 injectedBindings = injectedBindings,
-            ) } catch (error: MissingActionResultException) {
-                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Missing action result."), utteranceAnalysis)
+            ) } catch (error: IllegalArgumentException) {
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid grammatical operand."), utteranceAnalysis)
             }
             invocations += invocation
             previousActionIdentities += frame.kriya?.actionIdentity
@@ -583,15 +612,18 @@ object VyakaranamExecutionAdapter {
                 ExecutionExpression.Coordination(listOf(expression, written))
             } ?: expression
         }
-        if (pipelineKarmanSource != null && Karaka.KARMAN !in bindings) {
+        val pipedObject = pipelineKarmanSource != null && Karaka.KARMAN !in bindings
+        if (pipedObject) {
             bindings[Karaka.KARMAN] = ExecutionExpression.Reference(
-                KriyaInvocationId.of(pipelineKarmanSource),
+                KriyaInvocationId.of(requireNotNull(pipelineKarmanSource)),
             )
         }
-        if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
+        val implicitAgent = tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings
+        if (implicitAgent) {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
         val metadataMap = buildMap {
+            if (implicitAgent) put(dev.panini.execution.ExecutionMetadata.IMPLICIT_AGENT, "true")
             put("sourceClause", padas.joinToString(" ") { it.sourceText })
             tinganta?.listMemberType?.let { put("listMemberType", it.name) }
             put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
@@ -612,6 +644,19 @@ object VyakaranamExecutionAdapter {
                 avyayas = padas.filterIsInstance<AvyayaPada>().mapTo(mutableSetOf()) { it.form },
                 lakara = tinganta?.lakara ?: Lakara.LAT,
             ),
+            nominalBindings = extracted.nominalBindings,
+            copularPredicate = extracted.copularPredicate,
+            historyParticipants = if (extracted.historyParticipants.isEmpty()) emptyList() else buildList {
+                injectedBindings.filterKeys { it != Karaka.ANIRDHARITA }.forEach { (role, expression) ->
+                    add(dev.panini.execution.HistoryParticipant(expression, role))
+                }
+                if (pipedObject) add(dev.panini.execution.HistoryParticipant(bindings.getValue(Karaka.KARMAN), Karaka.KARMAN))
+                addAll(extracted.historyParticipants)
+                if (quotedVakya != null) bindings.filterKeys { it !in extracted.bindings && it !in injectedBindings &&
+                    it != Karaka.ANIRDHARITA && !(implicitAgent && it == Karaka.KARTR) && !(pipedObject && it == Karaka.KARMAN)
+                }.forEach { (role, expression) -> add(dev.panini.execution.HistoryParticipant(expression, role)) }
+                if (implicitAgent) add(dev.panini.execution.HistoryParticipant(bindings.getValue(Karaka.KARTR), Karaka.KARTR, implicit = true))
+            },
             ambiguousBindings = extracted.ambiguous,
             karakaTrace = extracted.trace + if (pipelineKarmanSource != null && Karaka.KARMAN in bindings &&
                 Karaka.KARMAN !in extracted.bindings
@@ -625,21 +670,18 @@ object VyakaranamExecutionAdapter {
 
     /** Converts the quoted command to printable operands without scheduling its verb. */
     private fun bindQuotation(vakya: Vakya, ctx: BindingContext): Map<Karaka, ExecutionExpression> {
-        val extracted = KarakaExtractor.extractKarakas(vakya.padas, ctx)
-        val transferable = extracted.bindings.filterKeys { it in setOf(Karaka.APADANA, Karaka.ADHIKARANA) }
+        // A quotation denotes the words themselves. Its cases are not operands
+        // of the reporting verb and must not be reinterpreted as a range.
         val words = vakya.padas.filterIsInstance<SubantaPada>()
-            .filter { pada ->
-                SupAffix.candidates(pada.sup.text).any { it.vibhakti == Vibhakti.DVITIYA }
-            }
             .map { pada ->
                 val stem = pada.pratipadika.baseText()
-                val affix = SupAffix.candidates(pada.sup.text)
-                    .first { it.vibhakti == Vibhakti.DVITIYA }
+                val affix = SupAffix.candidates(pada.sup.text).singleOrNull()
                 val surface = runCatching {
+                    requireNotNull(affix) { "Quoted syncretic morphology must be preserved." }
                     SubantaEngine().derive(
                         SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana),
                     ).final.surface
-                }.getOrDefault(stem)
+                }.getOrDefault(pada.sourceText)
                 ExecutionExpression.Pada(surface)
             }.toMutableList<ExecutionExpression>()
         (vakya as? AkhyataVakya)?.tinganta?.let { tinganta ->
@@ -650,7 +692,7 @@ object VyakaranamExecutionAdapter {
             1 -> words.single()
             else -> ExecutionExpression.Coordination(words)
         }
-        return transferable + listOfNotNull(karman?.let { Karaka.KARMAN to it })
+        return listOfNotNull(karman?.let { Karaka.KARMAN to it }).toMap()
     }
 
     /** Finds quotation/reporting pairs at any depth without scheduling quoted commands. */
@@ -727,7 +769,6 @@ object VyakaranamExecutionAdapter {
         analysis: UktiAnalysis,
     ): ProgramNode {
         val transformer = object : ProgramNodeTransformer() {
-            var frameIndex = 0
             override fun visitSequence(node: Sequence): ProgramNode {
                 val transformed = node.copy(statements = node.statements.map(::transform))
                 return when (val qualified = transformed.statements.firstOrNull()) {
@@ -740,7 +781,11 @@ object VyakaranamExecutionAdapter {
             }
 
             override fun visitInvocation(node: Invocation): ProgramNode {
-                val frame = analysis.frames[frameIndex++]
+                val head = (node.vakya as? AkhyataVakya)?.tinganta
+                val frame = requireNotNull(analysis.frames.singleOrNull { it.vakya === node.vakya }
+                    ?: analysis.frames.singleOrNull { it.sourceVakya === node.vakya && it.kriya?.analysis?.pada === head }) {
+                    "Frequency qualification has no identity-preserving action owner: ${node.sourceText}"
+                }
                 val count = FrequencyExtractor.extractFrequencyCount(node.vakya.padas, frame)
                 return if (count != null && count > 1) Repeat(node.sourceText, count, node) else node
             }

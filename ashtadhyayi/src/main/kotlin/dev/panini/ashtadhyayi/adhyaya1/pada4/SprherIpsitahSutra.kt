@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object SprherIpsitahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.36", text = "स्पृहेरीप्सितः",
@@ -20,10 +21,14 @@ object SprherIpsitahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isSprha = KarakaDhatuDomains.isSprha(context.dhatu)
-        return isSprha && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val isSprha = KarakaDhatuDomains.isSprha(context)
+        // Nyāsa allows the later 1.4.49 when īpsitatamatva is independently intended.
+        return isSprha && context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.LONGED_FOR_OBJECT) &&
+            !context.participant.hasEstablishedMeaning(SemanticRelation.DESIRED_OBJECT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

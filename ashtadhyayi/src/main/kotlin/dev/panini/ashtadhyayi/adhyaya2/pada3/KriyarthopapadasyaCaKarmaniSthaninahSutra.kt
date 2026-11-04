@@ -11,26 +11,32 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.PurposeActionGovernor
+import dev.panini.core.Karaka
 
 /**
  * Sūtra 2.3.14 क्रियार्थोपपदस्य च कर्मणि स्थानिनः.
- * Assigns Caturthī to the unexpressed karma of an implied verb of motion/purpose (tumun-arthaka).
+ * Assigns Caturthī to the object belonging to an omitted purpose verb.
  */
 object KriyarthopapadasyaCaKarmaniSthaninahSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.14", text = "क्रियार्थोपपदस्य च कर्मणि स्थानिनः",
-    hindiExplanation = "क्रियार्थक उपपद (तुमुन्-प्रत्ययान्त क्रिया) के अप्रयुक्त कर्म में चतुर्थी विभक्ति होती है।",
+    hindiExplanation = "क्रियार्थक उपपद से सम्बद्ध अप्रयुक्त धातु के कर्म में चतुर्थी विभक्ति होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230014,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE),
+    inputs = setOf(SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA, SutraInput.DHATU),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasImpliedPurposeObject(context: VibhaktiRuleContext): Boolean =
+        context.karaka == Karaka.KARMAN && context.participant?.purposeGovernor is PurposeActionGovernor.Implied
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.IMPLIED_PURPOSE_OBJECT in context.participant?.semanticRelations.orEmpty() &&
+            hasImpliedPurposeObject(context) &&
             Vibhakti.CHATURTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.CHATURTHI,
-        KarakaEvidence(number, text, "चतुर्थी realizes object of implied purpose verb (2.3.14)."),
+        KarakaEvidence(number, text, "चतुर्थी realizes the karman of omitted purpose action " +
+            "${context.participant?.purposeGovernor?.id}: ${context.participant?.purposeGovernor?.dhatu} (2.3.14)."),
     )
 }

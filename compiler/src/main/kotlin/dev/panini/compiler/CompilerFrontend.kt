@@ -504,7 +504,10 @@ internal object CompilerFrontend {
             val source = normalized(rendered)
             val naturalSemantic = NaturalSemanticNormalizer.normalize(node)
             lowerRangeChoice(node)?.let { return withActionIdentity(it, node) }
-            val consumesPriorResult = piped && !alreadyReferencesResult ||
+            val writtenObject = if (piped && !alreadyReferencesResult) {
+                ResolvedLeafPlanner.planAny(node, procedureEnvironment)?.resolved?.context?.bindings?.containsKey(Karaka.KARMAN) == true
+            } else false
+            val consumesPriorResult = piped && !alreadyReferencesResult && !writtenObject ||
                 naturalSemantic ==
                 NaturalSemanticNormalizer.Operation.DisplayPriorResult
             val injectedBindings = if (consumesPriorResult) {
@@ -1007,25 +1010,43 @@ internal object CompilerFrontend {
             val dynamic = objects.isNotEmpty() && candidates.all { it.name in participantGroupOperations } &&
                 candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction } &&
                 plan.resolved.context.bindings[Karaka.KARMAN]?.let(::staticNumeric) != true
+            val history = if (plan.resolved.context.historyParticipants.isEmpty()) participants else
+                plan.resolved.context.historyParticipants.flatMap { occurrence ->
+                    require(occurrence.projection != null) { "Unresolved occurrence cannot enter compiled history." }
+                    occurrence.designations.flatMap { role ->
+                        CompilerIrLowering.lowerHistoryOperands(occurrence.expression).map { role to it }
+                    }
+                }
+            val captured = if (dynamic) participants else history
+            val captureLocals = if (dynamic) locals else captured.indices.map { "history_input_${nextLabel++}_$it" }
             return buildList {
-                participants.forEachIndexed { index, (_, instructions) ->
+                captured.forEachIndexed { index, (_, instructions) ->
                     addAll(instructions)
-                    add(CompilerInstruction.StoreLocal(locals[index]))
+                    if (!dynamic) add(CompilerInstruction.SnapshotHistoryValue)
+                    add(CompilerInstruction.StoreLocal(captureLocals[index]))
                 }
                 if (dynamic) {
                     objects.forEach { add(CompilerInstruction.LoadLocal(locals[it])) }
                     add(CompilerInstruction.PackOperands(List(objects.size) { false }, asGroup = true))
                     add(CompilerInstruction.CallParticipantGroup(plan.resolved.invocation.dhatu.upadesha,
                         plan.resolved.invocation.grammaticalFeatures, plan.resolved.invocation.selectedOperation,
-                        plan.resolved.context.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) }))
+                        plan.resolved.context.bindings.filterKeys { it !in setOf(Karaka.KARMAN, Karaka.ANIRDHARITA) },
+                        historyParticipants = plan.resolved.context.historyParticipants))
                     add(CompilerInstruction.Store("LastResult"))
                     return@buildList
                 }
                 addAll(CompilerIrLowering.lowerLeafValues(plan))
-                locals.forEach { add(CompilerInstruction.LoadLocal(it)) }
+                captureLocals.forEach { add(CompilerInstruction.LoadLocal(it)) }
                 add(CompilerInstruction.LoadLastResult)
                 val identity = plan.resolved.invocation.dhatu.upadesha
-                add(CompilerInstruction.RecordActionFrame(identity, participants.map { it.first }))
+                add(CompilerInstruction.RecordActionFrame(identity, captured.map { it.first }))
+            }.also {
+                plan.resolved.operation.resultBindingKaraka?.let { role ->
+                    plan.resolved.context.bindings[role]?.bindingName()
+                }?.let { name ->
+                    procedureEnvironment = procedureEnvironment.mergedWith(dev.panini.execution.ValueEnvironment(
+                        constraints = mapOf(name to dev.panini.execution.SemanticValueConstraint())))
+                }
             }
         }
 

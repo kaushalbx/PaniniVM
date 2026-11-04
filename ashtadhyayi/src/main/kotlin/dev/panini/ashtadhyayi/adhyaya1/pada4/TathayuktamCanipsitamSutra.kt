@@ -11,6 +11,8 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.isStrongestOrdinaryReading
 
 object TathayuktamCanipsitamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.50", text = "तथायुक्तं चानीप्सितम्",
@@ -19,9 +21,14 @@ object TathayuktamCanipsitamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.49"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        return SemanticRelation.INDIFFERENT_OBJECT in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
+        return context.participant.hasEstablishedMeaning(SemanticRelation.INDIFFERENT_OBJECT) &&
+            context.participant.isStrongestOrdinaryReading(SemanticRelation.INDIFFERENT_OBJECT) &&
+            SemanticRelation.CAUSEE_AGENT !in context.participant.semanticRelations &&
+            SemanticRelation.SECONDARY_OBJECT !in context.participant.semanticRelations &&
+            (Karaka.KARMAN in context.candidates || context.dhatu.sakarmaka)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

@@ -8,10 +8,10 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
-import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object AkhyatopayogeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.29", text = "आख्यातोपयोगे",
@@ -20,10 +20,13 @@ object AkhyatopayogeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.24"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isLearningVerb = KarakaDhatuDomains.isLearning(context.dhatu)
-        return isLearningVerb && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        // Upayoga is a construction meaning, not a closed list of roots.
+        // Kāśikā includes both adhīte and āgamayati.
+        return context.participant.hasEstablishedMeaning(SemanticRelation.FORMAL_INSTRUCTION_SOURCE) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

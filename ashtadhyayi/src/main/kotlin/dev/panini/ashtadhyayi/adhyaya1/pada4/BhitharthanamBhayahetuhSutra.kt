@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object BhitharthanamBhayahetuhSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.25", text = "भीत्रार्थानां भयहेतुः",
@@ -20,10 +21,12 @@ object BhitharthanamBhayahetuhSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.24"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isFearOrProtect = KarakaDhatuDomains.isFearOrProtection(context.dhatu)
-        return isFearOrProtect && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        return isFearOrProtect && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.FEAR_CAUSE)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
@@ -31,7 +34,7 @@ object BhitharthanamBhayahetuhSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
         KarakaEvidence(
             number,
             text,
-            "The participant is the cause of fear or source of danger/protection."
+            "The participant is the feared danger, including that from which protection is sought."
         ),
     )
 }

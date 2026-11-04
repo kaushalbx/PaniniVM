@@ -75,4 +75,6 @@ data class KarakaSubantaDerivationRequest(
     val categories: Set<NominalCategory>? = null,
     val upapada: String? = null,
     val otherParticipants: List<ParticipantFacts>? = null,
+    /** Written IDs address otherParticipants; an omitted object must be explicit. */
+    val intendedObject: dev.panini.analysis.IntendedObject? = null,
 )

@@ -14,12 +14,13 @@ import dev.panini.execution.CopularPredicate
 /** Evaluates न्यून/अधिक with a nominative subject and an ablative standard. */
 object CopularOrderAction : DhatuAction("न्यूनता", "एकस्य मूल्यस्य अन्यस्मात् न्यूनत्वम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val predicate = CopularPredicate.from(context.bindings[Karaka.KARMAN])
+        val predicate = context.copularPredicate
         if (predicate !in setOf(CopularPredicate.LESS_THAN, CopularPredicate.GREATER_THAN)) {
             return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Ordering requires the predicate न्यून or अधिक.")
         }
         val subject = context.bindings[Karaka.KARTR] ?: return missingKaraka(operation, Karaka.KARTR)
-        val standard = context.bindings[Karaka.APADANA] ?: return missingKaraka(operation, Karaka.APADANA)
+        val standard = context.nominalBindings[dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD]
+            ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Missing comparison standard.")
         val left = context.resolveValues(subject).singleOrNull()
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The subject of ordering must be a number.")
         val right = context.resolveValues(standard).singleOrNull()

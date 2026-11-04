@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "scope": "canonical grammar; no execution; lexical readings are explicit fixture premises",
+  "sources": {
+    "3.4.21": "https://ashtadhyayi.com/sutraani/3/4/21",
+    "1.4.49": "https://ashtadhyayi.com/sutraani/1/4/49",
+    "1.4.54": "https://ashtadhyayi.com/sutraani/1/4/54",
+    "2.3.2": "https://ashtadhyayi.com/sutraani/2/3/2",
+    "2.3.18": "https://ashtadhyayi.com/sutraani/2/3/18",
+    "2.3.46": "https://ashtadhyayi.com/sutraani/2/3/46",
+    "3.4.69": "https://ashtadhyayi.com/sutraani/3/4/69"
+  },
+  "cases": [
+    {
+      "id": "passive_preposed_competing_agent_and_instrument",
+      "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
+      "lexicalReadings": { "राम": ["INDEPENDENT_AGENT", "INSTRUMENT"] },
+      "rationale": "Equally explicit agent and instrument meanings do not establish finite-agent ownership merely because an agent reading is available.",
+      "expectedStatus": "UNSUPPORTED",
+      "blockingPrefix": "PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL"
+    },
+    {
+      "id": "passive_preposed_selected_agent_dual_patient",
+      "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
+      "lexicalReadings": {
+        "राम": [
+          "INDEPENDENT_AGENT"
+        ]
+      },
+      "rationale": "Given an independently supplied agent reading despite its position before ktva, the instrumental is the passive finite agent and the dual nominative is its patient. The prior printing object remains accusative. Finite agreement follows the dual patient, not the singular agent.",
+      "expectedStatus": "ANALYZED",
+      "sharedAgents": 1,
+      "frames": [
+        {
+          "headKind": "NONFINITE",
+          "prayoga": "CAUSATIVE",
+          "participants": [
+            {
+              "source": "एक+अम्",
+              "karaka": "KARMAN",
+              "case": "DVITIYA",
+              "chain": [
+                "1.4.49",
+                "2.3.2"
+              ]
+            }
+          ]
+        },
+        {
+          "headKind": "FINITE",
+          "prayoga": "KARMANI",
+          "participants": [
+            {
+              "source": "राम+टा",
+              "karaka": "KARTR",
+              "case": "TRTIYA",
+              "chain": [
+                "1.4.54",
+                "2.3.18"
+              ]
+            },
+            {
+              "source": "फल+औ",
+              "karaka": "KARMAN",
+              "case": "PRATHAMA",
+              "chain": [
+                "1.4.49",
+                "2.3.46"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "passive_selected_agent_dual_patient",
+      "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
+      "variants": [
+        {
+          "idSuffix": "patient_before_prior_action",
+          "source": "फल + औ एक + अम् मुद्र् + णिच् + क्त्वा राम + टा डुकृञ् + यक् + लट् + आताम् ।",
+          "rationale": "The finite nominative patient precedes the prior action; it must retain finite patient ownership and dual agreement."
+        },
+        {
+          "idSuffix": "patient_separates_prior_object_and_head",
+          "source": "एक + अम् फल + औ मुद्र् + णिच् + क्त्वा राम + टा डुकृञ् + यक् + लट् + आताम् ।",
+          "rationale": "The finite patient separates the prior object's occurrence from its nonfinite head; adjacency must not change either relation."
+        },
+        {
+          "idSuffix": "agent_and_patient_preposed",
+          "source": "राम + टा फल + औ एक + अम् मुद्र् + णिच् + क्त्वा डुकृञ् + यक् + लट् + आताम् ।",
+          "rationale": "Independent agent meaning licenses the preposed instrumental; the nominative remains the finite dual patient."
+        },
+        {
+          "idSuffix": "agent_separates_prior_object_and_head",
+          "source": "एक + अम् राम + टा मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
+          "rationale": "An independently selected finite agent may separate the prior object and head without becoming an instrumental operand of the prior action."
+        }
+      ],
+      "lexicalReadings": {
+        "राम": [
+          "INDEPENDENT_AGENT"
+        ]
+      },
+      "rationale": "Given the agent reading, the instrumental is the passive finite agent and the dual nominative is its patient. The prior printing object remains accusative. Finite agreement follows the dual patient, not the singular agent.",
+      "expectedStatus": "ANALYZED",
+      "sharedAgents": 1,
+      "frames": [
+        {
+          "headKind": "NONFINITE",
+          "prayoga": "CAUSATIVE",
+          "participants": [
+            {
+              "source": "एक+अम्",
+              "karaka": "KARMAN",
+              "case": "DVITIYA",
+              "chain": [
+                "1.4.49",
+                "2.3.2"
+              ]
+            }
+          ]
+        },
+        {
+          "headKind": "FINITE",
+          "prayoga": "KARMANI",
+          "participants": [
+            {
+              "source": "राम+टा",
+              "karaka": "KARTR",
+              "case": "TRTIYA",
+              "chain": [
+                "1.4.54",
+                "2.3.18"
+              ]
+            },
+            {
+              "source": "फल+औ",
+              "karaka": "KARMAN",
+              "case": "PRATHAMA",
+              "chain": [
+                "1.4.49",
+                "2.3.46"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "passive_unselected_instrumental",
+      "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + सुँ डुकृञ् + यक् + लट् + त ।",
+      "lexicalReadings": {},
+      "rationale": "An instrumental case form without a selected role reading retains agent/tool ambiguity. It must not create a definite shared agent. The nominative is the finite patient, not the controller of the prior action.",
+      "expectedStatus": "ANALYZED",
+      "sharedAgents": 0,
+      "frames": [
+        {
+          "headKind": "NONFINITE",
+          "prayoga": "CAUSATIVE",
+          "participants": [
+            {
+              "source": "एक+अम्",
+              "karaka": "KARMAN",
+              "case": "DVITIYA",
+              "chain": [
+                "1.4.49",
+                "2.3.2"
+              ]
+            }
+          ]
+        },
+        {
+          "headKind": "FINITE",
+          "prayoga": "KARMANI",
+          "participants": [
+            {
+              "source": "राम+टा",
+              "candidates": [
+                "KARANA",
+                "KARTR"
+              ]
+            },
+            {
+              "source": "फल+सुँ",
+              "karaka": "KARMAN",
+              "case": "PRATHAMA",
+              "chain": [
+                "1.4.49",
+                "2.3.46"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "passive_preposed_instrumental_not_silently_attached",
+      "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + सुँ डुकृञ् + यक् + लट् + त ।",
+      "lexicalReadings": {},
+      "rationale": "A preposed instrumental can require joint ownership analysis across actions. This attachment remains unsupported; a blocking diagnostic must replace a guessed owner.",
+      "expectedStatus": "UNSUPPORTED",
+      "blockingPrefix": "PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL:"
+    },
+    {
+      "id": "bhave_selected_agent",
+      "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा आसँ + यक् + लट् + त ।",
+      "lexicalReadings": {
+        "राम": [
+          "INDEPENDENT_AGENT"
+        ]
+      },
+      "rationale": "Given the selected finite agent reading, the intransitive bhave main action keeps its agent instrumental. It has no nominative patient and its finite form is impersonal singular.",
+      "expectedStatus": "ANALYZED",
+      "sharedAgents": 1,
+      "frames": [
+        {
+          "headKind": "NONFINITE",
+          "prayoga": "CAUSATIVE",
+          "participants": [
+            {
+              "source": "एक+अम्",
+              "karaka": "KARMAN",
+              "case": "DVITIYA",
+              "chain": [
+                "1.4.49",
+                "2.3.2"
+              ]
+            }
+          ]
+        },
+        {
+          "headKind": "FINITE",
+          "prayoga": "BHAVE",
+          "participants": [
+            {
+              "source": "राम+टा",
+              "karaka": "KARTR",
+              "case": "TRTIYA",
+              "chain": [
+                "1.4.54",
+                "2.3.18"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "passive_dual_patient_singular_verb",
+      "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + त ।",
+      "lexicalReadings": {
+        "राम": [
+          "INDEPENDENT_AGENT"
+        ]
+      },
+      "rationale": "The same passive agent and patient roles remain identifiable, but singular ta fails agreement with the dual patient. Agreement is not controlled by the singular instrumental agent.",
+      "expectedStatus": "AGREEMENT_ERROR",
+      "sharedAgents": 1,
+      "frames": [
+        {
+          "headKind": "NONFINITE",
+          "prayoga": "CAUSATIVE",
+          "participants": [
+            {
+              "source": "एक+अम्",
+              "karaka": "KARMAN",
+              "case": "DVITIYA",
+              "chain": [
+                "1.4.49",
+                "2.3.2"
+              ]
+            }
+          ]
+        },
+        {
+          "headKind": "FINITE",
+          "prayoga": "KARMANI",
+          "participants": [
+            {
+              "source": "राम+टा",
+              "karaka": "KARTR",
+              "case": "TRTIYA",
+              "chain": [
+                "1.4.54",
+                "2.3.18"
+              ]
+            },
+            {
+              "source": "फल+औ",
+              "karaka": "KARMAN",
+              "case": "PRATHAMA",
+              "chain": [
+                "1.4.49",
+                "2.3.46"
+              ]
+            }
+          ],
+          "agreementMismatch": true
+        }
+      ]
+    }
+  ]
+}

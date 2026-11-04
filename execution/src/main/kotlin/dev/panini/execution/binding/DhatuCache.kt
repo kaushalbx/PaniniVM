@@ -23,6 +23,7 @@ internal enum class CanonicalDhatuIdentity(val dhatupathaId: String) {
     HR("01.1046"),
     KSHIP("06.0005"),
     STHA("01.9901"),
+    RAM("01.0989"),
     ;
 
     companion object {
@@ -78,6 +79,11 @@ internal object DhatuCache {
         }.groupBy({ it.first }, { it.second })
     }
 
+    /** Exact upadeśas can identify grammatical roots without VM operations. */
+    private val lexicalUpadeshas: Map<String, List<Dhatu>> by lazy {
+        DhatuPatha.all.groupBy { it.upadesha }.mapValues { (_, entries) -> entries.distinctBy { it.id } }
+    }
+
     /**
      * Data-driven root index: maps every known dhātu surface form, alias, and
      * operation stem to the canonical root string used for फल resolution.
@@ -124,6 +130,7 @@ internal object DhatuCache {
      * Tries exact match first, then a normalised surface match.
      */
     internal fun resolve(tinganta: TingantaPada): Dhatu? {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         if (tinganta.hasContradictoryActiveCausativeVikarana()) return null
         val text = tinganta.dhatu.mulaDhatu
         val requiredGana = tinganta.lexicalGanaConstraint()
@@ -138,12 +145,21 @@ internal object DhatuCache {
             return candidates.filter { it.operations.isNotEmpty() }.singleOrNull()
                 ?: candidates.singleOrNull()
         }
-        return sourceCandidates(text).singleOrNull()
+        return resolveSource(text)
     }
 
     /** Resolves a non-finite derivation through the same canonical lexicon. */
-    internal fun resolve(prakriti: DhatuPrakriti): Dhatu? =
-        sourceCandidates(prakriti.mulaDhatu).singleOrNull()
+    internal fun resolve(prakriti: DhatuPrakriti): Dhatu? {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        return resolveSource(prakriti.mulaDhatu)
+    }
+
+    private fun resolveSource(text: String): Dhatu? {
+        val executable = sourceCandidates(text)
+        // Preserve collisions in the executable index. An exact non-executable
+        // upadeśa is a lexical fallback, not an operation-selection tiebreaker.
+        return if (executable.isNotEmpty()) executable.singleOrNull() else lexicalUpadeshas[text]?.singleOrNull()
+    }
 
     private fun sourceCandidates(text: String): List<Dhatu> =
         (sourceRootCache[text] ?: sourceRootCache[text.normalizeDhatuSurface()]).orEmpty()

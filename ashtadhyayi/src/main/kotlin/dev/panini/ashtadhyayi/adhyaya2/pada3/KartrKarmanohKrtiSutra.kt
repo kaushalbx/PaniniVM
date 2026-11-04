@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,6 +24,11 @@ object KartrKarmanohKrtiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            !KasyaCaVartamaneSutra.matches(context) && !AdhikaranavacinacCaSutra.matches(context) &&
+            SemanticRelation.KRT_GOVERNED_PARTICIPANT in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.KRT_DUAL_ELIGIBLE_AGENT !in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.KRT_DUAL_ELIGIBLE_OBJECT !in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.KRTYA_GOVERNED_AGENT !in context.participant?.semanticRelations.orEmpty() &&
             (context.karaka == Karaka.KARTR || context.karaka == Karaka.KARMAN) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 

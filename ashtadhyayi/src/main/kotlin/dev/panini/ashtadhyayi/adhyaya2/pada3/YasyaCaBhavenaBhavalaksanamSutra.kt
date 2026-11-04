@@ -24,6 +24,7 @@ object YasyaCaBhavenaBhavalaksanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRul
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            !SasthiCanadareSutra.hasDisregardedActionMarking(context) &&
             SemanticRelation.ACTION_MARKING in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.SAPTAMI in context.morphologicalCandidates
 

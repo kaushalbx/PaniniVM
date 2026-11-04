@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.core.Karaka
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -21,12 +23,21 @@ object DivasTadarthasyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     hindiExplanation = "द्यूत/व्यवहार अर्थ वाली दिव् धातु के कर्म में षष्ठी विभक्ति होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230058,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasSeshaDivObject(context: VibhaktiRuleContext): Boolean {
+        val relations = context.participant?.semanticRelations.orEmpty()
+        return KarakaDhatuDomains.isDivTransactionRoot(context) &&
+            setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT, SemanticRelation.DESIRED_OBJECT,
+                SemanticRelation.SESHA_RELATION).all { it in relations }
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.GAMBLING_INSTRUMENT in context.participant?.semanticRelations.orEmpty() &&
+            context.karaka in setOf(Karaka.ANIRDHARITA, Karaka.KARMAN) &&
+            hasSeshaDivObject(context) && !KarakaDhatuDomains.isPrefixedDiv(context) &&
+            !DvitiyaBrahmaneSutra.hasBrahmanaDivObject(context) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

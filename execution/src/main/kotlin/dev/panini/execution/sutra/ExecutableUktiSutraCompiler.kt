@@ -20,9 +20,8 @@ import java.util.Collections
 import java.util.WeakHashMap
 
 /**
- * Compatibility compiler used during the incremental migration. It preserves
- * the current binding model while normalizing each dhātu occurrence to one
- * runtime sūtra.
+ * Lowers typed execution occurrences to runtime sūtras, retaining grammatical
+ * arguments, nominal operands, predicate identity and evidence.
  */
 object ExecutableUktiSutraCompiler {
     private val blueprintCache = Collections.synchronizedMap(
@@ -123,6 +122,11 @@ object ExecutableUktiSutraCompiler {
                                 ),
                             ),
                         )
+                        put("nominalOperands", SutraArthaValue.Record(invocation.nominalBindings
+                            .mapKeys { it.key.name }.mapValues { ProgramSutraArthaCodec.encodeExpression(it.value) }))
+                        invocation.copularPredicate?.let { put("copularPredicate", SutraArthaValue.Symbol(it.name)) }
+                        put("historyParticipants", SutraArthaValue.Sequence(invocation.historyParticipants.map(
+                            ProgramSutraArthaCodec::encodeHistoryParticipant)))
                         put(
                             "karakaEvidence",
                             SutraArthaValue.Sequence(

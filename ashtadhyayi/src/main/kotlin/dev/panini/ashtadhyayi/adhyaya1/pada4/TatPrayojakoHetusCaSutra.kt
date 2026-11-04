@@ -18,7 +18,8 @@ object TatPrayojakoHetusCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140055,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
-    adhikara = setOf("1.4.23", "1.4.54"),
+    adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.54"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
         SemanticRelation.PROMPTER_CAUSE in context.participant.semanticRelations && Karaka.KARTR in context.candidates
@@ -26,5 +27,6 @@ object TatPrayojakoHetusCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.KARTR,
         KarakaEvidence(number, text, "The participant is the prompter/instigator (hetu-kartā) of the action."),
+        setOf(dev.panini.analysis.KarakaDesignation.HETU),
     )
 }

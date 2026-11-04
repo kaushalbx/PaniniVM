@@ -9,12 +9,15 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.analysis.DistanceCaseConstructions
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
 /**
  * Sūtra 2.3.35 दूरान्तिकार्थेभ्यो द्वितीया च.
- * Assigns Pañcamī, Tṛtīyā, Saptamī, or Dvitīyā for words expressing distance or proximity.
+ * Assigns Pañcamī, Tṛtīyā or Dvitīyā to non-substance distance words;
+ * their Saptamī branch belongs to 2.3.36.
  */
 object DurantikarthebhyoDvitiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.35", text = "दूरान्तिकार्थेभ्यो द्वितीया च",
@@ -23,17 +26,18 @@ object DurantikarthebhyoDvitiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRule
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.TRTIYA, Vibhakti.PANCHAMI, Vibhakti.SAPTAMI)
+    override fun alternativeRuleNumbers(context: VibhaktiRuleContext) = setOf("2.3.35", "2.3.36")
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.DISTANCE_OR_PROXIMITY in context.participant?.semanticRelations.orEmpty() &&
+            DistanceCaseConstructions.isNonSubstanceWord(context) &&
             (Vibhakti.PANCHAMI in context.morphologicalCandidates ||
                 Vibhakti.TRTIYA in context.morphologicalCandidates ||
-                Vibhakti.SAPTAMI in context.morphologicalCandidates ||
                 Vibhakti.DVITIYA in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {
-        val v = listOf(Vibhakti.PANCHAMI, Vibhakti.TRTIYA, Vibhakti.SAPTAMI, Vibhakti.DVITIYA)
+        val v = listOf(Vibhakti.PANCHAMI, Vibhakti.TRTIYA, Vibhakti.DVITIYA)
             .firstOrNull { it in context.morphologicalCandidates } ?: Vibhakti.PANCHAMI
         return VibhaktiRuleResult.Assigned(
             v,

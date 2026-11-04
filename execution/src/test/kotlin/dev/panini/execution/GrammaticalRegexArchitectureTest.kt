@@ -10,7 +10,7 @@ class GrammaticalRegexArchitectureTest {
         val workingDirectory = File(System.getProperty("user.dir"))
         val repository = if (workingDirectory.name == "execution") workingDirectory.parentFile else workingDirectory
         val consumers = listOf(
-            "CopularAgreement.kt", "AdhikaraHeaderParser.kt", "ItiDeclaration.kt",
+            "CopularAgreement.kt", "ItiDeclaration.kt",
             "PaniniMorphologyEngines.kt", "TaddhitaStructEngine.kt", "AnaphoricOperandProjection.kt",
             "ReferentAgreement.kt", "PrakriyaInvocationMatcher.kt", "PrakriyaHeaderIdentity.kt",
             "PrakriyaRegistry.kt", "NaturalSemanticNormalizer.kt", "NishedhaGuardEvaluator.kt",
@@ -235,11 +235,10 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/PvmScript.kt",
         ).readText()
         assertFalse("?.text != \"सीमा\"" in pvmScript)
-        assertTrue("MulaPratipadikaIdentity.SIMA" in pvmScript)
-        assertTrue("AdhikaraHeaderParser.parse(stripped)" in pvmScript)
-        assertFalse("AdhikaraHeaderParser.domainIdentity(stripped)" in pvmScript)
-        assertTrue("parsed?.declarationPadas" in pvmScript)
-        assertTrue("PrakriyaHeaderIdentityParser::parse" in pvmScript)
+        assertTrue("fromDocument(parser.parseDocument(source))" in pvmScript)
+        assertTrue("document.prakriyaHeaderSpans" in pvmScript)
+        assertTrue("document.scopeDomainSpans" in pvmScript)
+        assertFalse("source.lines()" in pvmScript)
 
         val definitionMarker = File(
             repository,

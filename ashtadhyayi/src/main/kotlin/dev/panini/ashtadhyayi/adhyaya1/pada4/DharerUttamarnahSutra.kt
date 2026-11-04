@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object DharerUttamarnahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.35", text = "धारेरुत्तमर्णः",
@@ -20,10 +21,12 @@ object DharerUttamarnahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isDhari = KarakaDhatuDomains.isDhari(context.dhatu)
-        return isDhari && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val isDhari = KarakaDhatuDomains.isDhari(context)
+        return isDhari && context.participant.hasEstablishedMeaning(SemanticRelation.CREDITOR) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

@@ -1,17 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
-import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
-/** Governing sūtra 2.3.1 अनभिहिते. Rules 2.3.2 to 2.3.73 apply only when the kāraka is unexpressed (anabhihita). */
+/** Governs anabhihita case prescriptions; it does not itself assign prathamā. */
 object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.1", text = "अनभिहिते",
     hindiExplanation = "अधिकारोऽयम्। इत ऊर्ध्वं यद्वक्ष्यते तदनभिहिते कर्मत्वादौ वेदितव्यम्।",
@@ -27,10 +25,8 @@ object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
 ) {
-    override fun matches(context: VibhaktiRuleContext): Boolean = context.abhihita
+    override fun matches(context: VibhaktiRuleContext): Boolean = false
 
-    override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
-        Vibhakti.PRATHAMA,
-        KarakaEvidence(number, text, "The kāraka is already expressed (abhihita) by verbal inflection; hence non-nominative cases are blocked."),
-    )
+    override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult =
+        throw UnsupportedOperationException("2.3.1 is an adhikāra; it does not assign a participant's vibhakti.")
 }

@@ -12,6 +12,7 @@ import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.ExclusionDirectionGovernance
 
 /**
  * Sūtra 2.3.29 अन्यारादितरर्तेदिक्छब्दाञ्चूत्तरपदाजाहियुक्ते.
@@ -28,11 +29,12 @@ object AnyaraditarartedikshabdaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRe
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.DIRECTIONAL_EXCLUSION in context.participant?.semanticRelations.orEmpty() &&
+            ExclusionDirectionGovernance.hasConstruction(context) &&
             Vibhakti.PANCHAMI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.PANCHAMI,
-        KarakaEvidence(number, text, "पञ्चमी realizes separation/exclusion/direction relation (2.3.29)."),
+        KarakaEvidence(number, text, "पञ्चमी under the linked exclusion/direction governor " +
+            "${context.participant?.governingNominal?.sourceText ?: context.participant?.governingAvyaya?.form} (2.3.29)."),
     )
 }

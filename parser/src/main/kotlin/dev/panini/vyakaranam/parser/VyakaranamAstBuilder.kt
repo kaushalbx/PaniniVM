@@ -741,7 +741,10 @@ class VyakaranamAstBuilder {
             implicitNominalReturn(requireNotNull(nominal))
         } else Invocation(vakya)
     }
-        ?: implicitPratipadikaReturn(buildPratipadika(requireNotNull(context.value)))
+        ?: requireNotNull(context.value).let { value ->
+            implicitPratipadikaReturn(buildPratipadika(value),
+                DocumentSourceSpan(requireNotNull(value.start).startIndex, requireNotNull(value.stop).stopIndex + 1))
+        }
 
     private fun buildActionSequence(
         sequence: PaniniyaVyakaranamParser.ConditionalActionSequenceContext,
@@ -794,7 +797,7 @@ class VyakaranamAstBuilder {
     }
 
     /** A bare nominal branch has an understood nominative ending, not a fictitious action. */
-    private fun implicitPratipadikaReturn(value: Pratipadika): ProgramNode {
+    private fun implicitPratipadikaReturn(value: Pratipadika, span: DocumentSourceSpan): ProgramNode {
         val cardinal = primitiveCardinalValue(value)
         val vacana = cardinal?.let(dev.panini.sankhya.SankhyaVacana::requiredFor) ?: dev.panini.core.Vacana.EKAVACANA
         val sup = SupAffix.entries.first { it.vibhakti == Vibhakti.PRATHAMA && it.vacana == vacana }.upadesha
@@ -803,7 +806,7 @@ class VyakaranamAstBuilder {
                 sourceText = "${value.sourceText} + $sup",
                 pratipadika = value,
                 sup = SupPratyaya(sourceText = sup, text = sup),
-            ),
+            ).locatedAt(span),
         )
     }
 
@@ -1449,7 +1452,7 @@ class VyakaranamAstBuilder {
             }
 
             else -> error("अज्ञातम् अव्ययपदम्: ${context.text}")
-        }
+        }.locatedAt(DocumentSourceSpan(requireNotNull(context.start).startIndex, requireNotNull(context.stop).stopIndex + 1))
 
     private fun buildUpasargas(
         context: PaniniyaVyakaranamParser.UpasargaKramaContext?,

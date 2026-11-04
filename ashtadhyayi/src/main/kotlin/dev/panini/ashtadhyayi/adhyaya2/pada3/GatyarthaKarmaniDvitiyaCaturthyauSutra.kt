@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 
 /**
  * Sūtra 2.3.12 गत्यर्थकर्मणि द्वितीयाचतुर्थ्यौ चेष्टायामनध्वनि.
@@ -24,11 +25,14 @@ object GatyarthaKarmaniDvitiyaCaturthyauSutra : Sutra<VibhaktiRuleContext, Vibha
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.CHATURTHI)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             context.karaka == Karaka.KARMAN &&
             SemanticRelation.MOTION_GOAL in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.PHYSICAL_MOTION in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.NON_PATH_DESTINATION in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.DVITIYA in context.morphologicalCandidates || Vibhakti.CHATURTHI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

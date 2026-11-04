@@ -10,6 +10,28 @@ import kotlin.test.assertEquals
 
 class SankhyaGeneratorDeclensionTest {
     @Test
+    fun `teen cardinals retain their n final stems for sup derivation`() {
+        val generator = SankhyaGenerator()
+        val surfaces = listOf("एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश",
+            "षोडश", "सप्तदश", "अष्टादश", "नवदश")
+        for ((index, surface) in surfaces.withIndex()) {
+            for (gender in Linga.entries) {
+                for (case in listOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA)) {
+                    assertEquals(surface, generator.decline((index + 11).toLong(), case, Vacana.BAHUVACANA, gender))
+                    val result = SubantaEngine().derive(SubantaDerivationRequest(
+                        surface + "न्", case, Vacana.BAHUVACANA, gender))
+                    assertEquals(surface, result.final.surface)
+                    kotlin.test.assertTrue(result.applications.any { it.sutra == "1.1.24" })
+                    kotlin.test.assertTrue(result.applications.any { it.sutra == "7.1.22" })
+                }
+            }
+        }
+        assertEquals("द्वादशभिः", generator.decline(12, Vibhakti.TRTIYA, Vacana.BAHUVACANA))
+        assertEquals("द्वादशानाम्", generator.decline(12, Vibhakti.SASTHI, Vacana.BAHUVACANA))
+        assertEquals("द्वादशसु", generator.decline(12, Vibhakti.SAPTAMI, Vacana.BAHUVACANA))
+    }
+
+    @Test
     fun `declension preserves an una expression rather than canonicalizing its value`() {
         val expression = SankhyaExpression.Una(
             SankhyaExpression.Primitive(PrimitiveSankhya.EKA),

@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,9 +25,12 @@ object AyuktaKusalabhyamCaSevayamSutra : Sutra<VibhaktiRuleContext, VibhaktiRule
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            (context.participant?.governingNominal?.pratipadika as? MulaPratipadika)
+                ?.takeIf { it.vikaras.isEmpty() }?.text in setOf("आयुक्त", "कुशल") &&
             SemanticRelation.ENGROSSED_ATTACHMENT in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.SASTHI in context.morphologicalCandidates || Vibhakti.SAPTAMI in context.morphologicalCandidates)
 

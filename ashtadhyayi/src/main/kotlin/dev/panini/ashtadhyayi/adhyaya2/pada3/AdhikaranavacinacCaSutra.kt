@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.core.KrtAffix
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -26,6 +29,12 @@ object AdhikaranavacinacCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            context.karaka in setOf(Karaka.KARTR, Karaka.KARMAN) &&
+            context.governingKrt?.krtAffix == KrtAffix.KTA &&
+            context.governingKrt?.vikaras?.all { it.isRecognizedStriAffix } == true &&
+            Karaka.ADHIKARANA in context.governingKrtExpressedRoles.orEmpty() &&
+            context.karaka !in context.governingKrtExpressedRoles.orEmpty() &&
+            SemanticRelation.KRT_GOVERNED_PARTICIPANT in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.LOCATION_PARTICIPLE_RELATION in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 

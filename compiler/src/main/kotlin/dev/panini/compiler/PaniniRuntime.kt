@@ -12,6 +12,12 @@ import dev.panini.dhatupatha.DhatuPatha
 
 object PaniniRuntime {
     @JvmStatic
+    fun createHistoryParticipant(expression: dev.panini.execution.ExecutionExpression,
+        projection: String, names: String, implicit: Boolean): dev.panini.execution.HistoryParticipant =
+        dev.panini.execution.HistoryParticipant(expression, dev.panini.core.Karaka.valueOf(projection),
+            names.split(',').filter { it.isNotEmpty() }.mapTo(linkedSetOf(), dev.panini.core.Karaka::valueOf),
+            implicit = implicit)
+    @JvmStatic
     fun purana(value: Long, word: String): SanskritValue = SanskritValue.Purana(value, word)
     @JvmStatic
     fun sankhya(value: Long, word: String): SanskritValue {
@@ -165,7 +171,9 @@ object PaniniRuntime {
         operationName: String,
         requiredSanadi: String,
         bindings: Map<Karaka, ExecutionExpression>,
-        variables: Map<String, SanskritValue>
+        variables: Map<String, SanskritValue>,
+        nominalBindings: Map<dev.panini.execution.NominalOperandRole, ExecutionExpression>,
+        copularPredicate: dev.panini.execution.CopularPredicate?,
     ): SanskritValue {
         dev.panini.sankhya.SankhyaCountingFormRenderer.init()
         val operation = resolveOperation(dhatuUpadesha, operationName, requiredSanadi)
@@ -173,7 +181,9 @@ object PaniniRuntime {
         val context = ExecutionContext(
             bindings = bindings,
             variables = variables,
-            externalDispatcher = defaultDispatcher
+            externalDispatcher = defaultDispatcher,
+            nominalBindings = nominalBindings,
+            copularPredicate = copularPredicate,
         )
         return when (val result = action.execute(context, operation)) {
             is ExecutionResult.Success -> {

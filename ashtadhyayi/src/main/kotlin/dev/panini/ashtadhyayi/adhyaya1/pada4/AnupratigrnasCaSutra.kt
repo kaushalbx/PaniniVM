@@ -11,7 +11,8 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.analysis.hasEstablishedMeaning
 
 object AnupratigrnasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.41", text = "अनुप्रतिगृणश्च",
@@ -20,13 +21,12 @@ object AnupratigrnasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32", "1.4.40"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val tinganta = context.verbNode as? TingantaPada ?: return false
-        val hasPrefix = tinganta.upasargas.any { it == "अनु" || it == "प्रति" }
-        val isGri = context.baseDhatu?.let { it.upadesha == "गृ" || it.upadesha == "गृँ" || it.sourceSurface == "गृ" }
-                    ?: (tinganta.dhatu.mulaDhatu == "गृ")
-        return hasPrefix && isGri && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        return KarakaDhatuDomains.isEncouragementGri(context) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.PRIOR_ACTION_AGENT) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

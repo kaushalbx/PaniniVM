@@ -6,6 +6,19 @@ import kotlin.test.assertTrue
 import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
+    @Test fun `negated numeric loop predicate inverts truth exactly once`() {
+        for ((left, right, expectedIterations) in listOf(Triple("एक", "द्वि", 1L), Triple("द्वि", "एक", 0L))) {
+            val source = "एक + कृत्वसुच् यावत् $left + अम् $right + अम् च विद् + लोट् + सिप् न " +
+                "तावत् जय + अम् मुद्र् + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            val completed = results.filterIsInstance<ExecutionResult.Success>().single { it.loopOutcome != null }
+            assertEquals(expectedIterations, completed.iterationCount, results.toString())
+            assertEquals(expectedIterations.toInt(), results.filterIsInstance<ExecutionResult.Success>()
+                .count { it.outputKind == OutputKind.CONSOLE }, results.toString())
+        }
+    }
+
     @Test fun `numeric loop condition is invalid rather than successful termination`() {
         val results = PaniniVM().evalScript(
             "यावत् एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् तावत् राम + अम् मुद्र् + णिच् + लोट् + सिप् ।")

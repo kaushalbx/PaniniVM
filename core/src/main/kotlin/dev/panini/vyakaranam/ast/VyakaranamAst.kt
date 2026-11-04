@@ -414,7 +414,10 @@ data class AvyayaPada(
     override val sourceText: String,
     val form: String,
     val derivation: AvyayaDerivation? = null,
-) : Pada {
+) : Pada, SourceLocatedNode {
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+    fun locatedAt(span: DocumentSourceSpan?): AvyayaPada = apply { sourceSpan = span }
     val function: AvyayaFunction? = AvyayaFunction.fromForm(form)
 }
 
@@ -608,6 +611,7 @@ data class KridantaPratipadika(
     val dhatu: DhatuPrakriti,
     val krtPratyaya: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
+    val derivationEvidence: KrtDerivationEvidence? = null,
 ) : Pratipadika {
     /** Shared grammatical identity, independent of the derived stem's ending. */
     val krtAffix: KrtAffix? = KrtAffix.fromUpadesha(krtPratyaya)

@@ -33,4 +33,14 @@ internal data class BindingContext(
     /** Typed operands supplied directly by the execution scope. */
     val environment: ValueEnvironment = ValueEnvironment(),
     val previousActionIdentities: List<dev.panini.core.ActionIdentity?> = emptyList(),
-)
+    /** All grammatical owners participating in one composite executable clause. */
+    val actionFrames: List<KriyaFrame> = emptyList(),
+) {
+    val grammaticalFrames: List<KriyaFrame> get() = actionFrames.ifEmpty { listOf(frame) }
+
+    fun ownerOf(pada: dev.panini.vyakaranam.ast.Pada?): KriyaFrame? =
+        grammaticalFrames.singleOrNull { owner -> owner.relations.any { it.participant.pada === pada } }
+
+    fun relationFor(pada: dev.panini.vyakaranam.ast.Pada?) =
+        ownerOf(pada)?.relations?.singleOrNull { it.participant.pada === pada }
+}

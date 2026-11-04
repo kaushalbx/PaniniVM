@@ -45,7 +45,9 @@ object CanonicalNumeralStem {
 /** Canonical phonological identities governed by 1.1.24. */
 object ShatNumeralIdentity {
     private val identities: Set<List<Varna>> =
-        setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्").mapTo(mutableSetOf()) { it.toVarnas() }
+        setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्",
+            "एकादशन्", "द्वादशन्", "त्रयोदशन्", "चतुर्दशन्", "पञ्चदशन्",
+            "षोडशन्", "सप्तदशन्", "अष्टादशन्", "नवदशन्").mapTo(mutableSetOf()) { it.toVarnas() }
 
     fun contains(varnas: List<Varna>): Boolean = varnas in identities
 }

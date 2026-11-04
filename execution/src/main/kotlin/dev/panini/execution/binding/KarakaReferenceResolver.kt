@@ -1,13 +1,10 @@
 package dev.panini.execution.binding
 
-import dev.panini.analysis.FrameKarakaResolution
-import dev.panini.analysis.KarakaRelation
 import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
 import dev.panini.execution.ExecutionExpression
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
-import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
 
@@ -102,35 +99,11 @@ object KarakaReferenceResolver {
                 reference.qualifier?.let(consumedQualifiers::add)
                 return@forEach
             }
-            val participants = remembered.frame.relations.filter {
-                (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == reference.karaka
-            }
-            if (participants.isEmpty()) throw MissingActionResultException(
-                "The remembered action has no participant in the requested kāraka relation.",
+            throw MissingActionResultException(
+                "The remembered action has no captured participant values for the requested kāraka relation.",
             )
-            val members = participants.map(::participantExpression)
-            expressions[referencePada] = if (members.size == 1) members.single()
-            else ExecutionExpression.Coordination(members)
-            consumedGenitives += reference.genitive
-            reference.qualifier?.let(consumedQualifiers::add)
         }
         return KarakaReferenceResolution(expressions, consumedGenitives, consumedQualifiers)
     }
 
-    private fun participantExpression(relation: KarakaRelation): ExecutionExpression {
-        val pada = relation.participant.pada
-        dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)?.let { value ->
-            return ExecutionExpression.Pada(pada.sourceText, value.samjnas, value = value)
-        }
-        require(pada is dev.panini.vyakaranam.ast.SubantaPada) {
-            "Unsupported nominal participant: ${pada.sourceText}"
-        }
-        val pratipadika = pada.pratipadika
-        if (pratipadika is SankhyaPratipadika) {
-            val value = pratipadika.semanticValue.value
-            val word = sharedSankhyaGenerator.cardinal(value).final.surface
-            return ExecutionExpression.sankhya(value, word)
-        }
-        return ExecutionExpression.Pada(pratipadika.referenceKey())
-    }
 }

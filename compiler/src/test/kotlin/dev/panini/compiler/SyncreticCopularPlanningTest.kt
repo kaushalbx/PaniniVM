@@ -7,6 +7,11 @@ import dev.panini.execution.planning.ResolvedLeafPlanner
 import kotlin.test.*
 
 class SyncreticCopularPlanningTest {
+    @Test fun `substantive directional adjective can be the comparison subject`() {
+        val source = "उत्तर + सुँ सदस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् ।"
+        val plan = assertNotNull(ResolvedLeafPlanner.planAny(source))
+        assertEquals(CopularPredicate.LESS_THAN, plan.resolved.context.copularPredicate)
+    }
     @Test fun `recognized predicates select the correct operation and syncretic standard role`() {
         for ((predicate, role, slot) in listOf(
             Triple("सम", Karaka.KARANA, SupAffix.BHYAM_3),
@@ -15,7 +20,7 @@ class SyncreticCopularPlanningTest {
         )) {
             val plan = assertNotNull(ResolvedLeafPlanner.planAny(
                 "वाम + सुँ दक्षिण + भ्याम् $predicate + सुँ असँ + लट् + तिप् ।"), predicate)
-            val standard = assertIs<ExecutionExpression.TypedOperand>(plan.resolved.context.bindings[role], predicate)
+            val standard = assertIs<ExecutionExpression.TypedOperand>(plan.resolved.context.nominalBindings[NominalOperandRole.COMPARISON_STANDARD], predicate)
             assertEquals(slot, standard.sup, predicate)
             assertEquals("दक्षिण", standard.referenceName)
         }
@@ -24,7 +29,7 @@ class SyncreticCopularPlanningTest {
     @Test fun `planned comparison standard selects the ablative slot not first bhyam slot`() {
         val clause = "वाम + सुँ दक्षिण + भ्याम् न्यून + सुँ असँ + लट् + तिप् ।"
         val plan = assertNotNull(ResolvedLeafPlanner.planAny(clause))
-        val standard = assertIs<ExecutionExpression.TypedOperand>(plan.resolved.context.bindings[Karaka.APADANA],
+        val standard = assertIs<ExecutionExpression.TypedOperand>(plan.resolved.context.nominalBindings[NominalOperandRole.COMPARISON_STANDARD],
             "${plan.resolved.operation.name}: ${plan.resolved.context.bindings}")
         assertEquals(SupAffix.BHYAM_5, standard.sup)
         assertEquals("दक्षिण", standard.referenceName)

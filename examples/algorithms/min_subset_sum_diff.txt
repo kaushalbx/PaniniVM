@@ -4,7 +4,7 @@
 # Optimal subsets: S1 = {1, 11} (sum = 12), S2 = {6, 5} (sum = 11) -> Minimum Difference = 12 - 11 = 1
 
 # Step 1: Compute subset 1 sum (1 + 11 = 12) and retain in handle 'धृ'
-एकम् एकादशं च धरणाय योजय ।
+एकम् एकादश च धरणाय योजय ।
 
 # Step 2: Compute subset 2 sum (6 + 5 = 11) and retain in handle 'स्था'
 षट् पञ्च च स्थानाय योजय ।

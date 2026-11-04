@@ -7,10 +7,22 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 
 class NaturalScriptStopTest {
+    @Test fun `script stop requires the canonical ram identity rather than an ambiguous spelling`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for ((root, expected) in listOf("रमुँ" to true, "रमँ" to false, "रम्" to false)) {
+            val invocation = parser.parse("वि + $root + लोट् + सिप् ।").body as dev.panini.vyakaranam.ast.Invocation
+            assertEquals(expected, NaturalScriptStop.matches(invocation), root)
+        }
+        for (source in listOf("रमुँ + लोट् + सिप् ।", "वि + रमुँ + श्नु + लोट् + सिप् ।",
+            "वि + रमुँ + णिच् + लोट् + सिप् ।", "वि + रमुँ + लट् + तिप् ।")) {
+            kotlin.test.assertFalse(NaturalScriptStop.matches(parser.parse(source).body as dev.panini.vyakaranam.ast.Invocation), source)
+        }
+    }
+
     @Test fun `script stop cannot escape from a procedure body`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वि + रम् + लोट् + सिप् ॥
+            वि + रमुँ + लोट् + सिप् ॥
             परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val failure = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
@@ -24,7 +36,7 @@ class NaturalScriptStopTest {
         val results = PaniniVM().evalScript(
             """
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
-            वि + रम् + लोट् + सिप् ।
+            वि + रमुँ + लोट् + सिप् ।
             नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।
             """.trimIndent())
 

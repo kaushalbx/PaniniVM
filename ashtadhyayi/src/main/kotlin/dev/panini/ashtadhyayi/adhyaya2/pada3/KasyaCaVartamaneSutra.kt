@@ -1,6 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.core.KrtAffix
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -18,7 +21,7 @@ import dev.panini.analysis.VibhaktiRuleResult
  */
 object KasyaCaVartamaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.67",
-    text = "क्तस्य च वर्त्तमाने",
+    text = "क्तस्य च वर्तमाने",
     hindiExplanation = "वर्तमान अर्थ में प्रयुक्त क्त-प्रत्ययान्त शब्द के योग में कर्ता में षष्ठी विभक्ति होती है।",
     type = SutraType.NITYA,
     chapter = 2,
@@ -28,10 +31,17 @@ object KasyaCaVartamaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.KARAKA)
+    inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
+    adhikara = setOf("2.3.1"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        Vibhakti.SASTHI in context.morphologicalCandidates &&
+        !context.abhihita && context.karaka == Karaka.KARTR &&
+            context.governingKrt?.krtAffix == KrtAffix.KTA &&
+            context.governingKrt?.vikaras?.all { it.isRecognizedStriAffix } == true &&
+            context.governingKrtExpressedRoles != null &&
+            Karaka.KARTR !in context.governingKrtExpressedRoles.orEmpty() &&
+            SemanticRelation.KRT_GOVERNED_PARTICIPANT in context.participant?.semanticRelations.orEmpty() &&
+            Vibhakti.SASTHI in context.morphologicalCandidates &&
             context.participant?.semanticRelations?.contains(SemanticRelation.PRESENT_PARTICIPLE_AGENT) == true
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult =

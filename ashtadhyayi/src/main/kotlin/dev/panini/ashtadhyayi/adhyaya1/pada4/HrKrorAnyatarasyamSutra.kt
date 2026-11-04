@@ -13,26 +13,34 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalKarakaRuleOutcome
+import dev.panini.analysis.hasEstablishedMeaning
 
 /**
- * Sūtra 1.4.53 ह्रिक्रोरन्यतरस्याम्.
+ * Sūtra 1.4.53 हृक्रोरन्यतरस्याम्.
  * For roots hṛ (हृ) and kṛ (कृ) in causative (ṇi) constructions, the agent of non-causative
  * optionally becomes object (karman) or remains instrument/agent (karana/kartr).
  */
 object HrKrorAnyatarasyamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.53", text = "ह्रिक्रोरन्यतरस्याम्",
+    number = "1.4.53", text = "हृक्रोरन्यतरस्याम्",
     hindiExplanation = "हृञ्-कृञोः अणौ यः कर्ता स णौ वा कर्मसंज्ञः स्यात्।",
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = true, kramaValue = 140053,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
-    adhikara = setOf("1.4.23", "1.4.49"),
-) {
+    adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.49", "1.4.52"),
+), OptionalKarakaRuleOutcome {
+    override fun declinedDesignation(context: KarakaRuleContext): KarakaRuleResult.Assigned {
+        val agent = SvatantrahKartaSutra.apply(context)
+        return agent.copy(evidence = agent.evidence.copy(reason =
+            "The aṇi-kartā established by 1.4.53 retains agent designation when optional object designation is declined."))
+    }
     override fun matches(context: KarakaRuleContext): Boolean {
-        val matchesRoot = KarakaDhatuDomains.isHrKr(context.dhatu)
-        return context.prayoga == Prayoga.CAUSATIVE &&
+        val matchesRoot = KarakaDhatuDomains.isHrKr(context)
+        return KarakaDhatuDomains.isCausativeConstruction(context) &&
             matchesRoot &&
-            SemanticRelation.PROMPTER_CAUSE !in context.participant.semanticRelations &&
-            Karaka.KARMAN in context.candidates
+            context.participant.hasEstablishedMeaning(SemanticRelation.CAUSEE_AGENT) &&
+            SemanticRelation.PRIOR_CAUSATIVE_AGENT !in context.participant.semanticRelations
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

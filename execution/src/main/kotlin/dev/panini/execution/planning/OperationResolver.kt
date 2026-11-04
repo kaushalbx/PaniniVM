@@ -129,9 +129,23 @@ object OperationResolver {
     ): Sequence<ExecutionContext> {
         val acceptedKarakas = operation.signature.requirements.mapTo(mutableSetOf()) { it.karaka } +
             operation.signature.optionalKarakas
-        fun assignments(index: Int, bindings: Map<Karaka, ExecutionExpression>): Sequence<ExecutionContext> = sequence {
+        val implicitAgent = invocation.bindings[Karaka.KARTR].takeIf {
+            invocation.metadata[ExecutionMetadata.IMPLICIT_AGENT] == "true"
+        }
+        fun assignments(index: Int, bindings: Map<Karaka, ExecutionExpression>,
+            chosen: Map<Int, Pair<Karaka, ExecutionExpression>> = emptyMap()): Sequence<ExecutionContext> = sequence {
             if (index == invocation.ambiguousBindings.size) {
-                yield(invocation.executionContext(variables).copy(bindings = bindings))
+                val completed = if (implicitAgent != null && Karaka.KARTR !in bindings)
+                    bindings + (Karaka.KARTR to implicitAgent) else bindings
+                val history = invocation.historyParticipants.map { participant ->
+                    participant.ambiguousIndex?.let { chosen.getValue(it) }?.let { (role, expression) ->
+                        participant.copy(expression = expression, projection = role, ambiguousIndex = null)
+                    } ?: participant
+                }
+                val explicitAgent = history.any { !it.implicit && it.projection == Karaka.KARTR }
+                yield(invocation.executionContext(variables).copy(bindings = completed,
+                    historyParticipants = history.filterNot { it.projection == Karaka.ANIRDHARITA ||
+                        (it.implicit && it.projection == Karaka.KARTR && explicitAgent) }))
                 return@sequence
             }
             val ambiguous = invocation.ambiguousBindings[index]
@@ -139,19 +153,25 @@ object OperationResolver {
             for (karaka in matches) {
                 val assigned = (ambiguous.expression as? ExecutionExpression.TypedOperand)?.let { operand ->
                     ambiguous.supSlots[karaka]?.let { operand.copy(sup = it) }
+                } ?: (ambiguous.expression as? ExecutionExpression.Reference)?.let { reference ->
+                    ambiguous.supSlots[karaka]?.let { slot -> variables[reference.name]?.let { value ->
+                        ExecutionExpression.TypedOperand(value, slot, reference.name)
+                    } }
                 } ?: ambiguous.expression
                 val expression = bindings[karaka]?.let { existing ->
                     ExecutionExpression.Coordination(listOf(existing, assigned))
                 } ?: assigned
-                yieldAll(assignments(index + 1, bindings + (karaka to expression)))
+                yieldAll(assignments(index + 1, bindings + (karaka to expression), chosen + (index to (karaka to assigned))))
             }
         }
-        return assignments(0, invocation.bindings)
+        return assignments(0, if (implicitAgent != null) invocation.bindings - Karaka.KARTR else invocation.bindings)
     }
 
     private fun moreSpecific(left: OperationSignature, right: OperationSignature): Boolean {
         val rightByKaraka = right.requirements.associateBy { it.karaka }
         var strictlyStronger = false
+        if (!left.nominalRequirements.containsAll(right.nominalRequirements)) return false
+        if (left.nominalRequirements != right.nominalRequirements) strictlyStronger = true
         if (right.copularPredicates.isNotEmpty()) {
             if (left.copularPredicates.isEmpty() || !right.copularPredicates.containsAll(left.copularPredicates)) return false
         }
@@ -183,9 +203,21 @@ object OperationResolver {
         constraints: Map<String, SemanticValueConstraint>,
     ): SignatureEvaluation {
         val signature = operation.signature
-        val predicate = CopularPredicate.from(context.bindings[Karaka.KARMAN])
-        if (predicate != null && signature.copularPredicates.isNotEmpty() && predicate !in signature.copularPredicates) {
+        val predicate = context.copularPredicate
+        if ((signature.copularPredicates.isNotEmpty() && predicate !in signature.copularPredicates) ||
+            (predicate != null && signature.copularPredicates.isEmpty())) {
             return SignatureEvaluation.Incompatible("This operation does not accept the written copular predicate.")
+        }
+        if (context.nominalBindings.keys.any { role -> signature.nominalRequirements.none { it.role == role } })
+            return SignatureEvaluation.Incompatible("This operation does not accept the supplied nominal relation.")
+        for (requirement in signature.nominalRequirements) {
+            val expression = context.nominalBindings[requirement.role]
+                ?: return SignatureEvaluation.Incompatible("Missing nominal operand ${requirement.role}.")
+            val facts = expression.valueFacts(context, constraints)
+            if (facts == null || facts.size != 1)
+                return SignatureEvaluation.Incompatible("${requirement.role} requires exactly one semantic value.")
+            if (requirement.valueType?.let { expected -> facts.any { !it.accepts(expected) } } == true)
+                return SignatureEvaluation.Incompatible("${requirement.role} requires ${requirement.valueType}.")
         }
         val suppliedForbidden = signature.forbiddenKarakas.filterTo(linkedSetOf()) { it in context.bindings }
         if (suppliedForbidden.isNotEmpty()) {
@@ -274,7 +306,9 @@ object OperationResolver {
         constraints: Map<String, SemanticValueConstraint>,
     ): List<ValueFact>? = when (this) {
         is ExecutionExpression.Pada -> context.resolveValues(this).map { ValueFact(value = it) }
-        is ExecutionExpression.TypedOperand -> context.resolveValues(this).map { ValueFact(value = it) }
+        is ExecutionExpression.TypedOperand -> referenceName?.takeUnless { it in context.variables }
+            ?.let { constraints[it] }?.let { listOf(ValueFact(constraint = it)) }
+            ?: context.resolveValues(this).map { ValueFact(value = it) }
         is ExecutionExpression.Reference -> context.variables[name]?.let { listOf(ValueFact(value = it)) }
             ?: constraints[name]?.let { listOf(ValueFact(constraint = it)) }
         is ExecutionExpression.Coordination -> buildList {
@@ -302,6 +336,9 @@ fun DhatuInvocation.executionContext(
     externalDispatcher: dev.panini.execution.external.ExternalCapabilityDispatcher? = null,
 ): ExecutionContext = ExecutionContext(
     bindings = bindings,
+    nominalBindings = nominalBindings,
+    copularPredicate = copularPredicate,
+    historyParticipants = historyParticipants,
     selectedOperation = selectedOperation,
     variables = variables,
     metadata = metadata,

@@ -13,7 +13,7 @@ class TypedKarakaInferenceTest {
     }
 
     @Test fun `typed inference respects voice and transitivity without reexpanding selected slots`() {
-        assertEquals(setOf(Karaka.KARTR),
+        assertEquals(setOf(Karaka.KARTR, Karaka.KARANA),
             KarakaInference.candidates(listOf(SupAffix.BHYAM_3), Prayoga.KARMANI))
         assertEquals(setOf(Karaka.SAMPRADANA),
             KarakaInference.candidates(listOf(SupAffix.BHYAM_4), Prayoga.KARMANI))

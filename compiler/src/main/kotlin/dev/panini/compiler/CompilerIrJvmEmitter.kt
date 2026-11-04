@@ -67,8 +67,26 @@ internal class CompilerIrJvmEmitter(
                         mv.visitInsn(POP)
                     }
                     mv.visitVarInsn(ALOAD, bindings)
+                    val history = allocateLocal(1)
+                    mv.visitTypeInsn(NEW, "java/util/ArrayList")
+                    mv.visitInsn(DUP)
+                    mv.visitMethodInsn(INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V", false)
+                    mv.visitVarInsn(ASTORE, history)
+                    instruction.historyParticipants.forEach { occurrence ->
+                        require(occurrence.projection != null && occurrence.ambiguousIndex == null)
+                        mv.visitVarInsn(ALOAD, history)
+                        emitExpression(occurrence.expression)
+                        mv.visitLdcInsn(requireNotNull(occurrence.projection).name)
+                        mv.visitLdcInsn(occurrence.coexistingKarakas.map { it.name }.sorted().joinToString(","))
+                        mv.visitInsn(if (occurrence.implicit) ICONST_1 else ICONST_0)
+                        mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/PaniniRuntime", "createHistoryParticipant",
+                            "(Ldev/panini/execution/ExecutionExpression;Ljava/lang/String;Ljava/lang/String;Z)Ldev/panini/execution/HistoryParticipant;", false)
+                        mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/ArrayList", "add", "(Ljava/lang/Object;)Z", false)
+                        mv.visitInsn(POP)
+                    }
+                    mv.visitVarInsn(ALOAD, history)
                     mv.visitMethodInsn(INVOKEVIRTUAL, "dev/panini/compiler/CompiledProgramRuntime", "executeParticipantGroup",
-                        "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;", false)
+                        "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/List;)Ldev/panini/execution/SanskritValue;", false)
                     emitActionIdentityIndex(instruction.dhatuUpadesha, instruction.actionIdentity)
                 }
                 is CompilerInstruction.LoadActionResult -> {
@@ -112,6 +130,12 @@ internal class CompilerIrJvmEmitter(
                     requireNotNull(locals[instruction.name]),
                 )
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
+                CompilerInstruction.SnapshotHistoryValue -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitInsn(SWAP)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "historySnapshot",
+                        "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 CompilerInstruction.Pop -> mv.visitInsn(POP)
                 CompilerInstruction.CheckNumericProhibition -> mv.visitMethodInsn(INVOKESTATIC,
@@ -556,16 +580,34 @@ internal class CompilerIrJvmEmitter(
             )
             mv.visitInsn(POP)
         }
+        val nominalBindings = allocateLocal(1)
+        mv.visitTypeInsn(NEW, "java/util/HashMap")
+        mv.visitInsn(DUP)
+        mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
+        mv.visitVarInsn(ASTORE, nominalBindings)
+        call.nominalBindings.forEach { (role, expression) ->
+            mv.visitVarInsn(ALOAD, nominalBindings)
+            mv.visitFieldInsn(GETSTATIC, "dev/panini/execution/NominalOperandRole", role.name,
+                "Ldev/panini/execution/NominalOperandRole;")
+            emitExpression(expression)
+            mv.visitMethodInsn(INVOKEVIRTUAL, "java/util/HashMap", "put",
+                "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false)
+            mv.visitInsn(POP)
+        }
         mv.visitVarInsn(ALOAD, 0)
         mv.visitLdcInsn(call.dhatuUpadesha)
         mv.visitLdcInsn(call.operationName)
         mv.visitLdcInsn(call.requiredSanadi)
         mv.visitVarInsn(ALOAD, bindings)
+        mv.visitVarInsn(ALOAD, nominalBindings)
+        if (call.copularPredicate == null) mv.visitInsn(ACONST_NULL)
+        else mv.visitFieldInsn(GETSTATIC, "dev/panini/execution/CopularPredicate", call.copularPredicate.name,
+            "Ldev/panini/execution/CopularPredicate;")
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
             "executeDirectValue",
-            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
+            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;Ldev/panini/execution/CopularPredicate;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }

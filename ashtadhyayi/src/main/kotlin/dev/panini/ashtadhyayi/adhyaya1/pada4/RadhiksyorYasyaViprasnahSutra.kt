@@ -11,31 +11,28 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.analysis.hasEstablishedMeaning
 
 /**
- * Sūtra 1.4.38 राधिक्योर्यस्य विप्रश्नः.
+ * Sūtra 1.4.39 राधीक्ष्योर्यस्य विप्रश्नः.
  * Assigns Sampradāna saṃjñā to the person whose destiny/fate is being inquired into via rādh or īkṣ.
  */
 object RadhiksyorYasyaViprasnahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.39", text = "राधिक्ष्योर्यस्य विप्रश्नः",
+    number = "1.4.39", text = "राधीक्ष्योर्यस्य विप्रश्नः",
     hindiExplanation = "राध् तथा ईक्ष् धातु के योग में जिसके भावी शुभाशुभ विषय में प्रश्न किया जाए, उसकी सम्प्रदान संज्ञा होती है।",
-    type = SutraType.NITYA, chapter = 1, pada = 4, optional = false, kramaValue = 140039,
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140039,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("1.4.1", "1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        (context.candidates.isEmpty() || Karaka.SAMPRADANA in context.candidates) &&
-            (context.dhatu.varnas.take(3) in setOf(
-                listOf(Vyanjana.RA, Svara.AA, Vyanjana.DHA),
-                listOf(Svara.II, Vyanjana.KA, Vyanjana.SSA),
-            )) &&
-            SemanticRelation.INQUIRY_DESTINY_TARGET in context.participant.semanticRelations
+        KarakaDhatuDomains.isDestinyInquiry(context) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.INQUIRY_DESTINY_TARGET)
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.SAMPRADANA,
-        KarakaEvidence(number, text, "सम्प्रदान saṃjñā for target of destiny inquiry with rādh/īkṣ (1.4.38)."),
+        KarakaEvidence(number, text, "सम्प्रदान saṃjñā for target of destiny inquiry with rādh/īkṣ (1.4.39)."),
     )
 }

@@ -13,9 +13,9 @@ import dev.panini.analysis.VibhaktiRuleResult
 
 import dev.panini.analysis.SemanticRelation
 
-/** Sūtra 2.3.19 सहयुक्तोऽप्रधाने. Assigns Trtīyā to a non-principal participant associated with saha/sākam/sārdham/samam. */
+/** Sūtra 2.3.19 सहयुक्तेऽप्रधाने. Assigns Trtīyā to a non-principal participant in accompaniment. */
 object SahaYukteApradhaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.19", text = "सहयुक्तोऽप्रधाने",
+    number = "2.3.19", text = "सहयुक्तेऽप्रधाने",
     hindiExplanation = "सहार्थेन युक्ते अप्रधाने तृतीया स्यात्।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230019,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
@@ -25,7 +25,8 @@ object SahaYukteApradhaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             Vibhakti.TRTIYA in context.morphologicalCandidates &&
-            SemanticRelation.ACCOMPANIMENT in context.participant?.semanticRelations.orEmpty()
+            SemanticRelation.ACCOMPANIMENT in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.NON_PRINCIPAL_ACCOMPANIMENT in context.participant?.semanticRelations.orEmpty()
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.TRTIYA,

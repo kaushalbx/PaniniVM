@@ -13,17 +13,13 @@ class NegationScopeClassificationTest {
             "यदि स्वसङ्ख्याप्राप्ति + सुँ न असँ + लट् + तिप् तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         for (source in sources) {
-            for (statements in listOf(PvmScript.parseNative(source), PvmScript.parseLegacy(source))) {
-                assertFalse(assertIs<PvmScriptStatement.Sentence>(statements.single()).isNishedha)
-            }
+            assertFalse(assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(source).single()).isNishedha)
         }
     }
 
     @Test
     fun `standalone nominal prohibition retains guard classification`() {
         val source = "प्रथम + अम् शून्य + अम् न ।"
-        for (statements in listOf(PvmScript.parseNative(source), PvmScript.parseLegacy(source))) {
-            assertTrue(assertIs<PvmScriptStatement.Sentence>(statements.single()).isNishedha)
-        }
+        assertTrue(assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(source).single()).isNishedha)
     }
 }

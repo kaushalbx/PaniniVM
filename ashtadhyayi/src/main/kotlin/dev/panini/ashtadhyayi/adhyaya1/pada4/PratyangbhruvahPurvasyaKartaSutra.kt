@@ -11,22 +11,22 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.analysis.hasEstablishedMeaning
 
 object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.40", text = "प्रत्याङ्भ्रुवः पूर्वस्य कर्ता",
+    number = "1.4.40", text = "प्रत्याङ्भ्यां श्रुवः पूर्वस्य कर्ता",
     hindiExplanation = "प्रति-श्रु और आ-श्रु धातुओं के योग में जो पूर्व व्यापार का कर्ता (प्रेरक या याचक) है, उसकी सम्प्रदानसंज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140040,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val tinganta = context.verbNode as? TingantaPada ?: return false
-        val hasPrefix = tinganta.upasargas.any { it == "प्रति" || it == "आ" }
-        val isShru = context.baseDhatu?.let { it.upadesha == "श्रु" || it.upadesha == "श्रुँ" || it.sourceSurface == "श्रु" }
-                     ?: (tinganta.dhatu.mulaDhatu == "श्रु")
-        return hasPrefix && isShru && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        return KarakaDhatuDomains.isPromiseShru(context) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.PRIOR_ACTION_AGENT) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

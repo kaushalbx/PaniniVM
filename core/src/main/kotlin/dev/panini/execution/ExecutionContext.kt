@@ -21,7 +21,11 @@ data class ExecutionContext(
     val sankhyaRenderer: SankhyaResultRenderer = SankhyaResultRenderer { value ->
         SankhyaResultRenderer.defaultRenderer.render(value)
     },
+    val nominalBindings: Map<NominalOperandRole, ExecutionExpression> = emptyMap(),
+    val copularPredicate: CopularPredicate? = null,
+    val historyParticipants: List<HistoryParticipant> = emptyList(),
 ) {
+    val operandExpressions: List<ExecutionExpression> get() = bindings.values.toList() + nominalBindings.values + historyParticipants.map { it.expression }
     fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
         is ExecutionExpression.Pada -> listOf(
             expression.value ?: SanskritValue.of(expression.prakriti, expression.samjnas),

@@ -11,6 +11,10 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.core.KrtAffix
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 
 /**
  * Sūtra 2.3.15 तुमर्थाच्च भाववचनात्.
@@ -21,12 +25,20 @@ object TumarthacCaBhavavacanatSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRes
     hindiExplanation = "तुमुन्-प्रत्यय के अर्थ वाले भाववाचक शब्द से चतुर्थी विभक्ति होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230015,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE),
+    inputs = setOf(SutraInput.SEMANTIC_FEATURE, SutraInput.PRATIPADIKA, SutraInput.PRATYAYA),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasPurposeActionNoun(context: VibhaktiRuleContext): Boolean {
+        val p = context.participant ?: return false
+        val noun = (p.expression as? SubantaPada)?.pratipadika as? KridantaPratipadika ?: return false
+        return noun.krtAffix in setOf(KrtAffix.GHAN, KrtAffix.KTIN, KrtAffix.LYUT) &&
+            noun.vikaras.all { it.isRecognizedStriAffix } &&
+            p.semanticRelations.containsAll(setOf(SemanticRelation.PURPOSE_ACTION, SemanticRelation.ACTION_NOUN_DENOTATION))
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.PURPOSE_ACTION in context.participant?.semanticRelations.orEmpty() &&
+            hasPurposeActionNoun(context) &&
             Vibhakti.CHATURTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

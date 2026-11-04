@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.core.Karaka
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -21,16 +23,24 @@ object KrjahPratiyatneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     hindiExplanation = "प्रतियत्न (गुणाधान/संस्कार) अर्थ में कृ धातु के कर्म में षष्ठी विभक्ति होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230053,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasSeshaPratiyatnaObject(context: VibhaktiRuleContext): Boolean {
+        val relations = context.participant?.semanticRelations.orEmpty()
+        return KarakaDhatuDomains.isKr(context) &&
+            setOf(SemanticRelation.TRANSFORMATION_ENDOWMENT, SemanticRelation.EXISTING_SUBSTRATE,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION).all { it in relations }
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.TRANSFORMATION_ENDOWMENT in context.participant?.semanticRelations.orEmpty() &&
+            context.karaka in setOf(Karaka.ANIRDHARITA, Karaka.KARMAN) &&
+            hasSeshaPratiyatnaObject(context) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.SASTHI,
-        KarakaEvidence(number, text, "षष्ठी realizes karman of kṛ in transformation/endowment sense (2.3.53)."),
+        KarakaEvidence(number, text, "षष्ठी expresses as śeṣa the existing substrate receiving an additional quality through kṛ (2.3.53)."),
     )
 }

@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.core.LopaType
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -9,6 +11,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,17 +26,30 @@ object NaksatreCaLupiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SAPTAMI)
+
+    fun hasNakshatraLupLocus(context: VibhaktiRuleContext): Boolean {
+        val participant = context.participant ?: return false
+        val relations = participant.semanticRelations
+        return context.karaka == Karaka.ADHIKARANA &&
+            SemanticRelation.LOCATION in relations &&
+            SemanticRelation.ASTROLOGICAL_TIME in relations &&
+            SemanticRelation.NAKSATRA_EXPRESSION in relations &&
+            participant.taddhitaLopa?.lopa == LopaType.LUP
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.ASTROLOGICAL_TIME in context.participant?.semanticRelations.orEmpty() &&
+            hasNakshatraLupLocus(context) &&
             (Vibhakti.TRTIYA in context.morphologicalCandidates || Vibhakti.SAPTAMI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {
         val v = if (Vibhakti.TRTIYA in context.morphologicalCandidates) Vibhakti.TRTIYA else Vibhakti.SAPTAMI
         return VibhaktiRuleResult.Assigned(
             v,
-            KarakaEvidence(number, text, "$v realizes asterism time under lup-elision (2.3.45)."),
+            KarakaEvidence(number, text, "$v realizes nakṣatra time as an action locus under lup-elision " +
+                "(${context.participant?.taddhitaLopa?.sutra}; 2.3.45)."),
         )
     }
 }

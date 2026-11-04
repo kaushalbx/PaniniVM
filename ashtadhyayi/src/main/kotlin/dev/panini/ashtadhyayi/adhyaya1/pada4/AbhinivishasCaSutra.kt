@@ -16,14 +16,16 @@ import dev.panini.analysis.SemanticRelation
 object AbhinivishasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.47", text = "अभिनिविशश्च",
     hindiExplanation = "अभि और नि उपसर्ग पूर्वक विश् धातु के आधार की कर्मसंज्ञा होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140047,
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = true, kramaValue = 140047,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.44", "1.4.45", "1.4.46"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isAbhinivish = KarakaDhatuDomains.isAbhinivish(context.dhatu)
-        return isAbhinivish && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
+        val isAbhinivish = KarakaDhatuDomains.isAbhinivish(context)
+        return isAbhinivish && !KarakaDhatuDomains.isAbhinivishLocativeUsage(context) &&
+            SemanticRelation.LOCATION in context.participant.semanticRelations
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

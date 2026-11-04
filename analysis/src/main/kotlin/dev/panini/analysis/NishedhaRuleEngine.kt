@@ -5,19 +5,23 @@ object NishedhaRuleEngine {
         val isBlockedByKngitiCa = context.isKitOrNgitAffix ||
             'क' in context.affixItMarkers ||
             'ङ' in context.affixItMarkers
+        val isKrtGenitiveAssignment = context.targetSutraNumber == "2.3.65" ||
+            (context.targetSutraNumber == "2.3.66" &&
+                context.proposedVibhakti == dev.panini.core.Vibhakti.SASTHI)
 
         return when {
-            context.isAkaFutureOrDebtAffix && context.targetSutraNumber == "2.3.65" -> NishedhaRuleResult.Blocked(
+            (context.krtGenitiveProhibition != null || context.isAkaFutureOrDebtAffix) && isKrtGenitiveAssignment -> NishedhaRuleResult.Blocked(
                 blockerSutraNumber = "2.3.70",
-                blockerSutraText = "अकस्य च भविष्यदाधमर्ण्ययोः",
-                blockedTargetSutraNumber = "2.3.65",
-                evidence = KarakaEvidence("2.3.70", "अकस्य च भविष्यदाधमर्ण्ययोः", "Prohibits Ṣaṣṭhī before -aka affix in future or debt sense."),
+                blockerSutraText = "अकेनोर्भविष्यदाधमर्ण्ययोः",
+                blockedTargetSutraNumber = context.targetSutraNumber,
+                evidence = KarakaEvidence("2.3.70", "अकेनोर्भविष्यदाधमर्ण्ययोः",
+                    "Prohibits kṛt-governed ṣaṣṭhī under ${context.krtGenitiveProhibition ?: "legacy supplied prohibition evidence"}."),
             )
-            context.isKrtProhibitedForSasthi && context.targetSutraNumber == "2.3.65" -> NishedhaRuleResult.Blocked(
-                blockerSutraNumber = "2.3.66",
-                blockerSutraText = "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्",
-                blockedTargetSutraNumber = "2.3.65",
-                evidence = KarakaEvidence("2.3.66", "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्", "Prohibits Ṣaṣṭhī for la, u, uka, avyaya, niṣṭhā, khalartha, and tṛn affixes."),
+            context.isKrtProhibitedForSasthi && isKrtGenitiveAssignment -> NishedhaRuleResult.Blocked(
+                blockerSutraNumber = "2.3.69",
+                blockerSutraText = "न लोकाव्ययनिष्ठाखलर्थतृनाम्",
+                blockedTargetSutraNumber = context.targetSutraNumber,
+                evidence = KarakaEvidence("2.3.69", "न लोकाव्ययनिष्ठाखलर्थतृनाम्", "Prohibits Ṣaṣṭhī for la, u, uka, avyaya, niṣṭhā, khalartha, and tṛn affixes."),
             )
             context.isDidhiVeviOrItAugment && context.targetSutraNumber in setOf("1.1.1", "1.1.2", "1.1.3", "7.3.84") -> NishedhaRuleResult.Blocked(
                 blockerSutraNumber = "1.1.6",

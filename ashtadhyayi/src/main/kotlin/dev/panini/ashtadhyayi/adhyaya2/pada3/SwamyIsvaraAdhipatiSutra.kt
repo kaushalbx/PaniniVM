@@ -11,30 +11,34 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
-import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.vyakaranam.ast.MulaPratipadika
 
 /**
- * Sūtra 2.3.39 स्वाम्यीश्वराधिपतिदायादसाक्षीप्रतिभूप्रसूतैश्च.
+ * Sūtra 2.3.39 स्वामीश्वराधिपतिदायादसाक्षिप्रतिभूप्रसूतैश्च.
  * Assigns Ṣaṣṭhī or Saptamī in connection with svāmin, īśvara, adhipati, dāyāda, sākṣin, pratibhū, prasūta.
  */
 object SwamyIsvaraAdhipatiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.39", text = "स्वाम्यीश्वराधिपतिदायादसाक्षीप्रतिभूप्रसूतैश्च",
+    number = "2.3.39", text = "स्वामीश्वराधिपतिदायादसाक्षिप्रतिभूप्रसूतैश्च",
     hindiExplanation = "स्वाम्यादिभिर्योगे षष्ठीसप्तम्यौ स्तः।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230039,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
+    private val governors = setOf("स्वामिन्", "ईश्वर", "अधिपति", "दायाद", "साक्षिन्", "प्रतिभू", "प्रसूत")
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.OWNERSHIP_SWAMIN in context.participant?.semanticRelations.orEmpty() &&
+            (context.participant?.governingNominal?.pratipadika as? MulaPratipadika)
+                ?.takeIf { it.vikaras.isEmpty() }?.text in governors &&
             (Vibhakti.SASTHI in context.morphologicalCandidates || Vibhakti.SAPTAMI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {
         val caseAssigned = if (Vibhakti.SASTHI in context.morphologicalCandidates) Vibhakti.SASTHI else Vibhakti.SAPTAMI
         return VibhaktiRuleResult.Assigned(
             caseAssigned,
-            KarakaEvidence(number, text, "$caseAssigned expresses ownership or witnessing relation (2.3.39)."),
+            KarakaEvidence(number, text, "$caseAssigned realizes the established nominal dependency on a specified svāmin-group governor (2.3.39)."),
         )
     }
 }

@@ -27,11 +27,16 @@ internal object DerivationCliCommands {
     }
 
     fun karaka(args: List<String>): List<String> {
-        val stem = args.getOrNull(0) ?: error("Usage: --derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga]")
+        val stem = args.getOrNull(0) ?: error("Usage: --derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga] [--implied-object]")
         val karaka = CliArgumentParsers.karaka(args.getOrNull(1) ?: error("Missing karaka."))
         val vacana = CliArgumentParsers.vacana(args.getOrNull(2) ?: error("Missing vacana."))
         val dhatu = args.getOrNull(3) ?: error("Missing dhatu.")
-        val prayoga = args.getOrNull(4)?.let(CliArgumentParsers::prayoga) ?: Prayoga.KARTARI
+        val options = args.drop(4)
+        require(options.count { it == "--implied-object" } <= 1) { "Duplicate --implied-object option." }
+        require(options.none { it.startsWith("--") && it != "--implied-object" }) { "Unknown kāraka derivation option." }
+        val positional = options.filterNot { it == "--implied-object" }
+        require(positional.size <= 1) { "Expected at most one prayoga." }
+        val prayoga = positional.singleOrNull()?.let(CliArgumentParsers::prayoga) ?: Prayoga.KARTARI
         val result = SubantaEngine().deriveFromKaraka(
             KarakaSubantaDerivationRequest(
                 pratipadika = stem,
@@ -39,10 +44,11 @@ internal object DerivationCliCommands {
                 vacana = vacana,
                 dhatu = dhatu,
                 prayoga = prayoga,
+                intendedObject = if ("--implied-object" in options) dev.panini.analysis.IntendedObject.Implied else null,
             ),
         )
         return buildList {
-            add("${result.initial.context.rupa.vibhakti ?: Vibhakti.PRATHAMA} $vacana: ${result.final.surface}")
+            add("${requireNotNull(result.initial.context.rupa.vibhakti)} $vacana: ${result.final.surface}")
             result.karakaResolution?.let { resolution ->
                 add("Semantic Karaka Resolution Trace:")
                 resolution.evidence.forEach { add("  ${it.sutra} — ${it.reason} (${it.text})") }

@@ -27,8 +27,10 @@ class TwoSumExampleTest {
         assertEquals(1, program.depthFirst().filterIsInstance<CollectionRelativeAction>().count())
         assertTrue(program.sourceText.contains("कर्मन्"))
         assertTrue(!program.sourceText.contains("क्रम"))
-        assertTrue(conditionals.any { condition -> condition.consequent.sourceText.contains("वि+रम्") ||
-            condition.consequent.sourceText.contains("वि + रम्") })
+        assertTrue(conditionals.any { condition -> condition.consequent.depthFirst()
+            .filterIsInstance<dev.panini.vyakaranam.ast.Invocation>()
+            .mapNotNull { (it.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya)?.tinganta }
+            .any(NaturalScriptStop::matchesHead) })
     }
 
     @Test

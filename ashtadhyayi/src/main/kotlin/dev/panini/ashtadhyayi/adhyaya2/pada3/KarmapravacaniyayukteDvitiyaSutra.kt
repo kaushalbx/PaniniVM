@@ -27,6 +27,9 @@ object KarmapravacaniyayukteDvitiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRu
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             SemanticRelation.KARMAPRAVACANIYA_GOVERNANCE in context.participant?.semanticRelations.orEmpty() &&
+            !PratinidhiPratidaneCaYasmatSutra.hasReferenceConstruction(context) &&
+            !YasmadAdhikamYasyaCesvaravacanamTatraSaptamiSutra.hasReferenceConstruction(context) &&
+            !PancamyApangParibhihSutra.hasExclusionLimitConstruction(context) &&
             Vibhakti.DVITIYA in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

@@ -164,7 +164,7 @@ class ExecutionArchitectureTest {
             "examples/arithmetic/cumulative_sum.pvm" to "पञ्चदश",
             "examples/arithmetic/factorial.pvm" to "विंशत्यधिकशतम्",
             "examples/arithmetic/gcd.pvm" to "षट्",
-            "examples/arithmetic/sum_recursive.pvm" to "पञ्चदश",
+            "examples/arithmetic/sum_iterative.pvm" to "पञ्चदश",
             "examples/control_flow/two_counter_machine.pvm" to "त्रीणि",
         )
         val vm = PaniniVM()

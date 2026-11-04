@@ -16,6 +16,8 @@ import dev.panini.analysis.ParticipantFacts
 import dev.panini.analysis.ParticipantRelationInferrer
 import dev.panini.analysis.ProhibitionContext
 import dev.panini.analysis.SemanticRelation
+import dev.panini.ashtadhyayi.adhyaya1.pada4.Adhyaya1Pada4
+import dev.panini.ashtadhyayi.adhyaya2.pada3.Adhyaya2Pada3
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import org.antlr.v4.kotlinruntime.BaseErrorListener
@@ -28,6 +30,34 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class VyakaranamGrammarTest {
+    @Test
+    fun `canonical karaka registry contains exactly sutras 1 4 23 through 55`() {
+        val canonicalNumbers = Adhyaya1Pada4.sutras
+            .map { it.number }
+            .filter { number ->
+                val components = number.split('.')
+                components.size == 3 && components[0] == "1" && components[1] == "4" &&
+                    components[2].toIntOrNull() in 23..55
+            }
+            .toSet()
+
+        assertEquals((23..55).map { "1.4.$it" }.toSet(), canonicalNumbers)
+        assertTrue(Adhyaya1Pada4.sutras.none { it.number == "1.4.42V" })
+    }
+
+    @Test
+    fun `canonical vibhakti registry has unique numbers and an explicit remaining gap set`() {
+        val canonicalNumbers = Adhyaya2Pada3.sutras.map { it.number }
+            .filter { it.matches(Regex("2\\.3\\.\\d+")) }
+        assertEquals(canonicalNumbers.toSet().size, canonicalNumbers.size)
+
+        val expected = (1..73).map { "2.3.$it" }.toSet()
+        assertEquals(
+            emptySet(),
+            expected - canonicalNumbers.toSet(),
+        )
+    }
+
 
     // ── Parser smoke tests ────────────────────────────────────────────────────
 
@@ -94,7 +124,8 @@ class VyakaranamGrammarTest {
         assertTrue(objRes.evidence.any { it.sutra == "1.4.49" })
         assertTrue(objRes.evidence.any { it.sutra == "2.3.2" })
 
-        // 2.3.1 Anabhihite — abhihita karma in karmani gets prathama
+        // 2.3.46 — an abhihita karma in karmani gets prathama; 2.3.1 is
+        // an adhikara boundary and must not masquerade as the assigning rule.
         val abhihitaRes = KarakaRuleEngine.resolve(
             KarakaRuleContext(
                 dhatu = DhatuIdentity("कृ"),
@@ -103,7 +134,8 @@ class VyakaranamGrammarTest {
             )
         )
         assertEquals(Karaka.KARMAN, abhihitaRes.resolved)
-        assertTrue(abhihitaRes.evidence.any { it.sutra == "2.3.1" })
+        assertTrue(abhihitaRes.evidence.any { it.sutra == "2.3.46" })
+        assertTrue(abhihitaRes.evidence.none { it.sutra == "2.3.1" })
 
         // 1.4.54 Kartr
         val agentRes = KarakaRuleEngine.resolve(

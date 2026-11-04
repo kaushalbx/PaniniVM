@@ -12,6 +12,9 @@ import dev.panini.analysis.DhatuIdentity
 import dev.panini.analysis.DhatuKarakaProfiles
 import dev.panini.analysis.ParticipantFacts
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelationEvidence
+import dev.panini.analysis.SemanticEvidenceSource
+import dev.panini.core.Karaka
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti
@@ -77,12 +80,35 @@ class SubantaEngine(
             "सह", "साकम्", "सार्धम्", "समम्", "saha", "sakam", "sardham", "samam" -> setOf(SemanticRelation.ACCOMPANIMENT)
             else -> emptySet()
         }
+        val relations = request.semanticRelations ?: (profile?.relations.orEmpty() + upapadaRelations)
+        val requestedMeaning = when (request.karaka) {
+            Karaka.KARTR -> SemanticRelation.INDEPENDENT_AGENT
+            Karaka.KARMAN -> SemanticRelation.DESIRED_OBJECT
+            Karaka.KARANA -> SemanticRelation.INSTRUMENT
+            Karaka.SAMPRADANA -> SemanticRelation.RECIPIENT
+            Karaka.APADANA -> SemanticRelation.SOURCE
+            Karaka.ADHIKARANA -> SemanticRelation.LOCATION
+            else -> null
+        }
         val participant = ParticipantFacts(
             id = request.pratipadika,
             expression = AvyayaPada(request.pratipadika, request.pratipadika),
             possibleVibhaktis = allVibhaktis,
-            semanticRelations = request.semanticRelations ?: (profile?.relations.orEmpty() + upapadaRelations),
-            categories = request.categories ?: emptySet()
+            semanticRelations = relations,
+            // A verb profile describes several positions. The requested role
+            // selects one participant; its other valencies are not equally
+            // strong, explicitly supplied readings of that same participant.
+            semanticEvidence = relations.mapTo(mutableSetOf()) { relation ->
+                val supplied = request.semanticRelations != null || relation == requestedMeaning
+                SemanticRelationEvidence(relation, when {
+                    supplied -> SemanticEvidenceSource.CLAUSE_CONTEXT
+                    relation in upapadaRelations -> SemanticEvidenceSource.GOVERNING_CONSTRUCTION
+                    else -> SemanticEvidenceSource.DHATU_VALENCY
+                }, if (supplied) "Meaning selected by the kāraka derivation request."
+                    else "Unselected verbal valency or upapada context.")
+            },
+            categories = request.categories ?: emptySet(),
+            intendedObject = request.intendedObject,
         )
         val dhatuEntry = DhatuPatha.all.firstOrNull {
             it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu || it.sourceSurface == request.dhatu
@@ -108,7 +134,8 @@ class SubantaEngine(
                 baseDhatu = dhatuEntry
             )
         )
-        val resolvedVibhakti = resolution.resolvedVibhakti ?: Vibhakti.PRATHAMA
+        val resolvedVibhakti = resolution.resolvedVibhakti
+            ?: throw UnresolvedKarakaDerivationException(resolution)
 
         val result = derive(
             SubantaDerivationRequest(
@@ -121,6 +148,16 @@ class SubantaEngine(
         return result.copy(karakaResolution = resolution)
     }
 }
+
+/** A missing or ambiguous case cannot silently become a nominative derivation. */
+class UnresolvedKarakaDerivationException(
+    val resolution: dev.panini.analysis.KarakaResolution,
+) : IllegalArgumentException(
+    "No unique case is licensed for this kāraka derivation; " +
+        "resolved role=${resolution.resolved}, candidates=${resolution.candidates}, " +
+        "case alternatives=${resolution.alternatives.map { it.vibhakti }}. " +
+        "Supply the missing construction evidence or derive an explicitly selected case.",
+)
 
 /** The executable portion of a nominal paradigm, retaining its rule traces. */
 data class SubantaParadigm(

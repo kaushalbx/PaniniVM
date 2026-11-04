@@ -101,7 +101,9 @@ class PadaAnalyzer(
     private val lexicon: VyakaranamLexicon,
     private val validatePadaCompatibility: Boolean = true,
     private val sankhyaValueResolver: SankhyaPadaValueResolver = SankhyaPadaValueResolver(::encodedSankhyaValue),
+    private val allowUnresolvedDhatu: Boolean = false,
 ) {
+    fun findDhatu(prakriti: dev.panini.vyakaranam.ast.DhatuPrakriti): Dhatu? = lexicon.findDhatu(prakriti.mulaDhatu)
 
     fun analyze(pada: Pada): PadaAnalysis =
         when (pada) {
@@ -143,7 +145,11 @@ class PadaAnalyzer(
 
             is SankhyaAbhyasaPada ->
                 AnalyzedAvyaya(
-                    pada = AvyayaPada(pada.sourceText, pada.sourceText),
+                    pada = AvyayaPada(pada.sourceText, pada.sourceText,
+                        derivation = dev.panini.vyakaranam.ast.AvyayaTaddhitaDerivation(
+                            pratipadika = pada.stems.dropLast(1).joinToString("+"),
+                            pratyaya = pada.stems.last(),
+                        )),
                 )
 
             is KatapayadiPada -> analyzeSankhya(pada, pada.sup)
@@ -198,9 +204,9 @@ class PadaAnalyzer(
         pada: TingantaPada,
     ): TingantaAnalysis {
         val dhatu = lexicon.findDhatu(pada.dhatu.mulaDhatu)
-            ?: throw IllegalArgumentException(
-                "धातुपाठे धातुः न प्राप्तः: ${pada.dhatu.mulaDhatu}",
-            )
+        require(dhatu != null || allowUnresolvedDhatu) {
+            "धातुपाठे धातुः न प्राप्तः: ${pada.dhatu.mulaDhatu}"
+        }
 
         val tingAffix = requireNotNull(pada.ting.affix) {
             "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
@@ -220,15 +226,15 @@ class PadaAnalyzer(
                 pada.priorAction != null ||
                 passive ||
                 pada.dhatu.sanadiPratyayas.isNotEmpty() ||
-                dhatu.pada == null ||
+                dhatu?.pada == null ||
                 dhatu.pada == PadaType.UBHAYAPADA ||
                 dhatu.pada == tingAffix.pada,
         ) {
             buildString {
                 append("धातोः पदविरोधः: ")
-                append(dhatu.upadesha)
+                append(dhatu?.upadesha)
                 append(" धातुः ")
-                append(dhatu.pada)
+                append(dhatu?.pada)
                 append(" स्वीकरोति, किन्तु ")
                 append(pada.ting.text)
                 append(" ")

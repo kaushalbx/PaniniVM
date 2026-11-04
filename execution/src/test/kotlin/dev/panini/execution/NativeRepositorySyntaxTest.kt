@@ -23,37 +23,11 @@ class NativeRepositorySyntaxTest {
     }
 
     @Test
-    fun `native repository declarations and sentence classifications match existing semantics`() {
-        fun signature(statements: List<PvmScriptStatement>): List<String> = statements.map { statement ->
-            when (statement) {
-                is PvmScriptStatement.PrakriyaDefinition ->
-                    "procedure:${statement.prakriya.nameIdentity}:${statement.prakriya.domainIdentity}:${statement.prakriya.modifiers}:${statement.body.size}:" +
-                        statement.body.joinToString { "${it.semantics}:${it.isNishedha}" }
-                is PvmScriptStatement.AdhikaraDefinition -> "scope:${statement.scope.domainIdentity}"
-                is PvmScriptStatement.RangeDefinition -> "range:${statement.range.minimum.value}:${statement.range.maximum.value}"
-                is PvmScriptStatement.Sentence -> "sentence:${statement.semantics}:${statement.isNishedha}"
-            }
-        }.sorted()
-        val failures = listOf("examples", "projects").flatMap { root ->
-            File(root).walkTopDown().filter { it.isFile && it.extension == "pvm" }.mapNotNull { file ->
-                val source = file.readText()
-                // The migration-only line parser predates grammatical cross-danda
-                // continuations; native documents deliberately retain them as one AST.
-                if (Regex("।\\s*तदा").containsMatchIn(source)) return@mapNotNull null
-                val old = signature(PvmScript.parseLegacy(source))
-                val native = signature(PvmScript.parseNative(source))
-                if (old == native) null else "${file.path}\nlegacy: $old\nnative: $native"
-            }.toList()
-        }
-        assertTrue(failures.isEmpty(), failures.joinToString("\n"))
-    }
-
-    @Test
     fun `repository programs parse as complete native documents`() {
         val failures = listOf("examples", "projects").flatMap { root ->
             File(root).walkTopDown().filter { it.isFile && it.extension == "pvm" }
                 .sortedBy(File::getPath).mapNotNull { file ->
-                    runCatching { PvmScript.parseNative(file.readText()) }.exceptionOrNull()
+                    runCatching { PvmScript.parse(file.readText()) }.exceptionOrNull()
                         ?.let { "${file.path}: ${it.message}" }
                 }.toList()
         }

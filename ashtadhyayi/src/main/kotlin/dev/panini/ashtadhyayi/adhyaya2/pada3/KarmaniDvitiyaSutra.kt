@@ -18,7 +18,12 @@ object KarmaniDvitiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext) = context.accepts(Karaka.KARMAN, Vibhakti.DVITIYA)
+    override fun matches(context: VibhaktiRuleContext) = context.accepts(Karaka.KARMAN, Vibhakti.DVITIYA) &&
+        !KriyarthopapadasyaCaKarmaniSthaninahSutra.hasImpliedPurposeObject(context) &&
+        !GatyarthaKarmaniDvitiyaCaturthyauSutra.matches(context) &&
+        !ManyaKarmaniAnadareSutra.matches(context) &&
+        !SamjnyoAnyatarasyamKarmaniSutra.hasPreferredKrtGenitive(context) &&
+        !SamjnyoAnyatarasyamKarmaniSutra.matches(context)
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.DVITIYA,
         KarakaEvidence(number, text, "द्वितीया realizes ${context.karaka} in this construction."),

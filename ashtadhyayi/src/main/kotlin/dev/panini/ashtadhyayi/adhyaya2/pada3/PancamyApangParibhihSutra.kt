@@ -26,8 +26,15 @@ object PancamyApangParibhihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.EXCLUSION_LIMIT in context.participant?.semanticRelations.orEmpty() &&
+            hasExclusionLimitConstruction(context) &&
             Vibhakti.PANCHAMI in context.morphologicalCandidates
+
+    fun hasExclusionLimitConstruction(context: VibhaktiRuleContext): Boolean {
+        val relations = context.participant?.semanticRelations.orEmpty()
+        return SemanticRelation.EXCLUSION_LIMIT in relations &&
+            SemanticRelation.KARMAPRAVACANIYA_GOVERNANCE in relations &&
+            SemanticRelation.AP_ANG_PARI_KARMAPRAVACANIYA_LINK in relations
+    }
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.PANCHAMI,

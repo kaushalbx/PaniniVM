@@ -12,18 +12,21 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object ShlaghahnusthashapamJnyipsyamanahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.34", text = "श्लाघह्नुस्थाशपां ज्ञीप्स्यमानः",
+    number = "1.4.34", text = "श्लाघह्नुङ्स्थाशपां ज्ञीप्स्यमानः",
     hindiExplanation = "श्लाघ्, ह्नु, स्था और शप् धातुओं के प्रयोग में जो ज्ञीप्स्यमान (जिसको जताया जाता है) है, उसकी सम्प्रदानसंज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140034,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.32"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isShlaghEtc = KarakaDhatuDomains.isShlaghHnuSthaShap(context.dhatu)
-        return isShlaghEtc && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val isShlaghEtc = KarakaDhatuDomains.isShlaghHnuSthaShap(context)
+        return isShlaghEtc && context.participant.hasEstablishedMeaning(SemanticRelation.INTENDED_TO_BE_INFORMED) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

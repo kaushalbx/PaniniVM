@@ -15,7 +15,7 @@ class ItiQuotationTest {
         )
 
         assertEquals(
-            "एकतः दशपर्यन्तं सङ्ख्याम् स्थापय",
+            "एकस्मात् दशे सङ्ख्याम् स्थापय",
             assertIs<ExecutionResult.Success>(result).value,
         )
     }

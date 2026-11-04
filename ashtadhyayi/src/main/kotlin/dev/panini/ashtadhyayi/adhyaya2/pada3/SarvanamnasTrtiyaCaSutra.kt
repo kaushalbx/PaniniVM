@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,14 +24,23 @@ object SarvanamnasTrtiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SASTHI)
+    fun candidateCases(context: VibhaktiRuleContext): Set<Vibhakti> =
+        if (SasthiHetuprayogeSutra.hasConstruction(context) &&
+            SemanticRelation.PRONOMINAL_HETU in context.participant?.semanticRelations.orEmpty()) permittedCases else emptySet()
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            SasthiHetuprayogeSutra.hasConstruction(context) &&
             SemanticRelation.PRONOMINAL_HETU in context.participant?.semanticRelations.orEmpty() &&
-            (Vibhakti.TRTIYA in context.morphologicalCandidates || Vibhakti.SASTHI in context.morphologicalCandidates)
+            SemanticRelation.CAUSE_HETU in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.EXPLICIT_HETU_USE in context.participant?.semanticRelations.orEmpty() &&
+            ((Vibhakti.TRTIYA in context.morphologicalCandidates && SasthiHetuprayogeSutra.permitsCase(context, Vibhakti.TRTIYA)) ||
+                (Vibhakti.SASTHI in context.morphologicalCandidates && SasthiHetuprayogeSutra.permitsCase(context, Vibhakti.SASTHI)))
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {
-        val v = if (Vibhakti.TRTIYA in context.morphologicalCandidates) Vibhakti.TRTIYA else Vibhakti.SASTHI
+        val v = if (Vibhakti.TRTIYA in context.morphologicalCandidates &&
+            SasthiHetuprayogeSutra.permitsCase(context, Vibhakti.TRTIYA)) Vibhakti.TRTIYA else Vibhakti.SASTHI
         return VibhaktiRuleResult.Assigned(
             v,
             KarakaEvidence(number, text, "$v realizes pronominal cause with hetu (2.3.27)."),

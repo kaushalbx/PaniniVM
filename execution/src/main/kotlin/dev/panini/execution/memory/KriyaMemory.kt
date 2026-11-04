@@ -66,7 +66,7 @@ data class KriyaMemory(
     fun latestKarakaRelations(karaka: Karaka, count: Int = 1): List<KarakaRelation> {
         require(count >= 0) { "A memory query count cannot be negative." }
         return entries.asReversed().flatMap { entry -> entry.frame.relations.asReversed() }
-            .filter { (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == karaka }
+            .filter { (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == karaka || karaka in it.coexistingKarakas }
             .take(count)
             .reversed()
     }

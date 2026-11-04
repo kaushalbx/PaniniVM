@@ -8,10 +8,11 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
-import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.isStrongestOrdinaryReading
 
 object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.24", text = "ध्रुवमपायेऽपादानम्",
@@ -21,9 +22,19 @@ object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
 ) {
+    private val specialSourceRules by lazy {
+        listOf(BhitharthanamBhayahetuhSutra, ParajerasodhahSutra,
+            VaranarthanamIpsitahSutra, AntardhauYenadarsanamIcchatiSutra,
+            AkhyatopayogeSutra, JanikartuhPrakrtihSutra, BhuvahPrabhavahSutra)
+    }
+
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isExcludedApadana = KarakaDhatuDomains.isExcludedGeneralApadana(context.dhatu)
-        return !isExcludedApadana && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        // A lexical family alone does not exclude an independently established
+        // separation reading. Defer only to an applicable canonical construction.
+        val isExcludedApadana = specialSourceRules.any { it.matches(context) }
+        return !isExcludedApadana && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+            context.participant.isStrongestOrdinaryReading(SemanticRelation.SOURCE) &&
+            context.participant.hasEstablishedMeaning(SemanticRelation.SEPARATION_REFERENCE)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

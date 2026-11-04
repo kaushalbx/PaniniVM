@@ -87,7 +87,9 @@ class PriorActionTest {
         }
         val lowered = assertNotNull(PriorActionLowering.expand(invocation.copy(vakya = sentence.copy(padas = padas))))
         val prior = assertIs<AkhyataVakya>(assertIs<Invocation>(lowered.statements.first()).vakya)
-        assertEquals("वि + युज् + णिच् + लोट् + सिप्", prior.tinganta.sourceText)
+        assertEquals("वि+युज्+णिच्+ल्यप्", prior.tinganta.sourceText)
+        assertEquals("युज्", prior.tinganta.dhatu.mulaDhatu)
+        assertEquals(listOf("वि"), prior.tinganta.upasargas)
     }
 
     @Test

@@ -7,6 +7,33 @@ import dev.panini.dhatupatha.Dhatu
 import kotlin.test.*
 
 class JointKarakaResolutionTest {
+    @Test fun `implicit listener is a fallback after ambiguous written role assignment`() {
+        val listener = ExecutionExpression.Pada("यन्त्रम्")
+        val written = ExecutionExpression.sankhya(2, "द्वि")
+        fun invocation(role: Karaka, implicit: Boolean): DhatuInvocation {
+            val operation = DhatuOperation(
+                signature = OperationSignature(listOf(KarakaRequirement(role, maximumMembers = 1))),
+                action = object : DhatuAction("fallback", "fallback") {
+                    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult =
+                        error("Role analysis must not execute actions")
+                },
+            )
+            val dhatu = Dhatu(id = "fallback", krama = 1, upadesha = "परीक्ष्", sourceSurface = "परीक्ष्",
+                artha = "परीक्षणे", arthaHindi = "परीक्षण", arthaEnglish = "test", gana = DhatuGana.BHVADI,
+                operations = listOf(operation))
+            return DhatuInvocation("fallback", dhatu, mapOf(Karaka.KARTR to listener),
+                metadata = if (implicit) mapOf(ExecutionMetadata.IMPLICIT_AGENT to "true") else emptyMap(),
+                ambiguousBindings = listOf(AmbiguousKarakaBinding(written, setOf(Karaka.KARTR, Karaka.KARANA))))
+        }
+        val agent = assertIs<OperationResolution.Resolved>(OperationResolver.resolve(invocation(Karaka.KARTR, true), emptyMap())).value
+        assertEquals(written, agent.context.bindings[Karaka.KARTR])
+        val instrument = assertIs<OperationResolution.Resolved>(OperationResolver.resolve(invocation(Karaka.KARANA, true), emptyMap())).value
+        assertEquals(written, instrument.context.bindings[Karaka.KARANA])
+        assertEquals(listener, instrument.context.bindings[Karaka.KARTR])
+        // A written established agent must never be discarded as a fallback.
+        assertIs<OperationResolution.Invalid>(OperationResolver.resolve(invocation(Karaka.KARTR, false), emptyMap()))
+    }
+
     private fun resolve(secondType: OperationValueType, values: List<SanskritValue>,
                         fixed: Map<Karaka, ExecutionExpression> = emptyMap(),
                         candidateRoles: Set<Karaka> = setOf(Karaka.KARANA, Karaka.SAMPRADANA)): OperationResolution {

@@ -23,6 +23,8 @@ data class PratipadikaEntry(
     /** Declared morphology, independent of the spelling or gender. */
     val stemFormation: NominalStemFormation = NominalStemFormation.UNSPECIFIED,
     val upadesha: String = text,
+    val nominalUse: dev.panini.analysis.NominalUse = dev.panini.analysis.NominalUse.ENTITY,
+    val nominalMeanings: Set<dev.panini.analysis.NominalMeaning> = emptySet(),
 )
 
 interface PratipadikaLexicon {
@@ -32,6 +34,17 @@ interface PratipadikaLexicon {
 /** Shared lexical metadata for established pratipadikas used across runtimes. */
 object StandardPratipadikaLexicon : PratipadikaLexicon {
     private val entries = buildMap {
+        put("नील", PratipadikaEntry(
+            "नील", setOf(Linga.PUMS, Linga.NAPUMSAKA),
+            nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+            nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.PROPERTY),
+        ))
+        put("नीला", PratipadikaEntry(
+            "नीला", setOf(Linga.STRI), stemFormation = NominalStemFormation.AP, upadesha = "नील",
+            nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+            nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.PROPERTY),
+        ))
+        put("उत्पल", PratipadikaEntry("उत्पल", setOf(Linga.NAPUMSAKA)))
         listOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्").forEach { text ->
             put(
                 text,
@@ -114,15 +127,27 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         // Sarvādi pronouns; lexical gender is independent of their derived
         // ka/ya/sa and feminine forms (7.2.102/103, then genuine ṭāp formation).
         listOf("किम्", "यद्", "तद्", "एतद्", "इदम्").forEach { text ->
-            put(text, PratipadikaEntry(text, Linga.entries.toSet()))
+            put(text, PratipadikaEntry(text, Linga.entries.toSet(),
+                nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+                nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.REFERENCE)))
         }
         // Ordinal adjective stems retain gender independently of numeric identity.
+        // Directional/relative adjectives can also stand substantively.
+        listOf("पूर्व", "उत्तर").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.PUMS, Linga.NAPUMSAKA),
+                nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+                nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.REFERENCE)))
+        }
         listOf("प्रथम", "द्वितीय", "तृतीय").forEach { text ->
-            put(text, PratipadikaEntry(text, setOf(Linga.PUMS, Linga.NAPUMSAKA)))
+            put(text, PratipadikaEntry(text, setOf(Linga.PUMS, Linga.NAPUMSAKA),
+                nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+                nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.ORDINAL)))
         }
         listOf("प्रथमा" to "प्रथम", "द्वितीया" to "द्वितीय", "तृतीया" to "तृतीय").forEach { (text, base) ->
             put(text, PratipadikaEntry(text, setOf(Linga.STRI),
-                stemFormation = NominalStemFormation.AP, upadesha = base))
+                stemFormation = NominalStemFormation.AP, upadesha = base,
+                nominalUse = dev.panini.analysis.NominalUse.ENTITY_OR_MODIFIER,
+                nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.ORDINAL)))
         }
     }
 

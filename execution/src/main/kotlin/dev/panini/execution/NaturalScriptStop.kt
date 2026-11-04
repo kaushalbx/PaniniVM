@@ -1,6 +1,10 @@
 package dev.panini.execution
 
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
+import dev.panini.core.Upasarga
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.DocumentSourceSpan
 import dev.panini.vyakaranam.ast.SemanticDiagnostic
@@ -14,16 +18,18 @@ data class ScriptStopDiagnostic(
     override val offendingText: String,
 ) : SemanticDiagnostic<String>
 
-/** वि + रम् + लोट् + सिप् (विरम): finish the current script. */
+/** वि + रमुँ + लोट् + सिप् (विरम): finish the current script. */
 object NaturalScriptStop {
     fun matches(invocation: Invocation): Boolean {
         val head = invocation.vakya.padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return false
-        return invocation.vakya.padas.size == 1 &&
-            head.dhatu.mulaDhatu == "रम्" &&
-            head.dhatu.sanadiPratyayas.isEmpty() &&
-            head.upasargas == listOf("वि") &&
-            head.lakara == Lakara.LOT && head.ting.text == "सिप्"
+        return invocation.vakya.padas.size == 1 && matchesHead(head)
     }
+
+    internal fun matchesHead(head: TingantaPada): Boolean =
+            head.canonicalDhatuIdentity() == CanonicalDhatuIdentity.RAM &&
+            head.dhatu.sanadiPratyayas.isEmpty() &&
+            head.upasargaIdentities == listOf(Upasarga.VI) &&
+            head.lakara == Lakara.LOT && head.ting.affix == TingAffix.SIP
 
     fun contextDiagnostic(invocation: Invocation, insideProcedure: Boolean): ScriptStopDiagnostic? =
         if (matches(invocation) && insideProcedure) ScriptStopDiagnostic(

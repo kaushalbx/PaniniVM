@@ -13,6 +13,8 @@ enum class PrimitiveSankhya(
     val inflectionClass: SankhyaInflectionClass = SankhyaInflectionClass.SPECIAL,
     /** Canonical identities retained when the conventional surface is lexicalized. */
     val derivationalComponents: List<String> = listOf(pratipadika),
+    /** Underlying stem supplied to sup derivation, before pada-final n-lopa. */
+    val inflectionPratipadika: String = pratipadika,
 ) {
     SHUNYA(0L, "शून्य"),
 
@@ -32,6 +34,7 @@ enum class PrimitiveSankhya(
         "षोडश",
         inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN,
         derivationalComponents = listOf("षष्", "दशन्"),
+        inflectionPratipadika = "षोडशन्",
     ),
 
     VIMSHATI(20L, "विंशति", inflectionClass = SankhyaInflectionClass.FEMININE_I),

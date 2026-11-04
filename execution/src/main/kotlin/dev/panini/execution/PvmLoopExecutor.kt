@@ -129,18 +129,32 @@ internal class PvmLoopExecutor {
                                 "A field truth predicate requires सत्य/असत्य.")
                         if (fieldTest.negated) !fieldTruth.boolean else fieldTruth.boolean
                     } else {
+                        // न scopes over the predicate's truth here. Passing it
+                        // as an independent utterance would instead classify
+                        // the predicate as a prohibition speech act.
+                        val predicate = if (!hasExplicitNegation) resolved.invocation else {
+                            val original = resolved.invocation.vakya
+                            val affirmative = original.padas.filterNot {
+                                it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA
+                            }
+                            resolved.invocation.copy(vakya = when (original) {
+                                is dev.panini.vyakaranam.ast.AkhyataVakya -> original.copy(padas = affirmative)
+                                is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(padas = affirmative)
+                            })
+                        }
                         val conditionResult = request.evaluateCondition(
-                            resolved.invocation,
+                            predicate,
                             request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
                         )
                         val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
                         if (success.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE)
                             return results + success
-                        success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
+                        val truth = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
                             ?: return results + ExecutionResult.Failure(
                                 ExecutionError.INVALID_VALUE,
                                 "A loop condition must produce a truth value.",
                             )
+                        if (hasExplicitNegation) !truth else truth
                     }
                 }
             }

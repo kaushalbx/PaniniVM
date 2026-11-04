@@ -10,13 +10,13 @@ import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
 /**
- * Sūtra 2.3.66 न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्.
+ * Sūtra 2.3.69 न लोकाव्ययनिष्ठाखलर्थतृनाम्.
  * Prohibits Ṣaṣṭhī of 2.3.65 (Kartṛkarmaṇoḥ kṛti) before la, u, uka, avyaya, niṣṭhā, khalartha, and tṛn affixes.
  */
 object NaLokavyayanisthanisthakhalarthatrnnamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.66", text = "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्",
+    number = "2.3.69", text = "न लोकाव्ययनिष्ठाखलर्थतृनाम्",
     hindiExplanation = "ल, उ, उक, अव्यय, निष्ठा, खलर्थ तथा तृन् प्रत्ययों के योग में षष्ठी का निषेध होता है।",
-    type = SutraType.NISHEDHA, chapter = 2, pada = 3, optional = false, kramaValue = 230066,
+    type = SutraType.NISHEDHA, chapter = 2, pada = 3, optional = false, kramaValue = 230069,
     role = SutraRole.Nishedha, action = SutraAction.NISHEDHA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.PRATYAYA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),

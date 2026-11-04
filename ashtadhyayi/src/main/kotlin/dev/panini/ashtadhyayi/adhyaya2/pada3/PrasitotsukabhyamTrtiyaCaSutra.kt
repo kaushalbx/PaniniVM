@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -28,11 +30,21 @@ object PrasitotsukabhyamTrtiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.KARAKA)
-) {
+    inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
+    adhikara = setOf("2.3.1"),
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SAPTAMI)
+    fun hasAttachmentConstruction(context: VibhaktiRuleContext): Boolean {
+        val participant = context.participant ?: return false
+        val stem = (participant.governingNominal?.pratipadika as? MulaPratipadika)
+            ?.takeIf { it.vikaras.isEmpty() }?.text
+        return stem in setOf("प्रसित", "उत्सुक") && SemanticRelation.ENGROSSED_ATTACHMENT in participant.semanticRelations
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
+        !context.abhihita &&
         (Vibhakti.TRTIYA in context.morphologicalCandidates || Vibhakti.SAPTAMI in context.morphologicalCandidates) &&
-            context.participant?.semanticRelations?.contains(SemanticRelation.ENGROSSED_ATTACHMENT) == true
+            hasAttachmentConstruction(context)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {
         val assigned = if (Vibhakti.TRTIYA in context.morphologicalCandidates) Vibhakti.TRTIYA else Vibhakti.SAPTAMI

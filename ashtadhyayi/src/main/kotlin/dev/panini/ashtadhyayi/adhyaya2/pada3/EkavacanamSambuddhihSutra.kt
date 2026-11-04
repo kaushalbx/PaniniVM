@@ -11,13 +11,14 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
-import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.NominalDesignation
+import dev.panini.analysis.NominalDesignationResult
 
 /**
  * Sūtra 2.3.49 एकवचनं सम्बुद्धिः.
  * Assigns sambuddhi saṃjñā to singular Prathamā used in address / vocative (sambodhana).
  */
-object EkavacanamSambuddhihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
+object EkavacanamSambuddhihSutra : Sutra<VibhaktiRuleContext, NominalDesignationResult>(
     number = "2.3.49", text = "एकवचनं सम्बुद्धिः",
     hindiExplanation = "आमन्त्रित (सम्बोधन प्रथमा) के एकवचन रूप की सम्बुद्धि संज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 2, pada = 3, optional = false, kramaValue = 230049,
@@ -30,8 +31,8 @@ object EkavacanamSambuddhihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
             context.participant?.vacana == Vacana.EKAVACANA &&
             Vibhakti.PRATHAMA in context.morphologicalCandidates
 
-    override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
-        Vibhakti.PRATHAMA,
+    override fun apply(context: VibhaktiRuleContext) = NominalDesignationResult(
+        NominalDesignation.SAMBUDDHI,
         KarakaEvidence(number, text, "Singular vocative is designated as sambuddhi (2.3.49)."),
     )
 }

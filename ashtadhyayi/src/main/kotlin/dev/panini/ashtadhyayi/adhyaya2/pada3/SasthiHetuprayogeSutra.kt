@@ -11,6 +11,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.vyakaranam.ast.MulaPratipadika
 
 /**
  * Sūtra 2.3.26 षष्ठी हेतुप्रयोगे.
@@ -24,9 +25,38 @@ object SasthiHetuprayogeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext): Boolean =
+    fun hasConstruction(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            (context.participant?.governingNominal == null || hasHetuGovernor(context)) &&
             SemanticRelation.EXPLICIT_HETU_USE in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.CAUSE_HETU in context.participant?.semanticRelations.orEmpty()
+
+    fun hasHetuGovernor(context: VibhaktiRuleContext): Boolean {
+        val stem = context.participant?.governingNominal?.pratipadika as? MulaPratipadika ?: return false
+        return stem.text == "हेतु" && stem.vikaras.isEmpty()
+    }
+
+    fun candidateCases(context: VibhaktiRuleContext): Set<Vibhakti> =
+        if (hasConstruction(context)) setOf(Vibhakti.SASTHI) else emptySet()
+
+    /** A written member cannot change case independently of its co-referent partner. */
+    fun permitsCase(context: VibhaktiRuleContext, case: Vibhakti): Boolean {
+        val participant = context.participant ?: return true
+        val pronominal = SemanticRelation.PRONOMINAL_HETU in participant.semanticRelations
+        participant.governingNominal?.let { governor ->
+            return governor.sup.affixCandidates.any {
+                it.vibhakti == case && (!pronominal || participant.vacana == null || it.vacana == participant.vacana)
+            }
+        }
+        val linked = context.allParticipants.filter { it.governingNominal === participant.expression }
+        return linked.all { case in it.possibleVibhaktis &&
+            (!pronominal || participant.vacana == null || it.vacana == null || participant.vacana == it.vacana) }
+    }
+
+    override fun matches(context: VibhaktiRuleContext): Boolean =
+        hasConstruction(context) &&
+            permitsCase(context, Vibhakti.SASTHI) &&
+            !SarvanamnasTrtiyaCaSutra.matches(context) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

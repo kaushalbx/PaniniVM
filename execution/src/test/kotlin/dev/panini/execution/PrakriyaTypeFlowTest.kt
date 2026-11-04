@@ -36,19 +36,14 @@ class PrakriyaTypeFlowTest {
     }
 
     @Test
-    fun `legacy reusable header receives a precise explicit declaration suggestion`() {
-        val source = "वृध् + ल्युट् + सुँ ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
-        val warning = PrakriyaScriptValidator.validateLegacy(source).single()
-        assertEquals(PrakriyaDiagnosticSeverity.WARNING, warning.severity)
-        assertEquals("वृध् + ल्युट् + सुँ", source.substring(warning.offset, warning.offset + warning.length))
-        assertEquals("वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्", warning.replacement)
-        val migrated = source.replaceRange(warning.offset, warning.offset + warning.length, warning.replacement!!)
-        assertTrue(PrakriyaScriptValidator.validate(migrated).isEmpty())
-        assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(migrated).single())
+    fun `explicit reusable header validates through the document parser`() {
+        val source = "वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        assertTrue(PrakriyaScriptValidator.validate(source).isEmpty())
+        assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
     }
 
     @Test
-    fun `ordinary nominal sentences are not warned as compatibility headers`() {
+    fun `ordinary nominal sentences remain ordinary statements`() {
         assertTrue(PrakriyaScriptValidator.validate("वृध् + ल्युट् + सुँ ।").isEmpty())
     }
 

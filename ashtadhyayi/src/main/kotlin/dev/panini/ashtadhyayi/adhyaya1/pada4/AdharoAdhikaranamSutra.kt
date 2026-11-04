@@ -12,6 +12,8 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.isStrongestOrdinaryReading
 
 object AdharoAdhikaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.45", text = "आधारोऽधिकरणम्",
@@ -22,8 +24,11 @@ object AdharoAdhikaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isExcludedLocus = KarakaDhatuDomains.isExcludedAdhikaranaLocus(context.dhatu)
-        return !isExcludedLocus && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
+        val isExcludedLocus = KarakaDhatuDomains.isExcludedAdhikaranaLocus(context)
+        return !isExcludedLocus && SemanticRelation.LOCATION in context.participant.semanticRelations &&
+            (Karaka.ADHIKARANA in context.candidates ||
+                context.participant.hasEstablishedMeaning(SemanticRelation.LOCATION)) &&
+            context.participant.isStrongestOrdinaryReading(SemanticRelation.LOCATION)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

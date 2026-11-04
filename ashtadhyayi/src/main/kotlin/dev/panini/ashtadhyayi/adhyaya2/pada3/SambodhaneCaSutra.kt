@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.SemanticRelation
 
 /**
  * Sūtra 2.3.47 सम्बोधने च.
@@ -25,7 +26,9 @@ object SambodhaneCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     adhikara = emptySet(),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        context.karaka == Karaka.SAMBODHANA && Vibhakti.PRATHAMA in context.morphologicalCandidates
+        (context.karaka == Karaka.SAMBODHANA ||
+            SemanticRelation.DIRECT_ADDRESS in context.participant?.semanticRelations.orEmpty()) &&
+            Vibhakti.PRATHAMA in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.PRATHAMA,

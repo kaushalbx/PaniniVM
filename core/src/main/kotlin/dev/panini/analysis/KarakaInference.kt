@@ -13,10 +13,16 @@ object KarakaInference {
 
     /** Typed candidates retain syncretism until clause context establishes a role. */
     fun candidates(affixes: Collection<SupAffix>, prayoga: Prayoga, sakarmaka: Boolean = true): Set<Karaka> =
-        affixes
-            .mapNotNull { infer(it.vibhakti, prayoga, sakarmaka) }
-            .toSet()
+        candidatesForCases(affixes.mapTo(mutableSetOf()) { it.vibhakti }, prayoga, sakarmaka)
 
+    fun candidatesForCases(cases: Set<Vibhakti>, prayoga: Prayoga, sakarmaka: Boolean = true): Set<Karaka> =
+        cases.flatMapTo(mutableSetOf()) { case ->
+            if (case == Vibhakti.TRTIYA && prayoga in setOf(Prayoga.KARMANI, Prayoga.BHAVE, Prayoga.CAUSATIVE))
+                setOf(Karaka.KARTR, Karaka.KARANA)
+            else setOfNotNull(infer(case, prayoga, sakarmaka))
+        }
+
+    /** Compatibility default; use candidatesForCases for ambiguity-preserving analysis. */
     fun infer(vibhakti: Vibhakti, prayoga: Prayoga, sakarmaka: Boolean = true): Karaka? =
         when (prayoga) {
             Prayoga.KARTARI -> when (vibhakti) {

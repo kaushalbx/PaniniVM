@@ -15,7 +15,7 @@ Main entry point (`Main.kt`) supporting CLI flags:
 - `--derive-unadi <dhatu> <pratyaya>`: Step-by-step Aṣṭādhyāyī derivation trace for Uṇādi stems.
 - `--paradigm <pratipadika>`: Prints 21-slot nominal subanta paradigms.
 - `--derive <pratipadika> <vibhakti> <vacana>`: Step-by-step nominal derivation trace.
-- `--derive-karaka <pratipadika> <karaka> <vacana> <dhatu> <prayoga>`: Derives a nominal form from its semantic role.
+- `--derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga] [--implied-object]`: Derives a nominal form from its semantic role. Use `--implied-object` only when an omitted object mediating the intended recipient is established; a lone recipient does not prove it.
 - `--verb <dhatu> [lakara] [vacana]`: Step-by-step verbal tiṅanta derivation trace.
 - `--sankhya <number> [cardinal|ordinal] [--variants]`: Derives Sanskrit numerals.
 - `--sutra <number>`: Inspects one registered sūtra.
@@ -81,7 +81,8 @@ The public API accepts the same evaluator-free source through
 # Nominal derivations
 ./cli/build/install/cli/bin/cli --paradigm राम
 ./cli/build/install/cli/bin/cli --derive राम SASTHI BAHUVACANA
-./cli/build/install/cli/bin/cli --derive-karaka राम KARMAN EKAVACANA भू KARTARI
+./cli/build/install/cli/bin/cli --derive-karaka राम KARMAN EKAVACANA दा KARTARI
+./cli/build/install/cli/bin/cli --derive-karaka राम SAMPRADANA EKAVACANA दा KARTARI --implied-object
 
 # Verbal derivations
 ./cli/build/install/cli/bin/cli --verb भू

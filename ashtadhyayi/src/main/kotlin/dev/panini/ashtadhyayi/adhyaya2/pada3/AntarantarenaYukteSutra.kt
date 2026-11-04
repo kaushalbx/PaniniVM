@@ -27,6 +27,7 @@ object AntarantarenaYukteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             SemanticRelation.BETWEEN_OR_WITHOUT in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.ANTARA_NIPATA_LINK in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.DVITIYA in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

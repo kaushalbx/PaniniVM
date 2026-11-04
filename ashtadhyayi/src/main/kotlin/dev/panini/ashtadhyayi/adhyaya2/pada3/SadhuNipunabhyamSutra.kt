@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.vyakaranam.ast.MulaPratipadika
 
 /**
  * Sūtra 2.3.43 साधुनिपुणाभ्यामर्चायां सप्तम्यप्रतेः.
@@ -25,11 +26,21 @@ object SadhuNipunabhyamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasArchaConstruction(context: VibhaktiRuleContext): Boolean {
+        val participant = context.participant ?: return false
+        val stem = (participant.governingNominal?.pratipadika as? MulaPratipadika)
+            ?.takeIf { it.vikaras.isEmpty() }?.text
+        val relations = participant.semanticRelations
+        return stem in setOf("साधु", "निपुण") && SemanticRelation.ARCHA_RESPECT in relations &&
+            relations.none { it in setOf(SemanticRelation.PRATI_KARMAPRAVACANIYA_LINK,
+                SemanticRelation.PARI_KARMAPRAVACANIYA_LINK, SemanticRelation.ANU_KARMAPRAVACANIYA_LINK) }
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             (context.karaka == Karaka.ADHIKARANA || context.karaka == Karaka.ANIRDHARITA) &&
             Vibhakti.SAPTAMI in context.morphologicalCandidates &&
-            (context.participant?.semanticRelations.orEmpty().isEmpty() || SemanticRelation.ACTION_MARKING in context.participant?.semanticRelations.orEmpty())
+            hasArchaConstruction(context)
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.SAPTAMI,

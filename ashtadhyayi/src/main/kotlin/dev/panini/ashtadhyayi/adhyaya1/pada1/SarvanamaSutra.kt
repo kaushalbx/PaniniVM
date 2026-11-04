@@ -30,6 +30,10 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
+    /** Same canonical lexical predicate for sentence-level consumers. */
+    fun isEligibleStem(stem: String): Boolean = GanaPatha.isEligibleMember(1, stem)
+    fun isListedStem(stem: String): Boolean = GanaPatha.contains(1, stem)
+
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&

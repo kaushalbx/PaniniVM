@@ -13,6 +13,7 @@ import dev.panini.analysis.VibhaktiRuleResult
 import dev.panini.vyakaranam.ast.AvyayaPada
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 class FinalVibhaktiSutrasTest {
@@ -36,8 +37,8 @@ class FinalVibhaktiSutrasTest {
             morphologicalCandidates = setOf(Vibhakti.PRATHAMA),
         )
         assertTrue(SamantriteSutra.matches(context))
-        val res = SamantriteSutra.apply(context) as VibhaktiRuleResult.Assigned
-        assertEquals(Vibhakti.PRATHAMA, res.vibhakti)
+        val res = SamantriteSutra.apply(context)
+        assertEquals(dev.panini.analysis.NominalDesignation.AMANTRITA, res.designation)
         assertEquals("2.3.48", res.evidence.sutra)
     }
 
@@ -49,8 +50,8 @@ class FinalVibhaktiSutrasTest {
             participant = dummyParticipant(vacana = Vacana.EKAVACANA),
         )
         assertTrue(EkavacanamSambuddhihSutra.matches(context))
-        val res = EkavacanamSambuddhihSutra.apply(context) as VibhaktiRuleResult.Assigned
-        assertEquals(Vibhakti.PRATHAMA, res.vibhakti)
+        val res = EkavacanamSambuddhihSutra.apply(context)
+        assertEquals(dev.panini.analysis.NominalDesignation.SAMBUDDHI, res.designation)
         assertEquals("2.3.49", res.evidence.sutra)
     }
 
@@ -59,7 +60,9 @@ class FinalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.TRANSFORMATION_ENDOWMENT)),
+            participant = dummyParticipant(setOf(SemanticRelation.TRANSFORMATION_ENDOWMENT,
+                SemanticRelation.EXISTING_SUBSTRATE, SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = dev.panini.analysis.DhatuIdentity("कृ"),
         )
         assertTrue(KrjahPratiyatneSutra.matches(context))
         val res = KrjahPratiyatneSutra.apply(context) as VibhaktiRuleResult.Assigned
@@ -72,7 +75,9 @@ class FinalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT)),
+            participant = dummyParticipant(setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = dev.panini.analysis.DhatuIdentity("पण्"),
         )
         assertTrue(VyavahruPanohSamarthayohSutra.matches(context))
         val res = VyavahruPanohSamarthayohSutra.apply(context) as VibhaktiRuleResult.Assigned
@@ -85,7 +90,9 @@ class FinalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.GAMBLING_INSTRUMENT)),
+            participant = dummyParticipant(setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = dev.panini.analysis.DhatuIdentity("दिव्"),
         )
         assertTrue(DivasTadarthasyaSutra.matches(context))
         val res = DivasTadarthasyaSutra.apply(context) as VibhaktiRuleResult.Assigned
@@ -98,25 +105,20 @@ class FinalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI, Vibhakti.DVITIYA),
-            participant = dummyParticipant(setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT)),
+            participant = dummyParticipant(setOf(SemanticRelation.TRANSACTION_GAMBLING_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = dev.panini.analysis.DhatuIdentity("दिव्"),
+            verbNode = dev.panini.vyakaranam.ast.TingantaPada("प्रतिदीव्यति", listOf("प्रति"),
+                dev.panini.vyakaranam.ast.DhatuPrakriti("दिव्", "दिव्"), dev.panini.core.Lakara.LAT,
+                dev.panini.vyakaranam.ast.TingPratyaya("तिप्", "तिप्")),
         )
         assertTrue(VibhasopasargeSutra.matches(context))
+        assertFalse(VibhasopasargeSutra.matches(context.copy(abhihita = true)))
+        assertFalse(VibhasopasargeSutra.matches(context.copy(karaka = Karaka.KARANA)))
+        assertFalse(VibhasopasargeSutra.matches(context.copy(verbNode = null)))
         val res = VibhasopasargeSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.SASTHI, res.vibhakti)
         assertEquals("2.3.59", res.evidence.sutra)
-    }
-
-    @Test
-    fun testDvisahKarmaniSutra() {
-        val context = VibhaktiRuleContext(
-            karaka = Karaka.ANIRDHARITA,
-            morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.HATRED_PARTICIPLE_OBJECT)),
-        )
-        assertTrue(DvisahKarmaniSutra.matches(context))
-        val res = DvisahKarmaniSutra.apply(context) as VibhaktiRuleResult.Assigned
-        assertEquals(Vibhakti.SASTHI, res.vibhakti)
-        assertEquals("2.3.62", res.evidence.sutra)
     }
 
     @Test
@@ -127,6 +129,6 @@ class FinalVibhaktiSutrasTest {
         )
         val res = NishedhaRuleEngine.evaluateProhibition(ctx) as NishedhaRuleResult.Blocked
         assertEquals("2.3.70", res.blockerSutraNumber)
-        assertEquals("अकस्य च भविष्यदाधमर्ण्ययोः", res.blockerSutraText)
+        assertEquals("अकेनोर्भविष्यदाधमर्ण्ययोः", res.blockerSutraText)
     }
 }

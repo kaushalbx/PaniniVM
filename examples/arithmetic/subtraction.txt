@@ -1,0 +1,3 @@
+# Subtract three from ten, then print seven.
+दश त्रीणि च वियोजय ।
+वियोजनस्य फलं मुद्रय ।

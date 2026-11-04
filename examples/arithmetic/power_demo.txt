@@ -6,8 +6,8 @@
 # Initialize power result 'घात' = 3 (त्रि)
 त्रीणि घाते स्थापय ।
 
-# Loop 3 times (त्रिकृत्वः): multiply 'घात' by 'आधार' and assign directly to 'घात' (घाताय)
-त्रिकृत्वः घातम् आधारं च गणय ततः फलं घाते स्थापय ।
+# Loop 3 times (त्रिः): multiply 'घात' by 'आधार' and place the result in 'घात' (घाते)
+त्रिः घातम् आधारं च गणय ततः फलं घाते स्थापय ।
 
 # Print final power result 'घात' (renders 81 = एकाशीतिः)
 घातं मुद्रय ।

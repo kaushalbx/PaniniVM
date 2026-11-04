@@ -37,9 +37,6 @@ object PrakriyaScriptValidator {
     fun validate(source: String, document: ProgramDocument): List<PrakriyaDiagnostic> =
         validateWith(source) { PvmScript.fromDocument(document) }
 
-    /** Inspects old block syntax to produce migration diagnostics; never used by execution. */
-    fun validateLegacy(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parseLegacy)
-
     private fun validateWith(source: String, parseSource: (String) -> List<PvmScriptStatement>): List<PrakriyaDiagnostic> {
         val diagnostics = CanonicalNumeralStem.suggestions(source).mapTo(mutableListOf()) { suggestion ->
             PrakriyaDiagnostic(
@@ -75,26 +72,6 @@ object PrakriyaScriptValidator {
             return diagnostics
         }
         val registry = PrakriyaRegistry()
-
-        val sourceMap = SourceTextMap(source)
-        var headerSearchFrom = 0
-        statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
-            if (definition.body.isEmpty()) return@forEach
-            val header = definition.headerSource?.trim()?.trimEnd('।', '॥', '.')?.trimEnd()
-                ?: return@forEach
-            val located = sourceMap.locate(header, headerSearchFrom) ?: return@forEach
-            headerSearchFrom = located.nextCompactOffset
-            if (!PrakriyaDefinitionMarkerParser.hasExplicitMarker(header)) {
-                diagnostics += PrakriyaDiagnostic(
-                    offset = located.span.start,
-                    length = located.span.length,
-                    message = "A bare action noun is a compatibility header; declare reusable code explicitly with 'इति प्रक्रिया अस्ति'.",
-                    severity = PrakriyaDiagnosticSeverity.WARNING,
-                    replacement = header.trim().trimEnd('।', '॥', '.').trimEnd() +
-                        " इति प्रक्रिया + सुँ असँ + लट् + तिप्",
-                )
-            }
-        }
 
         legacySamjnaMarkers(source, statements).forEach { legacy ->
             diagnostics += PrakriyaDiagnostic(

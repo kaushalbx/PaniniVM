@@ -13,15 +13,13 @@ import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaPada
-import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
-import dev.panini.vyakaranam.ast.SupPratyaya
 
 /**
  * Centralises all numeric-pada decoding and the shared three-step binding pattern:
  *
- *   decode value → construct synthetic [SubantaPada] → infer kārakas → add binding
+ *   decode value → retain the original pada's grammatical analysis → add binding
  *
  * The simple numeral pada types ([SankhyaPuranaPada], [KatapayadiPada],
  * [AryabhatiyaPada], [BhutasamkhyaPada]) each get a typed [bind] overload that
@@ -115,54 +113,45 @@ internal object NumeralPadaBinder {
 
     internal fun bind(
         pada: KatapayadiPada,
-        inferKarakas: (SubantaPada) -> Set<Karaka>,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) = bindDecoded(
-        pada.sourceText, pada.sup,
+        pada,
         pada.value ?: katapayadiDecoder.decode(pada.word),
         inferKarakas, addBinding,
     )
 
     internal fun bind(
         pada: AryabhatiyaPada,
-        inferKarakas: (SubantaPada) -> Set<Karaka>,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) = bindDecoded(
-        pada.sourceText, pada.sup,
+        pada,
         pada.value ?: aryabhatiyaDecoder.decode(pada.word),
         inferKarakas, addBinding,
     )
 
     internal fun bind(
         pada: BhutasamkhyaPada,
-        inferKarakas: (SubantaPada) -> Set<Karaka>,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) = bindDecoded(
-        pada.sourceText, pada.sup,
+        pada,
         pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms),
         inferKarakas, addBinding,
     )
 
     /**
      * Shared three-step binding pattern used by all typed [bind] overloads and
-     * the [SankhyaPada] op-stem arm: construct synthetic [SubantaPada] → infer
-     * kārakas → add binding.
+     * the [SankhyaPada] op-stem arm. Numeric decoding never replaces the
+     * grammatical occurrence used to look up its kāraka resolution.
      */
     internal fun bindDecoded(
-        sourceText: String,
-        sup: SupPratyaya,
+        pada: dev.panini.vyakaranam.ast.SupBearingPada,
         value: Long,
-        inferKarakas: (SubantaPada) -> Set<Karaka>,
+        inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) {
-        val sub = SubantaPada(
-            sourceText,
-            SankhyaPratipadika(
-                sourceText = sourceText,
-                semanticValue = dev.panini.execution.SanskritValue.Sankhya(value, sourceText),
-            ),
-            sup,
-        )
-        addBinding(ExecutionExpression.sankhya(value, sourceText), inferKarakas(sub))
+        addBinding(ExecutionExpression.sankhya(value, pada.sourceText), inferKarakas(pada))
     }
 }

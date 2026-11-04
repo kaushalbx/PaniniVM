@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.KarakaDhatuDomains
+import dev.panini.core.Karaka
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -18,19 +20,31 @@ import dev.panini.analysis.VibhaktiRuleResult
  */
 object RujarthanamBhavavacananamAjvarehSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.54", text = "रुजार्थानां भाववचनानामज्वरेः",
-    hindiExplanation = "ज्वर् धातु को छोड़कर रोग अथवा पीड़ा अर्थ वाली धातुओं के कर्म में षष्ठी विभक्ति होती है।",
+    hindiExplanation = "भावकर्तृक रुजार्थ धातु के वस्तुतः कर्म की शेषत्वविवक्षा में षष्ठी होती है; ज्वर् तथा सन्तापि वर्जित हैं।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230054,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
+    fun hasSeshaBhavaAgentObject(context: VibhaktiRuleContext): Boolean {
+        val participant = context.participant ?: return false
+        val relations = participant.semanticRelations
+        return KarakaDhatuDomains.isDiseasePainVerb(context) &&
+            setOf(SemanticRelation.DISEASE_PAIN_OBJECT, SemanticRelation.DESIRED_OBJECT,
+                SemanticRelation.SESHA_RELATION).all { it in relations } &&
+            context.allParticipants.any { it.id != participant.id &&
+                SemanticRelation.INDEPENDENT_AGENT in it.semanticRelations && SemanticRelation.BHAVA_EVENT in it.semanticRelations }
+    }
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.DISEASE_PAIN_OBJECT in context.participant?.semanticRelations.orEmpty() &&
+            context.karaka in setOf(Karaka.ANIRDHARITA, Karaka.KARMAN) &&
+            hasSeshaBhavaAgentObject(context) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.SASTHI,
-        KarakaEvidence(number, text, "षष्ठी realizes object of disease/pain verbs (2.3.54)."),
+        KarakaEvidence(number, text, "षष्ठी expresses as śeṣa the underlying object of an eligible affliction verb " +
+            "with a distinct bhāva agent (2.3.54)."),
     )
 }

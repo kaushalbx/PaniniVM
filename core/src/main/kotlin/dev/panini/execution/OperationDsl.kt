@@ -8,7 +8,7 @@ fun DhatuAction.op(definition: OperationDefinition.() -> Unit = {}): DhatuOperat
     val builder = OperationDefinition().apply(definition)
     return DhatuOperation(
         signature = OperationSignature(builder.requirements, builder.optionalKarakas, builder.forbiddenKarakas,
-            builder.copularPredicates),
+            builder.copularPredicates, builder.nominalRequirements),
         action = this,
         trigger = builder.trigger,
         effects = builder.effects,
@@ -33,6 +33,7 @@ class OperationDefinition {
     internal val optionalKarakas = mutableSetOf<Karaka>()
     internal val forbiddenKarakas = mutableSetOf<Karaka>()
     internal val copularPredicates = mutableSetOf<CopularPredicate>()
+    internal val nominalRequirements = mutableListOf<NominalOperandRequirement>()
     internal var trigger = OperationTrigger()
     internal var effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE)
     internal var resultSamjnas: Set<Samjna> = emptySet()
@@ -69,6 +70,10 @@ class OperationDefinition {
 
     fun predicates(vararg predicates: CopularPredicate) {
         copularPredicates += predicates
+    }
+
+    fun requiresNominal(role: NominalOperandRole, valueType: OperationValueType? = null) {
+        nominalRequirements += NominalOperandRequirement(role, valueType)
     }
 
     fun triggeredBy(

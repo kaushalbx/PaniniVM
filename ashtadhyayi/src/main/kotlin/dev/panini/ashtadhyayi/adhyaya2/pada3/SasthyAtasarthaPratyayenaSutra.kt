@@ -11,6 +11,8 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.analysis.DirectionalAffixGovernance
+import dev.panini.core.TaddhitaAffix
 
 /**
  * Sūtra 2.3.30 षष्ठ्यतसर्थप्रत्ययेन.
@@ -26,11 +28,12 @@ object SasthyAtasarthaPratyayenaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.SPATIAL_DIRECTION in context.participant?.semanticRelations.orEmpty() &&
+            DirectionalAffixGovernance.affix(context) == TaddhitaAffix.ATASUC &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.SASTHI,
-        KarakaEvidence(number, text, "षष्ठी realizes relation with atas-artha spatial direction suffix (2.3.30)."),
+        KarakaEvidence(number, text, "षष्ठी under the linked atas-artha governor ${context.participant?.governingAvyaya?.form}; " +
+            "derivation: ${context.participant?.governingAvyaya?.derivation} (2.3.30)."),
     )
 }

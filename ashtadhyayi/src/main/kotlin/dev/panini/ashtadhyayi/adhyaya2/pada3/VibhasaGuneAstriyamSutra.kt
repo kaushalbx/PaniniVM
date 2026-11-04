@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,10 +24,13 @@ object VibhasaGuneAstriyamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.PANCHAMI, Vibhakti.TRTIYA)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            !SasthiHetuprayogeSutra.hasConstruction(context) &&
             SemanticRelation.NON_FEMININE_QUALITY_CAUSE in context.participant?.semanticRelations.orEmpty() &&
+            context.participant?.linga != setOf(dev.panini.core.Linga.STRI) &&
             (Vibhakti.PANCHAMI in context.morphologicalCandidates || Vibhakti.TRTIYA in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

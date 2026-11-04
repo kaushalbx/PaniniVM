@@ -1,5 +1,7 @@
 package dev.panini.compiler
 
+import dev.panini.execution.historyParticipantValues
+
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.bindingName
@@ -164,6 +166,8 @@ class CompiledProgramRuntime private constructor(
         operationName: String,
         requiredSanadi: String,
         bindings: Map<Karaka, ExecutionExpression>,
+        nominalBindings: Map<dev.panini.execution.NominalOperandRole, ExecutionExpression>,
+        copularPredicate: dev.panini.execution.CopularPredicate?,
     ): SanskritValue {
         val runtimeBindings = bindings.mapValues { (_, expression) ->
             expression.resolveCompiledReferences()
@@ -174,6 +178,8 @@ class CompiledProgramRuntime private constructor(
             requiredSanadi,
             runtimeBindings,
             values,
+            nominalBindings.mapValues { (_, expression) -> expression.resolveCompiledReferences() },
+            copularPredicate,
         )
         return value
     }
@@ -196,7 +202,8 @@ class CompiledProgramRuntime private constructor(
 
     fun executeParticipantGroup(group: SanskritValue, dhatuUpadesha: String, upasargas: String,
         sanadi: String, avyayas: String, lakara: String, selectedOperation: String,
-        otherBindings: Map<Karaka, ExecutionExpression> = emptyMap()): SanskritValue {
+        otherBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+        historyParticipants: List<dev.panini.execution.HistoryParticipant> = emptyList()): SanskritValue {
         require(otherBindings.keys.none { it == Karaka.KARMAN || it == Karaka.ANIRDHARITA }) {
             "Participant-group auxiliary bindings must not replace its object group."
         }
@@ -212,7 +219,8 @@ class CompiledProgramRuntime private constructor(
             otherBindings.mapValues { it.value.resolveCompiledReferences() } + (Karaka.KARMAN to expression),
             selectedOperation.takeIf { it.isNotEmpty() },
             grammaticalFeatures = dev.panini.execution.GrammaticalFeatures(tokens(upasargas), tokens(sanadi),
-                tokens(avyayas), lakara.takeIf { it.isNotEmpty() }?.let(dev.panini.core.Lakara::valueOf)))
+                tokens(avyayas), lakara.takeIf { it.isNotEmpty() }?.let(dev.panini.core.Lakara::valueOf)),
+            historyParticipants = historyParticipants.map { it.copy(expression = it.expression.resolveCompiledReferences()) })
         val resolved = when (val resolution = dev.panini.execution.OperationResolver.resolve(invocation, emptyMap())) {
             is dev.panini.execution.OperationResolution.Resolved -> resolution.value
             is dev.panini.execution.OperationResolution.Invalid -> throw CompiledPaniniExecutionException(resolution.error, resolution.message)
@@ -222,8 +230,8 @@ class CompiledProgramRuntime private constructor(
         }
         if (resolved.operation.name !in participantGroupOperations) throw CompiledPaniniExecutionException(
             ExecutionError.INVALID_VALUE, "Unsupported dynamic participant-group operation: ${resolved.operation.name}")
-        val capturedParticipants = resolved.context.bindings.filterKeys { it != Karaka.ANIRDHARITA }
-            .mapValues { (_, expression) -> resolved.context.resolveValues(expression).map(::historySnapshot) }
+        val capturedParticipants = resolved.context.historyParticipantValues()
+            .mapValues { (_, values) -> values.map(::historySnapshot) }
         val result = resolved.operation.action.execute(resolved.context, resolved.operation)
         if (result !is dev.panini.execution.ExecutionResult.Success) {
             throw CompiledPaniniExecutionException.from(result, resolved.operation.name)
@@ -346,7 +354,7 @@ class CompiledProgramRuntime private constructor(
     fun loadOrdinalActionParticipantGroup(dhatuUpadesha: String, ordinal: Long, karaka: dev.panini.core.Karaka): SanskritValue =
         SanskritValue.Gana(loadOrdinalActionParticipants(dhatuUpadesha, ordinal, karaka))
 
-    private fun historySnapshot(value: SanskritValue): SanskritValue {
+    fun historySnapshot(value: SanskritValue): SanskritValue {
         val active = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<SanskritValue, Boolean>())
         fun copy(current: SanskritValue): SanskritValue {
             if (!active.add(current)) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,

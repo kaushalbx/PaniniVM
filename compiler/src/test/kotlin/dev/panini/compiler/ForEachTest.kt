@@ -160,7 +160,7 @@ class ForEachTest {
         for (source in listOf(
             "सूची + अम् सदस्य + अम् प्रति सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
             "सूची + ङस् सदस्य + ङे प्रति सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
-        )) assertFails { PvmScript.parseNative(source) }
+        )) assertFails { PvmScript.parse(source) }
     }
     private val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
     private val loop = "सूची + ङस् सदस्य + अम् प्रति सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"
@@ -253,7 +253,10 @@ class ForEachTest {
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         assertEquals(4, results.size) // declaration plus three body-sequence results
-        assertEquals(2, assertIs<SanskritValue.Suchi>(compiled(source, "SnapshotForEach")["सूची"]).items.size)
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(assertIs<ExecutionResult.Success>(results.last()).typedValue).value)
+        // The explicit object replaces the stored list with one. A pipeline must
+        // not prepend the previous printed result and invent a two-item value.
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(compiled(source, "SnapshotForEach")["सूची"]).value)
     }
 
     @Test fun `sequential adjacent traversal threads collection updates through a dynamic bubble sort`() {

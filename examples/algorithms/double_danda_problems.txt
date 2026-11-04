@@ -2,7 +2,7 @@
 # Written in fully segmented Lyut (ल्युट्) nominalization form (dhātu + lyuṭ + vibhakti)
 
 # Example 1: Minimum Subset Sum Difference for S = {1, 6, 11, 5} -> Result = 1 (एकम्)
-एकम् एकादशं च धरणाय योजय ।
+एकम् एकादश च धरणाय योजय ।
 षट् पञ्च च स्थानाय योजय ।
 धरणं स्थानं च वियोजय ।
 वियोजनस्य फलं मुद्रय ॥

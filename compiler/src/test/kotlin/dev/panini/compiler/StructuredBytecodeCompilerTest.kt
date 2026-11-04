@@ -24,7 +24,7 @@ class StructuredBytecodeCompilerTest {
     @Test fun `compiled procedure rejects script level virama with source diagnostics`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वि + रम् + लोट् + सिप् ॥
+            वि + रमुँ + लोट् + सिप् ॥
             परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val failure = assertFailsWith<CompilerUnsupportedException> {
@@ -1405,7 +1405,7 @@ class StructuredBytecodeCompilerTest {
             "यदि युज् + ल्युट् + ङस् पूर्व + सुँ फल + सुँ त्रि + भिस् सम + सुँ असँ + लट् + तिप् तर्हि " +
             "एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
-        val interpreted = (results.last() as ExecutionResult.Success).value
+        val interpreted = kotlin.test.assertIs<ExecutionResult.Success>(results.last(), results.toString()).value
         assertEquals("एक", interpreted, results.toString())
         assertEquals(interpreted, compileAndInspect(source, "CompiledPreviousHistoryCondition")
             .values.getValue("LastResult").toDisplayText())

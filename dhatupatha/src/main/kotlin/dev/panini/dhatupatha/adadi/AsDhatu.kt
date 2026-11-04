@@ -28,14 +28,13 @@ class AsDhatu : Dhatu(
     gana = DhatuGana.ADADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.SET,
-    karmatva = Karmatva.SAKARMAKA,
+    karmatva = Karmatva.AKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
         CopularEqualityAction.op {
             predicates(dev.panini.execution.CopularPredicate.EQUAL)
             requires(Karaka.KARTR, maximum = 1)
-            requires(Karaka.KARANA, maximum = 1)
-            requires(Karaka.KARMAN, maximum = 1, samjnas = arrayOf(Samjna.SHABDA))
+            requiresNominal(dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD)
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
         },
@@ -43,9 +42,8 @@ class AsDhatu : Dhatu(
             predicates(dev.panini.execution.CopularPredicate.LESS_THAN, dev.panini.execution.CopularPredicate.GREATER_THAN)
             requires(Karaka.KARTR, maximum = 1, samjnas = arrayOf(Samjna.SANKHYA),
                 valueType = OperationValueType.NUMBER)
-            requires(Karaka.APADANA, maximum = 1, samjnas = arrayOf(Samjna.SANKHYA),
+            requiresNominal(dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD,
                 valueType = OperationValueType.NUMBER)
-            requires(Karaka.KARMAN, maximum = 1, samjnas = arrayOf(Samjna.SHABDA))
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
         },
@@ -54,14 +52,6 @@ class AsDhatu : Dhatu(
             requires(Karaka.ADHIKARANA, maximum = 1,
                 valueType = OperationValueType.COLLECTION) // the collection in which it exists
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
-            returns(Samjna.SATYA)
-        },
-        // Compatibility frame: prefer "वस्तु सूचीस्थम् अस्ति" expressed by
-        // nominative वस्तु and locative सूची in new programs.
-        ListContainsAction.op {
-            requires(Karaka.KARMAN)
-            optional(Karaka.KARANA)
-            forbids(Karaka.KARTR, Karaka.APADANA, Karaka.ADHIKARANA)
             returns(Samjna.SATYA)
         }
     )

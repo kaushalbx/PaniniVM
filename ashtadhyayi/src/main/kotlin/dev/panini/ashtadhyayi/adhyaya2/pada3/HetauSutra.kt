@@ -25,6 +25,10 @@ object HetauSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             Vibhakti.TRTIYA in context.morphologicalCandidates &&
+            !AkartaryRnePancamiSutra.hasConstruction(context) &&
+            !VibhasaGuneAstriyamSutra.matches(context) &&
+            !SarvanamnasTrtiyaCaSutra.matches(context) &&
+            SemanticRelation.EXPLICIT_HETU_USE !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.CAUSE_HETU in context.participant?.semanticRelations.orEmpty()
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

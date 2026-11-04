@@ -4,6 +4,7 @@ import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
+import dev.panini.core.Vibhakti
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Karmatva
 import dev.panini.vyakaranam.ast.AkhyataVakya
@@ -26,6 +27,91 @@ import kotlin.test.assertFailsWith
 
 class KriyaFrameAnalyzerTest {
     @Test
+    fun `sentence frame retains vocative designation without verbal agent assignment`() {
+        val local = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(listOf(
+            dev.panini.vyakaranam.lexicon.PratipadikaEntry("राम", setOf(dev.panini.core.Linga.PUMS),
+                semanticRelations = setOf(SemanticRelation.DIRECT_ADDRESS))), listOf(dhatu))))
+        val verb = akhyata().tinganta
+        val clause = akhyata().copy(padas = listOf(subanta("राम + सुँ", "राम", "सुँ"), verb), tinganta = verb)
+        val relation = local.analyze(clause).relations.single()
+        assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMBODHANA), relation.resolution)
+        assertEquals(listOf("2.3.47"), relation.evidence.map { it.sutra })
+        assertEquals(listOf(NominalDesignation.AMANTRITA, NominalDesignation.SAMBUDDHI),
+            relation.nominalDesignations.map { it.designation })
+    }
+
+    @Test
+    fun `passive causative sentence carries supplied causee and causer premises through sutra chains`() {
+        val lexical = InMemoryVyakaranamLexicon(listOf(
+            dev.panini.vyakaranam.lexicon.PratipadikaEntry("बाल", setOf(dev.panini.core.Linga.PUMS),
+                semanticRelations = setOf(SemanticRelation.CAUSEE_AGENT)),
+            dev.panini.vyakaranam.lexicon.PratipadikaEntry("राम", setOf(dev.panini.core.Linga.PUMS),
+                semanticRelations = setOf(SemanticRelation.PROMPTER_CAUSE)),
+        ), listOf(Dhatu(id = "gam.passive.test", krama = 1, upadesha = "गम्", sourceSurface = "गम्",
+            artha = "गतौ", arthaHindi = "जाना", arthaEnglish = "go", gana = DhatuGana.BHVADI,
+            pada = PadaType.PARASMAIPADA, karmatva = Karmatva.AKARMAKA)))
+        val causee = subanta("बाल + सुँ", "बाल", "सुँ")
+        val causer = subanta("राम + टा", "राम", "टा")
+        val verb = TingantaPada("गम् + णिच् + यक् + लट् + त", emptyList(),
+            DhatuPrakriti("गम्", "गम्", listOf("णिच्")), Lakara.LAT, TingPratyaya("त", "त"),
+            vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK)
+        val frame = VakyaAnalyzer(PadaAnalyzer(lexical)).analyze(AkhyataVakya("passive causative",
+            listOf(causee, causer, verb), verb))
+        assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
+        assertEquals(listOf("1.4.52", "2.3.46"), frame.relations[0].evidence.map { it.sutra })
+        assertEquals(Vibhakti.PRATHAMA, frame.relations[0].resolvedVibhakti)
+        assertEquals(listOf("1.4.55", "2.3.18"), frame.relations[1].evidence.map { it.sutra })
+        assertEquals(Vibhakti.TRTIYA, frame.relations[1].resolvedVibhakti)
+        assertEquals(setOf(KarakaDesignation.HETU), frame.relations[1].additionalDesignations)
+        assertEquals(emptySet(), frame.relations[0].additionalDesignations)
+    }
+
+    @Test
+    fun `adverb qualification follows its clause across word order and intervening participants`() {
+        val slowly = AvyayaPada("शनैः", "शनैः")
+        val whenQuestion = AvyayaPada("कदा", "कदा")
+        val agent = subanta("राम + सुँ", "राम", "सुँ")
+        val base = akhyata()
+        listOf(
+            listOf(slowly, agent, whenQuestion, base.tinganta),
+            listOf(base.tinganta, whenQuestion, agent, slowly),
+        ).forEach { padas ->
+            val frame = analyzer.analyze(base.copy(padas = padas), KriyaId("adverb-clause"))
+            val qualifications = frame.qualifications.associateBy { it.value }
+            assertEquals(setOf("शनैः", "कदा"), qualifications.keys)
+            assertEquals(KriyaQualificationKind.MANNER, qualifications.getValue("शनैः").kind)
+            assertEquals(AdverbialFunction.QUESTION, qualifications.getValue("कदा").semantics?.function)
+            qualifications.values.forEach {
+                assertEquals(frame.id, it.kriyaId)
+                assertEquals(padas.indexOf(it.source.pada), it.sourceIndex)
+            }
+        }
+    }
+
+    @Test
+    fun `sentence frame exposes nonadjacent nominal attachment through standard lexicon`() {
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(
+            listOfNotNull(
+                dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika("नील"),
+                dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika("उत्पल"),
+            ), listOf(Dhatu(
+                id = "nominal.test", krama = 1, upadesha = "फ्रेम्", sourceSurface = "फ्रेम्",
+                artha = "परीक्षणे", arthaHindi = "परीक्षण", arthaEnglish = "test",
+                gana = DhatuGana.BHVADI, pada = PadaType.PARASMAIPADA, karmatva = Karmatva.SAKARMAKA,
+            )),
+        )))
+        val modifier = subanta("नील + अम्", "नील", "अम्")
+        val head = subanta("उत्पल + अम्", "उत्पल", "अम्")
+        val verb = akhyata().tinganta
+        val clause = akhyata().copy(padas = listOf(modifier, verb, head), tinganta = verb)
+        val frame = localAnalyzer.analyze(clause)
+        val nominal = requireNotNull(frame.nominalRelations)
+        assertEquals(listOf(0 to 1), nominal.candidates.map { it.modifier to it.head })
+        assertEquals(setOf(0), nominal.independentReadings)
+        assertEquals(setOf(NominalMeaning.PROPERTY), nominal.candidates.single().meanings)
+    }
+
+    @Test
     fun `yak selects passive voice on causatives of transitive and intransitive roots`() {
         for (karmatva in listOf(Karmatva.SAKARMAKA, Karmatva.AKARMAKA)) {
             val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(
@@ -43,11 +129,21 @@ class KriyaFrameAnalyzerTest {
                 vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK,
                 ting = TingPratyaya("आताम्", "आताम्"),
             )
-            val frame = localAnalyzer.analyze(original.copy(padas = listOf(agent, objectPada, verb), tinganta = verb))
+            val frame = localAnalyzer.analyze(original.copy(padas = listOf(agent, objectPada, verb), tinganta = verb),
+                semanticContext = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.INDEPENDENT_AGENT))))
             assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
             assertEquals(listOf(Karaka.KARTR, Karaka.KARMAN), frame.relations.map {
                 assertIs<FrameKarakaResolution.Resolved>(it.resolution).karaka
             })
+            assertEquals(
+                listOf(listOf("1.4.54", "2.3.18"), listOf("1.4.49", "2.3.46")),
+                frame.relations.map { relation -> relation.evidence.map { it.sutra } },
+            )
+            frame.relations.forEach { relation ->
+                assertEquals(true, relation.evidence.first().semanticEvidence.any {
+                    it.source == SemanticEvidenceSource.VOICE_CONSTRUCTION
+                })
+            }
             assertEquals(0, frame.diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH })
         }
     }
@@ -151,6 +247,23 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
+    fun `every coordinated agent retains its own exact sutra evidence`() {
+        val members = listOf(
+            subanta("राम + सुँ", "राम", "सुँ"),
+            subanta("श्याम + सुँ", "श्याम", "सुँ"),
+        )
+        val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("रामः च श्यामः च", members)
+        val frame = analyzer.analyze(akhyata(group))
+
+        assertEquals(2, frame.relations.size)
+        frame.relations.forEach { relation ->
+            assertEquals(Karaka.KARTR,
+                assertIs<FrameKarakaResolution.Resolved>(relation.resolution).karaka)
+            assertEquals(listOf("1.4.54", "2.3.46"), relation.evidence.map { it.sutra })
+        }
+    }
+
+    @Test
     fun `voice follows parsed morphology rather than display source`() {
         val ordinary = akhyata()
         val misleading = ordinary.tinganta.copy(sourceText = "इ यि णिच् यक् चिण्")
@@ -170,6 +283,120 @@ class KriyaFrameAnalyzerTest {
         ).prayoga)
     }
 
+    @Test
+    fun `os resolves as adhikarana when one participant satisfies location valency`() {
+        val stha = Dhatu(
+            id = "test.stha", krama = 1, upadesha = "स्था", sourceSurface = "स्था",
+            artha = "गतिनिवृत्तौ", arthaHindi = "ठहरना", arthaEnglish = "stand",
+            gana = DhatuGana.BHVADI, pada = PadaType.PARASMAIPADA,
+            karmatva = Karmatva.AKARMAKA,
+        )
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(stha))))
+        fun analyze(vararg participants: SubantaPada): KriyaFrame {
+            val verb = TingantaPada(
+                sourceText = "तिष्ठति", upasargas = emptyList(),
+                dhatu = DhatuPrakriti("स्था", "स्था"), lakara = Lakara.LAT,
+                ting = TingPratyaya("तिप्", "तिप्"),
+            )
+            return localAnalyzer.analyze(AkhyataVakya(
+                sourceText = participants.joinToString(" ") { it.sourceText } + " तिष्ठति",
+                padas = participants.toList() + verb, tinganta = verb,
+            ))
+        }
+
+        val frame = analyze(subanta("गृह + ओस्", "गृह", "ओस्"))
+        assertEquals(Karaka.ADHIKARANA,
+            assertIs<FrameKarakaResolution.Resolved>(frame.relations.single().resolution).karaka)
+        assertEquals(emptyList(), frame.diagnostics.filter { it.code == FrameDiagnosticCode.AMBIGUOUS_KARAKA })
+    }
+
+    @Test
+    fun `os remains ambiguous when location valency cannot select one participant`() {
+        val stha = Dhatu(
+            id = "test.stha.ambiguous", krama = 1, upadesha = "स्था", sourceSurface = "स्था",
+            artha = "गतिनिवृत्तौ", arthaHindi = "ठहरना", arthaEnglish = "stand",
+            gana = DhatuGana.BHVADI, pada = PadaType.PARASMAIPADA,
+            karmatva = Karmatva.AKARMAKA,
+        )
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(stha))))
+        val verb = TingantaPada("तिष्ठति", emptyList(), DhatuPrakriti("स्था", "स्था"), Lakara.LAT,
+            TingPratyaya("तिप्", "तिप्"))
+        val participants = listOf(
+            subanta("गृह + ओस्", "गृह", "ओस्"),
+            subanta("वन + ओस्", "वन", "ओस्"),
+        )
+        val frame = localAnalyzer.analyze(AkhyataVakya("गृहयोः वनयोः तिष्ठति", participants + verb, verb))
+
+        assertEquals(2, frame.relations.count { it.resolution is FrameKarakaResolution.Ambiguous })
+        val messages = frame.diagnostics.filter { it.code == FrameDiagnosticCode.AMBIGUOUS_KARAKA }.map { it.message }
+        assertEquals(2, messages.size)
+        messages.forEach { message ->
+            kotlin.test.assertTrue(message.contains("ओस् द्विवचनम् षष्ठी/सप्तमी-साधारणः सुप्"), message)
+            kotlin.test.assertTrue(message.contains("सम्बन्ध अथवा अधिकरण"), message)
+        }
+    }
+
+    @Test
+    fun `coexistent karaka names and case alternatives survive into frame and diagnostic`() {
+        val div = Dhatu(
+            id = "test.div", krama = 1, upadesha = "दिव", sourceSurface = "दिव",
+            artha = "क्रीडायाम्", arthaHindi = "खेलना", arthaEnglish = "play",
+            gana = DhatuGana.DIVADI, pada = PadaType.PARASMAIPADA,
+            karmatva = Karmatva.SAKARMAKA,
+            semanticRelations = setOf(SemanticRelation.INSTRUMENT),
+        )
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(div))))
+        val participant = subanta("अक्ष + अम्", "अक्ष", "अम्")
+        val verb = TingantaPada("दीव्यति", emptyList(), DhatuPrakriti("दिव", "दिव"), Lakara.LAT,
+            TingPratyaya("तिप्", "तिप्"))
+        val frame = localAnalyzer.analyze(AkhyataVakya("अक्षं दीव्यति", listOf(participant, verb), verb),
+            semanticContext = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.INSTRUMENT))))
+
+        assertEquals(Karaka.KARMAN,
+            assertIs<FrameKarakaResolution.Resolved>(frame.relations.single().resolution).karaka)
+        assertEquals(Karaka.KARANA, frame.relations.single().alternatives.single().karaka)
+        assertEquals(Vibhakti.TRTIYA, frame.relations.single().alternatives.single().vibhakti)
+        assertEquals(true, frame.relations.single().evidence.first().semanticEvidence.any {
+            it.source == SemanticEvidenceSource.DHATU_VALENCY && it.relation == SemanticRelation.INSTRUMENT
+        })
+        assertEquals(setOf(Karaka.KARMAN, Karaka.KARANA), frame.relations.single().coexistingKarakas)
+        assertEquals(null, frame.relations.single().primaryOptionalDecision)
+        assertEquals(0, frame.diagnostics.count { it.code == FrameDiagnosticCode.OPTIONAL_KARAKA })
+        assertEquals(1, frame.diagnostics.count { it.code == FrameDiagnosticCode.OPTIONAL_VIBHAKTI })
+    }
+
+    @Test
+    fun `unannotated dvikarmaka accusatives retain competing primary and secondary analyses`() {
+        val duh = Dhatu(
+            id = "test.duh", krama = 1, upadesha = "दुह्", sourceSurface = "दुह्",
+            artha = "प्रपूरणे", arthaHindi = "दुहना", arthaEnglish = "milk",
+            gana = DhatuGana.ADADI, pada = PadaType.PARASMAIPADA,
+            karmatva = Karmatva.SAKARMAKA,
+        )
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(duh))))
+        val cow = subanta("गो + अम्", "गो", "अम्")
+        val milk = subanta("पयस् + अम्", "पयस्", "अम्")
+        val verb = TingantaPada("दोग्धि", emptyList(), DhatuPrakriti("दुह्", "दुह्"), Lakara.LAT,
+            TingPratyaya("तिप्", "तिप्"))
+        val frame = localAnalyzer.analyze(AkhyataVakya("गां पयो दोग्धि", listOf(cow, milk, verb), verb))
+
+        assertEquals(2, frame.relations.size)
+        frame.relations.forEach { relation ->
+            assertEquals(listOf("1.4.49", "2.3.2"), relation.evidence.map { it.sutra })
+            val competing = relation.alternatives.single {
+                it.kind == KarakaAlternativeKind.COMPETING_ANALYSIS
+            }
+            assertEquals(Karaka.KARMAN, competing.karaka)
+            assertEquals(listOf("1.4.51", "2.3.2"), competing.evidence.map { it.sutra })
+            assertEquals(true, competing.evidence.first().semanticEvidence.any {
+                it.source == SemanticEvidenceSource.CONSTRUCTION_AMBIGUITY
+            })
+        }
+        assertEquals(2, frame.diagnostics.count {
+            it.code == FrameDiagnosticCode.COMPETING_KARAKA_ANALYSIS
+        })
+    }
+
     private val dhatu = Dhatu(
         id = "test.1",
         krama = 1,
@@ -185,6 +412,61 @@ class KriyaFrameAnalyzerTest {
     private val analyzer = VakyaAnalyzer(
         PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(dhatu))),
     )
+
+    @Test fun `hetu cause attachment survives reversal intervening adverb and intervening verb`() {
+        val food = subanta("अन्न + ङस्", "अन्न", "ङस्")
+        val hetu = subanta("हेतु + ङस्", "हेतु", "ङस्")
+        val now = AvyayaPada("अधुना", "अधुना")
+        val verb = akhyata().tinganta
+        val orders = listOf(
+            listOf<dev.panini.vyakaranam.ast.Pada>(food, now, hetu, verb),
+            listOf(hetu, now, food, verb),
+            listOf(food, verb, now, hetu),
+        )
+        for (order in orders) {
+            val index = order.filterIsInstance<SubantaPada>().indexOfFirst { it === food }
+            val frame = analyzer.analyze(AkhyataVakya("हेतु attachment", order, verb),
+                semanticContext = VakyaSemanticContext(participantRelations =
+                    mapOf(index to setOf(SemanticRelation.CAUSE_HETU))))
+            val link = kotlin.test.assertNotNull(frame.nominalCaseLinks).established.single()
+            assertEquals(index, link.dependent)
+            assertEquals("2.3.26", link.sutra)
+            assertEquals(2, frame.relations.size)
+            frame.relations.forEach {
+                assertEquals(listOf("2.3.26"), it.evidence.map { evidence -> evidence.sutra })
+                assertEquals(Vibhakti.SASTHI, it.resolvedVibhakti)
+                assertEquals(FrameKarakaResolution.Resolved(Karaka.ANIRDHARITA), it.resolution)
+            }
+        }
+    }
+
+    @Test fun `canonical coordination shares recipient valency without resolving separate competitors`() {
+        val giving = Dhatu(id = "giving", krama = 1, upadesha = "दा", sourceSurface = "दा",
+            artha = "दाने", arthaHindi = "देना", arthaEnglish = "give", gana = DhatuGana.JUHOTYADI,
+            pada = PadaType.PARASMAIPADA, karmatva = Karmatva.SAKARMAKA)
+        val local = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(giving))))
+        val obj = subanta("फल + अम्", "फल", "अम्")
+        val rama = subanta("राम + भ्याम्", "राम", "भ्याम्")
+        val syama = subanta("श्याम + भ्याम्", "श्याम", "भ्याम्")
+        val originalVerb = akhyata().tinganta
+        val verb = originalVerb.copy(dhatu = originalVerb.dhatu.copy(mulaDhatu = "दा"))
+        val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("राम श्याम च", listOf(rama, syama))
+        val frame = local.analyze(AkhyataVakya("", listOf(obj, group, verb), verb))
+        frame.relations.drop(1).forEach {
+            assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMPRADANA), it.resolution)
+            assertEquals(listOf("1.4.32", "2.3.13"), it.evidence.map { evidence -> evidence.sutra })
+        }
+        val separate = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, verb), verb))
+        separate.relations.drop(1).forEach { assertIs<FrameKarakaResolution.Ambiguous>(it.resolution) }
+        val writtenCha = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, AvyayaPada("च", "च"), verb), verb))
+        writtenCha.relations.drop(1).forEach {
+            assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMPRADANA), it.resolution)
+            assertEquals(listOf("1.4.32", "2.3.13"), it.evidence.map { evidence -> evidence.sutra })
+        }
+        val separated = local.analyze(AkhyataVakya("", listOf(obj, rama, AvyayaPada("अधुना", "अधुना"),
+            syama, AvyayaPada("च", "च"), verb), verb))
+        separated.relations.drop(1).forEach { assertIs<FrameKarakaResolution.Ambiguous>(it.resolution) }
+    }
 
     @Test
     fun `one kriya frame preserves several participants of the same karaka`() {
@@ -257,16 +539,26 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
-    fun `apadana karaka is resolved for jugupsa and virama verbs`() {
+    fun `canonical only analysis leaves jugupsa commentary role unassigned`() {
         val participant = subanta("पाप + ङसिँ", "पाप", "ङसिँ")
-        val vakya = akhyata(participant)
+        val base = akhyata(participant)
+        val verb = base.tinganta.copy(dhatu = DhatuPrakriti("जुगुप्स्", "जुगुप्स्"),
+            ting = TingPratyaya("त", "त"))
+        val vakya = base.copy(padas = listOf(participant, verb), tinganta = verb)
+        val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(
+            emptyList(), listOf(Dhatu(
+                id = "jugupsa.test", krama = 1, upadesha = "जुगुप्स्", sourceSurface = "जुगुप्स्",
+                artha = "जुगुप्सायाम्", arthaHindi = "घृणा", arthaEnglish = "aversion",
+                gana = DhatuGana.BHVADI, pada = PadaType.ATMANEPADA, karmatva = Karmatva.AKARMAKA,
+            )),
+        )))
 
-        val frame = requireNotNull(analyzer.analyze(vakya))
+        val frame = localAnalyzer.analyze(vakya)
         assertEquals(1, frame.relations.size)
-        val resolved = assertIs<FrameKarakaResolution.Resolved>(
+        assertIs<FrameKarakaResolution.Unassigned>(
             frame.relations.single().resolution,
         )
-        assertEquals(Karaka.APADANA, resolved.karaka)
+        assertEquals(emptyList(), frame.relations.single().evidence)
     }
 
     @Test
@@ -303,6 +595,9 @@ class KriyaFrameAnalyzerTest {
         assertEquals(KriyaId("kriya-1"), purvakalika.single().source)
         assertEquals(KriyaId("kriya-2"), purvakalika.single().target)
         assertEquals("राम + सुँ", sharedAgent.single().participantSource)
+        assertEquals(Karaka.KARTR, sharedAgent.single().karaka)
+        assertEquals(setOf(KriyaId("kriya-2")), sharedAgent.single().explicitIn)
+        assertEquals(setOf(KriyaId("kriya-1")), sharedAgent.single().omittedIn)
     }
 
     @Test
@@ -325,7 +620,7 @@ class KriyaFrameAnalyzerTest {
             val prior = AvyayaPada("unrelated spelling", "unrelated spelling",
                 dev.panini.vyakaranam.ast.AvyayaKridantaDerivation(
                     emptyList(), DhatuPrakriti("फ्रेम्", "फ्रेम्"), suffix))
-            val source = akhyata(prior)
+            val source = priorActionVakya(prior)
             val target = akhyata()
             val sequence = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("",
                 listOf(Invocation(source), Invocation(target)))))
@@ -354,7 +649,7 @@ class KriyaFrameAnalyzerTest {
         )
         for ((index, other) in others.withIndex()) {
             val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
-                Invocation(akhyata(prior, rama)), Invocation(akhyata(other))))))
+                Invocation(priorActionVakya(prior, rama)), Invocation(akhyata(other))))))
             assertEquals(if (index == 0) 1 else 0,
                 analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().size)
             assertEquals(if (index == 0) 0 else 1,
@@ -381,7 +676,7 @@ class KriyaFrameAnalyzerTest {
         fun coordinated(members: List<SubantaPada>) =
             dev.panini.vyakaranam.ast.SamuccitaSubanta("coordinated", members)
         val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
-            Invocation(akhyata(prior, coordinated(listOf(rama, deva)))),
+            Invocation(priorActionVakya(prior, coordinated(listOf(rama, deva)))),
             Invocation(akhyata(coordinated(listOf(deva, rama))))))))
         assertEquals(setOf(rama.sourceText, deva.sourceText),
             analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().map { it.participantSource }.toSet())
@@ -446,6 +741,13 @@ class KriyaFrameAnalyzerTest {
             pratipadika = MulaPratipadika(stem, stem),
             sup = SupPratyaya(sup, sup),
         )
+
+    private fun priorActionVakya(prior: AvyayaPada, vararg participants: dev.panini.vyakaranam.ast.Pada): AkhyataVakya {
+        val base = akhyata(*participants)
+        val head = base.tinganta.copy(sourceText = prior.sourceText,
+            priorAction = prior.derivation as dev.panini.vyakaranam.ast.AvyayaKridantaDerivation)
+        return base.copy(padas = participants.toList() + head, tinganta = head)
+    }
 
     private fun akhyata(vararg participants: dev.panini.vyakaranam.ast.Pada): AkhyataVakya {
         val tinganta = TingantaPada(

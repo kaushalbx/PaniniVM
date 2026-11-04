@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
 import dev.panini.core.Karaka
-import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -13,6 +12,9 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.IntendedObject
+import dev.panini.analysis.isStrongestOrdinaryReading
 
 object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.32", text = "कर्मणा यमभिप्रैति स सम्प्रदानम्",
@@ -22,16 +24,44 @@ object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRul
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
 ) {
+    private val specialRecipientRules by lazy {
+        listOf(RucyarthanamPriyamanahSutra, ShlaghahnusthashapamJnyipsyamanahSutra,
+            DharerUttamarnahSutra, SprherIpsitahSutra, KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
+            KrudhaDruhorUpasrstayohKarmaSutra, RadhiksyorYasyaViprasnahSutra,
+            PratyangbhruvahPurvasyaKartaSutra, AnupratigrnasCaSutra, ParikrayaneSampradanamAnyatarasyamSutra)
+    }
+
     override fun matches(context: KarakaRuleContext): Boolean {
-        val hasKarmanCoArgument = context.allParticipants.any { other ->
-            other.id != context.participant.id &&
-                (SemanticRelation.DESIRED_OBJECT in other.semanticRelations ||
-                    other.possibleVibhaktis.contains(Vibhakti.DVITIYA))
+        if (!hasRecipientIntent(context)) return false
+        fun isObject(other: dev.panini.analysis.ParticipantFacts): Boolean {
+            if (other.id == context.participant.id) return false
+            // Object status is a prerequisite established by the complete
+            // canonical rule engine, including special and optional readings.
+            return context.mediatingObjectResolutions[other.id]?.let {
+                (it.resolved == Karaka.KARMAN || Karaka.KARMAN in it.coexistingKarakas) &&
+                    it.evidence.any { proof -> proof.applied && proof.sutra.startsWith("1.4.") }
+            } == true
         }
-        val isExcludedSampradana = KarakaDhatuDomains.isExcludedGeneralSampradana(context.dhatu)
-        val isRecipient = SemanticRelation.RECIPIENT in context.participant.semanticRelations
-        val isCandidate = Karaka.SAMPRADANA in context.candidates
-        return !isExcludedSampradana && isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)
+        val binding = context.participant.intendedObject
+        val eligibleWrittenObject = context.allParticipants.any(::isObject)
+        return when (binding) {
+            is IntendedObject.Written -> context.allParticipants.singleOrNull { it.id == binding.participantId }
+                ?.let(::isObject) == true
+            IntendedObject.Implied -> true
+            null -> eligibleWrittenObject
+        }
+    }
+
+    /** Recipient-side eligibility, before requiring a proven mediating object. */
+    fun hasRecipientIntent(context: KarakaRuleContext): Boolean {
+        if (!context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)) return false
+        val binding = context.participant.intendedObject
+        val unboundSpecialReading = binding == null &&
+            (KarakaDhatuDomains.isPriorActionRecipientDomain(context) ||
+                SemanticRelation.PRIOR_ACTION_AGENT in context.participant.semanticRelations ||
+                SemanticRelation.INQUIRY_DESTINY_TARGET in context.participant.semanticRelations)
+        val isExcludedSampradana = specialRecipientRules.any { it.matches(context) } || unboundSpecialReading
+        return !isExcludedSampradana && context.participant.isStrongestOrdinaryReading(SemanticRelation.RECIPIENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

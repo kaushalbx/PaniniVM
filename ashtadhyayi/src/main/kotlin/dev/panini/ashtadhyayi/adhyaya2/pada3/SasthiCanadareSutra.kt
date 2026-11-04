@@ -12,6 +12,7 @@ import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 
 /** Sūtra 2.3.38 षष्ठी चानादरे. Assigns Ṣaṣṭhī or Saptamī in expressions of disregard/contempt. */
 object SasthiCanadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
@@ -21,10 +22,16 @@ object SasthiCanadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
+
+    fun hasDisregardedActionMarking(context: VibhaktiRuleContext): Boolean =
+        context.participant?.semanticRelations.orEmpty().containsAll(
+            setOf(SemanticRelation.ACTION_MARKING, SemanticRelation.DISREGARD_ANADARA))
+
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            SemanticRelation.DISREGARD_ANADARA in context.participant?.semanticRelations.orEmpty() &&
+            hasDisregardedActionMarking(context) &&
             (Vibhakti.SASTHI in context.morphologicalCandidates || Vibhakti.SAPTAMI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

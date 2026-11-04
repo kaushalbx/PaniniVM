@@ -14,9 +14,21 @@ import dev.panini.analysis.VibhaktiRuleResult
 import dev.panini.vyakaranam.ast.AvyayaPada
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 class AdditionalVibhaktiSutrasTest {
+    @Test
+    fun `manya dative requires the specific disregard construction`() {
+        val ordinary = VibhaktiRuleContext(Karaka.KARMAN, setOf(Vibhakti.CHATURTHI),
+            participant = dummyParticipant())
+        org.junit.jupiter.api.Assertions.assertFalse(ManyaKarmaniAnadareSutra.matches(ordinary))
+        val marked = ordinary.copy(participant = dummyParticipant(
+            setOf(SemanticRelation.MAN_INANIMATE_DISREGARD_OBJECT)))
+        assertTrue(ManyaKarmaniAnadareSutra.matches(marked))
+        assertEquals("2.3.17", (ManyaKarmaniAnadareSutra.apply(marked) as VibhaktiRuleResult.Assigned).evidence.sutra)
+    }
+
 
     private fun dummyParticipant(
         relations: Set<SemanticRelation> = emptySet(),
@@ -36,8 +48,14 @@ class AdditionalVibhaktiSutrasTest {
             participant = p,
             allParticipants = listOf(p),
             prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.SAMPRADANA),
         )
         assertTrue(RadhiksyorYasyaViprasnahSutra.matches(context))
+        assertTrue(RadhiksyorYasyaViprasnahSutra.matches(context.copy(candidates = emptySet())))
+        assertTrue(RadhiksyorYasyaViprasnahSutra.matches(context.copy(candidates = setOf(Karaka.KARMAN))))
+        val unestablished = p.copy(semanticRelations = emptySet())
+        assertFalse(RadhiksyorYasyaViprasnahSutra.matches(context.copy(participant = unestablished,
+            allParticipants = listOf(unestablished))))
         val res = RadhiksyorYasyaViprasnahSutra.apply(context) as KarakaRuleResult.Assigned
         assertEquals(Karaka.SAMPRADANA, res.karaka)
         assertEquals("1.4.39", res.evidence.sutra)
@@ -48,7 +66,8 @@ class AdditionalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SAPTAMI, Vibhakti.PANCHAMI),
-            participant = dummyParticipant(setOf(SemanticRelation.INTERVENING_DURATION_DISTANCE)),
+            participant = dummyParticipant(setOf(SemanticRelation.INTERVENING_DURATION_DISTANCE,
+                SemanticRelation.KARAKA_POWER_INTERVAL)),
         )
         assertTrue(SaptamiPancamyauKarakamadhyeSutra.matches(context))
         val res = SaptamiPancamyauKarakamadhyeSutra.apply(context) as VibhaktiRuleResult.Assigned
@@ -61,7 +80,10 @@ class AdditionalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.KARMAN,
             morphologicalCandidates = setOf(Vibhakti.TRTIYA, Vibhakti.DVITIYA),
+            participant = dummyParticipant(setOf(SemanticRelation.SAM_JNA_OBJECT)),
         )
+        org.junit.jupiter.api.Assertions.assertFalse(SamjnyoAnyatarasyamKarmaniSutra.matches(
+            context.copy(participant = dummyParticipant())))
         assertTrue(SamjnyoAnyatarasyamKarmaniSutra.matches(context))
         val res = SamjnyoAnyatarasyamKarmaniSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.TRTIYA, res.vibhakti)
@@ -69,39 +91,32 @@ class AdditionalVibhaktiSutrasTest {
     }
 
     @Test
-    fun testKaranadAkhyatayamSutra() {
+    fun testStokanAlpaKrcchraSutra() {
         val context = VibhaktiRuleContext(
-            karaka = Karaka.ANIRDHARITA,
+            karaka = Karaka.KARANA,
             morphologicalCandidates = setOf(Vibhakti.PANCHAMI, Vibhakti.TRTIYA),
-            participant = dummyParticipant(setOf(SemanticRelation.GAMBLING_INSTRUMENT)),
+            participant = dummyParticipant(setOf(SemanticRelation.NON_SUBSTANCE_MEANING)).copy(
+                expression = dev.panini.vyakaranam.ast.SubantaPada("स्तोक", dev.panini.vyakaranam.ast.MulaPratipadika("स्तोक", "स्तोक"),
+                    dev.panini.vyakaranam.ast.SupPratyaya("ङसिँ", "ङसिँ"))),
         )
-        assertTrue(KaranadAkhyatayamSutra.matches(context))
-        val res = KaranadAkhyatayamSutra.apply(context) as VibhaktiRuleResult.Assigned
+        assertTrue(StokanAlpaKrcchraSutra.matches(context))
+        val res = StokanAlpaKrcchraSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.PANCHAMI, res.vibhakti)
         assertEquals("2.3.33", res.evidence.sutra)
     }
 
     @Test
-    fun testStokanAlpaKrcchraSutra() {
-        val context = VibhaktiRuleContext(
-            karaka = Karaka.ANIRDHARITA,
-            morphologicalCandidates = setOf(Vibhakti.PANCHAMI, Vibhakti.TRTIYA),
-            participant = dummyParticipant(setOf(SemanticRelation.INDETERMINATE_QUANTITY)),
-        )
-        assertTrue(StokanAlpaKrcchraSutra.matches(context))
-        val res = StokanAlpaKrcchraSutra.apply(context) as VibhaktiRuleResult.Assigned
-        assertEquals(Vibhakti.PANCHAMI, res.vibhakti)
-        assertEquals("2.3.34", res.evidence.sutra)
-    }
-
-    @Test
     fun testNaksatreCaLupiSutra() {
         val context = VibhaktiRuleContext(
-            karaka = Karaka.ANIRDHARITA,
+            karaka = Karaka.ADHIKARANA,
             morphologicalCandidates = setOf(Vibhakti.TRTIYA, Vibhakti.SAPTAMI),
-            participant = dummyParticipant(setOf(SemanticRelation.ASTROLOGICAL_TIME)),
+            participant = dummyParticipant(setOf(SemanticRelation.ASTROLOGICAL_TIME,
+                SemanticRelation.NAKSATRA_EXPRESSION, SemanticRelation.LOCATION)).copy(
+                taddhitaLopa = dev.panini.analysis.TaddhitaLopaEvidence(dev.panini.core.LopaType.LUP, "4.2.4")),
         )
         assertTrue(NaksatreCaLupiSutra.matches(context))
+        assertFalse(NaksatreCaLupiSutra.matches(context.copy(abhihita = true)))
+        assertFalse(NaksatreCaLupiSutra.matches(context.copy(karaka = Karaka.ANIRDHARITA)))
         val res = NaksatreCaLupiSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.TRTIYA, res.vibhakti)
         assertEquals("2.3.45", res.evidence.sutra)
@@ -112,7 +127,11 @@ class AdditionalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.DISEASE_PAIN_OBJECT)),
+            participant = dummyParticipant(setOf(SemanticRelation.DISEASE_PAIN_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = DhatuIdentity("रुज्"),
+            allParticipants = listOf(dummyParticipant(setOf(SemanticRelation.INDEPENDENT_AGENT,
+                SemanticRelation.BHAVA_EVENT)).copy(id = "abstract-agent")),
         )
         assertTrue(RujarthanamBhavavacananamAjvarehSutra.matches(context))
         val res = RujarthanamBhavavacananamAjvarehSutra.apply(context) as VibhaktiRuleResult.Assigned
@@ -125,9 +144,14 @@ class AdditionalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.BLESSING_HOPE_OBJECT)),
+            participant = dummyParticipant(setOf(SemanticRelation.BLESSING_HOPE_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = DhatuIdentity("नाथ्"),
         )
         assertTrue(AsisiNathahSutra.matches(context))
+        assertFalse(AsisiNathahSutra.matches(context.copy(abhihita = true)))
+        assertFalse(AsisiNathahSutra.matches(context.copy(karaka = Karaka.KARANA)))
+        assertFalse(AsisiNathahSutra.matches(context.copy(dhatu = null)))
         val res = AsisiNathahSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.SASTHI, res.vibhakti)
         assertEquals("2.3.55", res.evidence.sutra)
@@ -138,24 +162,26 @@ class AdditionalVibhaktiSutrasTest {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
-            participant = dummyParticipant(setOf(SemanticRelation.INJURY_VIOLENCE_OBJECT)),
+            participant = dummyParticipant(setOf(SemanticRelation.INJURY_VIOLENCE_OBJECT,
+                SemanticRelation.DESIRED_OBJECT, SemanticRelation.SESHA_RELATION)),
+            dhatu = DhatuIdentity("पिष्"),
         )
         assertTrue(JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.matches(context))
+        assertFalse(JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.matches(context.copy(abhihita = true)))
+        assertFalse(JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.matches(context.copy(karaka = Karaka.KARANA)))
+        assertFalse(JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.matches(context.copy(dhatu = null)))
         val res = JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra.apply(context) as VibhaktiRuleResult.Assigned
         assertEquals(Vibhakti.SASTHI, res.vibhakti)
         assertEquals("2.3.56", res.evidence.sutra)
     }
 
     @Test
-    fun testAdhikaranavacinacCaSutra() {
+    fun `location participle marker alone does not establish 2 3 68`() {
         val context = VibhaktiRuleContext(
             karaka = Karaka.ANIRDHARITA,
             morphologicalCandidates = setOf(Vibhakti.SASTHI),
             participant = dummyParticipant(setOf(SemanticRelation.LOCATION_PARTICIPLE_RELATION)),
         )
-        assertTrue(AdhikaranavacinacCaSutra.matches(context))
-        val res = AdhikaranavacinacCaSutra.apply(context) as VibhaktiRuleResult.Assigned
-        assertEquals(Vibhakti.SASTHI, res.vibhakti)
-        assertEquals("2.3.68", res.evidence.sutra)
+        assertFalse(AdhikaranavacinacCaSutra.matches(context))
     }
 }

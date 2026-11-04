@@ -25,6 +25,8 @@ object ItthambhutalaksaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             Vibhakti.TRTIYA in context.morphologicalCandidates &&
+            SemanticRelation.CHARACTERISTIC_MARK in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.MARK_INCORPORATED_IN_COMPOUND !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.BODY_DEFORMITY !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.ACCOMPANIMENT !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.CAUSE_HETU !in context.participant?.semanticRelations.orEmpty() &&

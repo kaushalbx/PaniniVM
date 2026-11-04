@@ -10,11 +10,24 @@ import kotlin.test.assertFailsWith
 
 class NativeDocumentAdapterTest {
     @Test
+    fun `double danda closes the terminal body sentence across a line break`() {
+        val source = "गणित + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + अम् कृ + लोट् + सिप्\n॥"
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
+        assertEquals(1, definition.body.size)
+        assertEquals("गणित", definition.prakriya.nameIdentity)
+        assertEquals("एक + अम् कृ + लोट् + सिप्\n॥", definition.body.single().text)
+        assertFailsWith<IllegalArgumentException> {
+            PvmScript.parse(source.replace("सिप्\n॥", "सिप् ।\n॥"))
+        }
+    }
+
+    @Test
     fun `operation name source excludes domain and retains multiline morphology`() {
         val name = "हृ +\n ल्युट् + सुँ"
         val header = "गणित + ङस् $name इति प्रक्रिया + सुँ असँ + लट् + तिप्"
         for (source in listOf("$header ।", "$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")) {
-            val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parseNative(source).single())
+            val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
             assertEquals(name, definition.nameSegmented)
             assertEquals("गणित", definition.prakriya.domainIdentity)
             assertEquals("हृ + ल्युट्", definition.prakriya.nameIdentity)
@@ -25,7 +38,7 @@ class NativeDocumentAdapterTest {
     fun `standalone declarations retain qualifiers identity and source with optional final danda`() {
         val header = "गणित + ङस् प्रयत्न + सुँ इति नित्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप्"
         for (source in listOf(header, "$header ।")) {
-            val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parseNative(source).single())
+            val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
             assertEquals(source, definition.text)
             assertEquals(header, definition.headerSource)
             assertEquals("गणित", definition.prakriya.domainIdentity)
@@ -34,7 +47,7 @@ class NativeDocumentAdapterTest {
             assertEquals(emptyList(), definition.body)
         }
         assertFailsWith<IllegalArgumentException> {
-            PvmScript.parseNative("प्रयत्न + अम् इति प्रक्रिया + सुँ असँ + लट् + तिप् ।")
+            PvmScript.parse("प्रयत्न + अम् इति प्रक्रिया + सुँ असँ + लट् + तिप् ।")
         }
     }
 
@@ -60,7 +73,7 @@ class NativeDocumentAdapterTest {
         val span = document.itemSpans.single()
         assertEquals(source.indexOf("प्रयत्न"), span.start)
         assertEquals(source.length, span.endExclusive)
-        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parseNative(source).single())
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
         assertEquals(header, definition.headerSource)
         assertEquals(source.substring(span.start), definition.text)
         assertEquals("प्रयत्न", definition.prakriya.nameIdentity)
@@ -94,9 +107,9 @@ class NativeDocumentAdapterTest {
 
     @Test
     fun `native parsing handles comments and rejects descending range`() {
-        assertEquals(1, PvmScript.parseNative("# comment\nएक + अम्\nमुद्र् + णिच् + लोट् + सिप् । // comment").size)
+        assertEquals(1, PvmScript.parse("# comment\nएक + अम्\nमुद्र् + णिच् + लोट् + सिप् । // comment").size)
         assertFailsWith<IllegalArgumentException> {
-            PvmScript.parseNative("दशन् + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।")
+            PvmScript.parse("दशन् + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।")
         }
     }
 }

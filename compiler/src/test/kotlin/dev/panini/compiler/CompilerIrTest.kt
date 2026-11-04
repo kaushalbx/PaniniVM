@@ -14,6 +14,74 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `dynamic participant call emits ordered history metadata without adding operands`() {
+        val plan = requireNotNull(ResolvedLeafPlanner.planAny(
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।"))
+        val one = SanskritValue.Sankhya(1, "एक")
+        val two = SanskritValue.Sankhya(2, "द्वि")
+        val root = plan.resolved.invocation.dhatu.upadesha
+        // Test transport of established metadata; this does not assert that
+        // this numeric operation grammatically licenses simultaneous names.
+        val history = listOf(
+            dev.panini.execution.HistoryParticipant(ExecutionExpression.Pada("एक", value = one),
+                dev.panini.core.Karaka.KARMAN),
+            dev.panini.execution.HistoryParticipant(ExecutionExpression.Pada("द्वि", value = two),
+                dev.panini.core.Karaka.KARMAN, setOf(dev.panini.core.Karaka.KARMAN, dev.panini.core.Karaka.KARANA)),
+        )
+        val instructions = listOf(
+            CompilerInstruction.Constant(SanskritValue.Gana(listOf(one, two))),
+            CompilerInstruction.CallParticipantGroup(root, plan.resolved.invocation.grammaticalFeatures,
+                historyParticipants = history), CompilerInstruction.Store("LastResult"),
+            CompilerInstruction.LoadActionParticipants(root, dev.panini.core.Karaka.KARMAN, asGroup = true),
+            CompilerInstruction.Store("objects"),
+            CompilerInstruction.LoadActionParticipants(root, dev.panini.core.Karaka.KARANA, asGroup = true),
+            CompilerInstruction.Store("instruments"),
+        )
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("DynamicHistoryNames", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("DynamicHistoryNames", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(3L, (values["LastResult"] as SanskritValue.Sankhya).value)
+        assertEquals(SanskritValue.Gana(listOf(one, two)), values["objects"])
+        assertEquals(SanskritValue.Gana(listOf(two)), values["instruments"])
+    }
+
+    @Test
+    fun `pre action history snapshot freezes nested mutable collections`() {
+        val one = SanskritValue.Sankhya(1, "एक")
+        val two = SanskritValue.Sankhya(2, "द्वि")
+        val items = mutableListOf<SanskritValue>(one)
+        val original = SanskritValue.Suchi(items)
+        val frozen = CompiledProgramRuntime().historySnapshot(original)
+        items[0] = two
+        assertEquals(SanskritValue.Suchi(listOf(one)), frozen)
+        assertEquals(SanskritValue.Suchi(listOf(two)), original)
+    }
+
+    @Test
+    fun `history freeze instruction retains value and rejects an empty stack`() {
+        val value = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(7, "सप्त")))
+        val instructions = listOf(
+            CompilerInstruction.Constant(value), CompilerInstruction.SnapshotHistoryValue,
+            CompilerInstruction.StoreLocal("captured"),
+            CompilerInstruction.LoadLocal("captured"), CompilerInstruction.LoadLocal("captured"),
+            CompilerInstruction.Constant(SanskritValue.Sankhya(7, "सप्त")),
+            CompilerInstruction.RecordActionFrame("दिवुँ", listOf(dev.panini.core.Karaka.KARMAN, dev.panini.core.Karaka.KARANA)),
+            CompilerInstruction.LoadActionParticipants("दिवुँ", dev.panini.core.Karaka.KARMAN), CompilerInstruction.Store("object"),
+            CompilerInstruction.LoadActionParticipants("दिवुँ", dev.panini.core.Karaka.KARANA), CompilerInstruction.Store("instrument"),
+        )
+        CompilerIrVerifier.verify(instructions)
+        val bytes = CompilerProgramJvmEmitter.emit(CompilerProgram("FrozenHistoryValue", instructions, emptyList()))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes("FrozenHistoryValue", bytes)
+        val values = generated.getMethod("execute").invoke(null) as Map<*, *>
+        assertEquals(value, values["object"])
+        assertEquals(value, values["instrument"])
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.SnapshotHistoryValue))
+        }
+    }
+
+    @Test
     fun `compiled exception preserves structured execution diagnostics`() {
         val diagnostic = dev.panini.execution.ExecutionDiagnostic(
             "MISSING_ANTECEDENT",

@@ -1,6 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -13,20 +17,30 @@ import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
 /**
- * Sūtra 2.3.73 चतुर्थ्यशीष्यायुष्यमद्रभद्रकुशलसुखार्थहितैः.
+ * Sūtra 2.3.73 चतुर्थी चाशिष्यायुष्यमद्रभद्रकुशलसुखार्थहितैः.
  * Assigns Caturthī or Ṣaṣṭhī in benediction with āyuṣya, madra, bhadra, kuśala, sukha, artha, hita.
  */
 object CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.73", text = "चतुर्थ्यशीष्यायुष्यमद्रभद्रकुशलसुखार्थहितैः",
+    number = "2.3.73", text = "चतुर्थी चाशिष्यायुष्यमद्रभद्रकुशलसुखार्थहितैः",
     hindiExplanation = "आशीर्वाद अर्थ में आयुष्य, मद्र, भद्र, कुशल, सुख, अर्थ, हित शब्दों के योग में चतुर्थी अथवा षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230073,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+    anuvrtti = setOf("2.3.50", "2.3.72"),
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.CHATURTHI, Vibhakti.SASTHI)
+    fun hasSeshaBenediction(context: VibhaktiRuleContext): Boolean {
+        val p = context.participant ?: return false
+        if (NamahSvastiSvahaSutra.hasConstruction(context)) return false
+        val stem = p.governingNominal?.pratipadika as? MulaPratipadika ?: return false
+        return stem.vikaras.all { it.isRecognizedStriAffix } &&
+            stem.text in setOf("आयुष्य", "मद्र", "भद्र", "कुशल", "सुख", "अर्थ", "हित") &&
+            SemanticRelation.BENEDICTION_WELLBEING in p.semanticRelations &&
+            SemanticRelation.SESHA_RELATION in p.semanticRelations
+    }
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        !context.abhihita &&
-            SemanticRelation.BENEDICTION_WELLBEING in context.participant?.semanticRelations.orEmpty() &&
+        !context.abhihita && context.karaka == Karaka.ANIRDHARITA && hasSeshaBenediction(context) &&
             (Vibhakti.CHATURTHI in context.morphologicalCandidates || Vibhakti.SASTHI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

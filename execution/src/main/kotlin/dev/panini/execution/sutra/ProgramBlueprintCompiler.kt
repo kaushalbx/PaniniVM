@@ -128,6 +128,47 @@ object ProgramBlueprintCompiler {
             }
         }
 
+        val nominalBindings = linkedMapOf<dev.panini.execution.NominalOperandRole, dev.panini.execution.ExecutionExpression>()
+        val nominalField = fields["nominalOperands"]
+        if (nominalField != null && nominalField !is SutraArthaValue.Record) {
+            diagnostics += ProgramBlueprintDiagnostic(ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+                "nominalOperands must be a record in ${blueprint.id}.")
+        }
+        (nominalField as? SutraArthaValue.Record)?.fields?.forEach { (name, value) ->
+            runCatching {
+                dev.panini.execution.NominalOperandRole.valueOf(name) to ProgramSutraArthaCodec.decodeExpression(value)
+            }.onSuccess { (role, expression) -> nominalBindings[role] = expression }.onFailure {
+                diagnostics += ProgramBlueprintDiagnostic(ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+                    "Invalid nominal operand '$name': ${it.message}")
+            }
+        }
+        val predicateField = fields["copularPredicate"]
+        val ambiguousBindings = fields.decodeAmbiguousBindings(diagnostics, blueprint)
+        val historyParticipants = mutableListOf<dev.panini.execution.HistoryParticipant>()
+        fields["historyParticipants"]?.let { field ->
+            if (field !is SutraArthaValue.Sequence) diagnostics += ProgramBlueprintDiagnostic(
+                ProgramBlueprintDiagnosticCode.INVALID_FIELD, "historyParticipants must be a sequence.")
+            else field.values.forEach { encoded ->
+                runCatching {
+                    ProgramSutraArthaCodec.decodeHistoryParticipant(encoded).also {
+                        require(it.ambiguousIndex == null || it.ambiguousIndex in ambiguousBindings.indices) {
+                            "History ambiguity index has no corresponding binding."
+                        }
+                    }
+                }.onSuccess(historyParticipants::add).onFailure {
+                    diagnostics += ProgramBlueprintDiagnostic(ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+                        "Invalid history participant: ${it.message}")
+                }
+            }
+        }
+        val copularPredicate = if (predicateField == null) null else runCatching {
+            dev.panini.execution.CopularPredicate.valueOf((predicateField as? SutraArthaValue.Symbol)?.name
+                ?: error("copularPredicate must be a symbol."))
+        }.onFailure {
+            diagnostics += ProgramBlueprintDiagnostic(ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+                "Invalid copular predicate: ${it.message}")
+        }.getOrNull()
+
         val relationPrerequisites = blueprint.relations
             .filterIsInstance<SutraRelation.DependsOn>()
             .mapTo(linkedSetOf()) { it.prerequisite }
@@ -160,7 +201,6 @@ object ProgramBlueprintCompiler {
                 "Blueprint ${blueprint.id} must provide both branchCondition and branchExpected.",
             )
         }
-        val ambiguousBindings = fields.decodeAmbiguousBindings(diagnostics, blueprint)
         val karakaTrace = fields.decodeTextSequence("karakaEvidence", diagnostics, blueprint)
         if (diagnostics.isNotEmpty()) return ProgramBlueprintCompilation.Invalid(diagnostics)
 
@@ -178,6 +218,9 @@ object ProgramBlueprintCompiler {
             ),
             ambiguousBindings = ambiguousBindings,
             karakaTrace = karakaTrace,
+            nominalBindings = nominalBindings,
+            copularPredicate = copularPredicate,
+            historyParticipants = historyParticipants,
         )
         val ukti = ExecutableUkti(
             speaker = context.speaker,

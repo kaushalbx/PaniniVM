@@ -15,4 +15,18 @@ data class ParticipantFacts(
     val linga: Set<Linga> = emptySet(),
     val vacana: Vacana? = null,
     val categories: Set<NominalCategory> = emptySet(),
+    val semanticEvidence: Set<SemanticRelationEvidence> = emptySet(),
+    /** Explicit governing-affix evidence for the prohibition in 2.3.69. */
+    val isKrtProhibitedForSasthi: Boolean = false,
+    val krtGenitiveProhibition: KrtGenitiveProhibition? = null,
+    /** Established nominal dependency; a noun elsewhere in the clause is insufficient. */
+    val governingNominal: dev.panini.vyakaranam.ast.SubantaPada? = null,
+    val taddhitaLopa: TaddhitaLopaEvidence? = null,
+    val vedicCaseLicense: VedicCaseLicense? = null,
+    /** Established dependency on an expressed counting-frequency pada, not inferred repetition. */
+    val frequencyGovernor: dev.panini.vyakaranam.ast.AvyayaPada? = null,
+    val intendedObject: IntendedObject? = null,
+    /** Established dependency on an actual indeclinable occurrence in the clause. */
+    val governingAvyaya: dev.panini.vyakaranam.ast.AvyayaPada? = null,
+    val purposeGovernor: PurposeActionGovernor? = null,
 )

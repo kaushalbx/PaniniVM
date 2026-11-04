@@ -29,6 +29,38 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProgramAstTest {
+    @Test fun `hash comments cannot add clauses and do not shift original source locations`() {
+        val source = "# राम + अम् मुद्र् + लोट् + सिप् ।\n" +
+            "एक + अम् मुद्र् + लोट् + सिप् । # गुरु + सुँ ।\n" +
+            "# द्वि + अम् मुद्र् + लोट् + सिप् ।\n"
+        val document = PaniniParser().parseDocument(source)
+        assertEquals(source, document.sourceText)
+        val clause = document.items.filterIsInstance<dev.panini.vyakaranam.ast.Ukti>().single()
+            .grammaticalVakyas().single()
+        val span = assertNotNull(Invocation(clause).relationSpan())
+        assertEquals(source.indexOf("एक"), span.start)
+        assertEquals("एक + अम् मुद्र् + लोट् + सिप्", source.substring(span.start, span.endExclusive))
+        assertFalse(clause.sourceText.contains("राम"))
+        assertFalse(clause.sourceText.contains("गुरु"))
+        assertFalse(clause.sourceText.contains("द्वि"))
+    }
+
+    @Test fun `bare nominal branch retains the written word span through implicit nominative lowering`() {
+        val source = "# परीक्षण\nयदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि लघु अन्यथा गुरु ।"
+        val document = PaniniParser().parseDocument(source)
+        val clauses = document.items.filterIsInstance<dev.panini.vyakaranam.ast.Ukti>().single()
+            .grammaticalVakyas().filterIsInstance<NamaVakya>()
+        assertEquals(2, clauses.size)
+        assertEquals(listOf("लघु", "गुरु"), clauses.map { clause ->
+            val span = assertNotNull(Invocation(clause).relationSpan())
+            source.substring(span.start, span.endExclusive)
+        })
+        clauses.forEach { clause ->
+            assertTrue(clause.sourceText.contains("सुँ"))
+            assertNotNull((clause.padas.single() as SubantaPada).sourceSpan)
+        }
+    }
+
     @Test fun `productive ordinals retain native morphology in explicit coordination`() {
         val node = assertIs<Invocation>(PaniniParser().parse(
             "प्रथ् + अमच् + टाप् + अम् सङ्ख्या + अम् च द्वि + तीय + टाप् + अम् सङ्ख्या + अम् च युज् + णिच् + लोट् + सिप् ।").body)

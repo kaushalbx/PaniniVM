@@ -11,7 +11,6 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.vyakaranam.ast.TingantaPada
 
 object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.46", text = "अधिशीङ्स्थासां कर्म",
@@ -20,14 +19,16 @@ object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.45"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val tinganta = context.verbNode as? TingantaPada ?: return false
-        val hasPrefix = tinganta.upasargas.any { it == "अधि" }
+        val prefixes = dev.panini.analysis.KarakaDhatuDomains.actionPrefixes(context) ?: return false
+        if (prefixes.any { dev.panini.core.Upasarga.fromUpadesha(it) == null }) return false
+        val hasPrefix = prefixes.any { it == "अधि" }
         val isSheeSthaAs = context.baseDhatu?.let {
             it.upadesha in setOf("शीङ्", "शी", "स्था", "आस", "आस्")
-        } ?: (tinganta.dhatu.mulaDhatu in setOf("शी", "स्था", "आस्", "शीङ्", "आस"))
-        return hasPrefix && isSheeSthaAs && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
+        } ?: (dev.panini.analysis.KarakaDhatuDomains.actionRoot(context) in setOf("शी", "स्था", "आस्", "शीङ्", "आस"))
+        return hasPrefix && isSheeSthaAs && SemanticRelation.LOCATION in context.participant.semanticRelations
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

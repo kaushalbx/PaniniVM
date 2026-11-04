@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.hasEstablishedMeaning
 
 object JanikartuhPrakrtihSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.30", text = "जनिकर्तुः प्रकृतिः",
@@ -20,10 +21,14 @@ object JanikartuhPrakrtihSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
+    anuvrtti = setOf("1.4.24"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isJan = KarakaDhatuDomains.isBirth(context.dhatu)
-        return isJan && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        // Kāśikā/Nyāsa includes both upādāna and sahakārin causes.
+        val isCause = context.participant.hasEstablishedMeaning(SemanticRelation.BIRTH_MATERIAL_CAUSE) ||
+            context.participant.hasEstablishedMeaning(SemanticRelation.BIRTH_ASSISTING_CAUSE)
+        return isJan && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) && isCause
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
@@ -31,7 +36,7 @@ object JanikartuhPrakrtihSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         KarakaEvidence(
             number,
             text,
-            "The participant is the maternal cause/origin of a generated agent."
+            "The participant is the cause/origin of the entity coming into being."
         ),
     )
 }

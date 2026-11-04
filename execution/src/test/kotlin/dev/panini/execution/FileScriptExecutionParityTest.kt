@@ -1,0 +1,48 @@
+package dev.panini.execution
+
+import java.io.File
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class FileScriptExecutionParityTest {
+    @Test
+    fun `file and source entry points execute arithmetic collections and control flow identically`() {
+        val paths = listOf(
+            "examples/arithmetic/addition.pvm",
+            "examples/arithmetic/sum_iterative.pvm",
+            "examples/algorithms/double_danda_problems.pvm",
+            "examples/control_flow/two_counter_machine.pvm",
+            "examples/collections/list_demo.pvm",
+            "examples/collections/ordinal_index.pvm",
+            "examples/collections/membership.pvm",
+            "examples/collections/list_declaration.pvm",
+            "examples/collections/numeric_list_declaration.pvm",
+            "examples/collections/word_list_declaration.pvm",
+            "examples/collections/named_list_declaration.pvm",
+            "examples/collections/member_sum.pvm",
+            "examples/arithmetic/factorial.pvm",
+            "examples/algorithms/fibonacci.pvm",
+            "projects/taddhita_inheritance/nested_genitive_struct.pvm",
+            "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+            "projects/taddhita_inheritance/apavada_override.pvm",
+        )
+        paths.forEach { path ->
+            val source = File(path).readText()
+            fun execute(fromFile: Boolean): List<ExecutionResult> {
+                val vm = PaniniVM()
+                return if (fromFile) vm.evalFile(File(path)) else vm.evalScript(source)
+            }
+            val sourceResults = execute(false)
+            val fileResults = execute(true)
+            assertTrue(sourceResults.isNotEmpty(), path)
+            assertTrue(sourceResults.all { it is ExecutionResult.Success }, "$path: $sourceResults")
+            // Shared linguistic caches can omit already established derivation traces.
+            // Compare every observable success field while excluding that diagnostic history.
+            fun observable(results: List<ExecutionResult>) = results.map {
+                if (it is ExecutionResult.Success) it.copy(trace = emptyList()) else it
+            }
+            assertEquals(observable(sourceResults), observable(fileResults), path)
+        }
+    }
+}

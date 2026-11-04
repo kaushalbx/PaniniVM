@@ -90,8 +90,7 @@ object ExecutionRuntime {
                 sankhyaRenderer = scope.sankhyaRenderer,
             )
             val participants = try {
-                refreshedContext.bindings.filterKeys { it != dev.panini.core.Karaka.ANIRDHARITA }
-                    .mapValues { (_, expression) -> refreshedContext.resolveValues(expression).map { it.historySnapshot() } }
+                refreshedContext.historyParticipantValues().mapValues { (_, values) -> values.map { it.historySnapshot() } }
             } catch (failure: IllegalArgumentException) {
                 return Phala.Asiddha(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
                     failure.message ?: "Invalid action-history participant."), trace)

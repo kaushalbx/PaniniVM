@@ -49,8 +49,18 @@ class SankhyaGenerator(
     ): String {
         val value = expression.value
         val effectiveLinga = expression.headPrimitive().inflectionClass.intrinsicLinga ?: linga
-        val base = (expression as? SankhyaExpression.Primitive)?.sankhya?.pratipadika
-            ?: derivationEngine.derive(derivationFactory.create(expression)).final.surface
+        val head = expression.headPrimitive()
+        val base = (expression as? SankhyaExpression.Primitive)?.sankhya?.inflectionPratipadika
+            ?: derivationEngine.derive(derivationFactory.create(expression)).final.surface.let { surface ->
+                // Numeral-internal composition uses the surface दश, but sup
+                // derivation must start from the lexical n-final head दशन्.
+                // Retain the supplied expression; an una construction headed
+                // by twenty must not be replaced by a same-value teen numeral.
+                if (head == PrimitiveSankhya.DASHAN) {
+                    require(surface.endsWith(head.uttarapada)) { "Numeral surface lost its declared दशन् head: $surface" }
+                    surface.removeSuffix(head.uttarapada) + head.inflectionPratipadika
+                } else surface
+            }
         val pratipadika = if (value == 1L && effectiveLinga == Linga.STRI) {
             dev.panini.derivation.StriPratyayaEngine().derive(
                 dev.panini.derivation.StriPratyayaRequest(base, dev.panini.shiksha.Samjna.TAP),

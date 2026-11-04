@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.OptionalVibhaktiRuleOutcome
 import dev.panini.analysis.VibhaktiRuleContext
 import dev.panini.analysis.VibhaktiRuleResult
 
@@ -23,9 +25,11 @@ object KrtyanamKartariVaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
-) {
+), OptionalVibhaktiRuleOutcome {
+    override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SASTHI)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            SemanticRelation.KRTYA_GOVERNED_AGENT in context.participant?.semanticRelations.orEmpty() &&
             context.karaka == Karaka.KARTR &&
             (Vibhakti.TRTIYA in context.morphologicalCandidates || Vibhakti.SASTHI in context.morphologicalCandidates)
 

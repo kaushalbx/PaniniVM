@@ -29,7 +29,7 @@ class CompilerCoverageTest {
         val source = File("examples/control_flow/two_counter_machine.pvm").readText()
         val name = "NativeCounterParity"
         val descriptor = PaniniModuleDescriptor(name, listOf(PaniniModuleSource("counter.pvm", source)))
-        val program = CompilerFrontend.lowerModule(descriptor, name, dev.panini.execution.PvmScript::parseNative)
+        val program = CompilerFrontend.lowerModule(descriptor, name, dev.panini.execution.PvmScript::parse)
         val bytes = GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(program))
         val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes(name, bytes)
         @Suppress("UNCHECKED_CAST")
@@ -92,7 +92,7 @@ class CompilerCoverageTest {
                     )
                 CompilerFrontend.lowerModule(descriptor, "Coverage_$index")
                 val native = CompilerFrontend.lowerModule(descriptor, "NativeCoverage_$index",
-                    dev.panini.execution.PvmScript::parseNative)
+                    dev.panini.execution.PvmScript::parse)
                 GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(native))
             }.exceptionOrNull()?.let { entry to it }
         }
@@ -137,7 +137,7 @@ class CompilerCoverageTest {
             "examples/arithmetic/scaling.pvm",
             "examples/arithmetic/sqrt_demo.pvm",
             "examples/algorithms/pythagorean_triplet.pvm",
-            "examples/control_flow/conditional.pvm",
+            "examples/arithmetic/subtraction.pvm",
             "projects/taddhita_inheritance/purvapara_pipeline.pvm",
         )
 

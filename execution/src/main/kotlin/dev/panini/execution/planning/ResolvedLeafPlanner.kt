@@ -110,7 +110,7 @@ object ResolvedLeafPlanner {
         val ukti = Ukti(invocation.sourceText, body = invocation)
         return candidatePlans(ukti, environment, injectedBindings)?.takeIf { plans ->
             plans.isNotEmpty() && plans.all { plan ->
-                plan.resolved.context.bindings.values.all(::isMaterializable)
+                plan.resolved.context.operandExpressions.all(::isMaterializable)
             }
         }
     }
@@ -123,7 +123,7 @@ object ResolvedLeafPlanner {
         val ukti = Ukti(node.sourceText, body = node)
         return candidatePlans(ukti, environment, emptyMap())?.takeIf { plans ->
             plans.isNotEmpty() && plans.all { plan ->
-                plan.resolved.context.bindings.values.all(::isMaterializable)
+                plan.resolved.context.operandExpressions.all(::isMaterializable)
             }
         }
     }
@@ -162,7 +162,7 @@ object ResolvedLeafPlanner {
         environment: ValueEnvironment = ValueEnvironment(),
     ): List<ExecutionPlan>? = candidatePlans(source, environment)?.takeIf { plans ->
         plans.isNotEmpty() && plans.all { plan ->
-            plan.resolved.context.bindings.values.all(::isMaterializable)
+            plan.resolved.context.operandExpressions.all(::isMaterializable)
         }
     }
 
@@ -332,7 +332,7 @@ object ResolvedLeafPlanner {
             is ProgramGranthaPlanning.Invalid -> return null
         }
         val symbolicReferences = ukti.invocations
-            .flatMap { invocation -> invocation.bindings.values.flatMap { it.references() } }
+            .flatMap { invocation -> invocation.operandExpressions.flatMap { it.references() } }
             .filterNot { it in environment.values || it in environment.constraints }
             .associateWith { name -> collectionWholes[name] ?: symbolicConstraint(name) }
         val planningEnvironment = bindingEnvironment.mergedWith(ValueEnvironment(constraints = symbolicReferences))
@@ -370,6 +370,13 @@ object ResolvedLeafPlanner {
                             bindings = plan.resolved.context.bindings.mapValues { (karaka, expression) ->
                                 expression.restoreSymbolicReferences(symbolicNames, copularReferences, karaka)
                             },
+                            nominalBindings = plan.resolved.context.nominalBindings.mapValues { (_, expression) ->
+                                expression.restoreNominalSymbolicReferences(symbolicNames, copularReferences)
+                            },
+                            historyParticipants = plan.resolved.context.historyParticipants.map { participant ->
+                                participant.copy(expression = participant.expression.restoreSymbolicReferences(
+                                    symbolicNames, copularReferences, requireNotNull(participant.projection)))
+                            },
                         ),
                     ),
                 )
@@ -382,7 +389,7 @@ object ResolvedLeafPlanner {
             pada in vakya.padas &&
                 vakya.padas.filterIsInstance<TingantaPada>().any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } &&
                 vakya.padas.filterIsInstance<SubantaPada>().any { it.sup.supports(Vibhakti.SAPTAMI) }
-        }) || (setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI, Vibhakti.TRTIYA).any { pada.sup.supports(it) } &&
+        }) || (setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI, Vibhakti.TRTIYA, Vibhakti.SASTHI).any { pada.sup.supports(it) } &&
             (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity !in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA, MulaPratipadikaIdentity.SAMA) &&
             ukti.grammaticalVakyas().any { vakya ->
                 pada in vakya.padas &&
@@ -410,7 +417,7 @@ object ResolvedLeafPlanner {
                 plan.resolved.context.bindings
                     .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
                     .values.all { isConcrete(it, environment) }) &&
-            plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
+            plan.resolved.context.operandExpressions.all { isEmbeddable(it, environment) }
 
     private fun isSankhyaStem(stem: String): Boolean = runCatching {
         dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
@@ -422,6 +429,18 @@ object ResolvedLeafPlanner {
         is ExecutionExpression.Pada,
         is ExecutionExpression.TypedOperand,
         -> emptyList()
+    }
+
+    private fun ExecutionExpression.restoreNominalSymbolicReferences(names: Set<String>,
+        references: Map<String, List<SubantaPada>>): ExecutionExpression = when (this) {
+        is ExecutionExpression.TypedOperand -> if (referenceName in names) {
+            val pada = references[referenceName].orEmpty().filter { sup in it.sup.affixCandidates }.singleOrNull()
+            if (pada == null) ExecutionExpression.Reference(requireNotNull(referenceName)) else copy(value =
+                dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)
+                    ?: NominalValueAnalysis.numericFallback(pada) ?: SvamRupamEngine.evaluate(pada.pratipadika))
+        } else this
+        is ExecutionExpression.Coordination -> copy(members = members.map { it.restoreNominalSymbolicReferences(names, references) })
+        else -> this
     }
 
     private fun ExecutionExpression.restoreSymbolicReferences(

@@ -41,6 +41,7 @@ internal object ExpressionBuilder {
         overridePhalaId: String? = null,
         collectionMemberFrame: Boolean = false,
         resolvedKaraka: Karaka? = null,
+        resolvedVibhakti: dev.panini.core.Vibhakti? = null,
     ): ExecutionExpression {
         val normalized = NumeralAstNormalizer.normalize(pada)
         val text = normalized.pratipadika.referenceKey()
@@ -72,18 +73,30 @@ internal object ExpressionBuilder {
         if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
             val candidates = normalized.sup.affixCandidates
             require(candidates.isNotEmpty()) { "Unknown sup ending: '${normalized.sup.text}'." }
-            val prayoga = ctx.frame.prayoga.takeUnless { it == Prayoga.ANIRDHARITA } ?: Prayoga.KARTARI
+            val prayoga = (ctx.ownerOf(pada) ?: ctx.frame).prayoga.takeUnless { it == Prayoga.ANIRDHARITA } ?: Prayoga.KARTARI
             val compatible = candidates.filter {
                 KarakaInference.infer(it.vibhakti, prayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA) == resolvedKaraka
             }
-            val sup = if (resolvedKaraka != null) {
+            val knownCase = resolvedVibhakti ?: ctx.relationFor(pada)?.resolvedVibhakti
+            val sup = if (knownCase != null) {
+                requireNotNull(candidates.singleOrNull { it.vibhakti == knownCase }) {
+                    "Sup ending '${normalized.sup.text}' does not determine one slot for $knownCase."
+                }
+            } else if (resolvedKaraka != null) {
                 requireNotNull(compatible.singleOrNull()) {
                     "Sup ending '${normalized.sup.text}' does not determine one slot for $resolvedKaraka."
                 }
-            } else candidates.first()
+            } else candidates.singleOrNull() ?: return ExecutionExpression.Reference(text)
             return ExecutionExpression.TypedOperand(value, sup, referenceName = text)
         }
         if (!isPhalaReference && text in ctx.environment.constraints) {
+            if (resolvedVibhakti != null) {
+                val sup = requireNotNull(normalized.sup.affixCandidates.singleOrNull { it.vibhakti == resolvedVibhakti })
+                val fallback = dev.panini.execution.PuranaPratyayaResolver.semanticValue(pada)
+                    ?: dev.panini.execution.NominalValueAnalysis.numericFallback(pada)
+                    ?: SvamRupamEngine.evaluate(pada.pratipadika)
+                return ExecutionExpression.TypedOperand(fallback, sup, referenceName = text)
+            }
             return ExecutionExpression.Reference(text)
         }
         var resolvedId: String? = null
