@@ -17,7 +17,7 @@ class CollectionReductionTest {
     @Test fun `first member reduction supports reusable arithmetic and conditional reducers`() {
         val reducers = listOf(
             "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप्" to 10L,
-            "सञ्चित + अम् सदस्य + अम् च गण + णिच् + लोट् + सिप्" to 24L,
+            "सञ्चित + अम् सदस्य + अम् च गुण + णिच् + लोट् + सिप्" to 24L,
             ("यदि सदस्य + सुँ सञ्चित + ङसिँ अधिक + सुँ असँ + लट् + तिप् " +
                 "तर्हि सदस्य + सुँ अन्यथा सञ्चित + सुँ") to 4L,
         )

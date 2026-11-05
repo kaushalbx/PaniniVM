@@ -83,7 +83,7 @@ class KarakaJsonBenchmarkTest {
             val stem = requireNotNull(it.text("stem"))
             val affix = SupAffix.valueOf(requireNotNull(it.text("sup")))
             val krt = it.getAsJsonObject("krt")
-            val pratipadika = if (krt == null) MulaPratipadika(stem, stem) else KridantaPratipadika(stem,
+            val pratipadika = if (it.has("samasa")) dev.panini.vyakaranam.ast.SamasaPratipadika(stem, it.strings("samasa").map { part -> dev.panini.vyakaranam.ast.SamasaAnga(part, MulaPratipadika(part, part)) }) else if (krt == null) MulaPratipadika(stem, stem) else KridantaPratipadika(stem,
                 krt.strings("upasargas"), DhatuPrakriti(requireNotNull(krt.text("root")), requireNotNull(krt.text("root")),
                     krt.strings("sanadi")),
                 requireNotNull(krt.text("affix")),
@@ -104,7 +104,7 @@ class KarakaJsonBenchmarkTest {
         val verb = TingantaPada("benchmark verb", input.strings("upasargas"), DhatuPrakriti(root, root,
             if (causative) listOf("णिच्") else emptyList()),
             Lakara.valueOf(input.text("lakara") ?: "LAT"),
-            TingPratyaya(if (passive) "त" else "तिप्", if (passive) "त" else "तिप्"),
+            (input.text("ting") ?: if (passive) "त" else "तिप्").let { TingPratyaya(it, it) },
             vikarana = if (passive) Vikarana.YAK else null)
         val entries = words.map {
             val stem = requireNotNull(it.text("stem"))
@@ -136,7 +136,7 @@ class KarakaJsonBenchmarkTest {
                 karmatva = Karmatva.valueOf(it.text("transitivity") ?: "SAKARMAKA"))
         }
         val analyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(entries,
-            (listOf(dhatu) + krtDhatus + purposeDhatus).distinctBy { it.sourceSurface })))
+            (listOf(dhatu) + krtDhatus + purposeDhatus).distinctBy { it.sourceSurface })), grammarRegister = input.text("register")?.let(GrammarRegister::valueOf) ?: GrammarRegister.UNSPECIFIED)
         val intendedObjects = words.mapIndexedNotNull { index, word ->
             val binding = word.getAsJsonObject("intendedObject") ?: return@mapIndexedNotNull null
             val target = when (requireNotNull(binding.text("kind"))) {
@@ -183,9 +183,14 @@ class KarakaJsonBenchmarkTest {
         }.toMap()
         val context = VakyaSemanticContext(words.mapIndexed { index, word ->
             index to word.strings("premises").mapTo(mutableSetOf()) { SemanticRelation.valueOf(it) }
-        }.filter { it.second.isNotEmpty() }.toMap(), intendedObjects, krtGovernors, avyayaGovernors, purposeGovernors)
+        }.filter { it.second.isNotEmpty() }.toMap(), intendedObjects, krtGovernors, avyayaGovernors, purposeGovernors,
+            words.mapIndexedNotNull { index, word -> word.text("lupSutra")?.let { index to TaddhitaLopaEvidence(dev.panini.core.LopaType.LUP, it) } }.toMap(),
+            words.mapIndexedNotNull { index, word -> word.text("vedicLicense")?.let { index to VedicCaseLicense(it, "Benchmark fixture for $it") } }.toMap(),
+            words.mapIndexedNotNull { index, word -> word.getAsJsonObject("derivationExpression")?.let { e -> index to DerivationExpression(e.get("source").asInt,
+                ExpressionSourceKind.valueOf(requireNotNull(e.text("kind"))), e.strings("roles").mapTo(mutableSetOf()) { Karaka.valueOf(it) }) } }.toMap())
         val writtenPurposes = purposeReadings.values.filterIsInstance<PurposeActionGovernor.Written>().map { it.pada }
-        val frame = analyzer.analyze(AkhyataVakya(record.text("example") ?: requireNotNull(record.text("id")), padas + avyayaGovernors.values + writtenPurposes + verb, verb),
+        val frame = analyzer.analyze(AkhyataVakya(record.text("example") ?: requireNotNull(record.text("id")), padas + avyayaGovernors.values + writtenPurposes +
+            listOfNotNull(input.text("frequencyAvyaya")?.let { AvyayaPada(it, it) }) + verb, verb),
             semanticContext = context)
         val expectedVoice = if (voice == "PASSIVE_CAUSATIVE") Prayoga.KARMANI else Prayoga.valueOf(voice)
         assertEquals(expectedVoice, frame.prayoga, "The fixture must name its actual inferred prayoga.")

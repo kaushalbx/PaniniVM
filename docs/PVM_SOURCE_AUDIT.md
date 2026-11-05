@@ -4,9 +4,9 @@ Review expectations are in `execution/src/test/resources/karaka_corpus_expectati
 They are grammatical judgments, not snapshots copied from analyzer output.
 The generated inventory is `execution/build/reports/karaka-corpus.json`.
 
-Current inventory: 99 files, 457 written clauses, 470 grammatical frames,
-96 reviewed clauses (97 frames) passing, 49 word-order variants passing,
-361 clauses unreviewed, no parse failures.
+Current inventory: 99 files, 471 written clauses, 471 reviewed
+clauses passing, 273 word-order variants passing, no unreviewed clauses, no parse failures.
+Most reviews come from a pattern-level judgment table; see KARAKA_SUTRA_AUDIT.md.
 No lexical-head blocking diagnostics remain in the current corpus. This is not
 proof that all nominal relations are resolved. Declaration headers are outside
 this clause count.

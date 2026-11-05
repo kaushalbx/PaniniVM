@@ -18,14 +18,13 @@ object KartrkaranayostrtiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext) =
-        !context.abhihita && context.karaka in setOf(Karaka.KARTR, Karaka.KARANA) &&
+    override fun matches(context: VibhaktiRuleContext) = dev.panini.analysis.VartikaCaseUses.instrumental(context) || (!context.abhihita && context.karaka in setOf(Karaka.KARTR, Karaka.KARANA) &&
             Vibhakti.TRTIYA in context.morphologicalCandidates && !KrtyanamKartariVaSutra.matches(context) &&
             !StokanAlpaKrcchraSutra.hasNonSubstanceInstrument(context) &&
             !KasyaCaVartamaneSutra.matches(context.copy(morphologicalCandidates = setOf(Vibhakti.SASTHI))) &&
-            !AdhikaranavacinacCaSutra.matches(context.copy(morphologicalCandidates = setOf(Vibhakti.SASTHI)))
+            !AdhikaranavacinacCaSutra.matches(context.copy(morphologicalCandidates = setOf(Vibhakti.SASTHI))))
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.TRTIYA,
-        KarakaEvidence(number, text, "तृतीया realizes ${context.karaka} in this construction."),
+        KarakaEvidence(number, text, "तृतीया realizes ${context.karaka} in this construction.${dev.panini.analysis.VartikaCaseUses.note(context)}"),
     )
 }

@@ -52,11 +52,11 @@ class NaturalListGroupByCompilerTest {
             listOf(3L, 1L, 2L, 1L).map { SanskritValue.Sankhya(it, it.toString()) },
         )
         for ((index, case) in listOf(
-            "" to listOf(1L, 1L, 2L, 3L),
+            "अनु +" to listOf(1L, 1L, 2L, 3L),
             "प्रति +" to listOf(3L, 2L, 1L, 1L),
         ).withIndex()) {
             val generated = BytecodeCompiler.compileAndLoad(
-                "सूची + अम् ${case.first} क्रमुँ + लोट् + सिप् ।",
+                "सूची + अम् ${case.first} क्रमुँ + णिच् + लोट् + सिप् ।",
                 "CompiledNaturalSort$index",
             )
             @Suppress("UNCHECKED_CAST")

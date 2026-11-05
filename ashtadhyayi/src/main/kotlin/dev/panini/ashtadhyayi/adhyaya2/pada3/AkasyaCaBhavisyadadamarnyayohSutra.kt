@@ -21,6 +21,7 @@ object AkasyaCaBhavisyadadamarnyayohSutra : Sutra<VibhaktiRuleContext, VibhaktiR
     role = SutraRole.Nishedha, action = SutraAction.NISHEDHA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.PRATYAYA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.50", "2.3.69"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean = false
 

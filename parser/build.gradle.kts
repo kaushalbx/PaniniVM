@@ -21,6 +21,7 @@ dependencies {
     antlr("com.strumenta:antlr-kotlin-target:1.0.0-RC4")
     implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation(project(":core"))
+    implementation(project(":ganapatha"))
     testImplementation(kotlin("test"))
 }
 

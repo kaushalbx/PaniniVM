@@ -42,13 +42,13 @@ class NaturalListGroupByTest {
         val declaration = "त्रि + ङस् एक + ओस् द्वि + आम् च एक + आम् च सूची + सुँ असँ + लट् + तिप् ।"
         fun evaluate(prefix: String): List<Long> {
             val result = PaniniVM().evalScript(
-                "$declaration\nसूची + अम् $prefix क्रमुँ + लोट् + सिप् ।",
+                "$declaration\nसूची + अम् $prefix क्रमुँ + णिच् + लोट् + सिप् ।",
             ).last()
             return assertIs<SanskritValue.Suchi>(
                 assertIs<ExecutionResult.Success>(result, result.toString()).typedValue,
             ).items.map { assertIs<SanskritValue.Sankhya>(it).value }
         }
-        assertEquals(listOf(1L, 1L, 2L, 3L), evaluate(""))
+        assertEquals(listOf(1L, 1L, 2L, 3L), evaluate("अनु +"))
         assertEquals(listOf(3L, 2L, 1L, 1L), evaluate("प्रति +"))
     }
 

@@ -104,7 +104,8 @@ object KarakaDhatuDomains {
 
     /** Verified lexical slice of the open rujārtha class; sense still requires independent evidence. */
     fun isDiseasePainVerb(context: VibhaktiRuleContext): Boolean =
-        !isExcludedDiseaseVerb(context) && governingRoot(context)?.exact("रुज्", "रुज", "अम्", "अम") == true
+        !isExcludedDiseaseVerb(context) && (governingRoot(context)?.exact("रुज्", "रुज", "अम्", "अम") == true ||
+            SemanticRelation.RUJA_ACTION_SENSE in context.participant?.semanticRelations.orEmpty())
 
     /** Causation is independent of active/passive voice; yak does not erase ṇic. */
     fun isCausativeConstruction(context: KarakaRuleContext): Boolean {
@@ -167,12 +168,12 @@ object KarakaDhatuDomains {
 
     /** Śap in vasati selects bhvādi nivāsa, not adādi ācchādana. */
     fun isResidenceVas(context: KarakaRuleContext): Boolean {
-        return actionRoot(context) in setOf("वस", "वस्") &&
+        return actionRoot(context) in setOf("वस", "वस्", "वसँ") &&
             (context.baseDhatu == null || context.baseDhatu.gana == dev.panini.core.DhatuGana.BHVADI)
     }
 
     fun isFastingVas(context: KarakaRuleContext): Boolean {
-        return actionRoot(context) in setOf("वस", "वस्") &&
+        return actionRoot(context) in setOf("वस", "वस्", "वसँ") &&
             (context.participant.meaningEvidenceStrength(SemanticRelation.FASTING_SENSE) >= 2 ||
                 SemanticRelation.FASTING_SENSE in context.baseDhatu?.semanticRelations.orEmpty())
     }
@@ -207,6 +208,8 @@ object KarakaDhatuDomains {
         val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
         val prefixes = actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha)
         if (prefixes.any { it == null }) return null
+        if (hasEstablishedActionMeaning(context, SemanticRelation.PRIMARY_OBJECT_PROMOTING_SENSE)) return false
+        if (hasEstablishedActionMeaning(context, SemanticRelation.SECONDARY_OBJECT_PROMOTING_SENSE)) return true
         if (root.exact("नी", "हृ", "कृष्", "वह्")) return false
         return true.takeIf { isDvikarmaka(root, prefixes) }
     }
@@ -277,7 +280,7 @@ object KarakaDhatuDomains {
         val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
         if (isAbhivadSalutation(context)) return false
         // Bāla-manoramā states the śabdāyati exclusion; the speech additions follow the Bhāṣya list it reports.
-        if (root.exact("शब्दाय", "शब्दाय्")) return false
+        if (root.exact("शब्दाय", "शब्दाय्", "ह्वे", "ह्वेञ्", "क्रन्द्", "क्रन्द")) return false
         val speechPrefixes = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha).orEmpty()
         if (speechPrefixes.none { it == null } && (root.exact("जल्प्", "जल्प") ||
                 root.exact("लप्", "लप") && speechPrefixes == listOf(dev.panini.core.Upasarga.VI) ||
@@ -299,7 +302,15 @@ object KarakaDhatuDomains {
         val classes = context.baseDhatu?.semanticRelations.orEmpty()
         if (classes.any { it in setOf(SemanticRelation.MOTION, SemanticRelation.COGNITION,
                 SemanticRelation.CONSUMPTION, SemanticRelation.WORD_AS_OBJECT) }) return true
-        return root.exact("गम्", "ज्ञा", "बुध्", "पठ्", "पठ", "अधी")
+        return root.exact("गम्", "ज्ञा", "बुध्", "पठ्", "पठ", "अधी", "भुज्", "अश्", "श्रु")
+    }
+
+    /** Padamañjarī on 1.4.51: these causatives express the primary or secondary object as desired. */
+    fun hasFreeCausativePromotion(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return root.exact("बुध्", "बुध", "ज्ञा", "विद्", "भुज्", "अश्", "पठ्", "पठ", "अधी") ||
+            context.baseDhatu?.semanticRelations.orEmpty().any { it in setOf(SemanticRelation.COGNITION,
+                SemanticRelation.CONSUMPTION, SemanticRelation.WORD_AS_OBJECT) }
     }
 
     fun isAbhivadSalutation(context: KarakaRuleContext): Boolean {

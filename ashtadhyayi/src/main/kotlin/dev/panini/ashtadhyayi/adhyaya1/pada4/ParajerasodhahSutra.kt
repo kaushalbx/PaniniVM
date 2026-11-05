@@ -25,7 +25,7 @@ object ParajerasodhahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isParaji = KarakaDhatuDomains.isParaji(context)
-        return isParaji && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+        return isParaji &&
             context.participant.hasEstablishedMeaning(SemanticRelation.UNBEARABLE_OBJECT)
     }
 

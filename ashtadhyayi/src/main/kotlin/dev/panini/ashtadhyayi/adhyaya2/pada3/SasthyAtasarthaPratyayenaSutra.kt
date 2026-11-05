@@ -25,10 +25,11 @@ object SasthyAtasarthaPratyayenaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.28"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            DirectionalAffixGovernance.affix(context) == TaddhitaAffix.ATASUC &&
+            DirectionalAffixGovernance.isAtasartha(DirectionalAffixGovernance.affix(context)) &&
             Vibhakti.SASTHI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

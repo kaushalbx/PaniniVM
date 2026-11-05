@@ -25,8 +25,7 @@ object AkhyatopayogeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         // Upayoga is a construction meaning, not a closed list of roots.
         // Kāśikā includes both adhīte and āgamayati.
-        return context.participant.hasEstablishedMeaning(SemanticRelation.FORMAL_INSTRUCTION_SOURCE) &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE)
+        return context.participant.hasEstablishedMeaning(SemanticRelation.FORMAL_INSTRUCTION_SOURCE)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

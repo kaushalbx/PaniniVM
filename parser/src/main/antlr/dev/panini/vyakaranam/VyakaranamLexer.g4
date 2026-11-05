@@ -63,6 +63,8 @@ NA          : 'न';
 ITI         : 'इति';
 NAAMA       : 'नाम';
 API         : 'अपि';
+YADYAPI     : 'यद्यपि';
+TATHAAPI    : 'तथापि';
 EVA         : 'एव';
 TU_AVYAYA   : 'तु';
 HI          : 'हि';

@@ -6,7 +6,7 @@
 फलं मुद्रय ।
 
 # Product: 1 × 2 × 3 × 4.
-सूच्याः प्रथमम् आरभ्य सञ्चितं सदस्यं प्रति सञ्चितं सदस्यं च गणय ।
+सूच्याः प्रथमम् आरभ्य सञ्चितं सदस्यं प्रति सञ्चितं सदस्यं च गुणय ।
 फलं मुद्रय ।
 
 # Maximum: keep whichever of the accumulated value and current member is greater.

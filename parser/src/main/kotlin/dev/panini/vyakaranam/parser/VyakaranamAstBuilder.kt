@@ -324,11 +324,20 @@ class VyakaranamAstBuilder {
             }
             connectors.forEachIndexed { index, connector ->
                 if (connector == SequenceConnector.SAMUCCAYA.surface) {
+                    // जलं च पिबति: च stands after the first word of its own clause, so words after the verb open the next one.
                     val preceding = (statements.getOrNull(index) as? Invocation)?.vakya as? AkhyataVakya
-                    require(preceding == null || preceding.padas.lastOrNull() == preceding.tinganta) {
-                        "Action-level च must immediately follow the preceding finite verb; " +
-                            "place nominal च before that verb to coordinate operands."
-                    }
+                        ?: return@forEachIndexed
+                    val next = statements.getOrNull(index + 1) as? Invocation ?: return@forEachIndexed
+                    val following = next.vakya as? AkhyataVakya ?: return@forEachIndexed
+                    val verbAt = preceding.padas.indexOf(preceding.tinganta)
+                    val carried = preceding.padas.drop(verbAt + 1)
+                    if (carried.isEmpty()) return@forEachIndexed
+                    val kept = preceding.padas.take(verbAt + 1)
+                    statements[index] = (statements[index] as Invocation).copy(vakya = preceding.copy(
+                        sourceText = kept.joinToString(" ") { it.sourceText }, padas = kept))
+                    statements[index + 1] = next.copy(vakya = following.copy(
+                        sourceText = (carried + following.padas).joinToString(" ") { it.sourceText },
+                        padas = carried + following.padas))
                 }
             }
             if (statements.size == 1) statements.single()
@@ -1383,11 +1392,13 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.AvyayaPadaContext,
     ): AvyayaPada =
         when {
-            context.mulaAvyaya() != null ->
-                AvyayaPada(
-                    sourceText = context.text,
-                    form = context.mulaAvyaya()!!.text,
-                )
+            context.mulaAvyaya() != null -> {
+                val mula = context.mulaAvyaya()!!
+                require(mula.IDENTIFIER() == null || GanaAvyaya.isAvyaya(mula.text)) {
+                    "'${mula.text}' is no avyaya of स्वरादि, चादि or 1.1.38, and a nominal needs its sup."
+                }
+                AvyayaPada(sourceText = context.text, form = mula.text)
+            }
 
             context.avyayaKridanta() != null -> {
                 val kridanta = context.avyayaKridanta()!!

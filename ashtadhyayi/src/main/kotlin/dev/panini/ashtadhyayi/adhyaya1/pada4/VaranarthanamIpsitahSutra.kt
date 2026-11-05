@@ -25,7 +25,7 @@ object VaranarthanamIpsitahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isVaran = KarakaDhatuDomains.isVarana(context)
-        return isVaran && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+        return isVaran &&
             context.participant.hasEstablishedMeaning(SemanticRelation.PREVENTED_DESIRED_OBJECT)
     }
 

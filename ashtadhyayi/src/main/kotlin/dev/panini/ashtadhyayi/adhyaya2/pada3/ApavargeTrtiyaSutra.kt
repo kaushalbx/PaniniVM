@@ -22,6 +22,7 @@ object ApavargeTrtiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     pada = 3,
     optional = false,
     kramaValue = 230006,
+    anuvrtti = setOf("2.3.5"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

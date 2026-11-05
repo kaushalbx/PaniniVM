@@ -25,6 +25,7 @@ object PrthagVinaNanabhihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.28", "2.3.31"),
 ), OptionalVibhaktiRuleOutcome {
     // Pañcamī is inherited; Kāśikā licenses dvitīyā through yogavibhāga.
     override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.PANCHAMI, Vibhakti.DVITIYA)

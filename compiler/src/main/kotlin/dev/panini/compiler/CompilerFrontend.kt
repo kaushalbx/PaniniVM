@@ -899,11 +899,11 @@ internal object CompilerFrontend {
                 dev.panini.actions.numeric.NumericFoldOperator.MODULO -> ArithmeticOperator.REMAINDER
                 else -> null
             }
-            if (selectedOperation.name != "मूल्यदानम्" && arithmetic == null) return null
+            if (selectedOperation.name != "मूल्यदानम्" && arithmetic == null && selectedOperation.name !in participantGroupOperations) return null
             val resolvedBindings = plan?.resolved?.context?.bindings ?: symbolicInvocation.bindings
             val destination = selectedOperation.resultBindingKaraka
                 ?.let(resolvedBindings::get)?.bindingName()
-            if (arithmetic == null && destination == null) return null
+            if (arithmetic == null && destination == null && selectedOperation.name !in participantGroupOperations) return null
             val participants = resolvedBindings.entries.filter { it.key != Karaka.ANIRDHARITA }
                 .flatMap { (role, expression) ->
                     CompilerIrLowering.lowerParticipantOperands(expression).map { instructions ->
@@ -922,7 +922,8 @@ internal object CompilerFrontend {
             val operands = participants.indices.filter { participants[it].first == Karaka.KARMAN }
             if (operands.isEmpty()) return null
             val candidates = operations
-            val dynamic = arithmetic != null && candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction }
+            val dynamic = candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction } &&
+                (arithmetic != null || candidates.all { it.name in participantGroupOperations })
             if (dynamic && (participants.any { it.first !in setOf(Karaka.KARMAN, Karaka.KARTR, Karaka.SAMPRADANA) } ||
                     candidates.any { it.name !in participantGroupOperations })) return null
             val locals = participants.indices.map { "history_assignment_${nextLabel++}_$it" }

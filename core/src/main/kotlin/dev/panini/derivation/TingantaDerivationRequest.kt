@@ -41,8 +41,11 @@ data class TingantaDerivationRequest(
         require(affixes.distinct().size == affixes.size) {
             "A sanādi affix may be introduced only once in one tiṅanta request."
         }
+        // A ṇic stem conjugates with śap whatever the root's own gaṇa. Curādi keeps its gaṇa because its ṇic is svārthika.
+        val stemTerm = if (dev.panini.core.SanadiAffix.NIC in affixes && dhatuTerm.gana != null &&
+            dhatuTerm.gana != dev.panini.core.DhatuGana.CURADI) dhatuTerm.copy(gana = dev.panini.core.DhatuGana.BHVADI) else dhatuTerm
         return DerivationState(
-        listOf(dhatuTerm),
+        listOf(stemTerm),
         context = DerivationalContext(
             requestedSanadi = affixes.map { requireNotNull(it).upadesha }.toSet(),
             kala = when (lakara) {

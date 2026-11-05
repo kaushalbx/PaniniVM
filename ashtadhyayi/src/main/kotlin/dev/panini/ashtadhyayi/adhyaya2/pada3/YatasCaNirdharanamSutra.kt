@@ -22,6 +22,7 @@ object YatasCaNirdharanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.36", "2.3.38"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
     override fun matches(context: VibhaktiRuleContext): Boolean =

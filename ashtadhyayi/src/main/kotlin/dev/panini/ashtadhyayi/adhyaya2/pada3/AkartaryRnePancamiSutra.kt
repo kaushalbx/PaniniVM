@@ -23,6 +23,7 @@ object AkartaryRnePancamiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     pada = 3,
     optional = false,
     kramaValue = 230024,
+    anuvrtti = setOf("2.3.23"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

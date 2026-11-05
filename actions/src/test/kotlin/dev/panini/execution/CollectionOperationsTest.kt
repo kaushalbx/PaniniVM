@@ -721,7 +721,7 @@ class CollectionOperationsTest {
                     ExecutionExpression.sankhya(2L, "द्वि"),
                     ExecutionExpression.sankhya(3L, "त्रि")
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("गण"),
+                Karaka.KARANA to ExecutionExpression.Pada("गुण"),
                 Karaka.SAMPRADANA to ExecutionExpression.sankhya(5L, "पञ्च")
             )
         )

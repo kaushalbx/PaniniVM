@@ -58,6 +58,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
                 it.kind == TermKind.PRATYAYA &&
                     !it.matchesAnyAffix(KrtAffix.KTA, KrtAffix.KTAVATU, KrtAffix.KTVA, KrtAffix.LYAP)
             }
+        if (dhatu.blocksNicGuna) return false
         return ((((hasNic && !dhatu.blocksNicGuna) && ending != null) || isAdadiStrong || beforeArdhadhatuka)) &&
             lightUpadhaIndex(dhatu.varnas) != null
     }

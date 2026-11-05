@@ -27,6 +27,7 @@ object AdhigarthaDayesamKarmaniSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRe
     pada = 3,
     optional = false,
     kramaValue = 230052,
+    anuvrtti = setOf("2.3.50"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

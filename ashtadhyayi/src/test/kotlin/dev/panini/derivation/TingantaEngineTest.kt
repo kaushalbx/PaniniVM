@@ -206,14 +206,52 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `sanadi coverage is declared by gana rather than pvm root names`() {
+    fun `present forms follow each gana and its stem rules`() {
+        val engine = TingantaEngine()
+        val parasmai = PadaType.PARASMAIPADA
+        val atmane = PadaType.ATMANEPADA
+        data class Form(val root: String, val gana: DhatuGana, val pada: PadaType, val expected: String)
+        listOf(
+            Form("भू", DhatuGana.BHVADI, parasmai, "भवति"), Form("गम्", DhatuGana.BHVADI, parasmai, "गच्छति"),
+            Form("क्रम्", DhatuGana.BHVADI, parasmai, "क्रामति"), Form("ष्ठिव्", DhatuGana.BHVADI, parasmai, "ष्ठीवति"),
+            Form("पा", DhatuGana.BHVADI, parasmai, "पिबति"), Form("घ्रा", DhatuGana.BHVADI, parasmai, "जिघ्रति"),
+            Form("ध्मा", DhatuGana.BHVADI, parasmai, "धमति"), Form("स्था", DhatuGana.BHVADI, parasmai, "तिष्ठति"),
+            Form("म्ना", DhatuGana.BHVADI, parasmai, "मनति"), Form("दृश्", DhatuGana.BHVADI, parasmai, "पश्यति"),
+            Form("यम्", DhatuGana.BHVADI, parasmai, "यच्छति"), Form("सद्", DhatuGana.BHVADI, parasmai, "सीदति"),
+            Form("लभ्", DhatuGana.BHVADI, atmane, "लभते"),
+            Form("अद्", DhatuGana.ADADI, parasmai, "अत्ति"), Form("हन्", DhatuGana.ADADI, parasmai, "हन्ति"),
+            Form("ब्रू", DhatuGana.ADADI, parasmai, "ब्रवीति"), Form("शी", DhatuGana.ADADI, atmane, "शेते"),
+            Form("विद्", DhatuGana.ADADI, parasmai, "वेत्ति"), Form("दुह्", DhatuGana.ADADI, parasmai, "दोग्धि"),
+            Form("हु", DhatuGana.JUHOTYADI, parasmai, "जुहोति"), Form("दा", DhatuGana.JUHOTYADI, parasmai, "ददाति"),
+            Form("धा", DhatuGana.JUHOTYADI, parasmai, "दधाति"), Form("भी", DhatuGana.JUHOTYADI, parasmai, "बिभेति"),
+            Form("दिव्", DhatuGana.DIVADI, parasmai, "दीव्यति"), Form("जन्", DhatuGana.DIVADI, atmane, "जायते"),
+            Form("क्लम्", DhatuGana.DIVADI, parasmai, "क्लाम्यति"), Form("शम्", DhatuGana.DIVADI, parasmai, "शाम्यति"),
+            Form("भ्रम्", DhatuGana.DIVADI, parasmai, "भ्राम्यति"), Form("मद्", DhatuGana.DIVADI, parasmai, "माद्यति"),
+            Form("सु", DhatuGana.SVADI, parasmai, "सुनोति"), Form("शक्", DhatuGana.SVADI, parasmai, "शक्नोति"),
+            Form("मुच्", DhatuGana.TUDADI, parasmai, "मुञ्चति"), Form("लुप्", DhatuGana.TUDADI, parasmai, "लुम्पति"),
+            Form("सिच्", DhatuGana.TUDADI, parasmai, "सिञ्चति"), Form("कृत्", DhatuGana.TUDADI, parasmai, "कृन्तति"),
+            Form("इष्", DhatuGana.TUDADI, parasmai, "इच्छति"), Form("प्रच्छ्", DhatuGana.TUDADI, parasmai, "पृच्छति"),
+            Form("रुध्", DhatuGana.RUDHADI, parasmai, "रुणद्धि"), Form("युज्", DhatuGana.RUDHADI, parasmai, "युनक्ति"),
+            Form("भिद्", DhatuGana.RUDHADI, parasmai, "भिनत्ति"),
+            Form("तन्", DhatuGana.TANADI, parasmai, "तनोति"), Form("कृ", DhatuGana.TANADI, parasmai, "करोति"),
+            Form("क्री", DhatuGana.KRYADI, parasmai, "क्रीणाति"), Form("ग्रह्", DhatuGana.KRYADI, parasmai, "गृह्णाति"),
+            Form("ज्ञा", DhatuGana.KRYADI, parasmai, "जानाति"), Form("बन्ध्", DhatuGana.KRYADI, parasmai, "बध्नाति"),
+        ).forEach { form ->
+            assertEquals(form.expected, engine.derive(TingantaDerivationRequest(dhatu = form.root,
+                vacana = Vacana.EKAVACANA, purusha = Purusha.PRATHAMA, lakara = Lakara.LAT,
+                pada = form.pada, gana = form.gana)).final.surface, form.root)
+        }
+    }
+
+    @Test
+    fun `causatives are available for every root rather than a declared list`() {
         val engine = TingantaEngine()
 
         listOf("युज्", "गण", "मुद्र्").forEach {
             assertTrue(engine.supportsSanadi(it, listOf("णिच्"), PadaType.PARASMAIPADA), it)
         }
-        assertFalse(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
-        assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("भू", listOf("सन्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("पच्", listOf("सन्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("जि", listOf("सन्"), PadaType.PARASMAIPADA))
@@ -1095,4 +1133,22 @@ class TingantaEngineTest {
         assertEquals(expectedByAffix, surfaces, traces)
     }
 
+
+    @Test
+    fun `causative forms follow mit, yuk, puk and atva rules`() {
+        val engine = TingantaEngine()
+        for ((root, gana, expected) in listOf(
+            Triple("गम्", null, "गमय"), Triple("शम्", dev.panini.core.DhatuGana.DIVADI, "शमय"), Triple("क्रम्", null, "क्रमय"),
+            Triple("जन्", dev.panini.core.DhatuGana.DIVADI, "जनय"), Triple("घट्", null, "घटय"), Triple("रम्", null, "रमय"),
+            Triple("अम्", null, "आमय"), Triple("चम्", null, "चामय"), Triple("पच्", null, "पाचय"), Triple("भू", null, "भावय"),
+            Triple("नी", null, "नायय"), Triple("कृ", null, "कारय"), Triple("श्रु", null, "श्रावय"), Triple("गै", null, "गापय"),
+            Triple("ध्यै", null, "ध्यापय"), Triple("पा", null, "पायय"), Triple("ह्वे", null, "ह्वायय"), Triple("दा", null, "दापय"),
+            Triple("धा", null, "धापय"), Triple("जि", null, "जापय"), Triple("ज्ञा", null, "ज्ञापय"), Triple("दृश्", null, "दर्शय"), Triple("अद्", null, "आदय"), Triple("सु", dev.panini.core.DhatuGana.SVADI, "सावय"), Triple("हु", null, "हावय"), Triple("क्री", null, "क्रापय"),
+        )) {
+            kotlin.test.assertEquals(expected, engine.derive(TingantaDerivationRequest(dhatu = root,
+                vacana = dev.panini.core.Vacana.EKAVACANA, purusha = dev.panini.core.Purusha.MADHYAMA,
+                lakara = dev.panini.core.Lakara.LOT, pada = PadaType.PARASMAIPADA,
+                sanadiPratyayas = listOf("णिच्"), gana = gana)).final.surface, root)
+        }
+    }
 }

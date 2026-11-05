@@ -27,6 +27,7 @@ object SamjnyoAnyatarasyamKarmaniSutra : Sutra<VibhaktiRuleContext, VibhaktiRule
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.18"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.TRTIYA)
     /** Later 2.3.65 wins in the overlapping kṛt construction (vipratiṣedha). */

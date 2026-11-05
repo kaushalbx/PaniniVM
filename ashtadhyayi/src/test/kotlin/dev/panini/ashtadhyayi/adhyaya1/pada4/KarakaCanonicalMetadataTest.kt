@@ -42,7 +42,7 @@ class KarakaCanonicalMetadataTest {
         val inherited = mapOf(
             "1.4.33" to setOf("1.4.32"), "1.4.34" to setOf("1.4.32"),
             "1.4.35" to setOf("1.4.32"), "1.4.36" to setOf("1.4.32"),
-            "1.4.37" to setOf("1.4.32"), "1.4.38" to setOf("1.4.37"),
+            "1.4.37" to setOf("1.4.32"), "1.4.38" to setOf("1.4.32", "1.4.37"),
             "1.4.39" to setOf("1.4.32"), "1.4.40" to setOf("1.4.32"),
             "1.4.41" to setOf("1.4.32", "1.4.40"),
         )

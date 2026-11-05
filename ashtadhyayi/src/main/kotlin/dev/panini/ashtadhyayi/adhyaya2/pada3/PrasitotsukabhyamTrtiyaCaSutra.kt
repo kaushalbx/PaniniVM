@@ -27,6 +27,7 @@ object PrasitotsukabhyamTrtiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     pada = 3,
     optional = true,
     kramaValue = 230044,
+    anuvrtti = setOf("2.3.36", "2.3.43"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

@@ -25,6 +25,7 @@ object RujarthanamBhavavacananamAjvarehSutra : Sutra<VibhaktiRuleContext, Vibhak
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.50", "2.3.52"),
 ) {
     fun hasSeshaBhavaAgentObject(context: VibhaktiRuleContext): Boolean {
         val participant = context.participant ?: return false

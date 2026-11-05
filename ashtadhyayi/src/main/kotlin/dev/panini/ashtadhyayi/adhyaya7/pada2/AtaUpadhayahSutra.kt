@@ -1,5 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
+import dev.panini.derivation.matchesAffix
+import dev.panini.core.SanadiAffix
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -38,6 +40,8 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[stemIndex]
         val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         
+        // 6.4.92 मितां ह्रस्वः: a मित् root stays short before ṇic (गमयति, संक्रमय्य), so the net result is no lengthening.
+        if (context.terms.any { it.matchesAffix(SanadiAffix.NIC) } && MitDhatus.isMit(stem.surface)) return false
         val isUpadhaA = penultimateAIndex(stem.varnas) != null
         val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)

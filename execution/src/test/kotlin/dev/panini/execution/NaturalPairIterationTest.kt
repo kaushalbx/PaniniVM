@@ -20,7 +20,7 @@ class NaturalNeighbourIterationTest {
         }.filterIsInstance<ExecutionResult.Success>().drop(1)
             .map { assertIs<SanskritValue.Sankhya>(it.typedValue).value }
 
-        assertEquals(listOf(2L, 3L, 6L), values("गण + णिच् + लोट् + सिप्"))
+        assertEquals(listOf(2L, 3L, 6L), values("गुण + णिच् + लोट् + सिप्"))
     }
 
     @Test

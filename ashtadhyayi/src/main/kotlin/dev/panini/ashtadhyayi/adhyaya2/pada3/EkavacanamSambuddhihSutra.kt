@@ -24,7 +24,7 @@ object EkavacanamSambuddhihSutra : Sutra<VibhaktiRuleContext, NominalDesignation
     type = SutraType.SAMJNA, chapter = 2, pada = 3, optional = false, kramaValue = 230049,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA),
-    adhikara = emptySet(),
+    adhikara = emptySet(), anuvrtti = setOf("2.3.46", "2.3.47"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         context.karaka == Karaka.SAMBODHANA &&

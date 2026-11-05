@@ -50,6 +50,11 @@ class KarakaCorpusBenchmarkTest {
             root.walkTopDown().filter { it.isFile && it.extension == "pvm" }.toList()
         }.sortedBy { it.invariantSeparatorsPath }
         assertTrue(corpus.isNotEmpty())
+        // Imported procedures are declared in other project files, so names are gathered across the corpus.
+        val corpusProcedureStems = corpus.flatMap { file -> runCatching {
+            PrakriyaRegistry().apply { registerDeclarations(PvmScript.fromDocument(parser.parseDocument(file.readText(Charsets.UTF_8))), file.path) }
+                .all().map { it.nameStem } }.getOrDefault(emptyList()) }.toSet()
+        variantProcedureStems = corpusProcedureStems
         corpus.forEach { file ->
             val path = file.invariantSeparatorsPath
             val source = file.readText(Charsets.UTF_8)
@@ -92,7 +97,9 @@ class KarakaCorpusBenchmarkTest {
                     }
                     rows += row
                     try {
-                        val analysis = requireNotNull(VyakaranamExecutionAdapter.analyzeGrammar(Ukti(invocation.sourceText, body = invocation)))
+                        val clauseUkti = Ukti(invocation.sourceText, body = invocation)
+                        val analysis = requireNotNull(VyakaranamExecutionAdapter.analyzeProcedureCall(clauseUkti, corpusProcedureStems)
+                            ?: VyakaranamExecutionAdapter.analyzeGrammar(clauseUkti))
                         val frames = analysis.frames
                         require(frames.isNotEmpty()) { "No supported grammar frame" }
                         val blocking = analysis.blockingDiagnostics.map { it.code.name }.sorted()
@@ -189,6 +196,8 @@ class KarakaCorpusBenchmarkTest {
     }
 
     /** Reuse occurrences, but compare every variant to the reviewed answer key. */
+    private var variantProcedureStems: Set<String> = emptySet()
+
     private fun checkWordOrders(review: JsonObject, original: Invocation, frame: KriyaFrame): JsonArray {
         val results = JsonArray()
         review.getAsJsonArray("wordOrders")?.forEach { permutation ->
@@ -201,9 +210,9 @@ class KarakaCorpusBenchmarkTest {
                 is AkhyataVakya -> clause.copy(padas = reordered)
                 is NamaVakya -> clause.copy(padas = reordered)
             }
-            val analysis = requireNotNull(VyakaranamExecutionAdapter.analyzeGrammar(
-                Ukti(original.sourceText, body = original.copy(vakya = vakya)),
-            ))
+            val variantUkti = Ukti(original.sourceText, body = original.copy(vakya = vakya))
+            val analysis = requireNotNull(VyakaranamExecutionAdapter.analyzeProcedureCall(variantUkti, variantProcedureStems)
+                ?: VyakaranamExecutionAdapter.analyzeGrammar(variantUkti))
             val actual = analysis.frames.single().relations.sortedBy { relation ->
                 frame.relations.indexOfFirst { it.participant.pada === relation.participant.pada }
                     .also { require(it >= 0) { "Permutation replaced a nominal occurrence" } }
@@ -222,7 +231,9 @@ class KarakaCorpusBenchmarkTest {
             val sourceOrder = frame.relations.map { normalized(it.participant.pada.sourceText) }
             require(sourceOrder.distinct().size == sourceOrder.size) { "Text variants need unique participant fragments" }
             val text = reordered.joinToString(" ") { it.sourceText } + " ।"
-            val reparsed = requireNotNull(VyakaranamExecutionAdapter.analyzeGrammar(PaniniParser().parse(text)))
+            val reparsedUkti = PaniniParser().parse(text)
+            val reparsed = requireNotNull(VyakaranamExecutionAdapter.analyzeProcedureCall(reparsedUkti, variantProcedureStems)
+                ?: VyakaranamExecutionAdapter.analyzeGrammar(reparsedUkti))
             val reparsedRelations = reparsed.frames.single().relations.sortedBy { relation ->
                 sourceOrder.indexOf(normalized(relation.participant.pada.sourceText))
                     .also { require(it >= 0) { "Reparsed variant changed a participant fragment" } }

@@ -99,7 +99,7 @@ class ParticipantHistoryAssignmentTest {
     }
 
     @Test fun `remembered numeric operands produce arithmetic rather than a packed collection`() {
-        for ((index, verb) in listOf("युज् + णिच्", "गण + णिच्").withIndex()) {
+        for ((index, verb) in listOf("युज् + णिच्", "गुण + णिच्").withIndex()) {
             val source = "$addition\nयुज् + ल्युट् + ङस् कर्मन् + अम् नवन् + शस् च $verb + लोट् + सिप् ।"
             val values = parity(source, "RememberedArithmetic$index")
             assertEquals(if (index == 0) 12L else 18L,

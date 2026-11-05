@@ -73,12 +73,50 @@ class VakyaAnalyzer(
         }
         val warnings = agreementWarnings(
             prayoga = prayoga,
-            coordinations = padaAnalyses.filterIsInstance<AnalyzedSamuccita>(),
+            coordinations = valencyCoordinations(padaAnalyses),
             tinganta = tingantaAnalysis,
             relations = finiteRelations,
         )
         val qualifications = AdverbialAnalyzer.analyze(frameId, padaAnalyses)
         val diagnostics = buildList {
+            semanticContext.nonBindingReadings.sorted().forEach { index ->
+                relations.getOrNull(index)?.let { add(FrameDiagnostic(FrameDiagnosticCode.NON_BINDING_READING,
+                    "व्याकरणार्थः; कार्यस्य प्रमाणं न।", it.participant.pada.sourceText, index)) }
+            }
+            semanticContext.defaultReadings.sorted().forEach { index ->
+                relations.getOrNull(index)?.let { add(FrameDiagnostic(FrameDiagnosticCode.DEFAULT_READING,
+                    "रूपेण अनिश्चितम्; विवक्षया अन्यः अर्थः सम्भवति।", it.participant.pada.sourceText, index)) }
+            }
+            // An ordinary transitive action has one primary object unless coordinated. Dvikarmaka and causative
+            // actions, modifiers and PVM कृ calls with positional operands are exempt.
+            val coordinatedGroups = padaAnalyses.filterIsInstance<AnalyzedSamuccita>()
+            val primaryObjects = relations.withIndex().filter { (_, relation) ->
+                relation in finiteRelations && (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == Karaka.KARMAN &&
+                    relation.evidence.firstOrNull()?.sutra == "1.4.49" &&
+                    relation.participant.lexicalEntry?.nominalUse !in setOf(NominalUse.MODIFIER, NominalUse.ENTITY_OR_MODIFIER)
+            }
+            val objectGroups = primaryObjects.map { (_, relation) -> coordinatedGroups.indexOfFirst { group ->
+                group.members.any { it.pada === relation.participant.pada } }.let { if (it >= 0) "c$it" else relation.participant.pada.sourceText } }.distinct()
+            val root = DhatuIdentity(tingantaAnalysis.pada.dhatu.mulaDhatu)
+            if (objectGroups.size > 1 && SanadiAffix.NIC !in tingantaAnalysis.pada.dhatu.sanadiAffixes &&
+                tingantaAnalysis.pada.dhatu.mulaDhatu !in setOf("कृ", "डुकृञ्") &&
+                !KarakaDhatuDomains.isDvikarmaka(root, tingantaAnalysis.pada.upasargas.map(dev.panini.core.Upasarga::fromUpadesha)))
+                primaryObjects.forEach { (index, relation) -> add(FrameDiagnostic(FrameDiagnosticCode.MULTIPLE_PRIMARY_OBJECTS,
+                    "एकस्याः क्रियायाः असमुच्चितानि अनेकानि प्रधानकर्माणि न सम्भवन्ति।", relation.participant.pada.sourceText, index)) }
+            // One finite action has one independent agent, unless the agents are coordinated. A copula is excluded,
+            // since its nominatives include predicates. No reading is selected here.
+            val coordinated = valencyCoordinations(padaAnalyses)
+            val disjoined = padaAnalyses.any { it is AnalyzedAvyaya && it.pada.form == "वा" }
+            val agentGroups = finiteRelations.filter { relation ->
+                (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == Karaka.KARTR &&
+                    relation.evidence.firstOrNull()?.sutra == "1.4.54"
+            }.map { relation -> coordinated.indexOfFirst { group -> group.members.any { it.pada === relation.participant.pada } }
+                .let { if (it >= 0) "c$it" else relation.participant.pada.sourceText } }.distinct()
+            if (agentGroups.size > 1 && !disjoined && tingantaAnalysis.pada.dhatu.mulaDhatu !in setOf("अस्", "असँ")) relations.forEachIndexed { index, relation ->
+                if (relation in finiteRelations && (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == Karaka.KARTR &&
+                    relation.evidence.firstOrNull()?.sutra == "1.4.54") add(FrameDiagnostic(FrameDiagnosticCode.MULTIPLE_INDEPENDENT_AGENTS,
+                    "एकस्याः क्रियायाः असमुच्चिताः अनेके स्वतन्त्राः कर्तारः न सम्भवन्ति।", relation.participant.pada.sourceText, index))
+            }
             if (tingantaAnalysis.lexicalEntry == null) {
                 add(
                     FrameDiagnostic(
@@ -443,8 +481,14 @@ class VakyaAnalyzer(
             val purposeEvidence = purposeReading?.let { setOf(SemanticRelationEvidence(
                 SemanticRelation.PURPOSE_ACTION_PARTICIPANT, SemanticEvidenceSource.CLAUSE_CONTEXT,
                 "Supplied purpose-action binding ${it.id}: ${it.dhatu}; prefixes ${it.upasargas}; ${it::class.simpleName}.")) }.orEmpty()
-            val semanticEvidence = inferredEvidence + ambiguityEvidence + contextEvidence + bindingEvidence + purposeEvidence +
+            val writtenEvidence = inferredEvidence + ambiguityEvidence + contextEvidence + bindingEvidence + purposeEvidence +
                 listOfNotNull(actionResultRelations[index], collectionRelations[index])
+            // Śeṣa is defined as what remains: a written genitive with no other established reading.
+            val residualSesha = if (possibleVibhaktis == setOf(Vibhakti.SASTHI) && writtenEvidence.isEmpty() && reading == null &&
+                semanticContext.avyayaGovernors[index] == null && purposeReading == null) setOf(SemanticRelationEvidence(
+                SemanticRelation.SESHA_RELATION, SemanticEvidenceSource.UNAMBIGUOUS_MORPHOLOGY,
+                "A written genitive with no kāraka reading is the residual relation of 2.3.50.")) else emptySet()
+            val semanticEvidence = writtenEvidence + residualSesha
             ParticipantFacts(
                 id = "p_$index",
                 expression = sub.pada,
@@ -456,6 +500,19 @@ class VakyaAnalyzer(
                 semanticEvidence = semanticEvidence,
                 intendedObject = intendedObject,
                 governingAvyaya = semanticContext.avyayaGovernors[index],
+                taddhitaLopa = semanticContext.taddhitaLopas[index],
+                vedicCaseLicense = semanticContext.vedicCaseLicenses[index],
+                derivationExpression = semanticContext.derivationExpressions[index]?.also {
+                    require(it.sourceIndex in subantas.indices && it.sourceIndex != index) {
+                        "A derivation expression must reference another written nominal occurrence."
+                    }
+                    if (it.kind == ExpressionSourceKind.SAMASA) require((subantas[it.sourceIndex].pada as? dev.panini.vyakaranam.ast.SubantaPada)
+                        ?.pratipadika is dev.panini.vyakaranam.ast.SamasaPratipadika) { "A samāsa expression source must be a written compound." }
+                },
+                // A written counting word governs only an occurrence established as the time locus of 2.3.64.
+                frequencyGovernor = writtenPadas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
+                    .filter { CountingFrequencyExpressions.count(it) != null }.singleOrNull()
+                    ?.takeIf { semanticEvidence.any { proof -> proof.relation == SemanticRelation.FREQUENCY_TIME_LOCUS } },
                 purposeGovernor = purposeReading,
                 governingNominal = reading?.let { subantas[it.governorIndex].pada as dev.panini.vyakaranam.ast.SubantaPada },
             )

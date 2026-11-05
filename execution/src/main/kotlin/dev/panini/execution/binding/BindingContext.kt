@@ -41,6 +41,20 @@ internal data class BindingContext(
     fun ownerOf(pada: dev.panini.vyakaranam.ast.Pada?): KriyaFrame? =
         grammaticalFrames.singleOrNull { owner -> owner.relations.any { it.participant.pada === pada } }
 
-    fun relationFor(pada: dev.panini.vyakaranam.ast.Pada?) =
-        ownerOf(pada)?.relations?.singleOrNull { it.participant.pada === pada }
+    /**
+     * What execution may bind. Grammar reports its reading for every root; a means, reason, causee or ordered
+     * object that the instruction did not declare reaches a program as unassigned.
+     */
+    fun relationFor(pada: dev.panini.vyakaranam.ast.Pada?): dev.panini.analysis.KarakaRelation? {
+        val owner = ownerOf(pada) ?: return null
+        val index = owner.relations.indexOfFirst { it.participant.pada === pada }
+        val relation = owner.relations.getOrNull(index) ?: return null
+        val nonBinding = owner.diagnostics.any { it.code == dev.panini.analysis.FrameDiagnosticCode.NON_BINDING_READING && it.nominalIndex == index }
+        if (!nonBinding) return relation
+        // An instrumental reaches the program as what form leaves open: kartā or karaṇa.
+        val instrumental = relation.participant.supCandidates.all { it.vibhakti == dev.panini.core.Vibhakti.TRTIYA }
+        return relation.copy(resolution = if (instrumental) dev.panini.analysis.FrameKarakaResolution.Ambiguous(
+            setOf(dev.panini.core.Karaka.KARTR, dev.panini.core.Karaka.KARANA))
+            else dev.panini.analysis.FrameKarakaResolution.Unassigned("This reading does not bind an operand."))
+    }
 }

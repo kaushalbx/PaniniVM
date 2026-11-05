@@ -276,7 +276,7 @@ Frequently used examples include:
 पञ्चन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
 
 # Multiply two numbers.
-त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् ।
+त्रि + शस् द्वि + औट् च गुण + णिच् + लोट् + सिप् ।
 
 # Test whether three is greater than two.
 त्रि + शस् द्वि + औट् च विद् + लोट् + सिप् ।
@@ -433,14 +433,14 @@ value, not a permanent alias that follows later unrelated reassignment of a name
 stage:
 
 ```pvm
-त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+त्रि + शस् द्वि + औट् च गुण + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
 ```
 
 Pipelines may contain multiple stages:
 
 ```pvm
-त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप्
-ततः द्वि + औट् च गण् + णिच् + लोट् + सिप्
+त्रि + शस् द्वि + औट् च गुण + णिच् + लोट् + सिप्
+ततः द्वि + औट् च गुण + णिच् + लोट् + सिप्
 ततः मुद्र् + लोट् + सिप् ।
 ```
 
@@ -678,12 +678,12 @@ membership is determined by a predicate rather than equality. See
 
 ### 7.5 Stable typed sorting
 
-Plain `क्रमुँ` sorts in ascending natural order; `प्रति + क्रमुँ` sorts in
+`अनु + क्रमुँ + णिच्` (`अनुक्रमय`) sorts in ascending natural order; `प्रति + क्रमुँ + णिच्` (`प्रतिक्रमय`) sorts in
 descending order:
 
 ```pvm
-सूची + अम् क्रमुँ + लोट् + सिप् ।
-सूची + अम् प्रति + क्रमुँ + लोट् + सिप् ।
+सूची + अम् अनु + क्रमुँ + णिच् + लोट् + सिप् ।
+सूची + अम् प्रति + क्रमुँ + णिच् + लोट् + सिप् ।
 ```
 
 Sorting is stable, retains duplicates, and preserves a declared list member
@@ -1544,7 +1544,7 @@ to make the definition file-private:
 
 ```pvm
 गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
-प्रथम + अम् द्वि + औट् च गण् + णिच् + लोट् + सिप् ॥
+प्रथम + अम् द्वि + औट् च गुण + णिच् + लोट् + सिप् ॥
 ```
 
 ### 11.6 Domains and overloads

@@ -16,6 +16,8 @@ import dev.panini.shiksha.Vyanjana
 class SandhiEngine(
     private val engine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras)
 ) {
+    private val voicedInitials = "अआइईउऊऋएऐओऔगघङजझञडढणदधनबभमयरलवह".toSet()
+
     /** Explicit completed-word input; spelling alone cannot identify a dual or a vocative. */
     data class Pada(val term: DerivationTerm, val rupa: Rupa = Rupa(), val samjnas: Set<Samjna> = emptySet(),
         val visargaSource: VisargaSource? = null,
@@ -110,6 +112,8 @@ class SandhiEngine(
      * boundary helper does not yet implement the full vowel-sandhi inventory.
      */
     fun joinPrefix(left: String, right: String): String {
+        // निस् and दुस् take र् before a voiced sound (8.2.66, 8.3.15 does not apply): निर्हर, दुर्गम.
+        if (left in setOf("निस्", "दुस्") && right.firstOrNull() in voicedInitials) return left.dropLast(2) + "र्" + right
         var state = padaBoundaryState(left, right)
         val initialRight = state.terms.last().varnas.firstOrNull()
         if (SavarnaDirghaSutra.matches(state)) {

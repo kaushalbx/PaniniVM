@@ -18,9 +18,9 @@ object ApadanePancamiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext) = context.accepts(Karaka.APADANA, Vibhakti.PANCHAMI)
+    override fun matches(context: VibhaktiRuleContext) = dev.panini.analysis.VartikaCaseUses.ablative(context) || (context.accepts(Karaka.APADANA, Vibhakti.PANCHAMI))
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.PANCHAMI,
-        KarakaEvidence(number, text, "पञ्चमी realizes ${context.karaka} in this construction."),
+        KarakaEvidence(number, text, "पञ्चमी realizes ${context.karaka} in this construction.${dev.panini.analysis.VartikaCaseUses.note(context)}"),
     )
 }

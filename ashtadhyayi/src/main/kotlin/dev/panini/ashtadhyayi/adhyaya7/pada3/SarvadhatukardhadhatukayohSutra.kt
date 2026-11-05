@@ -57,6 +57,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (nic != null && gradesNicEnding(context, nic.id)) return true
 
         val strongUGrade = strongUGrade(context)
+        if (strongUGrade != null && krRootBeforeStrongU(context) != null) return true
         if (strongUGrade != null) return strongUGrade.varnas.lastOrNull() in ikVowels
 
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
@@ -109,7 +110,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
                 explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before a sārvadhātuka or ārdhadhātuka suffix.",
             )
         }
-        val stem = strongUGrade(context)
+        val stem = krRootBeforeStrongU(context) ?: strongUGrade(context)
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val source = stem.varnas.last() as Svara
         val replacement = source.toGunaVarnas()
@@ -120,6 +121,13 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             explanation = "7.3.84: Applied guṇa (${replacement.toDevanagari()}) within Aṅgasya jurisdiction."
         )
     }
+
+    /** करोति: the root कृ also takes guṇa before उ and a strong ending; weak forms keep कुरु. */
+    private fun krRootBeforeStrongU(context: DerivationState) =
+        context.terms.firstOrNull { it.id == "tanadi-u" }?.let {
+            context.terms.firstOrNull { term -> term.kind == TermKind.DHATU && term.id != "abhyasa" &&
+                term.varnas.size == 2 && term.varnas.first() == dev.panini.shiksha.Vyanjana.KA && term.varnas.last() == Svara.R }
+        }?.takeIf { strongUGrade(context) != null }
 
     private fun strongUGrade(context: DerivationState) =
         context.terms.firstOrNull { it.id in setOf("shnu", "tanadi-u") }?.takeIf {

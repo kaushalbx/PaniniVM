@@ -23,6 +23,7 @@ object PancamyApangParibhihSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.8"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&

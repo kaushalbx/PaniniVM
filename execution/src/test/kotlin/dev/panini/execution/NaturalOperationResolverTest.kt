@@ -91,7 +91,7 @@ class NaturalOperationResolverTest {
         val source = """
             एक + अम् गुणक + ङि स्था + णिच् + लोट् + सिप् ।
             एक + अम् सङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।
-            पञ्चन् + कृत्वसुच् गुणक + अम् सङ्ख्या + अम् च गण + णिच् + लोट् + सिप्
+            पञ्चन् + कृत्वसुच् गुणक + अम् सङ्ख्या + अम् च गुण + णिच् + लोट् + सिप्
                 ततः फल + अम् सङ्ख्या + ङि स्था + णिच् + लोट् + सिप्
                 ततः एक + अम् गुणक + अम् च युज् + णिच् + लोट् + सिप्
                 ततः फल + अम् गुणक + ङि स्था + णिच् + लोट् + सिप् ।
@@ -101,7 +101,7 @@ class NaturalOperationResolverTest {
         val sequence = assertIs<Sequence>(repeat.body, repeat.body.toString())
         assertEquals(4, sequence.statements.size, sequence.toString())
         assertEquals(
-            listOf("गण", "स्था", "युज्", "स्था"),
+            listOf("गुण", "स्था", "युज्", "स्था"),
             sequence.statements.map { statement ->
                 assertIs<Invocation>(statement).vakya.padas.filterIsInstance<TingantaPada>().single().dhatu.mulaDhatu
             },
@@ -127,7 +127,7 @@ class NaturalOperationResolverTest {
             ),
         )
         assertEquals(
-            listOf("गण", "स्थाञँ", "युजिँर्", "स्थाञँ"),
+            listOf("गुण", "स्थाञँ", "युजिँर्", "स्थाञँ"),
             bound.ukti.invocations.map { it.dhatu.upadesha },
             bound.ukti.invocations.toString(),
         )

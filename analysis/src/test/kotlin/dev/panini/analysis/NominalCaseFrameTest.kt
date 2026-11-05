@@ -70,7 +70,7 @@ class NominalCaseFrameTest {
         val finite = local.analyze(AkhyataVakya("unknown reading", listOf(dependent, head, verb), verb))
         val nominal = local.analyze(NamaVakya("unknown reading", listOf(head, dependent)))
         for (frame in listOf(finite, nominal)) {
-            assertEquals(comparison, frame.nominalCaseLinks!!.candidates.single().missingSemanticPremises)
+            assertTrue(SemanticRelation.EQUAL_COMPARISON in frame.nominalCaseLinks!!.candidates.single().missingSemanticPremises)
             assertTrue(frame.nominalCaseLinks!!.established.isEmpty())
         }
         assertTrue(finite.relations.single { it.participant.pada === dependent }.evidence.none { it.sutra == "2.3.72" })

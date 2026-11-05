@@ -20,7 +20,7 @@ class KramDhatu : Dhatu(
     sourceSurface = "क्रम्",
     artha = "पादविक्षेपे",
     arthaHindi = "क्रम से चलना, आगे बढ़ना",
-    arthaEnglish = "to step, proceed, or put in order",
+    arthaEnglish = "to step; with अनु or प्रति and णिच्, to put in sequence or reverse sequence",
     gana = DhatuGana.BHVADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.SET,
@@ -28,12 +28,12 @@ class KramDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         ListSortAction.Ascending.op {
-            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.PRATI))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.ANU), requiredSanadiIdentities = setOf(dev.panini.core.SanadiAffix.NIC))
             requires(Karaka.KARMAN)
             returns(Samjna.GANA)
         },
         ListSortAction.Descending.op {
-            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.PRATI))
+            triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.PRATI), requiredSanadiIdentities = setOf(dev.panini.core.SanadiAffix.NIC))
             requires(Karaka.KARMAN)
             returns(Samjna.GANA)
         },

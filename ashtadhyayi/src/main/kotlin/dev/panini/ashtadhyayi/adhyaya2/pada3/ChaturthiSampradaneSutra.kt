@@ -18,9 +18,9 @@ object ChaturthiSampradaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext) = context.accepts(Karaka.SAMPRADANA, Vibhakti.CHATURTHI)
+    override fun matches(context: VibhaktiRuleContext) = dev.panini.analysis.VartikaCaseUses.dative(context) || (context.accepts(Karaka.SAMPRADANA, Vibhakti.CHATURTHI))
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.CHATURTHI,
-        KarakaEvidence(number, text, "चतुर्थी realizes ${context.karaka} in this construction."),
+        KarakaEvidence(number, text, "चतुर्थी realizes ${context.karaka} in this construction.${dev.panini.analysis.VartikaCaseUses.note(context)}"),
     )
 }

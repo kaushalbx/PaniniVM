@@ -25,7 +25,7 @@ object BhuvahPrabhavahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isBhu = KarakaDhatuDomains.isOriginBhu(context.dhatu)
-        return isBhu && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+        return isBhu &&
             context.participant.hasEstablishedMeaning(SemanticRelation.FIRST_MANIFESTATION_SOURCE)
     }
 

@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
+import dev.panini.shiksha.toVarnas
 import dev.panini.derivation.*
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
@@ -12,13 +13,22 @@ object GrahijyaSamprasaranaSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 6, pada = 1, optional = false, kramaValue = 610016,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DHATU,
 ), DerivationSutra {
+    private val pracch = "प्रच्छ्".toVarnas()
+
     override fun matches(context: DerivationState): Boolean {
         val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
-        if (index < 0 || context.terms[index].varnas != listOf(Vyanjana.GA, Vyanjana.RA, Svara.A, Vyanjana.HA)) return false
-        return context.terms.getOrNull(index + 1)?.matchesUpadesha("श्ना") == true
+        if (index < 0) return false
+        val following = context.terms.getOrNull(index + 1)
+        // प्रच्छ् takes samprasāraṇa before ṅit श: पृच्छति.
+        if (context.terms[index].varnas == pracch && following?.matchesUpadesha("श") == true) return true
+        if (context.terms[index].varnas != listOf(Vyanjana.GA, Vyanjana.RA, Svara.A, Vyanjana.HA)) return false
+        return following?.matchesUpadesha("श्ना") == true
     }
     override fun apply(context: DerivationState): DerivationChange {
         val root = context.terms.first { it.kind == TermKind.DHATU }
+        if (root.varnas == pracch) return DerivationChange(
+            context.replaceTermVarnaRange(root.id, 0, root.varnas.size, "पृच्छ्".toVarnas(), emptyMap(), sutra),
+            "6.1.16 gives samprasāraṇa to प्रच्छ् before ṅit श.")
         return DerivationChange(context.replaceTermVarna(root.id, 1, listOf(Svara.R), sutra),
             "6.1.16 gives samprasāraṇa to grah before ṅ-it śnā.")
     }

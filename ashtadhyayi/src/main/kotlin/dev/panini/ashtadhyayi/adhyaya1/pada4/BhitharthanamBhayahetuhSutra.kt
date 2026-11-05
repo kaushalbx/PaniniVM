@@ -25,7 +25,7 @@ object BhitharthanamBhayahetuhSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isFearOrProtect = KarakaDhatuDomains.isFearOrProtection(context)
-        return isFearOrProtect && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+        return isFearOrProtect &&
             context.participant.hasEstablishedMeaning(SemanticRelation.FEAR_CAUSE)
     }
 

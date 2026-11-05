@@ -27,6 +27,7 @@ object TumarthacCaBhavavacanatSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRes
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE, SutraInput.PRATIPADIKA, SutraInput.PRATYAYA),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.13"),
 ) {
     fun hasPurposeActionNoun(context: VibhaktiRuleContext): Boolean {
         val p = context.participant ?: return false

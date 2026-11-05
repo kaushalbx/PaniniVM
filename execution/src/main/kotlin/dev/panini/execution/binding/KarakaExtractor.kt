@@ -86,6 +86,9 @@ internal object KarakaExtractor {
             if (relation.unresolvedObjectMediators.isNotEmpty()) return emptySet()
             return when (val resolution = relation.resolution) {
                 is FrameKarakaResolution.Resolved -> {
+                    // A 2.3.15 purpose noun stays non-kāraka in the grammar; it fills the declared result slot of the operation.
+                    if (relation.evidence.lastOrNull()?.sutra == "2.3.15" &&
+                        ctx.dhatu.operations.any { it.resultBindingKaraka == Karaka.SAMPRADANA }) return setOf(Karaka.SAMPRADANA)
                     // Operation compatibility cannot overturn an established grammatical relation.
                     setOf(resolution.karaka)
                 }

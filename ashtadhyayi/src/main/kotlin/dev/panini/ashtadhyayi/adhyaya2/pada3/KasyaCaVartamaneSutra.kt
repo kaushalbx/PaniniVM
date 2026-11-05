@@ -28,6 +28,7 @@ object KasyaCaVartamaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     pada = 3,
     optional = false,
     kramaValue = 230067,
+    anuvrtti = setOf("2.3.50"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

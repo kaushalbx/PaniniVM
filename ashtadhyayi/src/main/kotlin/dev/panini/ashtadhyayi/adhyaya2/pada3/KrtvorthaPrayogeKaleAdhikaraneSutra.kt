@@ -11,7 +11,7 @@ object KrtvorthaPrayogeKaleAdhikaraneSutra : Sutra<VibhaktiRuleContext, Vibhakti
     hindiExplanation = "स्पष्ट क्रियागणना के प्रयोग में वस्तुतः कालाधिकरण की शेषत्वविवक्षा में षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230064,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50"),
 ) {
     fun hasSeshaTimeFrequency(context: VibhaktiRuleContext): Boolean {
         val participant = context.participant ?: return false

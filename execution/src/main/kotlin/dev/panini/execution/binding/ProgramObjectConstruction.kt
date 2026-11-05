@@ -27,9 +27,11 @@ internal object ProgramObjectConstruction {
             val unresolved = relation.resolution as? FrameKarakaResolution.Unassigned
             if (unresolved?.candidates != setOf(Karaka.KARMAN) || relation.alternatives.isNotEmpty() ||
                 nominal.supCandidates.isEmpty() || nominal.supCandidates.any { it.vibhakti != Vibhakti.DVITIYA } ||
+                VoiceRoleConstruction.isAgreeingParticiple(nominal) ||
                 nominal.lexicalEntry?.semanticRelations.orEmpty().any { it != SemanticRelation.DESIRED_OBJECT })
                 return@mapIndexedNotNull null
-            index to setOf(SemanticRelation.DESIRED_OBJECT)
+            // अक्षान् दीव्यति: the operand of दिव् is the selected means named object by 1.4.43.
+            index to setOf(if (head.dhatu.mulaDhatu in setOf("दिव्", "दिवु")) SemanticRelation.INSTRUMENT else SemanticRelation.DESIRED_OBJECT)
         }.toMap()
     }
 }

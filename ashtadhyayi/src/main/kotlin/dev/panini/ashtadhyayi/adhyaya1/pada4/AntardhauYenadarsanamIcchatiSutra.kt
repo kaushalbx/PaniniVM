@@ -25,7 +25,7 @@ object AntardhauYenadarsanamIcchatiSutra : Sutra<KarakaRuleContext, KarakaRuleRe
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isHide = KarakaDhatuDomains.isHiding(context)
-        return isHide && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) &&
+        return isHide &&
             context.participant.hasEstablishedMeaning(SemanticRelation.CONCEALMENT_OBSERVER)
     }
 

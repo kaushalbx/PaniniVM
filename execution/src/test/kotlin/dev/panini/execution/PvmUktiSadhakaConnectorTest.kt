@@ -583,4 +583,15 @@ class PvmUktiSadhakaConnectorTest {
             ),
         )
     }
+
+    @kotlin.test.Test fun `adanta root keeps its vowel in a derived noun`() {
+        kotlin.test.assertEquals("गुणनस्य फलं मुद्रय ।",
+            PvmUktiSadhaka().sadhayaScript("गुण + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।").trim())
+    }
+
+    @kotlin.test.Test fun `prefixes join by sandhi in verbs and gerunds`() {
+        val render = { source: String -> PvmUktiSadhaka().sadhayaScript(source).trim() }
+        kotlin.test.assertEquals("क्रमं निर्हर ।", render("क्रम + अम् निस् + हृ + लोट् + सिप् ।"))
+        kotlin.test.assertTrue("उद्धृत्य" in render("सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"))
+    }
 }

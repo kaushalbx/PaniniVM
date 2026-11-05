@@ -22,6 +22,7 @@ object TrtiyaCaHosChandasiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     pada = 3,
     optional = true,
     kramaValue = 230003,
+    anuvrtti = setOf("2.3.2"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,
@@ -30,6 +31,7 @@ object TrtiyaCaHosChandasiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            context.register != dev.panini.analysis.GrammarRegister.CLASSICAL &&
             dev.panini.analysis.KarakaDhatuDomains.isHu(context) &&
             SemanticRelation.VEDIC_HU_OBJECT in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.TRTIYA in context.morphologicalCandidates

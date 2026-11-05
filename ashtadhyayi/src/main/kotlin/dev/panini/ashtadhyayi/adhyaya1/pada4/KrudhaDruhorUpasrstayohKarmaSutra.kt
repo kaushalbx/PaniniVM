@@ -21,7 +21,7 @@ object KrudhaDruhorUpasrstayohKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
-    anuvrtti = setOf("1.4.37"),
+    anuvrtti = setOf("1.4.32", "1.4.37"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         return KarakaDhatuDomains.isPrefixedKrudhDruh(context) &&

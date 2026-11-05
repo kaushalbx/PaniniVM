@@ -17,8 +17,7 @@ class TingantaEngine(
         if (type == "सन्") return dhatu in setOf("भू", "पच्", "जि")
         if (type == "यङ्") return dhatu == "भू"
         val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
-        return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI) ||
-            entry.sourceSurface == "स्था"
+        return true
     }
 
     fun derive(request: TingantaDerivationRequest): DerivationResult = deriveInternal(request, allowExplicitPlan = false)
@@ -40,7 +39,7 @@ class TingantaEngine(
             require(request.pada == null || request.pada == PadaType.ATMANEPADA) { "यङ् derives an Ātmanepada stem." }
             PadaType.ATMANEPADA
         } else {
-            resolvePada(requireNotNull(dhatu.pada), request.pada)
+            resolvePada(if ("णिच्" in request.sanadiPratyayas) PadaType.UBHAYAPADA else requireNotNull(dhatu.pada), request.pada)
         }
         val effectiveGana = if (request.sanadiPratyayas.isEmpty()) dhatu.gana else DhatuGana.BHVADI
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {

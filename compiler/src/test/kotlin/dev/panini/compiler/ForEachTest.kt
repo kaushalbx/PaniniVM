@@ -224,7 +224,7 @@ class ForEachTest {
             एक + ङस् द्वि + ओस् त्रि + आम् च दत्तसूची + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             दत्तसूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम्
             तद् + ङस् + लुक् - उत्तर + टाप् + भिस्
-            गण + णिच् + लोट् + सिप् ।
+            गुण + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
         assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())

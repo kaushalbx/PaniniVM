@@ -58,15 +58,9 @@ class RitualOblationGenitiveTest {
         assertTrue(resolve(verb("हु", emptyList())).evidence.none { it.sutra == "2.3.61" })
     }
 
-    @Test fun `canonical only analysis does not add prasthita commentary prohibition`() {
+    @Test fun `vartika excludes an oblation already set forth from 2 3 61`() {
         val marked = premises + SemanticRelation.PRASTHITA_OBLATION
-        val blocked = resolve(relations = marked)
-        assertEquals(Vibhakti.SASTHI, blocked.resolvedVibhakti)
-        assertTrue(blocked.evidence.any { it.sutra == "2.3.61" })
-        assertEquals(emptyList(), blocked.rejectedRules)
-        val ordinary = resolve(relations = marked, cases = setOf(Vibhakti.SASTHI, Vibhakti.DVITIYA))
-        assertEquals(Vibhakti.SASTHI, ordinary.resolvedVibhakti)
-        assertEquals(NishedhaRuleResult.Allowed, NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(
-            "2.3.2", proposedVibhakti = Vibhakti.DVITIYA)))
+        assertTrue(resolve(relations = marked).evidence.none { it.sutra == "2.3.61" })
+        assertTrue(resolve(relations = premises).evidence.any { it.sutra == "2.3.61" })
     }
 }

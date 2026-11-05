@@ -25,6 +25,7 @@ object VyavahruPanohSamarthayohSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRe
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.50", "2.3.52"),
 ) {
     fun hasSeshaTransactionObject(context: VibhaktiRuleContext): Boolean {
         val relations = context.participant?.semanticRelations.orEmpty()

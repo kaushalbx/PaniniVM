@@ -79,6 +79,31 @@ enum class SemanticRelation {
     VARANA_ACTION_SENSE,
     RUCI_ACTION_SENSE,
     ANGER_ACTION_SENSE,
+    /** Established meanings for vārttika case uses attached to 2.3.13, 2.3.18 and 2.3.28. */
+    TADARTHYA_PURPOSE,
+    KLRP_RESULT,
+    UTPATA_INDICATED,
+    HITA_BENEFICIARY,
+    PRAKRTYADI_MANNER,
+    /** Accusative said of the object or of the action: बालं शयानं पश्य, त्वां मूढं मन्ये, मन्दं गच्छति. */
+    ACCUSATIVE_CONCORD,
+    LYAB_LOPA_REFERENCE,
+    MEASURE_ORIGIN,
+    QUESTION_ANSWER_SOURCE,
+    NIMITTA_OBJECT_LOCUS,
+    /** Those fit or unfit to act, marking another action: ऋद्धेषु भुञ्जानेषु दरिद्रा आसते. */
+    KARAKA_WORTHINESS_MARK,
+    KTA_IN_OBJECT_LOCUS,
+    SADHU_ASADHU_REFERENCE,
+    NIMITTA_SYNONYM_HETU,
+    /** Supplied promotion class of a meaning-equivalent dvikarmaka action, since SK says 1.4.51 is meaning-based. */
+    PRIMARY_OBJECT_PROMOTING_SENSE,
+    SECONDARY_OBJECT_PROMOTING_SENSE,
+    /** Independently established meaning class of the governing word or action for 2.3.54, 16, 72 and 73. */
+    RUJA_ACTION_SENSE,
+    SUFFICIENCY_SYNONYM_GOVERNOR,
+    TULYARTHA_GOVERNOR,
+    WELLBEING_SYNONYM_GOVERNOR,
     /** Two-object construction where primary versus akathita status is unresolved. */
     AMBIGUOUS_DVIKARMAKA_OBJECT,
     ACCOMPANIMENT,

@@ -7,11 +7,26 @@ import dev.panini.core.Prayoga
 internal object PassiveObjectExpression {
     fun applies(context: KarakaRuleContext, role: Karaka, designation: String?): Boolean =
         context.prayoga == Prayoga.KARMANI && context.governingKrt == null && role == Karaka.KARMAN &&
-            !KarakaDhatuDomains.isCausativeConstruction(context) &&
-            designation in setOf("1.4.49", "1.4.50", "1.4.51") && KarakaDhatuDomains.isDvikarmaka(context)
+            ((designation in setOf("1.4.52", "1.4.53") && hasFreeChoice(context)) ||
+                (designation in setOf("1.4.49", "1.4.50", "1.4.51") && (hasPromotedCausee(context) ||
+                    (!KarakaDhatuDomains.isCausativeConstruction(context) && KarakaDhatuDomains.isDvikarmaka(context)))))
+
+    private fun hasFreeChoice(context: KarakaRuleContext): Boolean =
+        KarakaDhatuDomains.isCausativeConstruction(context) && KarakaDhatuDomains.hasFreeCausativePromotion(context)
+
+    /** ण्यन्ते कर्तुश्च कर्मणः: motion and intransitive causatives and हृ, कृ express the causee (Padamañjarī on 1.4.51). */
+    private fun hasPromotedCausee(context: KarakaRuleContext): Boolean =
+        KarakaDhatuDomains.isCausativeConstruction(context) && context.allParticipants.any { other ->
+            other.id != context.participant.id && other.governingNominal === context.participant.governingNominal &&
+                other.purposeGovernor?.id == context.participant.purposeGovernor?.id &&
+                other.meaningEvidenceStrength(SemanticRelation.CAUSEE_AGENT) >= 2
+        }
 
     /** Null preserves an unresolved expression prerequisite and must never mean unexpressed. */
     fun isExpressed(context: KarakaRuleContext, designation: String?): Boolean? {
+        // Where either object may be expressed, the written nominative shows the selected one.
+        if (hasFreeChoice(context)) return dev.panini.core.Vibhakti.PRATHAMA in context.participant.possibleVibhaktis
+        if (hasPromotedCausee(context)) return false
         val secondaryPromoted = KarakaDhatuDomains.promotesSecondaryObjectInPassive(context)
         if (designation == "1.4.51") return secondaryPromoted
         val explicitDvikarmaka = KarakaDhatuDomains.hasEstablishedDvikarmakaSense(context)

@@ -25,6 +25,7 @@ object NamahSvastiSvahaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE, SutraInput.PRATIPADIKA),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.13"),
 ) {
     fun hasConstruction(context: VibhaktiRuleContext): Boolean {
         val p = context.participant ?: return false
@@ -34,7 +35,7 @@ object NamahSvastiSvahaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
         if (avyaya?.form in setOf("अलम्", "अलं")) return sufficiency
         val stem = (p.governingNominal?.pratipadika as? MulaPratipadika)
             ?.takeIf { it.vikaras.isEmpty() }?.text
-        return stem in setOf("प्रभु", "शक्त") && sufficiency
+        return (stem in setOf("प्रभु", "शक्त", "समर्थ") || (stem != null && SemanticRelation.SUFFICIENCY_SYNONYM_GOVERNOR in p.semanticRelations)) && sufficiency
     }
 
     override fun matches(context: VibhaktiRuleContext): Boolean {

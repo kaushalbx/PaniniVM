@@ -21,6 +21,16 @@ object KrtGovernanceEvidence {
         KrtAffix.KHAL, KrtAffix.YUC, KrtAffix.SHANAN, KrtAffix.CANASH, KrtAffix.TRN,
     )
 
+    /** Vārttikas on 2.3.69: कमेरनिषेधः, and द्विषः शतुर्वा, where the written case shows the option taken. */
+    private fun isProhibited(affix: KrtAffix, governor: dev.panini.vyakaranam.ast.KridantaPratipadika, context: KarakaRuleContext): Boolean {
+        if (affix !in prohibited) return false
+        val root = governor.dhatu.mulaDhatu
+        if (affix == KrtAffix.UKAN && root in setOf("कम्", "कमु")) return false
+        if (affix == KrtAffix.SHATR && root in setOf("द्विष्", "द्विष") &&
+            dev.panini.core.Vibhakti.SASTHI in context.participant.possibleVibhaktis) return false
+        return true
+    }
+
     fun enrich(context: KarakaRuleContext): KarakaRuleContext {
         val governor = context.governingKrt ?: return context
         if (!hasRecognizedMorphology(governor)) return context.copy(governingKrtExpressedRoles = null)
@@ -38,7 +48,7 @@ object KrtGovernanceEvidence {
             else -> null
         }
         val unverifiedProhibitionClaim =
-            (context.participant.isKrtProhibitedForSasthi && affix !in prohibited) ||
+            (context.participant.isKrtProhibitedForSasthi && !isProhibited(affix, governor, context)) ||
             (context.participant.krtGenitiveProhibition != null && context.participant.krtGenitiveProhibition != prohibition70)
         val dualMarkers = setOf(SemanticRelation.KRT_DUAL_ELIGIBLE_AGENT, SemanticRelation.KRT_DUAL_ELIGIBLE_OBJECT)
         val independentRoles = buildSet {
@@ -86,7 +96,7 @@ object KrtGovernanceEvidence {
                         "bound genitive eligibility: ${eligibility.takeIf { eligibilityValid } ?: "unverified"}.",
                 )
             },
-            isKrtProhibitedForSasthi = context.participant.isKrtProhibitedForSasthi || affix in prohibited,
+            isKrtProhibitedForSasthi = context.participant.isKrtProhibitedForSasthi || isProhibited(affix, governor, context),
             krtGenitiveProhibition = prohibition70 ?: context.participant.krtGenitiveProhibition,
         )
         val candidates = context.candidates.ifEmpty {

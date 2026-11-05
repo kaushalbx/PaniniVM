@@ -23,7 +23,7 @@ object SambodhaneCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230047,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA),
-    adhikara = emptySet(),
+    adhikara = emptySet(), anuvrtti = setOf("2.3.46"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         (context.karaka == Karaka.SAMBODHANA ||

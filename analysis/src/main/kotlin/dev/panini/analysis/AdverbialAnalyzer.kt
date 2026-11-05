@@ -69,6 +69,8 @@ object AdverbialAnalyzer {
         "अत्यन्त" to "अत्यन्तम्",
     ).mapValues { (_, form) -> lexicon.getValue(form) }
 
+    fun licensesCaseForm(stem: String?): Boolean = stem in caseFormLexicon
+
     fun analyze(kriyaId: KriyaId, analyses: List<PadaAnalysis>): List<KriyaQualification> =
         analyses.mapIndexedNotNull { index, analysis ->
             when (analysis) {
@@ -83,9 +85,10 @@ object AdverbialAnalyzer {
                 }
                 is AnalyzedSubanta -> {
                     val sub = analysis.analysis
-                    val stem = sub.lexicalEntry?.text ?: return@mapIndexedNotNull null
+                    val stem = sub.lexicalEntry?.text ?: ((sub.pada as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika
+                        as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text ?: return@mapIndexedNotNull null
                     val semantics = caseFormLexicon[stem] ?: return@mapIndexedNotNull null
-                    if (Linga.NAPUMSAKA !in sub.linga || sub.supCandidates.none {
+                    if ((sub.linga.isNotEmpty() && Linga.NAPUMSAKA !in sub.linga) || sub.supCandidates.none {
                         it.vibhakti == Vibhakti.DVITIYA && it.vacana == Vacana.EKAVACANA
                     }) return@mapIndexedNotNull null
                     KriyaQualification(kriyaId, analysis, semantics.dimension, stem, index, semantics,

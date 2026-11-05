@@ -11,7 +11,7 @@ object UbhayapraptauKarmaniSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
     hindiExplanation = "कृत्-प्रयोग में कर्ता और कर्म दोनों को षष्ठी प्राप्त होने पर केवल कर्म में षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230066,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50"),
 ) {
     override fun matches(context: VibhaktiRuleContext) = !context.abhihita &&
         !GatyarthaKarmaniDvitiyaCaturthyauSutra.isApplicableDomain(context) &&

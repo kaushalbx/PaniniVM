@@ -25,12 +25,15 @@ object ManyaKarmaniAnadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.13"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.CHATURTHI)
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             context.karaka == Karaka.KARMAN &&
             dev.panini.analysis.KarakaDhatuDomains.isMan(context) &&
+            // Vārttika: नौ, काक, अन्न, शुक, शृगाल are excluded in place of the bare inanimate test.
+            ((context.participant?.expression as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text !in setOf("नौ", "काक", "अन्न", "शुक", "शृगाल") &&
             SemanticRelation.MAN_INANIMATE_DISREGARD_OBJECT in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.CHATURTHI in context.morphologicalCandidates || Vibhakti.DVITIYA in context.morphologicalCandidates)
 

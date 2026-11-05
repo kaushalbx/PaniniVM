@@ -11,13 +11,15 @@ object PresyabruvorHavisoDevatasampradaneSutra : Sutra<VibhaktiRuleContext, Vibh
     hindiExplanation = "देवता सम्प्रदान होने पर प्रेष्य/ब्रूहि के हविः-कर्म में षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230061,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50", "2.3.52"),
 ) {
     /** Positive domain only; prasthita prohibition is applied separately and remains explainable. */
     fun hasRitualOblationObject(context: VibhaktiRuleContext): Boolean {
         val participant = context.participant ?: return false
         val relations = participant.semanticRelations
         return KarakaDhatuDomains.isPresyaOrBruhi(context) &&
+            // Vārttika हविषोऽप्रस्थितस्य.
+            SemanticRelation.PRASTHITA_OBLATION !in relations &&
             setOf(SemanticRelation.DEITY_OBLATION_OBJECT, SemanticRelation.DESIRED_OBJECT,
                 SemanticRelation.SESHA_RELATION).all { it in relations } &&
             context.allParticipants.any { it.id != participant.id && SemanticRelation.DEITY_REFERENT in it.semanticRelations &&

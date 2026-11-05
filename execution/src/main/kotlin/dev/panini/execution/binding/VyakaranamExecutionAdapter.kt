@@ -163,16 +163,37 @@ object VyakaranamExecutionAdapter {
                 ),
             )
             val initialFrame = analyzer.analyze(vakya, frameId)
+            val voiceRelations = VoiceRoleConstruction.infer(akhyata, dhatu, initialFrame,
+                priorAction = "क्त्वा" in ukti.sourceText || "ल्यप्" in ukti.sourceText)
             val objectContext = dev.panini.analysis.VakyaSemanticContext(
-                participantRelations = ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) +
+                // Non-binding readings wait, so that the instruction's own slots may claim those words first.
+                participantRelations = voiceRelations.filterKeys { it !in VoiceRoleConstruction.nonBinding(initialFrame, voiceRelations) } +
+                    ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) +
                     ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame))
             val objectFrame = if (objectContext.participantRelations.isEmpty()) initialFrame else
                 analyzer.analyze(vakya, frameId, objectContext)
             val construction = dev.panini.analysis.VakyaSemanticContext(
-                participantRelations = objectContext.participantRelations +
+                // What the instruction declares comes last and so wins over these general readings.
+                participantRelations = voiceRelations + CaseFormConstruction.infer(initialFrame) + CaseFormConstruction.upapadaDependents(akhyata, initialFrame) +
+                    objectContext.participantRelations.filterKeys { it !in voiceRelations } +
+                    ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame) +
                     ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame) +
                     ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame) +
-                    procedureCall?.let { ProgramProcedureCallConstruction.infer(it, objectFrame) }.orEmpty())
+                    procedureCall?.let { ProgramProcedureCallConstruction.infer(it, objectFrame) }.orEmpty() +
+                    ProgramGenitiveConstruction.infer(akhyata, objectFrame) +
+                    ProgramPurposeConstruction.infer(dhatu, objectFrame) +
+                    CaseFormConstruction.infinitiveObjects(akhyata, initialFrame).keys.associateWith { setOf(dev.panini.analysis.SemanticRelation.DESIRED_OBJECT) },
+                purposeGovernors = CaseFormConstruction.infinitiveObjects(akhyata, initialFrame),
+                krtGovernors = VoiceRoleConstruction.krtGovernors(initialFrame),
+                avyayaGovernors = CaseFormConstruction.avyayaGovernors(akhyata, initialFrame),
+                nonBindingReadings = VoiceRoleConstruction.nonBinding(initialFrame, voiceRelations + CaseFormConstruction.infer(initialFrame)) -
+                    (ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame).keys + ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame).keys + ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame).keys),
+                // A slot the instruction declares is not a default; the rest stay marked.
+                defaultReadings = (VoiceRoleConstruction.defaults(initialFrame, voiceRelations + CaseFormConstruction.infer(initialFrame) +
+                    CaseFormConstruction.upapadaDependents(akhyata, initialFrame)) +
+                    VoiceRoleConstruction.krtGovernors(initialFrame).keys + CaseFormConstruction.infinitiveObjects(akhyata, initialFrame).keys) -
+                    (ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame).keys + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame).keys +
+                        ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame).keys + ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame).keys))
             val frame = if (construction == objectContext) objectFrame else
                 analyzer.analyze(vakya, frameId, construction)
             if (vakya !in suppliedObjectVakyas || dhatu == null ||

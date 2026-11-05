@@ -395,6 +395,7 @@ object KarakaRuleEngine {
         }
 
     private fun isDirectlyAbhihita(context: KarakaRuleContext, karaka: Karaka, designation: String?): Boolean {
+        if (karaka in context.participant.derivationExpression?.roles.orEmpty()) return true
         if (context.governingKrt != null) return karaka in context.governingKrtExpressedRoles.orEmpty()
         if (PassiveObjectExpression.applies(context, karaka, designation))
             return PassiveObjectExpression.isExpressed(context, designation) == true
@@ -500,7 +501,13 @@ object KarakaRuleEngine {
      * semantic conclusion.
      */
     private val directNonKarakaVibhaktiRules = setOf(
+        "2.3.2",
+        "2.3.36",
+        "2.3.27",
         "2.3.3",
+        "2.3.13",
+        "2.3.18",
+        "2.3.28",
         "2.3.4",
         "2.3.5",
         "2.3.6",

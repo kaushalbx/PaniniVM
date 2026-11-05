@@ -17,108 +17,230 @@
   "families": [
     {
       "id": "karaka_designation",
-      "sections": ["2"],
+      "sections": [
+        "2"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "KarakaRelation separates resolved role, written case, canonical evidence, alternatives and coexisting designations.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt", "analysis/src/main/kotlin/dev/panini/analysis/KarakaRuleEngine.kt", "analysis/src/test/kotlin/dev/panini/analysis/KarakaJsonBenchmarkTest.kt"],
-      "remaining": ["Reassess each canonical rule on the three audit axes.", "Review unannotated PVM clauses against intended meaning; fixture counts do not establish raw-text inference."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/KarakaRuleEngine.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/KarakaJsonBenchmarkTest.kt"
+      ],
+      "remaining": [
+        "Reassess each canonical rule on the three audit axes.",
+        "Review unannotated PVM clauses against intended meaning; fixture counts do not establish raw-text inference."
+      ]
     },
     {
       "id": "causer_and_causee",
-      "sections": ["2.1.1", "2.1.2"],
+      "sections": [
+        "2.1.1",
+        "2.1.2"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "PROMPTER_CAUSE and CAUSEE_AGENT premises coexist with canonical roles; HETU is a separate designation.",
-      "evidence": ["core/src/main/kotlin/dev/panini/analysis/KrtGovernanceEvidence.kt", "analysis/src/test/kotlin/dev/panini/analysis/KrtGovernorFrameTest.kt"],
-      "remaining": ["Audit nested causatives and all causee-promotion choices.", "Decide whether downstream consumers require a first-class semantic-function projection instead of inspecting premise provenance."]
+      "evidence": [
+        "core/src/main/kotlin/dev/panini/analysis/KrtGovernanceEvidence.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/KrtGovernorFrameTest.kt"
+      ],
+      "remaining": [
+        "Audit nested causatives and all causee-promotion choices.",
+        "Decide whether downstream consumers require a first-class semantic-function projection instead of inspecting premise provenance."
+      ]
     },
     {
       "id": "expressed_role_and_controller",
-      "sections": ["1.1", "2.1", "2.2", "A"],
+      "sections": [
+        "1.1",
+        "2.1",
+        "2.2",
+        "A"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "Prayoga and governing-krt expressed-role readings drive case licensing; finite agreement is checked separately.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/KarakaRuleEngine.kt", "analysis/src/main/kotlin/dev/panini/analysis/VakyaAnalyzer.kt", "analysis/src/test/kotlin/dev/panini/analysis/KrtGovernorFrameTest.kt"],
-      "remaining": ["Audit explicit exported controller identity for finite, nominal and omitted-participant constructions.", "Complete dvikarmaka and causative passive promotion coverage."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/KarakaRuleEngine.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/VakyaAnalyzer.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/KrtGovernorFrameTest.kt"
+      ],
+      "remaining": [
+        "Audit explicit exported controller identity for finite, nominal and omitted-participant constructions.",
+        "Complete dvikarmaka and causative passive promotion coverage."
+      ]
     },
     {
       "id": "prior_and_other_action_relations",
-      "sections": ["3.1"],
+      "sections": [
+        "3.1"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "PriorActionStructure, Purvakalika and SharedParticipant preserve actual action owners and written participants.",
-      "evidence": ["core/src/main/kotlin/dev/panini/vyakaranam/ast/PriorActionStructure.kt", "analysis/src/main/kotlin/dev/panini/analysis/UktiAnalyzer.kt", "execution/src/test/kotlin/dev/panini/execution/PriorActionGrammarTest.kt"],
-      "remaining": ["Add separately typed and justified simultaneity and absolute-construction relations; current KriyaLink has no such variants.", "Resolve remaining passive prior-chain attachment and execution obligations without copying patient case forms into agent positions."]
+      "evidence": [
+        "core/src/main/kotlin/dev/panini/vyakaranam/ast/PriorActionStructure.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/UktiAnalyzer.kt",
+        "execution/src/test/kotlin/dev/panini/execution/PriorActionGrammarTest.kt"
+      ],
+      "remaining": [
+        "Add separately typed and justified simultaneity and absolute-construction relations; current KriyaLink has no such variants.",
+        "Resolve remaining passive prior-chain attachment and execution obligations without copying patient case forms into agent positions."
+      ]
     },
     {
       "id": "nominal_modification_and_predication",
-      "sections": ["3.2.4", "3.3.1", "3.3.2"],
+      "sections": [
+        "3.2.4",
+        "3.3.1",
+        "3.3.2"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "candidate_generation",
       "representation": "NominalAttachment retains attributive/predicative candidates, agreement possibilities, meaning dimensions and independent readings.",
-      "evidence": ["core/src/main/kotlin/dev/panini/analysis/NominalRelations.kt", "analysis/src/test/kotlin/dev/panini/analysis/NominalRelationAnalyzerTest.kt"],
-      "remaining": ["Establish attachment and predicative scope using construction evidence; agreement alone is insufficient.", "Audit object predication separately from ordinary noun modification and avoid positional shortcuts."]
+      "evidence": [
+        "core/src/main/kotlin/dev/panini/analysis/NominalRelations.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/NominalRelationAnalyzerTest.kt"
+      ],
+      "remaining": [
+        "Establish attachment and predicative scope using construction evidence; agreement alone is insufficient.",
+        "Audit object predication separately from ordinary noun modification and avoid positional shortcuts."
+      ]
     },
     {
       "id": "adverbial_and_constituent_scope",
-      "sections": ["3.2.5", "3.3.3"],
+      "sections": [
+        "3.2.5",
+        "3.3.3"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "lexically_licensed_candidates_with_supplied_attachment",
       "representation": "KriyaQualification distinguishes indeclinables from case forms. AdverbialScopeResolver validates event, proposition or constituent targets.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/AdverbialAnalyzer.kt", "analysis/src/main/kotlin/dev/panini/analysis/AdverbialScopeResolver.kt", "analysis/src/test/kotlin/dev/panini/analysis/AdverbialScopeResolverTest.kt"],
-      "remaining": ["Expand justified lexical/case-form coverage and infer scope when sentence evidence suffices.", "Retain nominal alternatives and unresolved targets; identical words must not substitute for distinct occurrences."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/AdverbialAnalyzer.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/AdverbialScopeResolver.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/AdverbialScopeResolverTest.kt"
+      ],
+      "remaining": [
+        "Expand justified lexical/case-form coverage and infer scope when sentence evidence suffices.",
+        "Retain nominal alternatives and unresolved targets; identical words must not substitute for distinct occurrences."
+      ]
     },
     {
       "id": "negation_and_prohibition",
-      "sections": ["3.2.6"],
+      "sections": [
+        "3.2.6"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "lexically_licensed_candidates_with_supplied_attachment",
       "representation": "AdverbialFunction distinguishes NEGATION and PROHIBITION; proposition scope is distinct from event scope.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/AdverbialAnalyzer.kt", "analysis/src/main/kotlin/dev/panini/analysis/AdverbialScopeResolver.kt", "analysis/src/test/kotlin/dev/panini/analysis/AdverbialScopeResolverTest.kt"],
-      "remaining": ["Audit proposition, constituent and imperative scope through actual PVM analysis and execution."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/AdverbialAnalyzer.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/AdverbialScopeResolver.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/AdverbialScopeResolverTest.kt"
+      ],
+      "remaining": [
+        "Audit proposition, constituent and imperative scope through actual PVM analysis and execution."
+      ]
     },
     {
       "id": "nominal_case_and_upapada_governance",
-      "sections": ["3.3.4", "3.3.5", "3.3.7", "3.3.9", "4"],
+      "sections": [
+        "3.3.4",
+        "3.3.5",
+        "3.3.7",
+        "3.3.9",
+        "4"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "NominalCaseLinkAnalysis separates conditional governor candidates, missing premises, established links and joint case alternatives.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/NominalCaseLinkAnalyzer.kt", "analysis/src/test/kotlin/dev/panini/analysis/NominalCaseFrameTest.kt"],
-      "remaining": ["Map each supported non-karaka relation to its canonical case evidence without manufacturing a 1.4 designation.", "Audit general possessive/genitive head attachment separately from merely licensing a genitive case.", "Audit all applicable upapada domains and competing governors; case compatibility alone cannot establish a link."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/NominalCaseLinkAnalyzer.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/NominalCaseFrameTest.kt"
+      ],
+      "remaining": [
+        "Map each supported non-karaka relation to its canonical case evidence without manufacturing a 1.4 designation.",
+        "Audit general possessive/genitive head attachment separately from merely licensing a genitive case.",
+        "Audit all applicable upapada domains and competing governors; case compatibility alone cannot establish a link."
+      ]
     },
     {
       "id": "purpose_and_reason",
-      "sections": ["3.2.2", "3.2.3"],
+      "sections": [
+        "3.2.2",
+        "3.2.3"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "mixed_automatic_and_supplied",
       "representation": "PurposeActionGovernor and PurposeKarakaRelation preserve written or supplied action ownership; reason and purpose premises remain distinct.",
-      "evidence": ["core/src/main/kotlin/dev/panini/analysis/PurposeActionGovernor.kt", "analysis/src/test/kotlin/dev/panini/analysis/PurposeActionFrameTest.kt", "analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt"],
-      "remaining": ["Audit reason versus purpose ambiguity and omitted-action inference.", "Do not turn a supplied implied action into an invented written occurrence or execution operation."]
+      "evidence": [
+        "core/src/main/kotlin/dev/panini/analysis/PurposeActionGovernor.kt",
+        "analysis/src/test/kotlin/dev/panini/analysis/PurposeActionFrameTest.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt"
+      ],
+      "remaining": [
+        "Audit reason versus purpose ambiguity and omitted-action inference.",
+        "Do not turn a supplied implied action into an invented written occurrence or execution operation."
+      ]
     },
     {
       "id": "coordination_conditions_and_discourse",
-      "sections": ["3.4", "5"],
+      "sections": [
+        "3.4",
+        "5"
+      ],
       "correctness": "partial",
       "integration": "partial",
       "inference": "supported_ast_constructions",
       "representation": "KriyaLink has Condition, Alternative and Coordination, plus shared participants; parser and runtime retain structured program control flow.",
-      "evidence": ["analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt", "analysis/src/main/kotlin/dev/panini/analysis/UktiAnalyzer.kt", "execution/src/test/kotlin/dev/panini/execution/ReviewedConditionalExampleTest.kt"],
-      "remaining": ["Map supported connectors individually instead of equating condition, temporal correlation, cause-effect and concession.", "Audit graph versus runtime control-flow semantics; the current KriyaLink inventory has no dedicated cause-effect or concession edge.", "Separate clausal-content quotation from command/text quotation before claiming general quotation semantics."]
+      "evidence": [
+        "analysis/src/main/kotlin/dev/panini/analysis/KriyaFrame.kt",
+        "analysis/src/main/kotlin/dev/panini/analysis/UktiAnalyzer.kt",
+        "execution/src/test/kotlin/dev/panini/execution/ReviewedConditionalExampleTest.kt"
+      ],
+      "remaining": [
+        "Map supported connectors individually instead of equating condition, temporal correlation, cause-effect and concession.",
+        "Audit graph versus runtime control-flow semantics; the current KriyaLink inventory has no dedicated cause-effect or concession edge.",
+        "Separate clausal-content quotation from command/text quotation before claiming general quotation semantics."
+      ]
     }
   ],
   "nextActions": [
     "Build the per-canonical-rule ledger with concrete correctness/integration criteria; this family map is not its replacement.",
     "Validate selected source examples independently before converting them to JSON expectations.",
     "Use the PVM source audit to prioritize unreviewed real clauses alongside relation-model gaps."
-  ]
+  ],
+  "lastMeasured": {
+    "date": "2026-11-05",
+    "sample": "55 sentences encoded by hand from the guidelines, in PVM notation",
+    "method": "parser and analyzer with no supplied meaning",
+    "note": "Resolved means no open or ambiguous participant, not agreement with the source annotation. Answers were not compared label by label, and no outside reader has judged them.",
+    "fullyResolved": 41,
+    "withNoDefaultReading": 14
+  },
+  "addedSince": [
+    "ParticipialTime: simultaneous and prior, absolute locative 2.3.37",
+    "InfinitiveRelation: 3.3.158, 3.4.65, 3.3.10",
+    "VoiceRoleConstruction: voice roles, predication, causee, passive objects, marked defaults",
+    "CaseFormConstruction: 2.3.6, 2.3.15, 2.3.20, 2.3.41, 2.3.42, upapada links",
+    "ParticleRole: identity without scope"
+  ],
+  "goldComparison": {
+    "test": "execution/src/test/kotlin/dev/panini/execution/binding/GuidelineGoldTest.kt",
+    "key": "execution/src/test/resources/guideline_gold.txt",
+    "result": "right 114 open 9 wrong 2",
+    "note": "Labels are the guidelines own, encoded by hand into PVM notation with kāraka or NONE. The analyzer was fixed against this sample, so it is no longer a held-out measure."
+  }
 }

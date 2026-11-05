@@ -26,13 +26,11 @@ class ProgramLocusConstructionTest {
         assertSame(frame.sourceVakya.padas.single { it.sourceText == "द्वितीय+ङि" }, locus.participant.pada)
     }
 
-    @Test fun `program location is not supplied for undeclared slots syncretism or passive voice`() {
-        for (source in listOf(
-            "ग्राम + ङि पठँ + लोट् + सिप् ।",
-            "मूल्य + अम् सूची + ङसिँ द्वितीय + ओस् ग्रहँ + श्ना + लोट् + सिप् ।",
-            "मूल्य + सुँ सूची + ङसिँ द्वितीय + ङि ग्रहँ + यक् + लट् + त ।")) {
-            val frame = frame(source)
-            assertTrue(frame.relations.all { relation -> relation.evidence.none { it.sutra == "1.4.45" } }, source)
+    @Test fun `a syncretic form gets no locus but a plain locative does, for any root and voice`() {
+        val syncretic = frame("मूल्य + अम् सूची + ङसिँ द्वितीय + ओस् ग्रहँ + श्ना + लोट् + सिप् ।")
+        assertTrue(syncretic.relations.all { relation -> relation.evidence.none { it.sutra == "1.4.45" } })
+        for (source in listOf("ग्राम + ङि पठँ + लोट् + सिप् ।", "मूल्य + सुँ सूची + ङसिँ द्वितीय + ङि ग्रहँ + यक् + लट् + त ।")) {
+            assertTrue(frame(source).relations.any { relation -> relation.evidence.any { it.sutra == "1.4.45" } }, source)
         }
     }
 }

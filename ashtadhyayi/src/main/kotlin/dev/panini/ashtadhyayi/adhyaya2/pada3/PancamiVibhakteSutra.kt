@@ -23,6 +23,7 @@ object PancamiVibhakteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.41"),
 ) {
     /** Applicability independent of observed case, so the exception cannot fall back to 2.3.41. */
     fun hasDistinctReference(context: VibhaktiRuleContext): Boolean {

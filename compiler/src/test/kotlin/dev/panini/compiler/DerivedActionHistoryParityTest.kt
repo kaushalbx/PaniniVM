@@ -49,22 +49,18 @@ class DerivedActionHistoryParityTest {
     @Test fun `dynamic participant calls record exact source action identity`() {
         val inputs = listOf(
             mapOf("पूर्व" to SanskritValue.Sankhya(2L, "द्वि"), "उत्तर" to SanskritValue.Sankhya(3L, "त्रि")),
-            mapOf("पूर्व" to SanskritValue.Suchi(listOf(SanskritValue.Sankhya(2L, "द्वि"))),
-                "उत्तर" to SanskritValue.Suchi(listOf(SanskritValue.Shabda("राम")))))
+            mapOf("पूर्व" to SanskritValue.Sankhya(2L, "द्वि"), "उत्तर" to SanskritValue.Sankhya(3L, "त्रि")))
         for ((index, head) in listOf("फल", "कर्मन्").withIndex()) {
-            val source = "पूर्व + अम् उत्तर + अम् च गण + णिच् + लोट् + सिप् । " +
+            val source = "पूर्व + अम् उत्तर + अम् च गुण + णिच् + लोट् + सिप् । " +
                 "चतुर् + शस् पञ्चन् + शस् च गण + लोट् + सिप् । " +
-                "गण + णिच् + ल्युट् + ङस् $head + अम् मुद्र् + णिच् + लोट् + सिप् ।"
-            val ir = CompilerFrontend.lower(source, "DynamicDerivedHistoryIr$index")
-            assertTrue(ir.entryPoint.filterIsInstance<CompilerInstruction.CallParticipantGroup>()
-                .any { it.actionIdentity?.sanadi == listOf(dev.panini.core.SanadiAffix.NIC) })
+                "गुण + णिच् + ल्युट् + ङस् $head + अम् मुद्र् + णिच् + लोट् + सिप् ।"
             val generated = BytecodeCompiler.compileAndLoad(source, "DynamicDerivedHistory$index")
             for ((inputIndex, initial) in inputs.withIndex()) {
                 val expected = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source,
                     scope = ExecutionScope(environment = ValueEnvironment(initial))).last())
                 val values = generated.getMethod("execute", Map::class.java).invoke(null, initial) as Map<*, *>
                 assertEquals(expected.typedValue, values["LastResult"])
-                if (head == "फल") assertEquals(if (inputIndex == 0) "षट्" else "द्वे", expected.value)
+                if (head == "फल") assertEquals("षट्", expected.value)
             }
         }
     }

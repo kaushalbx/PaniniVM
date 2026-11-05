@@ -20,6 +20,7 @@ object NaLokavyayanisthanisthakhalarthatrnnamSutra : Sutra<VibhaktiRuleContext, 
     role = SutraRole.Nishedha, action = SutraAction.NISHEDHA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.PRATYAYA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.50"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean = false
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

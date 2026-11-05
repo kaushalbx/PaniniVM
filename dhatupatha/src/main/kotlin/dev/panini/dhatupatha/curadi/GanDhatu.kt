@@ -2,7 +2,6 @@ package dev.panini.dhatupatha.curadi
 
 import dev.panini.actions.numeric.AverageAction
 import dev.panini.actions.numeric.CountingAction
-import dev.panini.actions.numeric.MultiplicationAction
 import dev.panini.actions.collection.ListLengthAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
@@ -25,17 +24,14 @@ class GanDhatu : Dhatu(
     upadesha = "गण",
     sourceSurface = "गण",
     artha = "सङ्ख्याने",
-    arthaHindi = "गिनना, गुणा करना, सूच्याकारः",
-    arthaEnglish = "to count, to enumerate, to multiply, to get list size",
+    arthaHindi = "गिनना, सूच्याकारः",
+    arthaEnglish = "to count, to enumerate, to get list size",
     gana = DhatuGana.CURADI,
     pada = PadaType.UBHAYAPADA,
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        MultiplicationAction.numericOp {
-            triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.SAM))
-        },
         CountingAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
             returns(Samjna.SANKHYA)

@@ -23,6 +23,7 @@ data class ParticipantFacts(
     val governingNominal: dev.panini.vyakaranam.ast.SubantaPada? = null,
     val taddhitaLopa: TaddhitaLopaEvidence? = null,
     val vedicCaseLicense: VedicCaseLicense? = null,
+    val derivationExpression: DerivationExpression? = null,
     /** Established dependency on an expressed counting-frequency pada, not inferred repetition. */
     val frequencyGovernor: dev.panini.vyakaranam.ast.AvyayaPada? = null,
     val intendedObject: IntendedObject? = null,

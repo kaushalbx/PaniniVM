@@ -2789,11 +2789,7 @@ object CuradiDhatus {
                 "आमन्त्रणे", "बुलाना, ज्ञानपूर्वक कहना", "to invite, to call, to sign,  to speak intelligently",
                 PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "10.0436", 436, "गुण", "गुण",
-                "आमन्त्रणे", "बुलाना, बुद्धिपूर्वक कहना", "to invite, to call, to sign,  to speak intelligently",
-                PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-            )
+            dhatu(GunDhatu())
             dhatu(
                 "10.0437", 437, "केत", "केत",
                 "श्रावणे आमन्त्रणे च", "बुलाना, आमंत्रित करना, श्रवण करना", "to call, to invite, to hear",

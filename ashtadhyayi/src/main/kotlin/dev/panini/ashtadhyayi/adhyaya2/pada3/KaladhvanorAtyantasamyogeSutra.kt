@@ -21,6 +21,7 @@ object KaladhvanorAtyantasamyogeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.2"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean {
         val relations = context.participant?.semanticRelations.orEmpty()

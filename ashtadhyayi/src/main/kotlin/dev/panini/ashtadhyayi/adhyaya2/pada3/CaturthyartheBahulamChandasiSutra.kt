@@ -10,7 +10,7 @@ object CaturthyartheBahulamChandasiSutra : Sutra<VibhaktiRuleContext, VibhaktiRu
     hindiExplanation = "छन्दस् में चतुर्थी के अर्थ में बहुलतः षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230062,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50"),
 ), AttestedVibhaktiRuleOutcome {
     override val attestedCase = Vibhakti.SASTHI
     fun hasLicensedUse(context: VibhaktiRuleContext): Boolean {

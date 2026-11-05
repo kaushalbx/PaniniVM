@@ -28,7 +28,7 @@ object JanikartuhPrakrtihSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         // Kāśikā/Nyāsa includes both upādāna and sahakārin causes.
         val isCause = context.participant.hasEstablishedMeaning(SemanticRelation.BIRTH_MATERIAL_CAUSE) ||
             context.participant.hasEstablishedMeaning(SemanticRelation.BIRTH_ASSISTING_CAUSE)
-        return isJan && context.participant.hasEstablishedMeaning(SemanticRelation.SOURCE) && isCause
+        return isJan && isCause
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada4
 
+import dev.panini.derivation.matchesAffix
 import dev.panini.core.DhatuGana
 import dev.panini.core.LopaType
 import dev.panini.derivation.DerivationChange
@@ -29,6 +30,7 @@ object JuhotyadibhyahShluhSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
+        if (context.terms.any { it.matchesAffix(dev.panini.core.SanadiAffix.NIC) }) return false // a ṇic stem takes śap, not ślu
         return dhatu.gana == DhatuGana.JUHOTYADI && context.terms.any { it.upadesha == "शप्" }
     }
 

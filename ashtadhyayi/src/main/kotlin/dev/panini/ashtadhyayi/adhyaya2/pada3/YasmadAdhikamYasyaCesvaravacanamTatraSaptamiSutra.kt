@@ -22,6 +22,7 @@ object YasmadAdhikamYasyaCesvaravacanamTatraSaptamiSutra : Sutra<VibhaktiRuleCon
     pada = 3,
     optional = false,
     kramaValue = 230009,
+    anuvrtti = setOf("2.3.8"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

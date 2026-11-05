@@ -28,13 +28,13 @@ class ProgramObjectConstructionTest {
         assertEquals(listOf("1.4.42", "2.3.18"), means.evidence.map { it.sutra })
     }
 
-    @Test fun `unregistered object slots and passive heads acquire no program desired meaning`() {
-        for (source in listOf(
-            "ग्रन्थ + अम् पठँ + लोट् + सिप् ।",
-            "फल + सुँ ग्रहँ + यक् + लट् + त ।")) {
-            assertTrue(frame(source).relations.all { relation ->
-                relation.evidence.none { it.sutra == "1.4.49" }
-            }, source)
-        }
+    @Test fun `a root without an instruction still has its karma by voice`() {
+        val obj = frame("ग्रन्थ + अम् पठँ + लोट् + सिप् ।").relations.single()
+        assertEquals(listOf("1.4.49", "2.3.2"), obj.evidence.map { it.sutra })
+    }
+
+    @Test fun `a passive nominative is the expressed karma`() {
+        val obj = frame("फल + सुँ ग्रहँ + यक् + लट् + त ।").relations.single()
+        assertEquals(Karaka.KARMAN, (obj.resolution as FrameKarakaResolution.Resolved).karaka)
     }
 }

@@ -591,15 +591,14 @@ class ProgramAstTest {
     }
 
     @Test
-    fun `action cha after postposed operands is rejected as ambiguous`() {
-        val failure = assertFailsWith<IllegalArgumentException> {
-            parser.parse(
-                "एक + अम् मुद्र् + णिच् + लोट् + सिप् राम + सुँ " +
-                    "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
-            )
-        }
-
-        assertTrue(failure.message.orEmpty().contains("immediately follow"))
+    fun `words between a verb and action cha open the next clause`() {
+        val sequence = assertIs<Sequence>(parser.parse(
+            "एक + अम् मुद्र् + णिच् + लोट् + सिप् राम + सुँ " +
+                "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+        val (first, second) = sequence.statements.map { assertIs<Invocation>(it).vakya.padas }
+        assertEquals(2, first.size)
+        assertEquals(3, second.size)
     }
 
     @Test

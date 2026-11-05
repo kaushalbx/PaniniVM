@@ -34,7 +34,8 @@ object TulyarthairAtulopamabhyamTrtiyanatarasyamSutra : Sutra<VibhaktiRuleContex
         val p = context.participant ?: return false
         val stem = p.governingNominal?.pratipadika as? MulaPratipadika ?: return false
         return stem.vikaras.all { it.isRecognizedStriAffix } &&
-            stem.text in setOf("तुल्य", "सदृश", "समान", "सम") &&
+            (stem.text in setOf("तुल्य", "सदृश", "समान", "सम") ||
+                (SemanticRelation.TULYARTHA_GOVERNOR in p.semanticRelations && stem.text !in setOf("तुला", "उपमा"))) &&
             SemanticRelation.EQUAL_COMPARISON in p.semanticRelations &&
             SemanticRelation.SESHA_RELATION in p.semanticRelations
     }

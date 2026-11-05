@@ -27,6 +27,7 @@ object VibhasopasargeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.50", "2.3.52", "2.3.58"),
 ), OptionalVibhaktiRuleOutcome, CaseDependentKarakaOutcome {
     override val permittedCases = setOf(Vibhakti.SASTHI, Vibhakti.DVITIYA)
     override fun karakaForCase(vibhakti: Vibhakti): Karaka =

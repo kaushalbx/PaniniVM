@@ -359,6 +359,7 @@ subantaVakyaPada
 
 vakyaSambandha
     : CHA
+    | TATHAAPI
     | VAA
     | ITI
     | ATHA
@@ -901,12 +902,14 @@ sankhyaAvyaya
     ;
 
 mulaAvyaya
-    : MAA
+    : IDENTIFIER
+    | MAA
     | YAVAT
     | TAVAT
     | NA
     | ITI
     | API
+    | YADYAPI
     | NAAMA
     | NI
     | EVA

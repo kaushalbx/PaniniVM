@@ -1073,7 +1073,7 @@ class KarakaInferenceTest {
             "1.4.30" to "जन्", "1.4.31" to "प्रभू",
         ).forEach { (number, root) ->
             val rule = KarakaRuleEngine.karakaRules.single { it.number == number }
-            val premises = setOf(SemanticRelation.SOURCE) +
+            val premises = (if (number == "1.4.24") setOf(SemanticRelation.SOURCE) else emptySet()) +
                 when (number) {
                     "1.4.24" -> setOf(SemanticRelation.SEPARATION_REFERENCE)
                     "1.4.29" -> setOf(SemanticRelation.FORMAL_INSTRUCTION_SOURCE)

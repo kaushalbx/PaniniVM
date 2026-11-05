@@ -142,6 +142,8 @@ enum class FrameDiagnosticCode {
     PRIOR_ACTION_STRUCTURE,
     UNKNOWN_DHATU,
     AMBIGUOUS_KARAKA,
+    MULTIPLE_INDEPENDENT_AGENTS,
+    MULTIPLE_PRIMARY_OBJECTS,
     UNASSIGNED_PARTICIPANT,
     AGREEMENT_MISMATCH,
     UNCLASSIFIED_PADA,
@@ -152,6 +154,10 @@ enum class FrameDiagnosticCode {
     UNVALIDATED_VIBHAKTI,
     COMPETING_KARAKA_ANALYSIS,
     AMBIGUOUS_OBJECT_MEDIATION,
+    /** A reading chosen by default where intention could select another. */
+    DEFAULT_READING,
+    /** A grammatical reading that an instruction may not take as an operand. */
+    NON_BINDING_READING,
 }
 
 enum class FrameDiagnosticSeverity { INFO, WARNING, ERROR }
@@ -162,9 +168,13 @@ object FrameDiagnosticPolicy {
         FrameDiagnosticCode.UNKNOWN_DHATU,
         FrameDiagnosticCode.PRIOR_ACTION_STRUCTURE -> FrameDiagnosticSeverity.ERROR
         FrameDiagnosticCode.UNCLASSIFIED_PADA -> FrameDiagnosticSeverity.INFO
+        FrameDiagnosticCode.DEFAULT_READING,
+        FrameDiagnosticCode.NON_BINDING_READING,
         FrameDiagnosticCode.OPTIONAL_KARAKA,
         FrameDiagnosticCode.OPTIONAL_VIBHAKTI -> FrameDiagnosticSeverity.INFO
         FrameDiagnosticCode.AMBIGUOUS_KARAKA,
+        FrameDiagnosticCode.MULTIPLE_INDEPENDENT_AGENTS,
+        FrameDiagnosticCode.MULTIPLE_PRIMARY_OBJECTS,
         FrameDiagnosticCode.AMBIGUOUS_VIBHAKTI,
         FrameDiagnosticCode.UNVALIDATED_VIBHAKTI,
         FrameDiagnosticCode.COMPETING_KARAKA_ANALYSIS,

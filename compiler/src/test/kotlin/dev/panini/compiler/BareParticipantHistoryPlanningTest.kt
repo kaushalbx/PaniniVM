@@ -28,7 +28,7 @@ class BareParticipantHistoryPlanningTest {
 
     @Test fun `bare gan selects multiplication for several remembered numeric objects`() {
         val source = "द्वि + औट् त्रि + शस् च मान + ङे दा + लोट् + सिप् ।\n" +
-            "दा + ल्युट् + ङस् कर्मन् + अम् गण + णिच् + लोट् + सिप् ।"
+            "दा + ल्युट् + ङस् कर्मन् + अम् गुण + णिच् + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         assertEquals(6L, assertIs<SanskritValue.Sankhya>(result.typedValue).value)
         assertEquals(result.typedValue, compiled(source, "BareRememberedMultiplication"))
@@ -37,7 +37,7 @@ class BareParticipantHistoryPlanningTest {
     @Test fun `bare and mixed dynamic arithmetic bind results to explicit destinations`() {
         for ((index, extra) in listOf("", "एक + अम् च ").withIndex()) {
             val source = "द्वि + औट् त्रि + शस् च मान + ङे दा + लोट् + सिप् ।\n" +
-                "दा + ल्युट् + ङस् कर्मन् + अम् ${extra}परिणाम + ङे गण + णिच् + लोट् + सिप् ।\n" +
+                "दा + ल्युट् + ङस् कर्मन् + अम् ${extra}परिणाम + ङे गुण + णिच् + लोट् + सिप् ।\n" +
                 "परिणाम + अम् मुद्र् + णिच् + लोट् + सिप् ।"
             val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
             assertEquals(result.typedValue, compiled(source, "DynamicHistoryDestination$index"))
@@ -51,7 +51,7 @@ class BareParticipantHistoryPlanningTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दा + ल्युट् + ङस् कर्मन् + अम् मान + ङे गण + णिच् + लोट् + सिप् ॥
+            दा + ल्युट् + ङस् कर्मन् + अम् मान + ङे गुण + णिच् + लोट् + सिप् ॥
             नवन् + शस् मान + ङे दा + लोट् + सिप् ।
             द्वि + औट् त्रि + शस् च आधार + ङे दा + लोट् + सिप् ।
             मान + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -81,10 +81,10 @@ class BareParticipantHistoryPlanningTest {
         val prior = SanskritValue.Sankhya(9L, "नव")
         val runtime = CompiledProgramRuntime(mapOf("मान" to prior))
         runtime.executeParticipantGroup(SanskritValue.Gana(listOf(SanskritValue.Sankhya(2L, "द्वि"),
-            SanskritValue.Sankhya(3L, "त्रि"))), "गण", "", "णिच्", "", "LOT", "",
+            SanskritValue.Sankhya(3L, "त्रि"))), "गुण", "", "णिच्", "", "LOT", "",
             mapOf(dev.panini.core.Karaka.SAMPRADANA to ExecutionExpression.Reference("मान")))
         assertEquals(6L, assertIs<SanskritValue.Sankhya>(runtime.snapshot()["मान"]).value)
-        assertEquals(SanskritValue.Gana(listOf(prior)), runtime.loadActionParticipantGroup("गण", 1,
+        assertEquals(SanskritValue.Gana(listOf(prior)), runtime.loadActionParticipantGroup("गुण", 1,
             dev.panini.core.Karaka.SAMPRADANA))
     }
 
@@ -92,8 +92,8 @@ class BareParticipantHistoryPlanningTest {
         val source = "एक + अम् द्वि + औट् च पूर्व + ङे दा + लोट् + सिप् ।\n" +
             "त्रि + शस् एक + अम् च उत्तर + ङे दा + लोट् + सिप् ।\n" +
             "दा + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् दा + ल्युट् + ङस् कर्मन् + अम् च " +
-            "परिणाम + ङे गण + णिच् + लोट् + सिप् ।\n" +
-            "गण + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।"
+            "परिणाम + ङे गुण + णिच् + लोट् + सिप् ।\n" +
+            "गुण + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         val generated = BytecodeCompiler.compileAndLoad(source, "MultipleDynamicHistoryGroups")
         val values = generated.getMethod("execute").invoke(null) as Map<*, *>
@@ -131,8 +131,8 @@ class BareParticipantHistoryPlanningTest {
 
     @Test fun `dynamic history call publishes actual participants rather than its result`() {
         val source = "द्वि + औट् त्रि + शस् च मान + ङे दा + लोट् + सिप् ।\n" +
-            "दा + ल्युट् + ङस् कर्मन् + अम् गण + णिच् + लोट् + सिप् ।\n" +
-            "गण + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।"
+            "दा + ल्युट् + ङस् कर्मन् + अम् गुण + णिच् + लोट् + सिप् ।\n" +
+            "गुण + ल्युट् + ङस् कर्मन् + अम् सूची + ङे दा + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         val value = assertIs<SanskritValue.Suchi>(compiled(source, "BareHistoryPublication"))
         assertEquals(result.typedValue, value)
@@ -144,11 +144,11 @@ class BareParticipantHistoryPlanningTest {
         val instructions = listOf(
             CompilerInstruction.Constant(SanskritValue.Gana(listOf(
                 SanskritValue.Sankhya(2L, "द्वि"), SanskritValue.Sankhya(3L, "त्रि")))),
-            CompilerInstruction.CallParticipantGroup("गण", GrammaticalFeatures(sanadi = setOf("णिच्")),
+            CompilerInstruction.CallParticipantGroup("गुण", GrammaticalFeatures(sanadi = setOf("णिच्")),
                 otherBindings = mapOf(dev.panini.core.Karaka.KARTR to ExecutionExpression.TypedOperand(
                     SanskritValue.Shabda("captured-agent"), dev.panini.core.SupAffix.SU, "agent"))),
             CompilerInstruction.Store("LastResult"),
-            CompilerInstruction.LoadActionParticipants("गण", dev.panini.core.Karaka.KARTR, asGroup = true),
+            CompilerInstruction.LoadActionParticipants("गुण", dev.panini.core.Karaka.KARTR, asGroup = true),
             CompilerInstruction.Store("agent_history"))
         val program = CompilerProgram("DynamicAgentHistory", instructions)
         val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes(

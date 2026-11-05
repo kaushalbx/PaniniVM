@@ -1,7 +1,7 @@
 # Stable ascending and descending typed sorting.
 त्रयाणाम् एकस्य द्वयोः च एकस्य च सूची अस्ति ।
-सूचीं क्रम ।
-सूचीं प्रतिक्रम ।
+सूचीम् अनुक्रमय ।
+सूचीं प्रतिक्रमय ।
 
 # Split members into the true and false lists produced by unary evenness.
 सूचीं युना प्रतिविभज ।

@@ -11,7 +11,7 @@ object YajesCaKaraneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     hindiExplanation = "छन्दस् में यज् के करण में बहुलतः षष्ठी होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230063,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50", "2.3.62"),
 ), AttestedVibhaktiRuleOutcome, CaseDependentKarakaOutcome {
     override val attestedCase = Vibhakti.SASTHI
     override fun karakaForCase(vibhakti: Vibhakti): Karaka = Karaka.KARANA

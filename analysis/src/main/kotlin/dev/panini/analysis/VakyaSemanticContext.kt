@@ -12,6 +12,15 @@ data class VakyaSemanticContext(
     val krtGovernors: Map<Int, KrtGovernorReading> = emptyMap(),
     val avyayaGovernors: Map<Int, dev.panini.vyakaranam.ast.AvyayaPada> = emptyMap(),
     val purposeGovernors: Map<Int, PurposeActionGovernor> = emptyMap(),
+    /** Supplied lup evidence for an occurrence, as for nakṣatra names under 2.3.45. */
+    val taddhitaLopas: Map<Int, TaddhitaLopaEvidence> = emptyMap(),
+    /** Supplied construction-specific Vedic case licences for 2.3.62 and 2.3.63. */
+    val vedicCaseLicenses: Map<Int, VedicCaseLicense> = emptyMap(),
+    val derivationExpressions: Map<Int, DerivationExpression> = emptyMap(),
+    /** Occurrences read by a default that form does not prove; reported as DEFAULT_READING. */
+    val defaultReadings: Set<Int> = emptySet(),
+    /** Occurrences whose grammatical reading must not supply a program operand. */
+    val nonBindingReadings: Set<Int> = emptySet(),
 ) {
     init {
         require((participantRelations.keys + intendedObjects.keys + krtGovernors.keys + avyayaGovernors.keys + purposeGovernors.keys).all { it >= 0 })

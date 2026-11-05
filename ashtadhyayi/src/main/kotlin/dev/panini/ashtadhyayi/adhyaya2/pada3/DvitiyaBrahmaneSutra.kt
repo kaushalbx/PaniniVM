@@ -11,7 +11,7 @@ object DvitiyaBrahmaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     hindiExplanation = "ब्राह्मण-पाठ के प्रयोग में दिव् के तदर्थ कर्म में द्वितीया होती है।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = false, kramaValue = 230060,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
-    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
+    inputs = setOf(SutraInput.DHATU, SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"), anuvrtti = setOf("2.3.50", "2.3.52", "2.3.58"),
 ), CaseDependentKarakaOutcome {
     override fun karakaForCase(vibhakti: Vibhakti): Karaka = Karaka.KARMAN
     fun hasBrahmanaDivObject(context: VibhaktiRuleContext): Boolean =

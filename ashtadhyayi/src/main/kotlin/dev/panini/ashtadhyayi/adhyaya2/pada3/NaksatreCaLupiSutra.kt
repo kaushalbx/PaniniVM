@@ -26,6 +26,7 @@ object NaksatreCaLupiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.36", "2.3.43", "2.3.44"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.TRTIYA, Vibhakti.SAPTAMI)
 

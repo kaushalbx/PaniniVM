@@ -1,5 +1,195 @@
 # Kāraka sūtra audit
 
+## Voice shows kartā and karma for every root
+
+Tested against sentences from Kulkarni's tagging guidelines, kartā and karma were assigned only to roots
+with an executable operation, so रामः गच्छति had no kartā. VoiceRoleConstruction now gives these roles from
+voice alone (3.4.69, 2.3.2, 2.3.46). It leaves open: uncoordinated nominatives, several accusatives, a causative's
+accusative and a passive's instrumental. DhatuCache resolves a surface with one Dhātupāṭha root; homonyms stay null.
+A time accusative goes to 2.3.5 and is not counted as the karma (मासम् ओदनं पचति). Distance does too, except with motion roots,
+where क्रोशं गच्छति stays open. Licensed manner words (मन्दम्) stay unassigned rather than karma; no adverb relation is produced yet.
+नी is now णीञ्, dvikarmaka, not णिशिँ. Time and distance words are a closed list, so an unlisted one still reads as karma.
+A genitive beside the clause's one action noun goes to 2.3.65, in any order (seven corpus keys said 2.3.50). Its choice of kartā or karma
+stays open; with another possible head (अध्यापकस्य पुस्तकं पठनेन) it may misattach. Plural locative with subject and predicate goes to 2.3.41,
+though a place reading may also fit. Agreeing शतृ and शानच् are not second roles. च may follow the first word of its clause;
+the analyzer now treats a final च group as one subject for agreement.
+Declined participles now carry time, from morphology (ParticipialTime.kt): agreeing शतृ or शानच् is simultaneous; a locative participle with
+one agreeing locative noun is absolute (2.3.37), simultaneous for शतृ and शानच्, prior for क्त. The accusative directly before an absolute
+participle is its object, a position test. Future participles are not covered, and सति with क्त is untested.
+Case with stem class now decides: 2.3.6 (time or distance in tṛtīyā), 2.3.15 (bhāva noun in caturthī), 2.3.20 (listed body part beside listed deformity),
+2.3.42 (pañcamī beside a तर comparative nominative). Reason is not inferred: दण्डेन and अध्ययनेन differ only in meaning. tumun gets a role from its verb:
+desire 3.3.158, 3.4.65 class, else purpose 3.3.10. The accusative directly before it is its object, a position test. योजन is excluded as homonymous.
+Checked against Kāśikā on 2.3.5, 6, 15, 20, 37, 41, 42, 65, 3.3.10, 3.3.158, 3.4.65. Corrected: the locative noun of 2.3.37 is the भाववत्, object in गोषु दुह्यमानासु;
+2.3.65 also takes तृच् and ण्वुल्; 2.3.41 also takes a plural genitive or locative beside तम; वश् is in 3.3.158; an unresolved verb gets no tumun role.
+Open against Kāśikā: योजनमधीते is 2.3.5 but योजन stays out as homonymous; 2.3.6 needs a reached result, which form does not show; भोजको व्रजति (ण्वुल् of purpose) is not read.
+A single plain instrumental in a passive now defaults to kartā or, with ṇic, prayojaka (3.4.69). Kartā and karaṇa turn on intention (1.4.42, 1.4.54), so this is a default:
+listed tools, two instrumentals, and a clause with क्त्वा or ल्यप् stay open. An unlisted tool would be misread as kartā.
+A homonymous root with no vikaraṇa takes bhvādi by the general शप् (3.1.68), after dropping entries the written pada excludes and curādi without ṇic (3.1.25).
+It stays unresolved if no bhvādi entry remains or the entries differ in karmatva, as with जि and दुह्. This chooses by rule, not by meaning: a bhvādi root can be the wrong sense.
+A locative now names the adhikaraṇa for any root and voice (1.4.45, 2.3.36; Kāśikā: कटे आस्ते, स्थाल्यां पचति), unless a specific rule claims it. Words of distance stay out (दूरे ग्रामस्य).
+The rule is the fallback, so a locative that belongs under an unmodelled rule (निमित्त, साधु without a linked head) reads as locus.
+Pure dative with a listed motion root is karma by 2.3.12, except a road. Pure ablative with a listed motion or falling root is apādāna by 1.4.24. Both root lists are closed.
+No general sampradāna: Kāśikā on 1.4.32 limits the object to that of giving, so a dative beside any accusative stays open. An abstract ablative of cause beside a motion root reads as apādāna.
+Readings form does not prove now carry an INFO diagnostic, DEFAULT_READING. Tests in KashikaExamplesTest take sentences from Kāśikā with no supplied meaning.
+Added: predicate and apposition under the 2.3.46 vārttika, causee from an akarmaka base (1.4.52), instrumental causee with पाचयति, instrumental as karaṇa in active voice (1.4.42), MANNER on licensed adverbial accusatives.
+Instrumental defaults do not apply to executable roots, because a default made a refused program run. Passive objects now follow Padamañjarī: नी class expresses the primary, दुहादि the secondary, motion causatives the causee. The free causatives and active dvikarmaka stay open.
+सह, विना, परितः and similar were missing from the grammar and are added. Upapada links use written adjacency. Particles are named by identity without scope (particleRoles).
+A held-out file, guideline_holdout.txt, first scored 41 right, 18 open, 6 wrong of 65 labels before any change for it. That is the honest figure; later scores on it are tuned. A second held-out file first scored 44 right, 10 open, 1 wrong of 55; it includes plain sentences and its labels are mine.
+Root-defined rules now read the root and case with no supplied meaning: 1.4.25, 1.4.33, 1.4.37, 1.4.46, 1.4.48, 2.3.52, and 2.3.16 by written governor. Two accusatives follow commentary order and stay marked. Also: 2.3.23 reason by default for action nouns and copula instrumentals, accusative concord for participles and adverbs, bearerRole on absolutes, यद्यपि and तथापि, root-class readings marked as defaults. Cannot be decided from form: kartā or karma of a genitive on an action noun, dative or ablative of भ्यस्. Not built: future participles. Root lists for motion, falling, being, fear, anger, delight, desire and the 1.4.52 classes are replaced by DhatuArthaClass, read from the Dhātupāṭha gloss. A gloss supports a default only. Bare avyayas now come from स्वरादि and चादि, with four तसिल् forms under 1.1.38; the reserved tokens are gone. यद्यपि and तथापि stay tokens, because clause grammar needs them. Means words now come from 3.2.182, 3.2.184 and uṇādi KARANA tags. Uṇādi data is too sparse to replace the list: only 3 sūtras carry KARANA and दण्ड and राम are both unknown, so a labelled residue of underived tool words stays. Grammar now reports the same reading for every root. Execution reads through BindingContext.relationFor, where means, reason, causee and ordered-object readings marked NON_BINDING_READING arrive as unassigned unless the instruction declares them. GuidelineGoldTest scores against the guidelines own labels, and its wrong answers are pinned. A participle takes the accusative directly before it unless that noun is its bearer. Passive agent default now reaches executable roots; active means and causee defaults do not. Measured on 55 PDF sentences: see SEMANTIC_RELATION_COVERAGE.json, lastMeasured. Open: हेतु, future participles, यद्यपि and तथापि, active dvikarmaka, tool and animacy data, external gold data.
+
+## Causative derivation
+
+Causatives now derive for every root, not a listed subset. Added: मित् shortening by 6.4.92 from the
+gaṇasūtra, with a partial घटादि slice; युक् by 7.3.37; ātva by 6.1.45 and 6.1.48 before ṇic; no ślu on a
+ṇic stem; and ṇic no longer inherits a root's Ātmanepada restriction. A table of 23 forms is a
+regression. The table was written from the rules. 7.3.76 क्रामति remains unimplemented.
+
+Reading all 267 distinct words in the generated renderings found errors the tests cannot catch,
+because those tests compare against output of the same renderer: उद्हृत्य, निस्हर, सावयनु and आदे. These
+are now उद्धृत्य, निर्हर, सावय and आदय. A ṇic stem now conjugates as bhvādi unless the root is curādi.
+
+## Grammatical decisions
+
+Sorting now uses अनु or प्रति with the causative of क्रमु: अनुक्रमय, प्रतिक्रमय. Plain क्राम means to step.
+क्रम् is an अमन्त root, so मित्, and stays short by 6.4.92, as संक्रमय्य in the commentaries shows; the
+engine had no such step and would have produced अनुक्रामय. The equational subject and the
+procedure call form are recorded as decisions in docs/PVM_NATURALNESS.md.
+
+## Further Bhāṣya checks
+
+With स्वस्ति the dative stands over 2.3.73 by विप्रतिषेध, as the code already had it. कारकार्हाणां
+attaches to 2.3.36. तोसुन् and कसुन् are typed and outside the 2.3.69 prohibition. Under 1.4.52, श्रु
+takes an object causee, while ह्वे and क्रन्द् keep an agent causee.
+
+## Bhāṣya statements by rule
+
+The numbered statements in the Bhāṣya file were extracted for every rule that has text, and
+compared with the predicates. Predicate nominatives and names before नाम now take prathamā under
+2.3.46 with no kāraka, per पदसामानाधिकरण्ये and its answer न वा वाक्यार्थत्वात्. प्रश्नाख्यानयोश्च
+attaches to 2.3.28 and निमित्तात्कर्मसंयोगे to 2.3.36. Only the statements and short passages were
+read, not each rule's full Bhāṣya.
+
+## Residual genitive
+
+Siddhānta-kaumudī defines śeṣa as the relation left once kārakas and the nominal sense are
+excluded. An unambiguous genitive with no other established reading now takes 2.3.50 in ordinary
+analysis, reversing 16 JSON cases that recorded no analysis. The relation stays unspecified. PVM's
+genitive construction now covers only the syncretic ओस् dual in a declaration.
+
+## Naturalness pass
+
+See docs/PVM_NATURALNESS.md. `गुण` now multiplies and `गण` only counts; the compiler lowers counting
+over remembered values directly. Result-storing datives became a plain स्थापय sentence. The
+equational subject list was removed: the first nominative is the subject, on a recalled convention
+not found in the commentary files searched, and this is open under 1.4.54.
+
+## Equational clauses
+
+These sources are good Sanskrit, so they were kept; rewriting them to स्थापय would lose struct
+creation. A subject word list tried here was removed by the naturalness pass above.
+
+## Kāśikā boundaries, word order and object consistency
+
+Thirty-one Kāśikā counterexamples, written from its own words and meanings, became benchmark
+cases, and all held. Reviewed PVM clauses were reversed: 301 keep their roles and now store that
+variant. Nine value declarations first changed subject; see the next entry. Sixty-one others could not be tested, because repeated words
+cannot be aligned or reversed coordinated text does not reparse. MULTIPLE_PRIMARY_OBJECTS warns
+on uncoordinated primary objects of an ordinary transitive action and selects no reading.
+
+## PVM clause judgments and remaining items
+
+Unreviewed clauses were compared with a separate table that judges role, case and chain from
+endings and clause type, without reading those analyzer fields. Agreeing clauses became
+expectations. This is a pattern-level judgment, not a commentary on each sentence. Source
+strings, candidates, alternatives and coordination records come from the corpus report.
+PVM result datives such as धृ + ल्युट् + ङे are purpose nouns under 2.3.15 that fill the declared
+result slot, replacing their 1.4.32 reading, and अक्ष + अम् दिव् uses 1.4.43.
+
+Value declarations treat the first non-name nominative as subject. Equivalent dvikarmaka senses
+take supplied promotion premises. Remaining vārttika uses under 2.3.27, 2.3.28 and 2.3.36 are in.
+
+## Additive vārttika uses and multiple agents
+
+VartikaCaseUses attaches tādarthya, kḷpi, utpāta and hita to 2.3.13, prakṛtyādi to 2.3.18,
+lyab-lopa to 2.3.28, and the उभसर्वतसोः governors to 2.3.2. Each requires its own premise or
+written governor and is named in the evidence. MULTIPLE_INDEPENDENT_AGENTS warns on
+uncoordinated agents of one finite non-copular verb and selects no reading.
+
+## Vārttika scope decision
+
+Decision from the project owner: follow what is grammatically correct. Vārttikas that
+condition a canonical rule are applied without registering them as sūtras: 2.3.17's list,
+हविषोऽप्रस्थितस्य on 2.3.61, and कमेरनिषेधः and द्विषः शतुर्वा on 2.3.69. This replaces the
+canonical-only test on 2.3.61. Additive uses, such as tādarthya, remain unassigned.
+
+## Kaumudī reread of all rules
+
+Every rule's Siddhānta-kaumudī statement was compared with its predicate; Kāśikā was read
+only for the rules in the previous entry. Corrections: चिरञ्जीवित in 2.3.73, असि for पुरः in
+2.3.30, समर्थ in 2.3.16.
+
+## Direct check against the ashtadhyayi.com data files
+
+The site's data is public JSON (github.com/ashtadhyayi-com/data). All 106 rule texts match
+it apart from four spelling variants, such as अन्तर्द्धौ. Declared anuvṛtti, previously absent
+from 2.3 and wrong for 1.4.38, now follows its data. 1.4.47 keeps 1.4.44: Kāśikā and
+Siddhānta-kaumudī carry अन्यतरस्याम् from there, which the site's list omits, so that list
+is evidence, not final authority. Its vārttika list confirms the 1.4.52 additions. Only the
+rules named in this log had their commentary reread here.
+
+## Second source: ashtadhyayi.com
+
+This site supplies the Mahābhāṣya, Padamañjarī and Siddhānta-kaumudī alongside Kāśikā.
+
+- 2.3.64 is settled. Kāśikā's द्विरह्ना भुङ्क्ते is the non-locus example, and the predicate
+  already matches it. The earlier apparent inconsistency was a corrupted transcription.
+- Passive promotion follows Padamañjarī on 1.4.51. नी, वह्, हृ, कृष् express the primary
+  object; दुहादि, जि, दण्ड्, मुष् the secondary. Motion and intransitive causatives and causative
+  हृ, कृ express the causee. Cognition, eating and speech-object causatives express either
+  object as desired, and the written nominative shows the selected one.
+- SOURCE is no longer a separate premise of 1.4.25–31. The site's anuvṛtti carries the
+  name only, and in the Bhāṣya and Nyāsa views separation follows from the rule's own
+  meaning. Fourteen JSON cases moved with it. This was checked directly for 1.4.25 only.
+
+The other rules have not yet been rechecked against this source.
+
+## PVM agent and genitive review
+
+An aggregate review of unreviewed clauses found comparison predicates marked as agents.
+ProgramAgentConstruction now excludes them. Name declarations with two nominatives remain
+open. Aggregate classification is not the per-clause review that reviewed status records:
+361 clauses remain UNREVIEWED in the corpus report.
+
+## Reachability, expression and passive causative completion pass
+
+Rule tests that supplied facts directly had hidden unreachable rules. 2.3.45 and
+2.3.62–64 read fields no analyzer code set; they now receive supplied lup and Vedic
+licence evidence and discover a written counting word. 2.3.61 gained a benchmark fixture.
+
+Taddhita and samāsa expression under 2.3.1 is a typed, supplied DerivationExpression tied
+to a written occurrence. Extraction from word meaning stays unsupported. Causative passives
+express the causee and leave the original object accusative, following the Bhāṣya clause
+quoted in Tattva-bodhinī; no source page read gives the passive form itself.
+
+Meaning classes in 2.3.16, 54, 72 and 73 use explicit class premises; 2.3.30 has typed
+atasartha affixes. PVM reads a genitive with no kāraka reading as 2.3.50 through
+ProgramGenitiveConstruction; ordinary Sanskrit receives no such premise.
+
+Where commentators disagree the ledger now records the implemented reading as a decision.
+These decisions are the auditor's, from one commentary site, and merit expert review.
+
+## Governor reachability and passive/causative matrix
+
+2.3.39, 40, 43 and 44 could not fire from a sentence: NominalCaseLinkAnalyzer never
+offered their governors, and their tests supplied the link directly. They are now
+discoverable constructions with sentence-level JSON cases. Rule tests with supplied
+links did not establish analyzer integration.
+
+Sampled cases for the unexpressed kāraka rules in 1.4.24–48 keep exact chains across
+passive or bhāve, causative and passive causative. These are permanent regressions.
+Causative 1.4.50 and 1.4.51 and passive causative 1.4.50 have judged cases. Promotion
+choices for passive causative dvikarmaka readings remain open.
+
 ## Voice invariance and benchmark coverage
 
 A temporary probe moved 18 non-kāraka rules across all voices; their chains did not

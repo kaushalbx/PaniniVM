@@ -145,7 +145,26 @@ internal object DhatuCache {
             return candidates.filter { it.operations.isNotEmpty() }.singleOrNull()
                 ?: candidates.singleOrNull()
         }
-        return resolveSource(text)
+        return resolveSource(text) ?: defaultVikaranaRoot(tinganta, text)
+    }
+
+    /**
+     * A homonym written with no vikaraṇa takes the general शप् of 3.1.68, so its bhvādi entry, among those
+     * compatible with the written pada. It stays unresolved if that entry is absent or if the homonyms differ in
+     * karmatva, because then the choice would change the analysis: दुह् is दोग्धि, not bhvādi दोहति.
+     */
+    private fun defaultVikaranaRoot(tinganta: TingantaPada, text: String): Dhatu? {
+        val pada = tinganta.ting.affix?.pada
+        val active = tinganta.vikarana != dev.panini.vyakaranam.ast.Vikarana.YAK && tinganta.dhatu.sanadiAffixes.isEmpty()
+        val candidates = DhatuPatha.all.filter { it.upadesha == text || it.sourceSurface == text || it.derivationalSurface == text }
+            // A curādi root requires ṇic (3.1.25), so a form without it cannot be curādi.
+            .filter { it.gana != dev.panini.core.DhatuGana.CURADI || tinganta.dhatu.sanadiAffixes.isNotEmpty() }
+            .filter { !active || pada == null || it.pada == dev.panini.core.PadaType.UBHAYAPADA || it.pada == pada }
+        // Repeated listings of one upadeśa in one gaṇa (जि) are one root for this choice.
+        val oneRoot = candidates.all { it.gana == dev.panini.core.DhatuGana.BHVADI } && candidates.map { it.upadesha }.distinct().size == 1
+        if (!oneRoot && candidates.map { it.karmatva }.distinct().size != 1) return null
+        return candidates.filter { it.gana == dev.panini.core.DhatuGana.BHVADI }
+            .minWithOrNull(compareBy({ it.karmatva == dev.panini.shiksha.Karmatva.AKARMAKA }, { it.krama }))
     }
 
     /** Resolves a non-finite derivation through the same canonical lexicon. */
@@ -158,7 +177,11 @@ internal object DhatuCache {
         val executable = sourceCandidates(text)
         // Preserve collisions in the executable index. An exact non-executable
         // upadeśa is a lexical fallback, not an operation-selection tiebreaker.
-        return if (executable.isNotEmpty()) executable.singleOrNull() else lexicalUpadeshas[text]?.singleOrNull()
+        if (executable.isNotEmpty()) return executable.singleOrNull()
+        lexicalUpadeshas[text]?.singleOrNull()?.let { return it }
+        // गम् names गमॢँ when the Dhātupāṭha has one such root; homonyms stay unresolved.
+        return DhatuPatha.all.filter { it.sourceSurface == text || it.derivationalSurface == text }
+            .distinctBy { it.id }.singleOrNull()
     }
 
     private fun sourceCandidates(text: String): List<Dhatu> =

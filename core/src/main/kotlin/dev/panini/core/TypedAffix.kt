@@ -27,7 +27,7 @@ enum class MitAugment(override val upadesha: String, override val pronunciationO
 /** Taddhita source identities; recognition does not imply every derivation rule is implemented. */
 enum class TaddhitaAffix(override val upadesha: String) : TypedAffix {
     AN("अण्"), INY("इञ्"), YANY("यञ्"), PHAK("फक्"), DHAK("ढक्"),
-    VAT("वत्"), TASIL("तसिल्"), TRAL("त्रल्"), ATASUC("अतसुच्"), ENAP("एनप्"),
+    VAT("वत्"), TASIL("तसिल्"), TRAL("त्रल्"), ATASUC("अतसुच्"), ASTATI("अस्ताति"), ASI("असि"), RIL("रिल्"), RISTATIL("रिष्टातिल्"), ENAP("एनप्"),
     MATUP("मतुप्"), VATUP("वतुप्"), TVA("त्व"), TAL("तल्"), TARAP("तरप्"), TAMAP("तमप्");
 
     override val initialSurface: String get() = upadesha
@@ -101,6 +101,7 @@ enum class KrtAffix(
     NVUC("ण्वुच्"),
     A("अ"),
     KTIN("क्तिन्"),
+    TOSUN("तोसुन्"), KASUN("कसुन्"),
     SHATR("शतृँ", alternateUpadeshas = setOf("शतृ")),
     SHANAC("शानच्"),
     KANAC("कानच्"),

@@ -24,6 +24,7 @@ object DurantikarthaihSasthiAnyatarasyamSutra : Sutra<VibhaktiRuleContext, Vibha
     pada = 3,
     optional = true,
     kramaValue = 230034,
+    anuvrtti = setOf("2.3.28", "2.3.33"),
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

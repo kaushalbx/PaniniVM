@@ -26,6 +26,7 @@ object DurantikarthebhyoDvitiyaCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRule
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.28", "2.3.33"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.DVITIYA, Vibhakti.TRTIYA, Vibhakti.PANCHAMI, Vibhakti.SAPTAMI)
     override fun alternativeRuleNumbers(context: VibhaktiRuleContext) = setOf("2.3.35", "2.3.36")

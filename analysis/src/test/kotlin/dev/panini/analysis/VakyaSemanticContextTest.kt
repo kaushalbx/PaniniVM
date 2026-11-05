@@ -25,7 +25,7 @@ class VakyaSemanticContextTest {
         assertTrue(frame.diagnostics.none { it.nominalIndex == 1 && it.code == FrameDiagnosticCode.UNVALIDATED_VIBHAKTI })
         assertTrue(frame.diagnostics.none { it.nominalIndex == 0 && it.code == FrameDiagnosticCode.UNASSIGNED_PARTICIPANT })
         val unknown = analyzer.analyze(AkhyataVakya("unknown role", listOf(first, verb), verb))
-        assertTrue(unknown.diagnostics.any { it.nominalIndex == 0 && it.code == FrameDiagnosticCode.UNASSIGNED_PARTICIPANT })
+        assertTrue(unknown.diagnostics.none { it.nominalIndex == 0 && it.code == FrameDiagnosticCode.UNASSIGNED_PARTICIPANT })
         assertTrue(unknown.diagnostics.none { it.code == FrameDiagnosticCode.UNVALIDATED_VIBHAKTI })
     }
 
@@ -72,14 +72,14 @@ class VakyaSemanticContextTest {
         val clause = AkhyataVakya("repeated", listOf(nominal("तुल्य", "सुँ"), first, second, verb), verb)
         val frame = analyzer.analyze(clause, semanticContext = VakyaSemanticContext(mapOf(1 to premises)))
         assertEquals(listOf("2.3.72"), frame.relations[1].evidence.map { it.sutra })
-        assertTrue(frame.relations[2].evidence.isEmpty())
+        assertEquals(listOf("2.3.50"), frame.relations[2].evidence.map { it.sutra })
         assertEquals(listOf(1), frame.nominalCaseLinks!!.established.map { it.dependent })
         assertTrue(frame.relations[1].evidence.single().semanticEvidence.any { it.source == SemanticEvidenceSource.CLAUSE_CONTEXT })
         assertTrue(frame.relations[2].evidence.none { proof -> proof.semanticEvidence.any { it.source == SemanticEvidenceSource.CLAUSE_CONTEXT } })
         assertTrue(lexical.findPratipadika("देवदत्त")!!.semanticRelations.isEmpty())
         val next = analyzer.analyze(clause)
         assertTrue(next.nominalCaseLinks!!.established.isEmpty())
-        assertTrue(next.relations[1].evidence.isEmpty())
+        assertEquals(listOf("2.3.50"), next.relations[1].evidence.map { it.sutra })
     }
 
     @Test fun `nominal clauses also preserve occurrence local premises and reject invalid indices`() {

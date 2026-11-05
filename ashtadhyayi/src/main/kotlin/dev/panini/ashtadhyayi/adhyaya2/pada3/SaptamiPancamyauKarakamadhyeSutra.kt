@@ -24,6 +24,7 @@ object SaptamiPancamyauKarakamadhyeSutra : Sutra<VibhaktiRuleContext, VibhaktiRu
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.5"),
 ), OptionalVibhaktiRuleOutcome {
     override val permittedCases = setOf(Vibhakti.SAPTAMI, Vibhakti.PANCHAMI)
     override fun matches(context: VibhaktiRuleContext): Boolean =

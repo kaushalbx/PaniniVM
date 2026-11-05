@@ -25,6 +25,7 @@ object KriyarthopapadasyaCaKarmaniSthaninahSutra : Sutra<VibhaktiRuleContext, Vi
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA, SutraInput.DHATU),
     adhikara = setOf("2.3.1"),
+    anuvrtti = setOf("2.3.13"),
 ) {
     fun hasImpliedPurposeObject(context: VibhaktiRuleContext): Boolean =
         context.karaka == Karaka.KARMAN && context.participant?.purposeGovernor is PurposeActionGovernor.Implied

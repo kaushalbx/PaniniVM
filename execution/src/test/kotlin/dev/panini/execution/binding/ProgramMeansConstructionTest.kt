@@ -26,15 +26,12 @@ class ProgramMeansConstructionTest {
         assertSame(frame.sourceVakya.padas.single { it.sourceText == "यु+टा" }, means.participant.pada)
     }
 
-    @Test fun `program construction cannot infer means from an unregistered domain or missing object`() {
-        for (source in listOf(
-            "यु + टा वि + भजँ + लोट् + सिप् ।",
-            "सूची + अम् यु + टा वि + भजँ + लट् + तिप् ।",
-            "सूची + अम् यु + टा एधँ + टा वि + भजँ + लोट् + सिप् ।")) {
+    @Test fun `an undeclared means is grammar for the reader but no operand for the program`() {
+        for (source in listOf("यु + टा वि + भजँ + लोट् + सिप् ।", "सूची + अम् यु + टा वि + भजँ + लट् + तिप् ।")) {
             val frame = frame(source)
-            frame.relations.filter { it.participant.pada.sourceText.endsWith("+टा") }.forEach {
-                assertTrue(it.evidence.none { proof -> proof.sutra == "1.4.42" }, source)
-            }
+            val means = frame.relations.single { it.participant.pada.sourceText == "यु+टा" }
+            assertEquals(Karaka.KARANA, (means.resolution as FrameKarakaResolution.Resolved).karaka, source)
+            assertTrue(frame.diagnostics.any { it.code == dev.panini.analysis.FrameDiagnosticCode.NON_BINDING_READING }, source)
         }
     }
 }

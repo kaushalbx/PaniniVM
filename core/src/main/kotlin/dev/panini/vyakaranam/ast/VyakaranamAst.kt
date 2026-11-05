@@ -128,6 +128,8 @@ enum class SequenceConnector(
     val resultFlow: SequenceResultFlow = SequenceResultFlow.NONE,
 ) {
     SAMUCCAYA("च"),
+    /** यद्यपि ... तथापि: the second clause holds against the expectation raised by the first. */
+    VYABHICARA("तथापि"),
     /** A following independent sentence in the same selected branch. */
     VAKYANTARA("अथ"),
     /** A new sentence guarded by the nearest preceding conditional. */

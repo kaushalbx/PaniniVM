@@ -11,11 +11,11 @@ import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
-/** Executable Bhvādi dhātu णिशिँ प्रापणे. */
+/** Executable Bhvādi dhātu णीञ् प्रापणे. */
 class NiDhatu : Dhatu(
     id = "01.9902",
     krama = 9902,
-    upadesha = "णिशिँ",
+    upadesha = "णीञ्",
     sourceSurface = "नी",
     artha = "प्रापणे",
     arthaHindi = "ले जाना, पहुँचाना, मार्गदर्शन करना",
@@ -23,7 +23,7 @@ class NiDhatu : Dhatu(
     gana = DhatuGana.BHVADI,
     pada = PadaType.UBHAYAPADA,
     itStatus = ItStatus.ANIT,
-    karmatva = Karmatva.SAKARMAKA,
+    karmatva = Karmatva.DVIKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
         ListMoveAction.op {

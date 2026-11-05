@@ -74,10 +74,17 @@ class KrdantaEngine(
             return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.INCOMPLETE_DERIVATION)
         }
         return KrdantaSourceStem.Productive(
-            surface = result.final.surface,
+            surface = joinedPrefixes(upasargas, result.final.surface),
             supportsAStemDeclension = samjna in setOf(Samjna.KTA, Samjna.GHAN, Samjna.LYUT),
             derivation = result,
         )
+    }
+
+    /** The derivation concatenates prefix and stem, so prefix sandhi applies here: उद् + हृत्य gives उद्धृत्य. */
+    private fun joinedPrefixes(upasargas: List<String>, surface: String): String {
+        val written = upasargas.joinToString("")
+        if (upasargas.size != 1 || written.isEmpty() || !surface.startsWith(written)) return surface
+        return SandhiEngine().joinPrefix(written, surface.removePrefix(written))
     }
 
     private fun sourceAffixSamjna(pratyaya: String): Samjna? = when (KrtAffix.fromUpadesha(pratyaya)) {
@@ -163,7 +170,7 @@ class KrdantaEngine(
         // source upadeśas such as चिञ् must not retain their it letters here.
         val lexicalSurface = entry.derivationalSurface
         val surface = if (lexicalSurface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$lexicalSurface्" else lexicalSurface
-        val dhatu = DerivationTerm("dhatu_1", surface, TermKind.DHATU, upadesha = surface, itStatus = entry.itStatus)
+        val dhatu = DerivationTerm("dhatu_1", surface, TermKind.DHATU, upadesha = surface, itStatus = entry.itStatus, blocksNicGuna = entry.blocksNicGuna)
         terms += dhatu
         samjnas += SamjnaAssignment(dhatu.id, Samjna.DHATU)
         samjnas += SamjnaAssignment(dhatu.id, request.samjna)
