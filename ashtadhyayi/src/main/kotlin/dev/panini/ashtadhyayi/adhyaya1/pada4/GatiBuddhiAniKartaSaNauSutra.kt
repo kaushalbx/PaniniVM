@@ -14,6 +14,7 @@ import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.meaningEvidenceStrength
 
 /**
  * Sūtra 1.4.52 गतिबुद्धिप्रत्यवसानार्थशब्दकर्माकर्मकाणामणि कर्ता स णौ.
@@ -35,8 +36,7 @@ object GatiBuddhiAniKartaSaNauSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
         return KarakaDhatuDomains.isCausativeConstruction(context) &&
             !isHrKr &&
             KarakaDhatuDomains.isCausativeObjectDomain(context) &&
-            SemanticRelation.CAUSEE_AGENT in context.participant.semanticRelations &&
-            Karaka.KARMAN in context.candidates
+            context.participant.meaningEvidenceStrength(SemanticRelation.CAUSEE_AGENT) >= 2
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

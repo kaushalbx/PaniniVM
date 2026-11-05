@@ -72,6 +72,13 @@ enum class SemanticRelation {
     INDIFFERENT_OBJECT,
     /** Gauṇa-karman/akathita participant of a dvikarmaka construction. */
     SECONDARY_OBJECT,
+    /** Independently established action sense admitting an akathita argument; generic speech or two accusatives do not establish this valency. */
+    DVIKARMAKA_ACTION_SENSE,
+    /** Independently established meaning-class membership for the -arthānām rules 1.4.25, 27, 33 and 37; generic categories do not establish these. */
+    FEAR_PROTECTION_ACTION_SENSE,
+    VARANA_ACTION_SENSE,
+    RUCI_ACTION_SENSE,
+    ANGER_ACTION_SENSE,
     /** Two-object construction where primary versus akathita status is unresolved. */
     AMBIGUOUS_DVIKARMAKA_OBJECT,
     ACCOMPANIMENT,

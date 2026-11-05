@@ -12,6 +12,7 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.meaningEvidenceStrength
 
 object AbhinivishasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.47", text = "अभिनिविशश्च",
@@ -25,7 +26,7 @@ object AbhinivishasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val isAbhinivish = KarakaDhatuDomains.isAbhinivish(context)
         return isAbhinivish && !KarakaDhatuDomains.isAbhinivishLocativeUsage(context) &&
-            SemanticRelation.LOCATION in context.participant.semanticRelations
+            context.participant.meaningEvidenceStrength(SemanticRelation.LOCATION) >= 2
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

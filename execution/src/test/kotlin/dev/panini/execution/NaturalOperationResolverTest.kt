@@ -256,26 +256,30 @@ class NaturalOperationResolverTest {
     }
 
     @Test
-    fun `collection concatenation is derived from object and instrumental companion`() {
+    fun `collection concatenation is derived from coordinated objects`() {
         val definition = YujirDhatu().operations.single { it.name == "सूचीसंयोगः" }
         val operation = assertIs<NaturalOperation.CollectionConcatenation>(
             NaturalOperationResolver.resolve(
                 definition,
                 ExecutionContext(
                     bindings = mapOf(
-                        Karaka.KARMAN to ExecutionExpression.Reference("पूर्वसूची"),
-                        Karaka.KARTR to ExecutionExpression.Reference("उत्तरसूची"),
+                        Karaka.KARMAN to ExecutionExpression.Coordination(
+                            ExecutionExpression.Reference("पूर्वसूची"), ExecutionExpression.Reference("उत्तरसूची")),
                     ),
                 ),
             ),
         )
-        assertEquals("पूर्वसूची", operation.collection.bindingName())
-        assertEquals("उत्तरसूची", operation.companion.bindingName())
+        assertEquals(listOf("पूर्वसूची", "उत्तरसूची"), operation.collections.map { it.bindingName() })
 
         val list = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(1, "एक")))
         val parsedCall = PaniniParser().parse(
-            "पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।",
+            "पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।",
         )
+        val symbolicPlans = ResolvedLeafPlanner.plansAny(assertIs<Invocation>(parsedCall.body), ValueEnvironment(
+            constraints = listOf("पूर्वसूची", "उत्तरसूची").associateWith {
+                SemanticValueConstraint(OperationValueType.COLLECTION, setOf(dev.panini.shiksha.Samjna.GANA))
+            }))
+        assertEquals(listOf("सूचीसंयोगः"), symbolicPlans?.map { it.resolved.operation.name })
         val boundCall = assertIs<ExecutionBindingResult.Bound>(
             VyakaranamExecutionAdapter.bind(
                 SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", parsedCall.sourceText),
@@ -300,7 +304,7 @@ class NaturalOperationResolverTest {
                 ततः फल + अम् पूर्वसूची + ङि स्था + णिच् + लोट् + सिप् ।
             त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् उत्तरसूची + ङि स्था + णिच् + लोट् + सिप् ।
-            पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।
+            पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।
             """.trimIndent(),
         )
         assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())

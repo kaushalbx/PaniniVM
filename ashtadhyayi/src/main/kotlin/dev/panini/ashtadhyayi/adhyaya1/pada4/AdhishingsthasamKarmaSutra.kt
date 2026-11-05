@@ -11,6 +11,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.meaningEvidenceStrength
 
 object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.46", text = "अधिशीङ्स्थासां कर्म",
@@ -28,7 +29,7 @@ object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         val isSheeSthaAs = context.baseDhatu?.let {
             it.upadesha in setOf("शीङ्", "शी", "स्था", "आस", "आस्")
         } ?: (dev.panini.analysis.KarakaDhatuDomains.actionRoot(context) in setOf("शी", "स्था", "आस्", "शीङ्", "आस"))
-        return hasPrefix && isSheeSthaAs && SemanticRelation.LOCATION in context.participant.semanticRelations
+        return hasPrefix && isSheeSthaAs && context.participant.meaningEvidenceStrength(SemanticRelation.LOCATION) >= 2
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

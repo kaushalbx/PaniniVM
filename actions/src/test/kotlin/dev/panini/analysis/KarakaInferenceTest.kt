@@ -37,12 +37,11 @@ class KarakaInferenceTest {
             assertEquals(Karaka.SAMPRADANA, known.resolved, voice.name)
             assertEquals(null, known.resolvedVibhakti, voice.name)
             assertEquals(listOf("1.4.32"), known.evidence.map { it.sutra }, voice.name)
-            // A regular unambiguous active/passive object construction also
-            // remains eligible under the ordinary object rule.
+            // Case and voice propose an object without establishing its meaning.
             val ordinary = resolve(if (voice == Prayoga.KARTARI) Vibhakti.DVITIYA else Vibhakti.PRATHAMA,
                 SemanticEvidenceSource.VOICE_CONSTRUCTION)
-            assertEquals(Karaka.SAMPRADANA, ordinary.resolved, voice.name)
-            assertEquals(listOf("1.4.32"), ordinary.evidence.map { it.sutra }, voice.name)
+            assertEquals(null, ordinary.resolved, voice.name)
+            assertEquals(emptyList(), ordinary.evidence, voice.name)
         }
     }
 
@@ -54,7 +53,7 @@ class KarakaInferenceTest {
                 Triple("1.4.41", "गॄ", listOf("अनु")))) {
             val rule = KarakaRuleEngine.karakaRules.single { it.number == number }
             val premises = if (number == "1.4.39") setOf(SemanticRelation.INQUIRY_DESTINY_TARGET)
-                else setOf(SemanticRelation.RECIPIENT, SemanticRelation.PRIOR_ACTION_AGENT)
+                else setOf(SemanticRelation.PRIOR_ACTION_AGENT)
             val p = ParticipantFacts(number, AvyayaPada(number, number), setOf(Vibhakti.TRTIYA),
                 semanticRelations = premises)
             val verb = TingantaPada("verb", prefixes, DhatuPrakriti(root, root),
@@ -90,7 +89,7 @@ class KarakaInferenceTest {
                 Triple("1.4.41", "गॄ", listOf("प्रति")))) {
             val rule = KarakaRuleEngine.karakaRules.single { it.number == number }
             val premises = if (number == "1.4.39") setOf(SemanticRelation.INQUIRY_DESTINY_TARGET)
-                else setOf(SemanticRelation.RECIPIENT, SemanticRelation.PRIOR_ACTION_AGENT)
+                else setOf(SemanticRelation.PRIOR_ACTION_AGENT)
             val p = ParticipantFacts(number, AvyayaPada(number, number), setOf(Vibhakti.CHATURTHI),
                 semanticRelations = premises)
             val outer = TingantaPada("outer", emptyList(), DhatuPrakriti("पठ्", "पठ्"),
@@ -120,7 +119,7 @@ class KarakaInferenceTest {
         )
         for ((number, root, specialMeaning) in constructions) {
             val rule = KarakaRuleEngine.karakaRules.single { it.number == number }
-            val premises = setOf(SemanticRelation.RECIPIENT, specialMeaning)
+            val premises = setOf(specialMeaning)
             val p = ParticipantFacts(number, AvyayaPada(number, number), setOf(Vibhakti.TRTIYA),
                 semanticRelations = premises)
             val verb = TingantaPada("verb", if (number == "1.4.38") listOf("अभि") else emptyList(),
@@ -1253,7 +1252,7 @@ class KarakaInferenceTest {
         }
 
         val primary = resolve(setOf(SemanticRelation.DESIRED_OBJECT))
-        val secondary = resolve(setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SECONDARY_OBJECT))
+        val secondary = resolve(setOf(SemanticRelation.SECONDARY_OBJECT))
         assertEquals(Karaka.KARMAN, primary.resolved)
         assertEquals(listOf("1.4.49", "2.3.2"), primary.evidence.map { it.sutra })
         assertEquals(Karaka.KARMAN, secondary.resolved)
@@ -1488,7 +1487,7 @@ class KarakaInferenceTest {
                 },
             )
             val resolution = KarakaRuleEngine.resolve(KarakaRuleContext(
-                dhatu = DhatuIdentity("कृ"),
+                dhatu = DhatuIdentity(if (case.sutra == "2.3.3") "हु" else "कृ"),
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,

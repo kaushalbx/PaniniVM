@@ -827,33 +827,17 @@ internal object CompilerIrLowering {
             ) && operands.size == 1 -> operands.single() +
                 CompilerInstruction.Collection(requireNotNull(collection))
             collection == CollectionOperator.CONCAT -> {
-                val naturalFrame = naturalOperation as? NaturalOperation.CollectionConcatenation
-                val separateRight = (naturalFrame?.companion
-                    ?: plan.resolved.context.bindings[Karaka.SAMPRADANA])
-                    ?.let(::lowerSingleCollectionValue)
-                val (left, right) = if (separateRight != null) {
-                    val separateLeft = (naturalFrame?.collection
-                        ?: plan.resolved.context.bindings[Karaka.KARMAN])
-                        ?.let(::lowerSingleCollectionValue)
-                        ?: return null
-                    separateLeft to separateRight
-                } else {
-                    if (operands.size != 2) return null
-                    operands[0] to operands[1]
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionConcatenation ?: return null
+                val values = naturalFrame.collections.map { lowerSingleCollectionValue(it) ?: return null }
+                values.drop(1).fold(values.first()) { accumulated, value ->
+                    accumulated + value + CompilerInstruction.Collection(CollectionOperator.CONCAT)
                 }
-                left + right + CompilerInstruction.Collection(CollectionOperator.CONCAT)
             }
             collection == CollectionOperator.INDEX -> {
-                val naturalFrame = naturalOperation as? NaturalOperation.IndexedRetrieval
-                val listExpression = naturalFrame?.collection
-                    ?: plan.resolved.context.bindings[Karaka.KARMAN]
-                val indexExpression = naturalFrame?.index
-                    ?: plan.resolved.context.bindings[Karaka.KARANA]
-                val list = listExpression
-                    ?.let(::lowerSingleCollectionValue)
+                val naturalFrame = naturalOperation as? NaturalOperation.IndexedRetrieval ?: return null
+                val list = lowerSingleCollectionValue(naturalFrame.collection)
                     ?: return null
-                val index = indexExpression
-                    ?.let { lowerNumericOperand(it, allowOrdinal = true) }
+                val index = lowerNumericOperand(naturalFrame.index, allowOrdinal = true)
                     ?: return null
                 list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
             }

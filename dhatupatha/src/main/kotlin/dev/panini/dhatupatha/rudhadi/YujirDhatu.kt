@@ -33,9 +33,8 @@ open class YujirDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         ListConcatAction.op {
-            requires(Karaka.KARMAN, maximum = 1, valueType = dev.panini.execution.OperationValueType.COLLECTION)
-            // Causative instrumental secondary agent, resolved as the companion collection.
-            requires(Karaka.KARTR, maximum = 1, valueType = dev.panini.execution.OperationValueType.COLLECTION)
+            requires(Karaka.KARMAN, minimum = 2, shape = dev.panini.execution.ExpressionShape.COORDINATION,
+                valueType = dev.panini.execution.OperationValueType.COLLECTION)
             triggeredBy(requiredUpasargaIdentities = setOf(Upasarga.SAM), requiredSanadiIdentities = setOf(SanadiAffix.NIC))
             returns(Samjna.GANA)
         },

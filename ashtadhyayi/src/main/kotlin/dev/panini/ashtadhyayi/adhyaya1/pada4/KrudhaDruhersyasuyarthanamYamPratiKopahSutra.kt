@@ -27,7 +27,7 @@ object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, K
         val isAngerVerb = KarakaDhatuDomains.isAnger(context)
         val hasUpasarga = KarakaDhatuDomains.hasAngerUpasarga(context)
         return hasUpasarga != null && !KarakaDhatuDomains.isPrefixedKrudhDruh(context) &&
-            isAngerVerb && context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
+            isAngerVerb &&
             context.participant.hasEstablishedMeaning(SemanticRelation.ANGER_TARGET)
     }
 

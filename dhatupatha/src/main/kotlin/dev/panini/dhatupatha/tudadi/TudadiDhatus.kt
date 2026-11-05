@@ -743,7 +743,11 @@ object TudadiDhatus {
             "ज्ञीप्सायाम्", "पूछना, जानने की इच्छा करना", "to ask, to seek, to question",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(SrjDhatu())
+        dhatu(
+            "06.0150", 150, "सृजँ", "सृज्",
+            "विसर्गे", "त्यागना, उत्पन्न करना", "to emit, to create",
+            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+        )
         dhatu(
             "06.0151", 151, "टुमस्जोँ", "मज्ज्",
             "शुद्धौ", "स्नान करना, नहाना", "to bathe, to submerge",

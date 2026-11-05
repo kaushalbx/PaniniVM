@@ -11,6 +11,49 @@ No lexical-head blocking diagnostics remain in the current corpus. This is not
 proof that all nominal relations are resolved. Declaration headers are outside
 this clause count.
 
+## Declared instruction means and indexed retrieval
+
+Requested objects now also have a declared PVM meaning. The adapter establishes
+unambiguous accusative operands of matching registered active लोट्/लट् instructions
+with object slots, then analyzes dependent means operands against that established
+object. No runtime value or overload success is used to justify either role.
+The general 1.4.49–51 rules no longer promote weak object hypotheses to proof.
+Passive fixture meanings are stated explicitly; this PVM construction supplies no
+passive intention or secondary-object reading.
+
+Declared location operands now also have an explicit PVM construction. Registered
+active लोट्/लट् instructions with matching grammatical triggers may construe their
+unassigned, unambiguous locatives as collection, position or state locations when
+their operation declarations include a location slot. Syncretic endings, passive
+heads and conflicting lexical readings are excluded. This happens before runtime
+binding or overload selection. The general Sanskrit rules 1.4.45–48 require an
+independently established locus reading; morphology alone supplies no rule proof.
+Indexed retrieval and other collection/state sources pass through this construction.
+
+PVM analysis includes declared program constructions, not only unrestricted
+Sanskrit lexical inference. A registered active imperative with a declared means
+operand, a proven object and one unassigned instrumental supplies that operand's
+selected-means reading as clause context. Missing-object, non-imperative and
+multiple-instrumental cases do not acquire that reading. No runtime payload or
+successful overload match is used to justify a grammatical role. The general
+1.4.42 rule no longer accepts weak root valency as selected-means evidence.
+Callback collection instructions and typed input are verified through this
+explicit program construction. The corpus report states this scope and still
+distinguishes automatic program analysis from manually supplied fixture meanings.
+
+Indexed retrieval now has one natural operation path, for example:
+
+```text
+मूल्य + अम् सूची + ङसिँ द्वितीय + ङि ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+The source collection is ablative, its position locative, and the requested value
+an object. The obsolete स्था instruction using the collection as KARMAN and the
+index as KARANA was removed, including its execution/compiler fallbacks and old
+test. Compiler program sources now exercise the natural form, cardinal/ordinal
+positions, symbolic indices and failure parity. Existing corpus programs retain
+their validated behavior under the corrected means analysis.
+
 ## Arithmetic programs checked
 
 | Source | Intended result | Verification |

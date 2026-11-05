@@ -247,7 +247,8 @@ internal object PvmInlayHints {
                 if (isCanceled()) return emptyList()
                 val ukti = sentence.ukti ?: continue
                 val parameterHintSpans = mutableSetOf<dev.panini.vyakaranam.ast.DocumentSourceSpan>()
-                val analysis = grammarAnalyses?.firstOrNull { it.ukti === ukti }
+                val analysis = VyakaranamExecutionAdapter.analyzeProcedureCall(ukti, knownOperations)
+                    ?: grammarAnalyses?.firstOrNull { it.ukti === ukti }
                     ?: runCatching { VyakaranamExecutionAdapter.analyzeGrammar(ukti) }.getOrNull()
                 analysis?.frames?.forEach { frame ->
                     val span = (frame.kriya?.analysis?.pada as? SourceLocatedNode)?.sourceSpan

@@ -5,6 +5,27 @@ import dev.panini.vyakaranam.ast.*
 import kotlin.test.*
 
 class OptionalKarakaBranchTest {
+    @Test fun `established hiring cannot replace the inherited selected means prerequisite`() {
+        for (voice in listOf(Prayoga.KARTARI, Prayoga.KARMANI, Prayoga.BHAVE)) {
+            for (source in SemanticEvidenceSource.entries) {
+                val p = ParticipantFacts("payment", AvyayaPada("payment", "payment"), setOf(Vibhakti.CHATURTHI),
+                    semanticRelations = setOf(SemanticRelation.INSTRUMENT, SemanticRelation.FIXED_TERM_HIRING_PAYMENT),
+                    semanticEvidence = setOf(
+                        SemanticRelationEvidence(SemanticRelation.FIXED_TERM_HIRING_PAYMENT,
+                            SemanticEvidenceSource.CLAUSE_CONTEXT, "Fixed-term wage, not outright purchase."),
+                        SemanticRelationEvidence(SemanticRelation.INSTRUMENT, source, "Proposed selected means.")))
+                val result = KarakaRuleEngine.resolve(KarakaRuleContext(DhatuIdentity("क्री"), p, listOf(p), voice))
+                val established = source in setOf(SemanticEvidenceSource.CLAUSE_CONTEXT,
+                    SemanticEvidenceSource.LEXICAL_ENTRY)
+                assertEquals(established, result.evidence.any { it.sutra == "1.4.44" }, "$voice $source")
+                if (!established) {
+                    assertNull(result.primaryOptionalDecision, "$voice $source")
+                    assertTrue(result.evidence.none { it.sutra == "2.3.13" }, "$voice $source")
+                }
+            }
+        }
+    }
+
     @Test fun `fixed term hiring is an established construction meaning rather than a root prefix test`() {
         val rule = dev.panini.ashtadhyayi.adhyaya1.pada4.ParikrayaneSampradanamAnyatarasyamSutra
         for (root in listOf("क्री", "परिक्री", "ग्रह्")) {

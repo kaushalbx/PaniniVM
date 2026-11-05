@@ -30,6 +30,7 @@ object TrtiyaCaHosChandasiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            dev.panini.analysis.KarakaDhatuDomains.isHu(context) &&
             SemanticRelation.VEDIC_HU_OBJECT in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.TRTIYA in context.morphologicalCandidates
 

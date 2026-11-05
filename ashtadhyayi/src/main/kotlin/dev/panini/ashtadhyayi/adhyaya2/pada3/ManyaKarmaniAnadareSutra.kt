@@ -30,6 +30,7 @@ object ManyaKarmaniAnadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             context.karaka == Karaka.KARMAN &&
+            dev.panini.analysis.KarakaDhatuDomains.isMan(context) &&
             SemanticRelation.MAN_INANIMATE_DISREGARD_OBJECT in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.CHATURTHI in context.morphologicalCandidates || Vibhakti.DVITIYA in context.morphologicalCandidates)
 

@@ -25,7 +25,7 @@ object RucyarthanamPriyamanahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isRuc = KarakaDhatuDomains.isRuc(context)
-        return isRuc && context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
+        return isRuc &&
             context.participant.hasEstablishedMeaning(SemanticRelation.PLEASED_EXPERIENCER)
     }
 

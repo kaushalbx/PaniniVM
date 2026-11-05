@@ -26,7 +26,7 @@ object SprherIpsitahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val isSprha = KarakaDhatuDomains.isSprha(context)
         // Nyāsa allows the later 1.4.49 when īpsitatamatva is independently intended.
-        return isSprha && context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
+        return isSprha &&
             context.participant.hasEstablishedMeaning(SemanticRelation.LONGED_FOR_OBJECT) &&
             !context.participant.hasEstablishedMeaning(SemanticRelation.DESIRED_OBJECT)
     }

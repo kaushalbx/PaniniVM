@@ -14,7 +14,7 @@ import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
 import dev.panini.analysis.OptionalKarakaRuleOutcome
-import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.meaningEvidenceStrength
 
 /**
  * Sūtra 1.4.53 हृक्रोरन्यतरस्याम्.
@@ -39,8 +39,8 @@ object HrKrorAnyatarasyamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         val matchesRoot = KarakaDhatuDomains.isHrKr(context)
         return KarakaDhatuDomains.isCausativeConstruction(context) &&
             matchesRoot &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.CAUSEE_AGENT) &&
-            SemanticRelation.PRIOR_CAUSATIVE_AGENT !in context.participant.semanticRelations
+            context.participant.meaningEvidenceStrength(SemanticRelation.CAUSEE_AGENT) >= 2 &&
+            context.participant.meaningEvidenceStrength(SemanticRelation.PRIOR_CAUSATIVE_AGENT) < 2
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

@@ -37,7 +37,9 @@ class PriorActionGrammarBenchmarkTest {
             val ukti = PaniniParser().parse(case.get("source").asString)
             val analysis = if (readings.isEmpty()) assertNotNull(VyakaranamExecutionAdapter.analyzeGrammar(ukti)) else {
                 val lexicon = object : VyakaranamLexicon {
-                    override fun findPratipadika(text: String) = StandardPratipadikaLexicon.findPratipadika(text)?.let {
+                    override fun findPratipadika(text: String) = (StandardPratipadikaLexicon.findPratipadika(text)
+                        ?: if (text in readings) dev.panini.vyakaranam.lexicon.PratipadikaEntry(
+                            text, setOf(dev.panini.core.Linga.PUMS)) else null)?.let {
                         if (text in readings) it.copy(semanticRelations = readings.getValue(text)) else it
                     }
                     override fun findDhatu(text: String) = DhatuCache.resolve(DhatuPrakriti(text, text))

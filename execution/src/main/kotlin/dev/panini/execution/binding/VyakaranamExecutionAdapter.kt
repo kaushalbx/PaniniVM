@@ -103,6 +103,13 @@ object VyakaranamExecutionAdapter {
     /** Grammar-only consumers receive partial frames with blocking diagnostics for unresolved heads. */
     fun analyzeGrammar(ukti: Ukti): UktiAnalysis? = analyze(ukti)
 
+    /** Grammar of a written call to a known procedure; null when the utterance is not such a call. */
+    fun analyzeProcedureCall(ukti: Ukti, procedureStems: Set<String>): UktiAnalysis? {
+        val call = runCatching { dev.panini.execution.PrakriyaInvocationMatcher.match(ukti, procedureStems) }.getOrNull()
+            ?: return null
+        return analyzeUncached(ukti, procedureCall = call)
+    }
+
     internal fun analyzeForMemory(text: String): UktiAnalysis? {
         val ukti = try {
             parser.parse(text)
@@ -127,7 +134,8 @@ object VyakaranamExecutionAdapter {
     }
 
     /** Structural object evidence is analyzed separately from the cached grammar-only result. */
-    private fun analyzeUncached(ukti: Ukti, suppliedObjectVakyas: Set<Vakya> = emptySet()): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
+    private fun analyzeUncached(ukti: Ukti, suppliedObjectVakyas: Set<Vakya> = emptySet(),
+        procedureCall: dev.panini.execution.PrakriyaInvocationShape? = null): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
         val akhyata = vakya as? AkhyataVakya
         if (akhyata == null) {
             VakyaAnalyzer(
@@ -154,7 +162,19 @@ object VyakaranamExecutionAdapter {
                     sankhyaValueResolver = SankhyaPadaValueResolver(dev.panini.execution.NominalValueAnalysis::fallbackValue),
                 ),
             )
-            val frame = analyzer.analyze(vakya, frameId)
+            val initialFrame = analyzer.analyze(vakya, frameId)
+            val objectContext = dev.panini.analysis.VakyaSemanticContext(
+                participantRelations = ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) +
+                    ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame))
+            val objectFrame = if (objectContext.participantRelations.isEmpty()) initialFrame else
+                analyzer.analyze(vakya, frameId, objectContext)
+            val construction = dev.panini.analysis.VakyaSemanticContext(
+                participantRelations = objectContext.participantRelations +
+                    ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame) +
+                    ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame) +
+                    procedureCall?.let { ProgramProcedureCallConstruction.infer(it, objectFrame) }.orEmpty())
+            val frame = if (construction == objectContext) objectFrame else
+                analyzer.analyze(vakya, frameId, construction)
             if (vakya !in suppliedObjectVakyas || dhatu == null ||
                 dhatu.operations.none { it.resultBindingKaraka == Karaka.SAMPRADANA }) frame else {
                 // A structurally supplied कर्मन् (e.g. a pipeline result) is
@@ -167,7 +187,7 @@ object VyakaranamExecutionAdapter {
                         nominal.supCandidates.all { it.vibhakti == Vibhakti.CHATURTHI } }
                 }.associateWith<Int, Int?> { null }
                 if (recipients.isEmpty()) frame else analyzer.analyze(vakya, frameId,
-                    dev.panini.analysis.VakyaSemanticContext(intendedObjects = recipients))
+                    construction.copy(intendedObjects = recipients))
             }
         }
     }.analyze(ukti)

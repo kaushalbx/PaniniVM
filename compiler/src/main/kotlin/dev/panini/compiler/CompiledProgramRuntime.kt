@@ -10,7 +10,7 @@ import dev.panini.core.Karaka
 import java.util.LinkedHashMap
 
 internal val participantGroupOperations = setOf("सङ्ख्यायोजनम्", "सङ्ख्यावियोगः", "सङ्ख्यागुणनम्",
-    "सङ्ख्याहरणम्", "सङ्ख्याशेषः", "सङ्ख्यागणनम्", "सूच्याकारः")
+    "सङ्ख्याहरणम्", "सङ्ख्याशेषः", "सङ्ख्यागणनम्", "सूच्याकारः", "सूचीसंयोगः")
 
 /** Mutable execution context shared by all methods in one generated program invocation. */
 class CompiledProgramRuntime private constructor(

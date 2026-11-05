@@ -108,7 +108,7 @@ class KarakaJsonBenchmarkTest {
             vikarana = if (passive) Vikarana.YAK else null)
         val entries = words.map {
             val stem = requireNotNull(it.text("stem"))
-            val gender = when (stem) { "हित", "आयुष्य", "अन्न", "लेखन" -> Linga.NAPUMSAKA; "तुला", "उपमा", "लेखनी", "भूति", "सम्पत्ति" -> Linga.STRI; else -> Linga.PUMS }
+            val gender = when (stem) { "हित", "आयुष्य", "अन्न", "लेखन", "पयस्" -> Linga.NAPUMSAKA; "तुला", "उपमा", "लेखनी", "भूति", "सम्पत्ति", "धेनु", "अजा" -> Linga.STRI; else -> Linga.PUMS }
             PratipadikaEntry(stem, setOf(gender),
                 semanticRelations = it.strings("lexicalRelations").mapTo(mutableSetOf()) { name -> SemanticRelation.valueOf(name) })
         }.distinctBy { it.text }

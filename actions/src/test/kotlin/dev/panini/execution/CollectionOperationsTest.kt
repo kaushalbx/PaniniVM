@@ -34,7 +34,7 @@ class CollectionOperationsTest {
         val partial = ExecutionExpression.Coordination(whole, ExecutionExpression.Reference("missing"))
         for ((left, right) in listOf(partial to whole, whole to partial)) {
             val result = operation.action.execute(ExecutionContext(bindings = mapOf(
-                Karaka.KARMAN to left, Karaka.KARTR to right,
+                Karaka.KARMAN to ExecutionExpression.Coordination(left, right),
             )), operation)
             assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
         }
@@ -67,20 +67,21 @@ class CollectionOperationsTest {
             SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER) to SanskritValue.Suchi(emptyList(), ListMemberType.TEXT),
         )) {
             val result = operation.action.execute(ExecutionContext(bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.TypedOperand(left, dev.panini.core.SupAffix.AM),
-                Karaka.KARTR to ExecutionExpression.TypedOperand(right, dev.panini.core.SupAffix.TA),
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.TypedOperand(left, dev.panini.core.SupAffix.AM),
+                    ExecutionExpression.TypedOperand(right, dev.panini.core.SupAffix.AM)),
             )), operation)
             assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
         }
     }
 
     @Test
-    fun `compatibility joining retains all coordinated collections and their type`() {
+    fun `joining retains all coordinated collections and their type`() {
         val operation = dev.panini.actions.collection.ListConcatAction.op()
         val lists = (1L..3L).map { value -> SanskritValue.Suchi(
             listOf(SanskritValue.Sankhya(value, value.toString())), ListMemberType.NUMBER,
         ) }
-        for (input in listOf(lists.take(1), lists)) {
+        for (input in listOf(lists.take(2), lists)) {
             val result = operation.action.execute(ExecutionContext(bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(input.map {
                     ExecutionExpression.TypedOperand(it, dev.panini.core.SupAffix.AM)
@@ -93,7 +94,7 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `compatibility joining validates every coordinated member type`() {
+    fun `joining validates every coordinated member type`() {
         val operation = dev.panini.actions.collection.ListConcatAction.op()
         val lists = listOf(
             SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER),
@@ -397,34 +398,21 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `SrjDhatu executes ListConcatAction to concatenate two lists`() {
+    fun `sam yuj joins collection objects without reinterpreting them as agents`() {
         DhatuPathaRegistration.ensureRegistered()
-        val srj = DhatuPatha.all.first { it.id == "06.0150" }
-        val concatOp = srj.operations.first { it.name == "सूचीसंयोगः" || it.action.name == "सूचीसंयोगः" }
+        val yuj = DhatuPatha.all.first { it.id == "07.0007" }
+        val concatOp = yuj.operations.single { it.name == "सूचीसंयोगः" }
 
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.sankhya(1L, "एक"),
-                    ExecutionExpression.sankhya(2L, "द्वि")
-                ),
-                Karaka.SAMPRADANA to ExecutionExpression.Coordination(
-                    ExecutionExpression.sankhya(3L, "त्रि"),
-                    ExecutionExpression.sankhya(4L, "चतुर्")
+                    ExecutionExpression.TypedOperand(SanskritValue.Suchi(listOf(
+                        SanskritValue.Sankhya(1, "एक"), SanskritValue.Sankhya(2, "द्वि"))), dev.panini.core.SupAffix.AM),
+                    ExecutionExpression.TypedOperand(SanskritValue.Suchi(listOf(
+                        SanskritValue.Sankhya(3, "त्रि"), SanskritValue.Sankhya(4, "चतुर्"))), dev.panini.core.SupAffix.AM)
                 )
             )
         )
-
-        // Setup mock renderer
-        SankhyaResultRenderer.defaultRenderer = SankhyaResultRenderer { value ->
-            when (value) {
-                1L -> "एक"
-                2L -> "द्वि"
-                3L -> "त्रि"
-                4L -> "चतुर्"
-                else -> value.toString()
-            }
-        }
 
         val result = concatOp.action.execute(context, concatOp)
         assertIs<ExecutionResult.Success>(result)
@@ -438,30 +426,6 @@ class CollectionOperationsTest {
         assertEquals(2L, (typed.items[1] as SanskritValue.Sankhya).value)
         assertEquals(3L, (typed.items[2] as SanskritValue.Sankhya).value)
         assertEquals(4L, (typed.items[3] as SanskritValue.Sankhya).value)
-    }
-
-    @Test
-    fun `SthaDhatu executes ListIndexAction to retrieve element by index`() {
-        DhatuPathaRegistration.ensureRegistered()
-        val stha = DhatuPatha.all.first { it.id == "01.9901" }
-        val indexOp = stha.operations.first { it.name == "सूचीस्थानम्" }
-
-        val context = ExecutionContext(
-            bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.sankhya(10L, "दश"),
-                    ExecutionExpression.sankhya(20L, "विंशति"),
-                    ExecutionExpression.sankhya(30L, "त्रिंशत्")
-                ),
-                Karaka.KARANA to ExecutionExpression.sankhya(2L, "द्वि")
-            )
-        )
-
-        val result = indexOp.action.execute(context, indexOp)
-        assertIs<ExecutionResult.Success>(result)
-        assertEquals("विंशति", result.value)
-        assertIs<SanskritValue.Sankhya>(result.typedValue)
-        assertEquals(20L, (result.typedValue as SanskritValue.Sankhya).value)
     }
 
     @Test

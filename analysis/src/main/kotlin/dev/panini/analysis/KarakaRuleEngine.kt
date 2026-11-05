@@ -22,10 +22,6 @@ object KarakaRuleEngine {
         "1.4.51" to SemanticRelation.SECONDARY_OBJECT,
         "1.4.54" to SemanticRelation.INDEPENDENT_AGENT)
 
-    private fun competingMeaning(number: String?, participant: ParticipantFacts): SemanticRelation? =
-        if (number == "1.4.51" && participant.meaningEvidenceStrength(SemanticRelation.AMBIGUOUS_DVIKARMAKA_OBJECT) >
-            participant.meaningEvidenceStrength(SemanticRelation.SECONDARY_OBJECT))
-            SemanticRelation.AMBIGUOUS_DVIKARMAKA_OBJECT else ordinaryMeanings[number]
     val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> by lazy {
         @Suppress("UNCHECKED_CAST")
         Ashtadhyayi.registry.sutras
@@ -120,7 +116,8 @@ object KarakaRuleEngine {
         val counterContext = if (counterFits) context else generatedContext
         val counterReading = if (counterFits) counter else resolveSingle(generatedContext, counterDesignation)
         val counterCase = counterReading.resolvedVibhakti ?: vibhaktiAssignment(counterContext,
-            counterDesignation.karaka, counterContext.participant.possibleVibhaktis)?.second?.vibhakti
+            counterDesignation.karaka, counterContext.participant.possibleVibhaktis,
+            designation = counterDesignation.evidence.sutra)?.second?.vibhakti
         fun decision(apply: Boolean) = appliedDesignation.evidence.copy(optional = true, applied = apply,
             semanticEvidence = context.participant.semanticEvidence,
             reason = if (apply) "Optional designation applied." else "Optional designation declined; the underlying designation is retained.")
@@ -161,7 +158,7 @@ object KarakaRuleEngine {
             val branchContext = if (fits) context else generatedContext
             val branch = if (fits) reading else resolveSingle(generatedContext, designation.copy(karaka = role))
             val case = branch.resolvedVibhakti ?: vibhaktiAssignment(branchContext, role,
-                branchContext.participant.possibleVibhaktis)?.second?.vibhakti
+                branchContext.participant.possibleVibhaktis, designation = designation.evidence.sutra)?.second?.vibhakti
             val sameCaseProjection = fits && primary.resolvedVibhakti != null && case == primary.resolvedVibhakti
             (if (sameCaseProjection) emptyList() else listOf(KarakaAlternative(role, case, branch.evidence,
                 KarakaAlternativeKind.COEXISTENT_CASE,
@@ -205,13 +202,14 @@ object KarakaRuleEngine {
             val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
             prohibition !is NishedhaRuleResult.Blocked && try { rule.matches(semanticContext) } catch (_: ClassCastException) { false }
         }
-        val strengths = matchingSemanticRules.mapNotNull { competingMeaning(it.number, context.participant) }
+        val strengths = matchingSemanticRules.mapNotNull { ordinaryMeanings[it.number] }
             .map(context.participant::meaningEvidenceStrength).distinct()
         val ordinaryTie = matchingSemanticRules.size > 1 && matchingSemanticRules.all { it.number in ordinaryMeanings } &&
             strengths.size == 1 && strengths.single() > 0
         val compatibleOrdinaryRules = if (ordinaryTie) matchingSemanticRules.filter { rule ->
             val result = rule.apply(semanticContext) as? KarakaRuleResult.Assigned
-            result != null && vibhaktiAssignment(context, result.karaka, possibleVibhaktis) != null
+            result != null && vibhaktiAssignment(context, result.karaka, possibleVibhaktis,
+                designation = result.evidence.sutra) != null
         } else emptyList()
         fun roles(rules: List<Sutra<KarakaRuleContext, KarakaRuleResult>>) = rules.mapNotNull {
             (it.apply(semanticContext) as? KarakaRuleResult.Assigned)?.karaka
@@ -247,7 +245,7 @@ object KarakaRuleEngine {
             provisional?.let { karaka ->
                 vibhaktiAssignment(context, karaka, possibleVibhaktis,
                     eligibleRuleNumbers = if (otherNonKarakaHypothesis) directNonKarakaVibhaktiRules else null,
-                    rejectedRules = rejectedRules)?.let { (rule, assignment) ->
+                    rejectedRules = rejectedRules, designation = semantic?.evidence?.sutra)?.let { (rule, assignment) ->
                     resolvedVibhakti = assignment.vibhakti
                     add(assignment.evidence.copy(optional = rule.optional))
                 }
@@ -288,7 +286,8 @@ object KarakaRuleEngine {
                     val assignment = vibhaktiAssignment(context, alternativeRole, setOf(alternativeCase),
                         eligibleRuleNumbers = caseOutcome.alternativeRuleNumbers(
                             VibhaktiRuleContext(resolved, possibleVibhaktis, participant = context.participant))
-                            ?: setOf(assigningRule.number)) ?: return@forEach
+                            ?: setOf(assigningRule.number), designation = if (alternativeRole == resolved)
+                            semantic?.evidence?.sutra else caseRoleEvidence(context, alternativeRole)?.sutra) ?: return@forEach
                     val baseEvidence = if (dependentRole != null) listOfNotNull(caseRoleEvidence(context, alternativeRole))
                         else evidence.filter { it.sutra != assigningRule.number }
                     add(KarakaAlternative(
@@ -309,46 +308,28 @@ object KarakaRuleEngine {
                         any { it.vibhakti == case && it.evidence.lastOrNull()?.sutra == attestedRule.number }) return@forEach
                     val role = (attestedRule as? CaseDependentKarakaOutcome)?.karakaForCase(case) ?: resolved
                     val assignment = vibhaktiAssignment(context, role, setOf(case),
-                        eligibleRuleNumbers = setOf(attestedRule.number)) ?: return@forEach
+                        eligibleRuleNumbers = setOf(attestedRule.number), designation = if (role == resolved)
+                            semantic?.evidence?.sutra else caseRoleEvidence(context, role)?.sutra) ?: return@forEach
                     val proof = if (role == resolved) evidence.filter { it.sutra.startsWith("1.4.") }
                         else listOfNotNull(caseRoleEvidence(context, role))
                     add(KarakaAlternative(role, case, proof + assignment.second.evidence.copy(optional = true),
                         KarakaAlternativeKind.OPTIONAL_VIBHAKTI, matchesObservedMorphology = true))
                 }
             }
-            if (SemanticRelation.AMBIGUOUS_DVIKARMAKA_OBJECT in context.participant.semanticRelations) {
-                matchingSemanticRules.filter { it !== semanticRule }.forEach { competingRule ->
-                    val competing = competingRule.apply(semanticContext) as? KarakaRuleResult.Assigned
-                        ?: return@forEach
-                    if (competing.karaka != semanticResolved) return@forEach
-                    val assignment = vibhaktiAssignment(context, competing.karaka, possibleVibhaktis)
-                    add(KarakaAlternative(
-                        karaka = competing.karaka,
-                        vibhakti = assignment?.second?.vibhakti,
-                        evidence = listOf(competing.evidence.copy(
-                            optional = competingRule.optional,
-                            semanticEvidence = context.participant.semanticEvidence,
-                        )) +
-                            listOfNotNull(assignment?.let { (rule, result) ->
-                                result.evidence.copy(optional = rule.optional)
-                            }),
-                        kind = KarakaAlternativeKind.COMPETING_ANALYSIS,
-                    ))
-                }
-            }
             // Competing supplied readings of the ordinary roles are epistemic
             // alternatives, not grammatical optionality. Special saṃjñā rules
             // retain their own precedence and explicitly modeled branches.
-            val selectedMeaning = competingMeaning(semanticRule?.number, context.participant)
+            val selectedMeaning = ordinaryMeanings[semanticRule?.number]
             val selectedStrength = selectedMeaning?.let(context.participant::meaningEvidenceStrength) ?: 0
             if (selectedStrength > 0) {
                 matchingSemanticRules.filter { it !== semanticRule }.filter { competingRule ->
-                    competingMeaning(competingRule.number, context.participant)?.let {
+                    ordinaryMeanings[competingRule.number]?.let {
                         context.participant.meaningEvidenceStrength(it) == selectedStrength
                     } == true
                 }.forEach { competingRule ->
                     val competing = competingRule.apply(semanticContext) as? KarakaRuleResult.Assigned ?: return@forEach
-                    val assignment = vibhaktiAssignment(context, competing.karaka, possibleVibhaktis)
+                    val assignment = vibhaktiAssignment(context, competing.karaka, possibleVibhaktis,
+                        designation = competing.evidence.sutra)
                     add(KarakaAlternative(competing.karaka, assignment?.second?.vibhakti,
                         listOf(competing.evidence.copy(semanticEvidence = context.participant.semanticEvidence)) +
                             listOfNotNull(assignment?.second?.evidence), KarakaAlternativeKind.COMPETING_ANALYSIS,
@@ -365,7 +346,7 @@ object KarakaRuleEngine {
         val compatibleCompetingRole = alternatives.any {
             it.kind == KarakaAlternativeKind.COMPETING_ANALYSIS && it.matchesObservedMorphology && it.karaka != resolved
         }
-        val conflictingCompetingCase = compatibleCompetingRole && alternatives.any {
+        val conflictingCompetingCase = alternatives.any {
             it.kind == KarakaAlternativeKind.COMPETING_ANALYSIS && it.matchesObservedMorphology && it.vibhakti != resolvedVibhakti
         }
         val finalCase = resolvedVibhakti.takeUnless { compatibleCaseReading || conflictingCompetingCase }
@@ -407,19 +388,21 @@ object KarakaRuleEngine {
         }
     }
 
-    private fun isAbhihita(context: KarakaRuleContext, karaka: Karaka): Boolean =
-        isDirectlyAbhihita(context, karaka) || coexistentRules.any { rule ->
+    private fun isAbhihita(context: KarakaRuleContext, karaka: Karaka, designation: String? = null): Boolean =
+        isDirectlyAbhihita(context, karaka, designation) || coexistentRules.any { rule ->
             val names = (rule as CoexistentKarakaRuleOutcome).coexistingKarakas
-            karaka in names && rule.matches(context) && names.any { isDirectlyAbhihita(context, it) }
+            karaka in names && rule.matches(context) && names.any { isDirectlyAbhihita(context, it, designation) }
         }
 
-    private fun isDirectlyAbhihita(context: KarakaRuleContext, karaka: Karaka): Boolean {
+    private fun isDirectlyAbhihita(context: KarakaRuleContext, karaka: Karaka, designation: String?): Boolean {
         if (context.governingKrt != null) return karaka in context.governingKrtExpressedRoles.orEmpty()
+        if (PassiveObjectExpression.applies(context, karaka, designation))
+            return PassiveObjectExpression.isExpressed(context, designation) == true
         return when (context.prayoga) {
         Prayoga.KARTARI -> karaka == Karaka.KARTR
         Prayoga.KARMANI -> karaka == Karaka.KARMAN
         Prayoga.CAUSATIVE -> karaka == Karaka.KARTR &&
-            SemanticRelation.PROMPTER_CAUSE in context.participant.semanticRelations
+            context.participant.meaningEvidenceStrength(SemanticRelation.PROMPTER_CAUSE) >= 2
         Prayoga.BHAVE, Prayoga.ANIRDHARITA -> false
         }
     }
@@ -430,7 +413,10 @@ object KarakaRuleEngine {
         morphologicalCandidates: Set<Vibhakti>,
         eligibleRuleNumbers: Set<String>? = null,
         rejectedRules: MutableList<RejectedKarakaRule>? = null,
+        designation: String? = null,
     ): Pair<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>, VibhaktiRuleResult.Assigned>? {
+        if (PassiveObjectExpression.applies(context, karaka, designation) &&
+            PassiveObjectExpression.isExpressed(context, designation) == null) return null
         if (context.governingKrt?.let { !KrtGovernanceEvidence.hasRecognizedMorphology(it) } == true) return null
         if (context.governingKrt != null && context.governingKrtExpressedRoles == null &&
             karaka !in setOf(Karaka.ANIRDHARITA, Karaka.SAMBANDHA, Karaka.SAMBODHANA)) return null
@@ -438,7 +424,7 @@ object KarakaRuleEngine {
         val vibhaktiContext = VibhaktiRuleContext(
             ruleKaraka,
             morphologicalCandidates,
-            abhihita = isAbhihita(context, karaka),
+            abhihita = isAbhihita(context, karaka, designation),
             participant = context.participant,
             dhatu = context.dhatu,
             verbNode = context.verbNode,
@@ -478,7 +464,10 @@ object KarakaRuleEngine {
                     val proposed = candidate.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                         ?: return@firstOrNull false
                     val branchRole = caseDependent.karakaForCase(proposed.vibhakti)
-                    if (isAbhihita(context, branchRole)) return@firstOrNull false
+                    val branchDesignation = if (branchRole == karaka) designation else caseRoleEvidence(context, branchRole)?.sutra
+                    if (PassiveObjectExpression.applies(context, branchRole, branchDesignation) &&
+                        PassiveObjectExpression.isExpressed(context, branchDesignation) == null) return@firstOrNull false
+                    if (isAbhihita(context, branchRole, branchDesignation)) return@firstOrNull false
                     if (branchRole !in setOf(Karaka.SAMBANDHA, Karaka.ANIRDHARITA) &&
                         caseRoleEvidence(context, branchRole) == null) return@firstOrNull false
                 }

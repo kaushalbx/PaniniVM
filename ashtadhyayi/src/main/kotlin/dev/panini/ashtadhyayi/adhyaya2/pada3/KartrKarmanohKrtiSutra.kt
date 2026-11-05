@@ -24,6 +24,7 @@ object KartrKarmanohKrtiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
+            !GatyarthaKarmaniDvitiyaCaturthyauSutra.isApplicableDomain(context) &&
             !KasyaCaVartamaneSutra.matches(context) && !AdhikaranavacinacCaSutra.matches(context) &&
             SemanticRelation.KRT_GOVERNED_PARTICIPANT in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.KRT_DUAL_ELIGIBLE_AGENT !in context.participant?.semanticRelations.orEmpty() &&

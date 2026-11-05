@@ -14,6 +14,7 @@ object UbhayapraptauKarmaniSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE), adhikara = setOf("2.3.1"),
 ) {
     override fun matches(context: VibhaktiRuleContext) = !context.abhihita &&
+        !GatyarthaKarmaniDvitiyaCaturthyauSutra.isApplicableDomain(context) &&
         !AdhikaranavacinacCaSutra.matches(context) &&
         context.karaka == Karaka.KARMAN &&
         SemanticRelation.KRT_GOVERNED_PARTICIPANT in context.participant?.semanticRelations.orEmpty() &&

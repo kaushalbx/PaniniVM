@@ -1,6 +1,5 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.collection.ListIndexAction
 import dev.panini.actions.collection.ListReplaceAction
 import dev.panini.actions.control.LoopBreakAction
 import dev.panini.actions.state.StateWaitAction
@@ -57,11 +56,6 @@ class SthaDhatu : Dhatu(
             optional(Karaka.KARMAN)
             triggeredBy(forbiddenUpasargaIdentities = setOf(Upasarga.VI))
             returns(Samjna.SHABDA)
-        },
-        ListIndexAction.op {
-            requires(Karaka.KARMAN) // list
-            requires(Karaka.KARANA) // index
-            returns(Samjna.SHABDA, Samjna.SANKHYA)
         },
     ),
     surfaceAliases = setOf("तिष्ठति", "तिष्ठ", "स्थानम्", "स्थितिः"),

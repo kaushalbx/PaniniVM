@@ -14,7 +14,8 @@
     {
       "id": "passive_preposed_competing_agent_and_instrument",
       "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
-      "lexicalReadings": { "राम": ["INDEPENDENT_AGENT", "INSTRUMENT"] },
+      "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"], "राम": ["INDEPENDENT_AGENT", "INSTRUMENT"] },
       "rationale": "Equally explicit agent and instrument meanings do not establish finite-agent ownership merely because an agent reading is available.",
       "expectedStatus": "UNSUPPORTED",
       "blockingPrefix": "PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL"
@@ -23,6 +24,7 @@
       "id": "passive_preposed_selected_agent_dual_patient",
       "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
       "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"],
         "राम": [
           "INDEPENDENT_AGENT"
         ]
@@ -98,6 +100,7 @@
         }
       ],
       "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"],
         "राम": [
           "INDEPENDENT_AGENT"
         ]
@@ -150,7 +153,8 @@
     {
       "id": "passive_unselected_instrumental",
       "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + सुँ डुकृञ् + यक् + लट् + त ।",
-      "lexicalReadings": {},
+      "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"]},
       "rationale": "An instrumental case form without a selected role reading retains agent/tool ambiguity. It must not create a definite shared agent. The nominative is the finite patient, not the controller of the prior action.",
       "expectedStatus": "ANALYZED",
       "sharedAgents": 0,
@@ -197,7 +201,8 @@
     {
       "id": "passive_preposed_instrumental_not_silently_attached",
       "source": "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + सुँ डुकृञ् + यक् + लट् + त ।",
-      "lexicalReadings": {},
+      "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"]},
       "rationale": "A preposed instrumental can require joint ownership analysis across actions. This attachment remains unsupported; a blocking diagnostic must replace a guessed owner.",
       "expectedStatus": "UNSUPPORTED",
       "blockingPrefix": "PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL:"
@@ -206,6 +211,7 @@
       "id": "bhave_selected_agent",
       "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा आसँ + यक् + लट् + त ।",
       "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"],
         "राम": [
           "INDEPENDENT_AGENT"
         ]
@@ -250,6 +256,7 @@
       "id": "passive_dual_patient_singular_verb",
       "source": "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + त ।",
       "lexicalReadings": {
+        "एक": ["DESIRED_OBJECT"], "फल": ["DESIRED_OBJECT"],
         "राम": [
           "INDEPENDENT_AGENT"
         ]

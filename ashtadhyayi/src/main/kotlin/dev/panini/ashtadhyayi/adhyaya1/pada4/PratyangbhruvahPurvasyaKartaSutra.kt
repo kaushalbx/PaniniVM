@@ -25,8 +25,7 @@ object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         return KarakaDhatuDomains.isPromiseShru(context) &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.PRIOR_ACTION_AGENT) &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
+            context.participant.hasEstablishedMeaning(SemanticRelation.PRIOR_ACTION_AGENT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

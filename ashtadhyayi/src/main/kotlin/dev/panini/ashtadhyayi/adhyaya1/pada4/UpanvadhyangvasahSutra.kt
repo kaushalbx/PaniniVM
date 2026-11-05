@@ -11,6 +11,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.meaningEvidenceStrength
 import dev.panini.analysis.KarakaDhatuDomains
 
 object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
@@ -28,7 +29,7 @@ object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         val hasPrefix = prefixes.any { it in setOf("उप", "अनु", "अधि", "आ", "आङ्") }
         val isVas = KarakaDhatuDomains.isResidenceVas(context)
         return hasPrefix && isVas && !KarakaDhatuDomains.isFastingVas(context) &&
-            SemanticRelation.LOCATION in context.participant.semanticRelations
+            context.participant.meaningEvidenceStrength(SemanticRelation.LOCATION) >= 2
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

@@ -26,7 +26,8 @@ object AdverbialScopeResolver {
         fun unresolved(reason: String) = AdverbialResolution.Unresolved(qualification, reason)
         val index = qualification.sourceIndex
             ?: return unresolved("The source occurrence is unknown.")
-        if (analyses.getOrNull(index) != qualification.source) {
+        val source = analyses.getOrNull(index)
+        if (source != qualification.source || source?.pada !== qualification.source.pada) {
             return unresolved("The source occurrence does not match this clause.")
         }
         val semantics = qualification.semantics

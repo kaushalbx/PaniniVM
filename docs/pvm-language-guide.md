@@ -728,19 +728,16 @@ values. See `examples/collections/sort_and_partition.pvm`.
 
 ### 7.7 Collection concatenation
 
-Join two collections with causative `सम् + युज्`. The collection being
-extended is accusative, while the collection joined with it is instrumental:
+Join collections with causative `सम् + युज्`. The collections are coordinated
+accusative objects:
 
 ```pvm
-पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।
+पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।
 ```
 
-This renders as `पूर्वसूचीम् उत्तरसूच्या संयोजय`—“join the first list with the
-second list.” The upasarga `सम्` supplies the “together” sense and distinguishes
-collection joining from bare arithmetic `युज्`. The instrumental participant
-is resolved as the expressed secondary agent of the causative construction;
-its kāraka, not its position, determines the role.
-The natural joining frame requires exactly one collection in each role; a scalar
+The upasarga `सम्` supplies the “together” sense and distinguishes collection
+joining from bare arithmetic `युज्`. The natural joining frame requires at least
+two coordinated collections; a scalar
 is not silently wrapped into a singleton list. Declared member constraints are
 retained and validated, including when a collection is empty. Every supplied
 collection reference must resolve; a missing reference is an error, while an
@@ -1820,7 +1817,7 @@ look equally idiomatic.
 |---|---|---|
 | Order reusable actions | `पूर्वस्य परस्य एका कुरु` directive | Instrumental action nouns joined by `ततः` (§6.2) |
 | Test collection membership | Accusative collection with instrumental member | Locative collection with nominative member (§7.1) |
-| Join collections | `सृज्` with a dative second collection | `सम् + युज्` with genitive and instrumental collections (§7.7) |
+| Join collections | `सृज्` with a dative second collection | `सम् + युज्` with coordinated accusative collections (§7.7) |
 | Slice a collection | `भज्` with instrumental start and dative end | Genitive whole, ablative start, and `पर्यन्तम्` end (§7.9) |
 | Extract the final member | Accusative collection frame | Genitive whole with `अन्तिमम्` (§7.11) |
 | Declare a procedure | Bare `… + ल्युट् + सुँ ।` header, accepted by migration tools only | Explicit `नाम प्रक्रिया … अस्ति` or `इति प्रक्रिया … अस्ति` (§11.1) |

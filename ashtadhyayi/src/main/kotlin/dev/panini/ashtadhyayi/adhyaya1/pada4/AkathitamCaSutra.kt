@@ -12,9 +12,8 @@ import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.meaningEvidenceStrength
 import dev.panini.analysis.isStrongestOrdinaryReading
-import dev.panini.analysis.KarakaDhatuDomains.isCausativeConstruction
 
 /**
  * Sūtra 1.4.51 अकथितं च.
@@ -32,14 +31,8 @@ object AkathitamCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val matchesDhatu = KarakaDhatuDomains.isDvikarmaka(context)
-        return matchesDhatu && (!isCausativeConstruction(context) ||
-            context.participant.hasEstablishedMeaning(SemanticRelation.SECONDARY_OBJECT)) &&
-            context.participant.semanticRelations.any {
-                (it == SemanticRelation.SECONDARY_OBJECT || it == SemanticRelation.AMBIGUOUS_DVIKARMAKA_OBJECT) &&
-                    context.participant.isStrongestOrdinaryReading(it)
-            } &&
-            (Karaka.KARMAN in context.candidates ||
-                context.participant.hasEstablishedMeaning(SemanticRelation.SECONDARY_OBJECT))
+        return matchesDhatu && context.participant.meaningEvidenceStrength(SemanticRelation.SECONDARY_OBJECT) >= 2 &&
+            context.participant.isStrongestOrdinaryReading(SemanticRelation.SECONDARY_OBJECT)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

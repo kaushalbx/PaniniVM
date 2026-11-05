@@ -8,8 +8,8 @@ import kotlin.test.*
 class OperationPayloadTypeTest {
     private fun join(left: SanskritValue, right: SanskritValue): OperationResolution = OperationResolver.resolve(
         DhatuInvocation("join", YujirDhatu(), mapOf(
-            Karaka.KARMAN to ExecutionExpression.Reference("left"),
-            Karaka.KARTR to ExecutionExpression.Reference("right"),
+            Karaka.KARMAN to ExecutionExpression.Coordination(listOf(
+                ExecutionExpression.Reference("left"), ExecutionExpression.Reference("right"))),
         ), selectedOperation = "सूचीसंयोगः"),
         mapOf("left" to left, "right" to right),
     )

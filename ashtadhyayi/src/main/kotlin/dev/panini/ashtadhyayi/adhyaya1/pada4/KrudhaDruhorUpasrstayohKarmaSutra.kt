@@ -25,7 +25,6 @@ object KrudhaDruhorUpasrstayohKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         return KarakaDhatuDomains.isPrefixedKrudhDruh(context) &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT) &&
             context.participant.hasEstablishedMeaning(SemanticRelation.ANGER_TARGET)
     }
 

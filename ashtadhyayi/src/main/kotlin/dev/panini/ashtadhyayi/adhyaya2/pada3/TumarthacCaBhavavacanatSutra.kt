@@ -31,7 +31,8 @@ object TumarthacCaBhavavacanatSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRes
     fun hasPurposeActionNoun(context: VibhaktiRuleContext): Boolean {
         val p = context.participant ?: return false
         val noun = (p.expression as? SubantaPada)?.pratipadika as? KridantaPratipadika ?: return false
-        return noun.krtAffix in setOf(KrtAffix.GHAN, KrtAffix.KTIN, KrtAffix.LYUT) &&
+        // Bhāva-capable affixes of 3.3; agent affixes such as ṇvul and unrecognized affixes stay excluded.
+        return noun.krtAffix in setOf(KrtAffix.GHAN, KrtAffix.KTIN, KrtAffix.LYUT, KrtAffix.A, KrtAffix.YUC, KrtAffix.KI) &&
             noun.vikaras.all { it.isRecognizedStriAffix } &&
             p.semanticRelations.containsAll(setOf(SemanticRelation.PURPOSE_ACTION, SemanticRelation.ACTION_NOUN_DENOTATION))
     }

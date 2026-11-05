@@ -25,8 +25,7 @@ object DharerUttamarnahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val isDhari = KarakaDhatuDomains.isDhari(context)
-        return isDhari && context.participant.hasEstablishedMeaning(SemanticRelation.CREDITOR) &&
-            context.participant.hasEstablishedMeaning(SemanticRelation.RECIPIENT)
+        return isDhari && context.participant.hasEstablishedMeaning(SemanticRelation.CREDITOR)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

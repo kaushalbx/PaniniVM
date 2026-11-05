@@ -24,12 +24,11 @@ object KarturIpsitatamamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.DESIRED_OBJECT in context.participant.semanticRelations &&
+        context.participant.meaningEvidenceStrength(SemanticRelation.DESIRED_OBJECT) >= 2 &&
             context.participant.meaningEvidenceStrength(SemanticRelation.DESIRED_OBJECT) >=
                 context.participant.meaningEvidenceStrength(SemanticRelation.INDIFFERENT_OBJECT) &&
             context.participant.isStrongestOrdinaryReading(SemanticRelation.DESIRED_OBJECT) &&
-            SemanticRelation.CAUSEE_AGENT !in context.participant.semanticRelations &&
-            SemanticRelation.SECONDARY_OBJECT !in context.participant.semanticRelations &&
+            context.participant.meaningEvidenceStrength(SemanticRelation.CAUSEE_AGENT) < 2 &&
             (Karaka.KARMAN in context.candidates ||
                 (context.dhatu.sakarmaka &&
                     context.participant.hasEstablishedMeaning(SemanticRelation.DESIRED_OBJECT)))

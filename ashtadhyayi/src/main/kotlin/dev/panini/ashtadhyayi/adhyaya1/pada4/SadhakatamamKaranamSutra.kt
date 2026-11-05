@@ -11,10 +11,8 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.isSelectedInstrument
 import dev.panini.analysis.isStrongestOrdinaryReading
-import dev.panini.analysis.hasEstablishedMeaning
 
 object SadhakatamamKaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.42", text = "साधकतमं करणम्",
@@ -25,10 +23,7 @@ object SadhakatamamKaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        (context.participant.isSelectedInstrument() ||
-            (context.prayoga == dev.panini.core.Prayoga.KARTARI && context.governingKrt == null &&
-                context.candidates == setOf(Karaka.KARANA) &&
-                context.participant.hasEstablishedMeaning(SemanticRelation.INSTRUMENT))) &&
+        context.participant.isSelectedInstrument() &&
             context.participant.isStrongestOrdinaryReading(SemanticRelation.INSTRUMENT) &&
             !DivahKarmaCaSutra.matches(context) &&
             !ParikrayaneSampradanamAnyatarasyamSutra.matches(context)

@@ -14,7 +14,7 @@ class VakyaSemanticContextTest {
         val givingVerb = verb.copy(sourceText = "ददाति", dhatu = DhatuPrakriti("दा", "दा"))
         val clause = AkhyataVakya("case diagnostic", listOf(first, second, nominal("अन्न", "अम्"), givingVerb), givingVerb)
         val frame = analyzer.analyze(clause, semanticContext = VakyaSemanticContext(
-            mapOf(1 to setOf(SemanticRelation.SESHA_RELATION)), intendedObjects = mapOf(0 to 2)))
+            mapOf(1 to setOf(SemanticRelation.SESHA_RELATION), 2 to setOf(SemanticRelation.DESIRED_OBJECT)), intendedObjects = mapOf(0 to 2)))
         assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMPRADANA), frame.relations[0].resolution)
         assertNull(frame.relations[0].resolvedVibhakti)
         val diagnostic = frame.diagnostics.single { it.code == FrameDiagnosticCode.UNVALIDATED_VIBHAKTI }

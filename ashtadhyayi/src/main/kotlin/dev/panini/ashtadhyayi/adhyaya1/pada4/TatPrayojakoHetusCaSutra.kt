@@ -11,6 +11,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.meaningEvidenceStrength
 
 object TatPrayojakoHetusCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.55", text = "तत्प्रयोजको हेतुश्च",
@@ -22,7 +23,7 @@ object TatPrayojakoHetusCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     anuvrtti = setOf("1.4.54"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.PROMPTER_CAUSE in context.participant.semanticRelations && Karaka.KARTR in context.candidates
+        context.participant.meaningEvidenceStrength(SemanticRelation.PROMPTER_CAUSE) >= 2
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.KARTR,

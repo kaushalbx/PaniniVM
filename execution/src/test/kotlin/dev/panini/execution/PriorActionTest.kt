@@ -117,7 +117,9 @@ class PriorActionTest {
             val source = "राम + सुँ च श्याम + सुँ च एक + अम् द्वि + औट् च " +
                 "युज् + णिच् + क्त्वा फल + अम् मुद्र् + णिच् + लट् + $ending ।"
             val sequence = assertIs<Sequence>(PriorActionLowering.lower(PaniniParser().parse(source).body))
-            val frames = sequence.statements.map { analyzer.analyze(assertIs<Invocation>(it).vakya) }
+            val prompters = dev.panini.analysis.VakyaSemanticContext(participantRelations =
+                listOf(0, 1).associateWith { setOf(dev.panini.analysis.SemanticRelation.PROMPTER_CAUSE) })
+            val frames = sequence.statements.map { analyzer.analyze(assertIs<Invocation>(it).vakya, semanticContext = prompters) }
             assertEquals(0, frames.first().diagnostics.count {
                 it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH
             }, "Nonfinite morphology does not express finite number agreement")

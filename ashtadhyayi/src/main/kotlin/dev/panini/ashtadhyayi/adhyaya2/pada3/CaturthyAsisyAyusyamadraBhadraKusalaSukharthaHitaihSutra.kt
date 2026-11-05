@@ -35,7 +35,7 @@ object CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra : Sutra<Vibhakti
         if (NamahSvastiSvahaSutra.hasConstruction(context)) return false
         val stem = p.governingNominal?.pratipadika as? MulaPratipadika ?: return false
         return stem.vikaras.all { it.isRecognizedStriAffix } &&
-            stem.text in setOf("आयुष्य", "मद्र", "भद्र", "कुशल", "सुख", "अर्थ", "हित") &&
+            stem.text in setOf("निरामय", "शम्", "प्रयोजन", "पथ्य", "चिरजीवित", "आयुष्य", "मद्र", "भद्र", "कुशल", "सुख", "अर्थ", "हित") &&
             SemanticRelation.BENEDICTION_WELLBEING in p.semanticRelations &&
             SemanticRelation.SESHA_RELATION in p.semanticRelations
     }

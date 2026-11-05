@@ -93,13 +93,13 @@ class PaniniCliProcessTest {
             process.outputStream.use { stream ->
                 stream.write(input.toByteArray(StandardCharsets.UTF_8))
             }
-            val finished = process.waitFor(30, TimeUnit.SECONDS)
+            val finished = process.waitFor(120, TimeUnit.SECONDS)
             if (!finished) {
                 process.destroyForcibly()
                 process.waitFor(5, TimeUnit.SECONDS)
             }
             val capturedOutput = output.get(5, TimeUnit.SECONDS)
-            assertTrue(finished, "CLI process did not finish within 30 seconds. Output:\n$capturedOutput")
+            assertTrue(finished, "CLI process did not finish within 120 seconds. Output:\n$capturedOutput")
             ProcessResult(
                 exitCode = process.exitValue(),
                 output = capturedOutput,

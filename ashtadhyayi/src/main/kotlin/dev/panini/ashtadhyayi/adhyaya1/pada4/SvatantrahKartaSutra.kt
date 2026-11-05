@@ -11,7 +11,7 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
-import dev.panini.analysis.hasEstablishedMeaning
+import dev.panini.analysis.meaningEvidenceStrength
 import dev.panini.analysis.isStrongestOrdinaryReading
 import dev.panini.core.Prayoga
 
@@ -24,13 +24,9 @@ object SvatantrahKartaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.INDEPENDENT_AGENT in context.participant.semanticRelations &&
-            ((context.prayoga == Prayoga.KARTARI && context.governingKrt == null) ||
-                context.participant.hasEstablishedMeaning(SemanticRelation.INDEPENDENT_AGENT)) &&
+        context.participant.meaningEvidenceStrength(SemanticRelation.INDEPENDENT_AGENT) >= 2 &&
             context.participant.isStrongestOrdinaryReading(SemanticRelation.INDEPENDENT_AGENT) &&
-            SemanticRelation.PROMPTER_CAUSE !in context.participant.semanticRelations &&
-            (Karaka.KARTR in context.candidates ||
-                context.participant.hasEstablishedMeaning(SemanticRelation.INDEPENDENT_AGENT))
+            context.participant.meaningEvidenceStrength(SemanticRelation.PROMPTER_CAUSE) < 2
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.KARTR,

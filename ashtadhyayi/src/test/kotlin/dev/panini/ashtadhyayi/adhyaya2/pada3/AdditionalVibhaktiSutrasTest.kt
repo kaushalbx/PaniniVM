@@ -23,8 +23,9 @@ class AdditionalVibhaktiSutrasTest {
         val ordinary = VibhaktiRuleContext(Karaka.KARMAN, setOf(Vibhakti.CHATURTHI),
             participant = dummyParticipant())
         org.junit.jupiter.api.Assertions.assertFalse(ManyaKarmaniAnadareSutra.matches(ordinary))
-        val marked = ordinary.copy(participant = dummyParticipant(
+        val marked = ordinary.copy(dhatu = dev.panini.analysis.DhatuIdentity("मन्"), participant = dummyParticipant(
             setOf(SemanticRelation.MAN_INANIMATE_DISREGARD_OBJECT)))
+        assertFalse(ManyaKarmaniAnadareSutra.matches(marked.copy(dhatu = dev.panini.analysis.DhatuIdentity("चिन्त्"))))
         assertTrue(ManyaKarmaniAnadareSutra.matches(marked))
         assertEquals("2.3.17", (ManyaKarmaniAnadareSutra.apply(marked) as VibhaktiRuleResult.Assigned).evidence.sutra)
     }

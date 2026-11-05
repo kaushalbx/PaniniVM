@@ -78,11 +78,12 @@ sealed interface NaturalOperation {
         val collection: ExecutionExpression,
     ) : NaturalOperation
 
-    /** One collection is joined with another expressed in the instrumental. */
+    /** Coordinated collections are the objects to be joined. */
     data class CollectionConcatenation(
-        val collection: ExecutionExpression,
-        val companion: ExecutionExpression,
-    ) : NaturalOperation
+        val collections: List<ExecutionExpression>,
+    ) : NaturalOperation {
+        init { require(collections.size >= 2) { "Joining requires at least two coordinated collections." } }
+    }
 
     /** Counts the members of the collection expressed as the object of गण्. */
     data class CollectionCardinality(
@@ -175,9 +176,9 @@ object NaturalOperationResolver {
                 NaturalOperation.CollectionMembership(item, collection)
             }
             "सूचीसंयोगः" -> {
-                val collection = bindings[Karaka.KARMAN] ?: return null
-                val companion = bindings[Karaka.KARTR] ?: return null
-                NaturalOperation.CollectionConcatenation(collection, companion)
+                val collections = (bindings[Karaka.KARMAN] as? ExecutionExpression.Coordination)?.members ?: return null
+                if (collections.size < 2) return null
+                NaturalOperation.CollectionConcatenation(collections)
             }
             "सूच्याकारः" -> {
                 val collection = bindings[Karaka.KARMAN] ?: return null

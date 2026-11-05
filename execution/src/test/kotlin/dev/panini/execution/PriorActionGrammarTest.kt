@@ -14,7 +14,7 @@ class PriorActionGrammarTest {
         for (source in listOf(
             "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा आसँ + यक् + लट् + त ।",
             "राम + टा एक + अम् युज् + णिच् + क्त्वा द्वि + अम् मुद्र् + णिच् + क्त्वा फल + सुँ डुकृञ् + यक् + लट् + त ।")) {
-            val analysis = analyzeWithAgentReading(source)
+            val analysis = analyzeWithSelectedReadings(source)
             assertTrue(analysis.blockingDiagnostics.isEmpty(), analysis.blockingDiagnostics.toString())
             val main = analysis.frames.last()
             val agent = main.relations.single { it.participant.pada.sourceText == "राम+टा" }
@@ -29,7 +29,7 @@ class PriorActionGrammarTest {
     }
     @Test fun `preposed passive agent requires independent semantic evidence and preserves its occurrence`() {
         val source = "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा फल + औ डुकृञ् + यक् + लट् + आताम् ।"
-        val analysis = analyzeWithAgentReading(source)
+        val analysis = analyzeWithSelectedReadings(source)
         assertTrue(analysis.blockingDiagnostics.isEmpty(), analysis.blockingDiagnostics.toString())
         assertEquals(2, analysis.frames.size)
         val main = analysis.frames.last()
@@ -67,12 +67,18 @@ class PriorActionGrammarTest {
     private fun analyze(source: String) = assertNotNull(
         VyakaranamExecutionAdapter.analyzeGrammar(PaniniParser().parse(source)))
 
-    /** A supplied lexical reading for this fixture, not a claim that every Rāma is an agent. */
-    private fun analyzeWithAgentReading(source: String): UktiAnalysis {
+    /** Selected agent and desired-object readings for these fixtures; no general lexical claim. */
+    private fun analyzeWithSelectedReadings(source: String): UktiAnalysis {
         val lexicon = object : dev.panini.vyakaranam.lexicon.VyakaranamLexicon {
             override fun findPratipadika(text: String): dev.panini.vyakaranam.lexicon.PratipadikaEntry? {
                 val entry = dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika(text)
-                return if (text == "राम") entry?.copy(semanticRelations = setOf(SemanticRelation.INDEPENDENT_AGENT)) else entry
+                    ?: if (text in setOf("एक", "द्वि", "फल")) dev.panini.vyakaranam.lexicon.PratipadikaEntry(
+                        text, setOf(dev.panini.core.Linga.PUMS)) else null
+                return when (text) {
+                    "राम" -> entry?.copy(semanticRelations = setOf(SemanticRelation.INDEPENDENT_AGENT))
+                    "एक", "द्वि", "फल" -> entry?.copy(semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT))
+                    else -> entry
+                }
             }
             override fun findDhatu(text: String) = dev.panini.execution.binding.DhatuCache.resolve(DhatuPrakriti(text, text))
         }
@@ -182,7 +188,7 @@ class PriorActionGrammarTest {
         for (source in listOf(
             "एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + आताम् ।",
             "फल + औ एक + अम् मुद्र् + णिच् + क्त्वा राम + टा डुकृञ् + यक् + लट् + आताम् ।")) {
-            val analysis = analyzeWithAgentReading(source)
+            val analysis = analyzeWithSelectedReadings(source)
             assertTrue(analysis.blockingDiagnostics.isEmpty(), analysis.blockingDiagnostics.toString())
             val prior = analysis.frames[0]
             val main = analysis.frames[1]
@@ -204,7 +210,7 @@ class PriorActionGrammarTest {
     }
 
     @Test fun `passive finite number follows patient rather than shared agent`() {
-        val analysis = analyze("एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + त ।")
+        val analysis = analyzeWithSelectedReadings("एक + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + औ डुकृञ् + यक् + लट् + त ।")
         assertTrue(analysis.frames.last().diagnostics.any { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH })
         assertTrue(analysis.frames.first().diagnostics.none { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH })
     }
@@ -218,7 +224,7 @@ class PriorActionGrammarTest {
     }
 
     @Test fun `passive omitted agent is not replaced by the nominative patient`() {
-        val analysis = analyze("फल + सुँ एक + अम् मुद्र् + णिच् + क्त्वा डुकृञ् + यक् + लट् + त ।")
+        val analysis = analyzeWithSelectedReadings("फल + सुँ एक + अम् मुद्र् + णिच् + क्त्वा डुकृञ् + यक् + लट् + त ।")
         assertTrue(analysis.blockingDiagnostics.isEmpty())
         assertEquals(listOf(1, 1), analysis.frames.map { it.relations.size })
         assertEquals(Karaka.KARMAN, (analysis.frames.last().relations.single().resolution as FrameKarakaResolution.Resolved).karaka)
@@ -227,7 +233,7 @@ class PriorActionGrammarTest {
 
     @Test fun `bhave prior chain keeps its agent instrumental and its finite form impersonal`() {
         for ((ending, mismatch) in listOf("त" to false, "आताम्" to true)) {
-            val analysis = analyzeWithAgentReading("एक + अम् मुद्र् + णिच् + क्त्वा राम + टा आसँ + यक् + लट् + $ending ।")
+            val analysis = analyzeWithSelectedReadings("एक + अम् मुद्र् + णिच् + क्त्वा राम + टा आसँ + यक् + लट् + $ending ।")
             val main = analysis.frames.last()
             assertEquals(dev.panini.core.Prayoga.BHAVE, main.prayoga)
             assertEquals(listOf("1.4.54", "2.3.18"), main.relations.single().evidence.map { it.sutra })

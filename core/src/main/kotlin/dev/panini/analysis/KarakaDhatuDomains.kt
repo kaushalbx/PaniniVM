@@ -25,6 +25,12 @@ object KarakaDhatuDomains {
         return DhatuIdentity(verb.dhatu.mulaDhatu)
     }
 
+    fun isHu(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("हु") == true
+
+    /** Kāśikā excludes tanādi मनु; the written root alone cannot distinguish homonyms without a lexical entry. */
+    fun isMan(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("मन्", "मन") == true &&
+        context.baseDhatu?.gana.let { it == null || it == dev.panini.core.DhatuGana.DIVADI }
+
     fun isJna(context: VibhaktiRuleContext): Boolean = governingRoot(context)?.exact("ज्ञा") == true
 
     fun isRemembering(context: VibhaktiRuleContext): Boolean {
@@ -101,11 +107,26 @@ object KarakaDhatuDomains {
         !isExcludedDiseaseVerb(context) && governingRoot(context)?.exact("रुज्", "रुज", "अम्", "अम") == true
 
     /** Causation is independent of active/passive voice; yak does not erase ṇic. */
-    fun isCausativeConstruction(context: KarakaRuleContext): Boolean =
-        context.governingKrt?.let { dev.panini.core.SanadiAffix.NIC in it.dhatu.sanadiAffixes } ?: (
-        context.prayoga == dev.panini.core.Prayoga.CAUSATIVE ||
-            (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada)?.dhatu?.sanadiAffixes
-                ?.contains(dev.panini.core.SanadiAffix.NIC) == true)
+    fun isCausativeConstruction(context: KarakaRuleContext): Boolean {
+        val nominal = context.governingKrt
+        val finite = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada
+        val action = nominal?.dhatu ?: finite?.dhatu
+            ?: return context.prayoga == dev.panini.core.Prayoga.CAUSATIVE
+        val prefixes = nominal?.upasargaIdentities ?: finite?.upasargaIdentities.orEmpty()
+        return prefixes.none { it == null } && action.sanadiAffixes.none { it == null } &&
+            dev.panini.core.SanadiAffix.NIC in action.sanadiAffixes
+    }
+
+    /** Action-sense evidence is independent of a participant's case or general category. */
+    private fun hasEstablishedActionMeaning(context: KarakaRuleContext, relation: SemanticRelation): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return context.baseDhatu?.let { it.sourceVarnas == root.varnas && relation in it.semanticRelations } == true ||
+            (context.allParticipants + context.participant).any { other ->
+                other.governingNominal === context.participant.governingNominal &&
+                    other.purposeGovernor?.id == context.participant.purposeGovernor?.id &&
+                    other.meaningEvidenceStrength(relation) >= 2
+            }
+    }
 
     private val forms = ConcurrentHashMap<String, List<Varna>>()
 
@@ -156,12 +177,38 @@ object KarakaDhatuDomains {
                 SemanticRelation.FASTING_SENSE in context.baseDhatu?.semanticRelations.orEmpty())
     }
 
-    fun isDvikarmaka(dhatu: DhatuIdentity): Boolean = dhatu.exact(
-        "दुह्", "याच्", "रुध्", "प्रच्छ्", "भिक्ष्", "चि", "ब्रू", "शास्", "जि", "मन्थ्", "मथ्", "मुष्", "नी", "हृ", "कृष्", "वह्", "पच्", "दण्ड्",
-    )
+    /** Kāśikā/Kaumudī's attested classes plus independently established meaning equivalents. */
+    fun isDvikarmaka(dhatu: DhatuIdentity, prefixes: List<dev.panini.core.Upasarga?> = emptyList(),
+        hasEstablishedSense: Boolean = false): Boolean = prefixes.none { it == null } &&
+        (hasEstablishedSense || dhatu.exact(
+            "दुह्", "याच्", "रुध्", "प्रच्छ्", "भिक्ष्", "चि", "ब्रू", "शास्", "जि", "मन्थ्", "मथ्", "मुष्", "नी", "हृ", "कृष्", "वह्", "पच्", "दण्ड्",
+            "भाष्", "वच्",
+        ) || dhatu.exact("वद्") && prefixes.lastOrNull() == dev.panini.core.Upasarga.ABHI)
 
     fun isDvikarmaka(context: KarakaRuleContext): Boolean {
-        return isDvikarmaka(actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu)
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return isDvikarmaka(root, actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha),
+            hasEstablishedDvikarmakaSense(context))
+    }
+
+    fun hasEstablishedDvikarmakaSense(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        return context.baseDhatu?.let {
+            it.sourceVarnas == root.varnas && SemanticRelation.DVIKARMAKA_ACTION_SENSE in it.semanticRelations
+        } == true || (context.allParticipants + context.participant).any { other ->
+            other.governingNominal === context.participant.governingNominal &&
+                other.purposeGovernor?.id == context.participant.purposeGovernor?.id &&
+                other.meaningEvidenceStrength(SemanticRelation.DVIKARMAKA_ACTION_SENSE) >= 2
+        }
+    }
+
+    /** Known non-causative dvikarmaka pattern; a general meaning-class declaration alone does not select promotion. */
+    fun promotesSecondaryObjectInPassive(context: KarakaRuleContext): Boolean? {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
+        val prefixes = actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha)
+        if (prefixes.any { it == null }) return null
+        if (root.exact("नी", "हृ", "कृष्", "वह्")) return false
+        return true.takeIf { isDvikarmaka(root, prefixes) }
     }
 
     fun isHiding(dhatu: DhatuIdentity): Boolean = dhatu.exact("निली", "तिरोभू")
@@ -176,6 +223,15 @@ object KarakaDhatuDomains {
     }
     fun isFearOrProtection(dhatu: DhatuIdentity): Boolean =
         dhatu.exact("भी", "बिभ", "बिभेति", "बिभ्यति", "बिभ्यात्", "भीति", "त्रा", "त्राय", "त्रायते", "त्रै", "रक्ष्", "रक्ष", "उद्विज्", "उद्विज")
+    /** The written action owns root and prefixes; 1.4.25 is a meaning class, not a closed list. */
+    fun isFearOrProtection(context: KarakaRuleContext): Boolean {
+        val root = actionRoot(context)?.let(::DhatuIdentity) ?: return isFearOrProtection(context.dhatu) ||
+            hasEstablishedActionMeaning(context, SemanticRelation.FEAR_PROTECTION_ACTION_SENSE)
+        val prefixes = actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha)
+        if (prefixes.any { it == null }) return false
+        return isFearOrProtection(root) || (root.exact("विज्", "विज") && dev.panini.core.Upasarga.UD in prefixes) ||
+            hasEstablishedActionMeaning(context, SemanticRelation.FEAR_PROTECTION_ACTION_SENSE)
+    }
     fun isOriginBhu(dhatu: DhatuIdentity): Boolean =
         dhatu.exact("भू", "भव्", "भव", "प्रभू", "प्रभव्", "प्रभव")
     fun isBirth(dhatu: DhatuIdentity): Boolean = dhatu.exact("जन्", "जन", "जाय", "जाय्", "जायते")
@@ -196,10 +252,11 @@ object KarakaDhatuDomains {
     fun isVarana(dhatu: DhatuIdentity): Boolean = dhatu.exact("वृ", "वारय")
 
     fun isVarana(context: KarakaRuleContext): Boolean {
-        val root = actionRoot(context) ?: return isVarana(context.dhatu)
+        val root = actionRoot(context) ?: return isVarana(context.dhatu) ||
+            hasEstablishedActionMeaning(context, SemanticRelation.VARANA_ACTION_SENSE)
         val prefixes = actionPrefixes(context).orEmpty().map(dev.panini.core.Upasarga::fromUpadesha)
         if (prefixes.any { it == null }) return false
-        if (isVarana(DhatuIdentity(root))) return true
+        if (isVarana(DhatuIdentity(root)) || hasEstablishedActionMeaning(context, SemanticRelation.VARANA_ACTION_SENSE)) return true
         return root in setOf("वृत्", "वृत") && dev.panini.core.Upasarga.NI in prefixes &&
             isCausativeConstruction(context)
     }
@@ -215,24 +272,28 @@ object KarakaDhatuDomains {
         (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu).exact("हृ", "कृ")
 
     fun isCausativeObjectDomain(context: KarakaRuleContext): Boolean {
-        if (SemanticRelation.PRIOR_CAUSATIVE_AGENT in context.participant.semanticRelations) return false
+        if (context.participant.meaningEvidenceStrength(SemanticRelation.PRIOR_CAUSATIVE_AGENT) >= 2) return false
         val verb = (context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada).takeIf { context.governingKrt == null }
         val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
         if (isAbhivadSalutation(context)) return false
+        // Bāla-manoramā states the śabdāyati exclusion; the speech additions follow the Bhāṣya list it reports.
+        if (root.exact("शब्दाय", "शब्दाय्")) return false
+        val speechPrefixes = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha).orEmpty()
+        if (speechPrefixes.none { it == null } && (root.exact("जल्प्", "जल्प") ||
+                root.exact("लप्", "लप") && speechPrefixes == listOf(dev.panini.core.Upasarga.VI) ||
+                root.exact("भाष्", "भाष") && speechPrefixes == listOf(dev.panini.core.Upasarga.ANG))) return true
         if (root.exact("दृश्", "दृश")) return verb != null &&
             verb.upasargaIdentities.none { it == null } &&
             verb.ting.affix?.pada == dev.panini.core.PadaType.PARASMAIPADA
         // Kāśikā's nī and adi/khādi prohibitions override general semantic classes.
         if (root.exact("नी", "अद्", "अद", "खाद्", "खाद")) return false
         if (root.exact("वह्", "वह")) {
-            val construction = context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty()
-            return SemanticRelation.VAH_NIYANTR_KARTRKA in construction &&
-                SemanticRelation.VAH_ANIYANTR_KARTRKA !in construction
+            return hasEstablishedActionMeaning(context, SemanticRelation.VAH_NIYANTR_KARTRKA) &&
+                !hasEstablishedActionMeaning(context, SemanticRelation.VAH_ANIYANTR_KARTRKA)
         }
         if (root.exact("भक्ष्", "भक्ष")) {
-            val senses = context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty()
-            return SemanticRelation.BHAKS_INJURIOUS_SENSE in senses &&
-                SemanticRelation.BHAKS_NONINJURIOUS_SENSE !in senses
+            return hasEstablishedActionMeaning(context, SemanticRelation.BHAKS_INJURIOUS_SENSE) &&
+                !hasEstablishedActionMeaning(context, SemanticRelation.BHAKS_NONINJURIOUS_SENSE)
         }
         if (context.baseDhatu?.karmatva == dev.panini.shiksha.Karmatva.AKARMAKA) return true
         val classes = context.baseDhatu?.semanticRelations.orEmpty()
@@ -245,8 +306,7 @@ object KarakaDhatuDomains {
         val prefixes = actionPrefixes(context)?.map(dev.panini.core.Upasarga::fromUpadesha) ?: return false
         return actionRoot(context) in setOf("वद्", "वद") &&
             prefixes.none { it == null } && dev.panini.core.Upasarga.ABHI in prefixes &&
-            SemanticRelation.ABHIVAD_SALUTATION_SENSE in
-                (context.participant.semanticRelations + context.baseDhatu?.semanticRelations.orEmpty())
+            hasEstablishedActionMeaning(context, SemanticRelation.ABHIVAD_SALUTATION_SENSE)
     }
 
     fun isAtmanepadaOptionalCauseeExtension(context: KarakaRuleContext): Boolean {
@@ -280,9 +340,9 @@ object KarakaDhatuDomains {
             dhatu.varnas == form(prefix.upadesha) + form(root)
         } }
 
-    fun isAnger(context: KarakaRuleContext): Boolean = actionRoot(context)?.let {
-        isAngerRoot(DhatuIdentity(it))
-    } ?: (isAngerRoot(context.dhatu) || isComposedKrudhDruh(context.dhatu))
+    fun isAnger(context: KarakaRuleContext): Boolean = hasEstablishedActionMeaning(context, SemanticRelation.ANGER_ACTION_SENSE) ||
+        (actionRoot(context)?.let { isAngerRoot(DhatuIdentity(it)) }
+            ?: (isAngerRoot(context.dhatu) || isComposedKrudhDruh(context.dhatu)))
 
     /** A supplied AST is authoritative; unknown prefixes must not fall back to spelling guesses. */
     fun hasAngerUpasarga(context: KarakaRuleContext): Boolean? {
@@ -298,7 +358,7 @@ object KarakaDhatuDomains {
             root.exact(*krudhDruhForms)
     }
 
-    fun isRuc(context: KarakaRuleContext): Boolean =
+    fun isRuc(context: KarakaRuleContext): Boolean = hasEstablishedActionMeaning(context, SemanticRelation.RUCI_ACTION_SENSE) ||
         (actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu).exact("रुच्", "रुच", "रोच", "स्वद्", "स्वद")
     fun isDestinyInquiry(context: KarakaRuleContext): Boolean {
         if (actionPrefixes(context)?.any { dev.panini.core.Upasarga.fromUpadesha(it) == null } == true) return false

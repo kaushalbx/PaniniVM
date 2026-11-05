@@ -526,6 +526,7 @@ internal object CompilerFrontend {
                 injectedBindings = injectedBindings,
             ) ?: if (consumesPriorResult) ResolvedLeafPlanner.planAny(node, procedureEnvironment) else null
             )?.let { withActionIdentity(lowerDirect(it), node, it.resolved.invocation.dhatu) }
+                ?: CompilerParticipantGroupLowering.lower(node, procedureEnvironment)?.let { withActionIdentity(it, node) }
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
                 )

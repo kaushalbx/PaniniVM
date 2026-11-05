@@ -9,6 +9,10 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.SasthiHetuprayogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SarvanamnasTrtiyaCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.SarvanamaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.PancamiVibhakteSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.AyuktaKusalabhyamCaSevayamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.PrasitotsukabhyamTrtiyaCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SadhuNipunabhyamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SwamyIsvaraAdhipatiSutra
 import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
@@ -92,6 +96,10 @@ object NominalCaseLinkAnalyzer {
             SemanticRelation.NIRDHARANA_REFERENCE, SemanticRelation.SEPARATE_COMPARISON_GROUPS)),
         Construction(CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra,
             setOf(SemanticRelation.BENEDICTION_WELLBEING, SemanticRelation.SESHA_RELATION)),
+        Construction(SwamyIsvaraAdhipatiSutra, emptySet()),
+        Construction(AyuktaKusalabhyamCaSevayamSutra, setOf(SemanticRelation.ENGROSSED_ATTACHMENT)),
+        Construction(SadhuNipunabhyamSutra, setOf(SemanticRelation.ARCHA_RESPECT)),
+        Construction(PrasitotsukabhyamTrtiyaCaSutra, setOf(SemanticRelation.ENGROSSED_ATTACHMENT)),
     )
 
     private fun isPronominal(participant: ParticipantFacts): Boolean? {

@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class KriyaFrameAnalyzerTest {
     @Test
@@ -130,7 +131,8 @@ class KriyaFrameAnalyzerTest {
                 ting = TingPratyaya("आताम्", "आताम्"),
             )
             val frame = localAnalyzer.analyze(original.copy(padas = listOf(agent, objectPada, verb), tinganta = verb),
-                semanticContext = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.INDEPENDENT_AGENT))))
+                semanticContext = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.INDEPENDENT_AGENT),
+                    1 to setOf(SemanticRelation.DESIRED_OBJECT))))
             assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
             assertEquals(listOf(Karaka.KARTR, Karaka.KARMAN), frame.relations.map {
                 assertIs<FrameKarakaResolution.Resolved>(it.resolution).karaka
@@ -202,7 +204,13 @@ class KriyaFrameAnalyzerTest {
                 ting = TingPratyaya(ending, ending),
                 vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK,
             )
-            val frame = analyzer.analyze(original.copy(padas = participants.toList() + verb, tinganta = verb))
+            val clause = original.copy(padas = participants.toList() + verb, tinganta = verb)
+            val initial = analyzer.analyze(clause)
+            // This agreement fixture selects the nominatives as desired patients.
+            val patients = initial.nominalRelations!!.nominalPadas.mapIndexedNotNull { index, nominal ->
+                index.takeIf { nominal.supCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } }
+            }.associateWith { setOf(SemanticRelation.DESIRED_OBJECT) }
+            val frame = analyzer.analyze(clause, semanticContext = VakyaSemanticContext(patients))
             assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
             return frame.diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH }
         }
@@ -230,7 +238,7 @@ class KriyaFrameAnalyzerTest {
             val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("coordination", members)
             val original = akhyata(group)
             val verb = original.tinganta.copy(ting = TingPratyaya(ending, ending))
-            return analyzer.analyze(original.copy(padas = listOf(group, verb), tinganta = verb))
+            return analyzeWithSelectedAgents(original.copy(padas = listOf(group, verb), tinganta = verb))
                 .diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH }
         }
         assertEquals(0, mismatches(listOf(rama, shyama), "तस्"))
@@ -241,7 +249,7 @@ class KriyaFrameAnalyzerTest {
         assertEquals(0, mismatches(listOf(subanta("बाल + जस्", "बाल", "जस्"), rama), "झि"))
         // A coordinated recipient must not increase the agent's grammatical number.
         assertEquals(0, mismatches(listOf(rama, subanta("श्याम + ङे", "श्याम", "ङे")), "तिप्"))
-        assertEquals(0, analyzer.analyze(akhyata(rama, shyama)).diagnostics.count {
+        assertEquals(0, analyzeWithSelectedAgents(akhyata(rama, shyama)).diagnostics.count {
             it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH
         })
     }
@@ -253,7 +261,7 @@ class KriyaFrameAnalyzerTest {
             subanta("श्याम + सुँ", "श्याम", "सुँ"),
         )
         val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("रामः च श्यामः च", members)
-        val frame = analyzer.analyze(akhyata(group))
+        val frame = analyzeWithSelectedAgents(akhyata(group))
 
         assertEquals(2, frame.relations.size)
         frame.relations.forEach { relation ->
@@ -284,7 +292,7 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
-    fun `os resolves as adhikarana when one participant satisfies location valency`() {
+    fun `os needs an established locus reading beyond root valency`() {
         val stha = Dhatu(
             id = "test.stha", krama = 1, upadesha = "स्था", sourceSurface = "स्था",
             artha = "गतिनिवृत्तौ", arthaHindi = "ठहरना", arthaEnglish = "stand",
@@ -292,7 +300,7 @@ class KriyaFrameAnalyzerTest {
             karmatva = Karmatva.AKARMAKA,
         )
         val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(emptyList(), listOf(stha))))
-        fun analyze(vararg participants: SubantaPada): KriyaFrame {
+        fun analyze(vararg participants: SubantaPada, context: VakyaSemanticContext = VakyaSemanticContext()): KriyaFrame {
             val verb = TingantaPada(
                 sourceText = "तिष्ठति", upasargas = emptyList(),
                 dhatu = DhatuPrakriti("स्था", "स्था"), lakara = Lakara.LAT,
@@ -301,10 +309,14 @@ class KriyaFrameAnalyzerTest {
             return localAnalyzer.analyze(AkhyataVakya(
                 sourceText = participants.joinToString(" ") { it.sourceText } + " तिष्ठति",
                 padas = participants.toList() + verb, tinganta = verb,
-            ))
+            ), semanticContext = context)
         }
 
-        val frame = analyze(subanta("गृह + ओस्", "गृह", "ओस्"))
+        val pada = subanta("गृह + ओस्", "गृह", "ओस्")
+        val unresolved = analyze(pada)
+        assertTrue(unresolved.relations.single().evidence.none { it.sutra == "1.4.45" })
+        val frame = analyze(pada, context = VakyaSemanticContext(
+            participantRelations = mapOf(0 to setOf(SemanticRelation.LOCATION))))
         assertEquals(Karaka.ADHIKARANA,
             assertIs<FrameKarakaResolution.Resolved>(frame.relations.single().resolution).karaka)
         assertEquals(emptyList(), frame.diagnostics.filter { it.code == FrameDiagnosticCode.AMBIGUOUS_KARAKA })
@@ -366,7 +378,7 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
-    fun `unannotated dvikarmaka accusatives retain competing primary and secondary analyses`() {
+    fun `unannotated dvikarmaka accusatives retain uncertainty without canonical proof`() {
         val duh = Dhatu(
             id = "test.duh", krama = 1, upadesha = "दुह्", sourceSurface = "दुह्",
             artha = "प्रपूरणे", arthaHindi = "दुहना", arthaEnglish = "milk",
@@ -382,18 +394,14 @@ class KriyaFrameAnalyzerTest {
 
         assertEquals(2, frame.relations.size)
         frame.relations.forEach { relation ->
-            assertEquals(listOf("1.4.49", "2.3.2"), relation.evidence.map { it.sutra })
-            val competing = relation.alternatives.single {
-                it.kind == KarakaAlternativeKind.COMPETING_ANALYSIS
-            }
-            assertEquals(Karaka.KARMAN, competing.karaka)
-            assertEquals(listOf("1.4.51", "2.3.2"), competing.evidence.map { it.sutra })
-            assertEquals(true, competing.evidence.first().semanticEvidence.any {
-                it.source == SemanticEvidenceSource.CONSTRUCTION_AMBIGUITY
-            })
+            val unresolved = assertIs<FrameKarakaResolution.Unassigned>(relation.resolution)
+            assertEquals(setOf(Karaka.KARMAN), unresolved.candidates)
+            assertTrue(unresolved.reason.contains("primary/secondary"))
+            assertEquals(emptyList(), relation.evidence)
+            assertEquals(emptyList(), relation.alternatives)
         }
         assertEquals(2, frame.diagnostics.count {
-            it.code == FrameDiagnosticCode.COMPETING_KARAKA_ANALYSIS
+            it.code == FrameDiagnosticCode.UNASSIGNED_PARTICIPANT
         })
     }
 
@@ -451,20 +459,21 @@ class KriyaFrameAnalyzerTest {
         val originalVerb = akhyata().tinganta
         val verb = originalVerb.copy(dhatu = originalVerb.dhatu.copy(mulaDhatu = "दा"))
         val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("राम श्याम च", listOf(rama, syama))
-        val frame = local.analyze(AkhyataVakya("", listOf(obj, group, verb), verb))
+        val objectMeaning = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.DESIRED_OBJECT)))
+        val frame = local.analyze(AkhyataVakya("", listOf(obj, group, verb), verb), semanticContext = objectMeaning)
         frame.relations.drop(1).forEach {
             assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMPRADANA), it.resolution)
             assertEquals(listOf("1.4.32", "2.3.13"), it.evidence.map { evidence -> evidence.sutra })
         }
-        val separate = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, verb), verb))
+        val separate = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, verb), verb), semanticContext = objectMeaning)
         separate.relations.drop(1).forEach { assertIs<FrameKarakaResolution.Ambiguous>(it.resolution) }
-        val writtenCha = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, AvyayaPada("च", "च"), verb), verb))
+        val writtenCha = local.analyze(AkhyataVakya("", listOf(obj, rama, syama, AvyayaPada("च", "च"), verb), verb), semanticContext = objectMeaning)
         writtenCha.relations.drop(1).forEach {
             assertEquals(FrameKarakaResolution.Resolved(Karaka.SAMPRADANA), it.resolution)
             assertEquals(listOf("1.4.32", "2.3.13"), it.evidence.map { evidence -> evidence.sutra })
         }
         val separated = local.analyze(AkhyataVakya("", listOf(obj, rama, AvyayaPada("अधुना", "अधुना"),
-            syama, AvyayaPada("च", "च"), verb), verb))
+            syama, AvyayaPada("च", "च"), verb), verb), semanticContext = objectMeaning)
         separated.relations.drop(1).forEach { assertIs<FrameKarakaResolution.Ambiguous>(it.resolution) }
     }
 
@@ -475,7 +484,9 @@ class KriyaFrameAnalyzerTest {
         val pushpa = subanta("पुष्प + अम्", "पुष्प", "अम्")
         val vakya = akhyata(rama, phala, pushpa)
 
-        val frame = requireNotNull(analyzer.analyze(vakya))
+        val frame = requireNotNull(analyzer.analyze(vakya, semanticContext = VakyaSemanticContext(
+            mapOf(0 to setOf(SemanticRelation.INDEPENDENT_AGENT), 1 to setOf(SemanticRelation.DESIRED_OBJECT),
+                2 to setOf(SemanticRelation.DESIRED_OBJECT)))))
 
         assertEquals(3, frame.relations.size)
         assertEquals(
@@ -587,7 +598,7 @@ class KriyaFrameAnalyzerTest {
             ),
         )
 
-        val analysis = UktiAnalyzer(analyzer).analyze(ukti)
+        val analysis = UktiAnalyzer { vakya, id -> analyzeWithSelectedAgents(vakya, id) }.analyze(ukti)
         val purvakalika = analysis.links.filterIsInstance<KriyaLink.Purvakalika>()
         val sharedAgent = analysis.links.filterIsInstance<KriyaLink.SharedParticipant>()
 
@@ -648,7 +659,7 @@ class KriyaFrameAnalyzerTest {
             subanta("राम + औ", "राम", "औ"),
         )
         for ((index, other) in others.withIndex()) {
-            val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
+            val analysis = UktiAnalyzer { vakya, id -> analyzeWithSelectedAgents(vakya, id) }.analyze(Ukti("", body = Sequence("", listOf(
                 Invocation(priorActionVakya(prior, rama)), Invocation(akhyata(other))))))
             assertEquals(if (index == 0) 1 else 0,
                 analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().size)
@@ -675,7 +686,7 @@ class KriyaFrameAnalyzerTest {
         val deva = subanta("देव + सुँ", "देव", "सुँ")
         fun coordinated(members: List<SubantaPada>) =
             dev.panini.vyakaranam.ast.SamuccitaSubanta("coordinated", members)
-        val analysis = UktiAnalyzer(analyzer).analyze(Ukti("", body = Sequence("", listOf(
+        val analysis = UktiAnalyzer { vakya, id -> analyzeWithSelectedAgents(vakya, id) }.analyze(Ukti("", body = Sequence("", listOf(
             Invocation(priorActionVakya(prior, coordinated(listOf(rama, deva)))),
             Invocation(akhyata(coordinated(listOf(deva, rama))))))))
         assertEquals(setOf(rama.sourceText, deva.sourceText),
@@ -733,6 +744,19 @@ class KriyaFrameAnalyzerTest {
             analysis.links.filterIsInstance<KriyaLink.LoopResult>().toSet())
         assertEquals(listOf(KriyaLink.Coordination(id(4), id(5), "")),
             analysis.links.filterIsInstance<KriyaLink.Coordination>())
+    }
+
+    /** These agreement/ownership fixtures independently select their written nominatives as agents. */
+    private fun analyzeWithSelectedAgents(vakya: dev.panini.vyakaranam.ast.Vakya, id: KriyaId = KriyaId("kriya-1")): KriyaFrame {
+        val nominals = vakya.padas.flatMap { when (it) {
+            is SubantaPada -> listOf(it)
+            is dev.panini.vyakaranam.ast.SamuccitaSubanta -> it.members.filterIsInstance<SubantaPada>()
+            else -> emptyList()
+        } }
+        val readings = nominals.mapIndexedNotNull { index, pada ->
+            index.takeIf { pada.sup.affixCandidates.isNotEmpty() && pada.sup.affixCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } }
+        }.associateWith { setOf(SemanticRelation.INDEPENDENT_AGENT) }
+        return analyzer.analyze(vakya, id, VakyaSemanticContext(readings))
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =

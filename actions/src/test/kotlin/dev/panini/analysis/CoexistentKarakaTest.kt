@@ -5,6 +5,24 @@ import dev.panini.vyakaranam.ast.*
 import kotlin.test.*
 
 class CoexistentKarakaTest {
+    @Test fun `div requires selected means independently of case and voice`() {
+        for (voice in listOf(Prayoga.KARTARI, Prayoga.KARMANI, Prayoga.BHAVE)) {
+            for (source in SemanticEvidenceSource.entries) {
+                val p = ParticipantFacts("dice", AvyayaPada("dice", "dice"), setOf(Vibhakti.DVITIYA),
+                    semanticRelations = setOf(SemanticRelation.INSTRUMENT), semanticEvidence = setOf(
+                        SemanticRelationEvidence(SemanticRelation.INSTRUMENT, source, "Proposed selected means.")))
+                val context = KarakaRuleContext(DhatuIdentity("दिव्"), p, listOf(p), voice)
+                val established = source in setOf(SemanticEvidenceSource.CLAUSE_CONTEXT,
+                    SemanticEvidenceSource.LEXICAL_ENTRY)
+                val result = KarakaRuleEngine.resolve(context)
+                assertEquals(established, result.coexistingKarakas == setOf(Karaka.KARMAN, Karaka.KARANA),
+                    "$voice $source")
+                assertEquals(established, result.evidence.any { it.sutra == "1.4.43" }, "$voice $source")
+                if (!established) assertTrue(result.evidence.none { it.sutra == "2.3.2" }, "$voice $source")
+            }
+        }
+    }
+
     @Test fun `div designation follows the governing action and rejects stem prefix lookalikes`() {
         val p = ParticipantFacts("dice", AvyayaPada("dice", "dice"), setOf(Vibhakti.TRTIYA),
             semanticRelations = setOf(SemanticRelation.INSTRUMENT))

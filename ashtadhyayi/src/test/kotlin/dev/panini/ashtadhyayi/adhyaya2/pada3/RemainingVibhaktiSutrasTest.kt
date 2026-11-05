@@ -79,9 +79,11 @@ class RemainingVibhaktiSutrasTest {
         val positive = VibhaktiRuleContext(
             karaka = Karaka.KARMAN,
             morphologicalCandidates = setOf(Vibhakti.TRTIYA),
+            dhatu = dev.panini.analysis.DhatuIdentity("हु"),
             participant = dummyParticipant(setOf(SemanticRelation.VEDIC_HU_OBJECT)),
         )
         val negative = positive.copy(participant = dummyParticipant())
+        assertFalse(TrtiyaCaHosChandasiSutra.matches(positive.copy(dhatu = dev.panini.analysis.DhatuIdentity("दा"))))
         assertTrue(TrtiyaCaHosChandasiSutra.matches(positive))
         assertFalse(TrtiyaCaHosChandasiSutra.matches(negative))
         val result = TrtiyaCaHosChandasiSutra.apply(positive) as VibhaktiRuleResult.Assigned

@@ -126,8 +126,12 @@ class VakyaAnalyzer(
                 val optionalMeaningsWithoutCase = relation.resolution is FrameKarakaResolution.Ambiguous &&
                     optionalAlternatives.isNotEmpty() && optionalAlternatives.none { it.matchesObservedMorphology } &&
                     relation.evidence.lastOrNull()?.sutra?.startsWith("2.3.") != true
+                val competingCaseUncertainty = relation.resolvedVibhakti == null &&
+                    relation.evidence.lastOrNull()?.sutra?.startsWith("2.3.") == true && relation.alternatives.any {
+                        it.kind == KarakaAlternativeKind.COMPETING_ANALYSIS && it.matchesObservedMorphology && it.vibhakti != null
+                    }
                 if ((relation.resolution is FrameKarakaResolution.Resolved || competingMeaningsWithoutCase || optionalMeaningsWithoutCase) && relation.resolvedVibhakti == null &&
-                    caseAlternatives.none { it.matchesObservedMorphology }) {
+                    caseAlternatives.none { it.matchesObservedMorphology } && !competingCaseUncertainty) {
                     val cases = relation.participant.supCandidates.map { it.vibhakti }.distinct().joinToString("/")
                     val meaning = when (val result = relation.resolution) {
                         is FrameKarakaResolution.Resolved -> "${result.karaka.sanskritName} इति सम्बन्धः सिद्धः"
@@ -138,6 +142,9 @@ class VakyaAnalyzer(
                         "$meaning; $cases इति विभक्तेः विधानं न निर्धारितम्।",
                         relation.participant.pada.sourceText, nominalIndex))
                 }
+                if (competingCaseUncertainty) add(FrameDiagnostic(FrameDiagnosticCode.AMBIGUOUS_VIBHAKTI,
+                    "अर्थपक्षभेदेन भिन्नविभक्तिविधानानि सम्भवन्ति; एकविभक्तिर्न निर्धारिताऽस्ति।",
+                    relation.participant.pada.sourceText, nominalIndex))
                 if (caseAlternatives.isNotEmpty()) {
                     val ambiguous = relation.resolvedVibhakti == null &&
                         caseAlternatives.any { it.matchesObservedMorphology }
@@ -356,8 +363,17 @@ class VakyaAnalyzer(
                 ?: tinganta.pada.dhatu.mulaDhatu
         val unresolvedDvikarmakaIndices = ownerGroups.flatMap { (owner, indices) ->
             val root = ownerRoot(indices)
+            val purpose = semanticContext.purposeGovernors[indices.first()]
+            val nominal = semanticContext.krtGovernors[indices.first()]?.let(::krtGovernor)
+            val prefixes = purpose?.upasargas ?: nominal?.upasargas ?: tinganta.pada.upasargas
+            val lexical = purpose?.let { padaAnalyzer.findDhatu(it.dhatu) }
+                ?: nominal?.let { padaAnalyzer.findDhatu(it.dhatu) } ?: tinganta.lexicalEntry.takeIf { owner == null }
+            val establishedSense = SemanticRelation.DVIKARMAKA_ACTION_SENSE in lexical?.semanticRelations.orEmpty() ||
+                indices.any { index -> SemanticRelation.DVIKARMAKA_ACTION_SENSE in
+                    (semanticContext.participantRelations[index].orEmpty() + subantas[index].lexicalEntry?.semanticRelations.orEmpty()) }
             val accusatives = indices.filter { possibleVibhaktisByParticipant[it] == setOf(Vibhakti.DVITIYA) }
-            if (!KarakaDhatuDomains.isDvikarmaka(DhatuIdentity(root)) || accusatives.size <= 1) emptyList()
+            if (!KarakaDhatuDomains.isDvikarmaka(DhatuIdentity(root), prefixes.map(dev.panini.core.Upasarga::fromUpadesha),
+                    establishedSense) || accusatives.size <= 1) emptyList()
             else accusatives.filter { index ->
                 (subantas[index].lexicalEntry?.semanticRelations.orEmpty() + semanticContext.participantRelations[index].orEmpty()).none {
                     it == SemanticRelation.DESIRED_OBJECT || it == SemanticRelation.SECONDARY_OBJECT
@@ -570,16 +586,20 @@ class VakyaAnalyzer(
                 },
             ),
         )
-        return frameRelation(kriyaId, subanta, resolution)
+        return frameRelation(kriyaId, subanta, resolution,
+            SemanticRelation.AMBIGUOUS_DVIKARMAKA_OBJECT in scopedParticipant.semanticRelations)
     }
 
-    private fun frameRelation(kriyaId: KriyaId, subanta: SubantaAnalysis, resolution: KarakaResolution): KarakaRelation {
+    private fun frameRelation(kriyaId: KriyaId, subanta: SubantaAnalysis, resolution: KarakaResolution,
+        unestablishedDvikarmaka: Boolean = false): KarakaRelation {
         val resolvedKaraka = resolution.resolved
         val frameResolution = when {
             resolvedKaraka != null -> FrameKarakaResolution.Resolved(resolvedKaraka)
             resolution.candidates.size > 1 -> FrameKarakaResolution.Ambiguous(resolution.candidates)
             else -> FrameKarakaResolution.Unassigned(
-                "Morphology proposed ${resolution.candidates.singleOrNull() ?: Karaka.ANIRDHARITA}, " +
+                if (unestablishedDvikarmaka)
+                    "Multiple accusatives with a dvikarmaka action leave primary/secondary object readings unestablished."
+                else "Morphology proposed ${resolution.candidates.singleOrNull() ?: Karaka.ANIRDHARITA}, " +
                     "but no Aṣṭādhyāyī 1.4 kāraka-saṃjñā rule matched the semantic evidence.",
                 resolution.candidates,
             )
@@ -624,7 +644,7 @@ class VakyaAnalyzer(
         fun controlsAgreement(relation: KarakaRelation): Boolean =
             (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == controllerKaraka &&
                 (prayoga != Prayoga.KARMANI ||
-                    relation.participant.supCandidates.map { it.vibhakti }.toSet() == setOf(Vibhakti.PRATHAMA))
+                    relation.resolvedVibhakti == Vibhakti.PRATHAMA)
         val controllerRelation = relations.firstOrNull(::controlsAgreement) ?: return emptyList()
 
         val controllerAnalysis = controllerRelation.participant

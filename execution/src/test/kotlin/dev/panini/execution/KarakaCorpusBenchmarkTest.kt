@@ -157,7 +157,7 @@ class KarakaCorpusBenchmarkTest {
             failures += "Stale or unmatched review: ${it.get("id").asString}"
         }
         val report = JsonObject().apply {
-            addProperty("scope", "grammar-only; no execution or supplied semantic premises")
+            addProperty("scope", "PVM grammar and declared program constructions; no execution or manually supplied semantic premises")
             addProperty("declarations", "Declaration items are counted separately; declaration headers are not clause-reviewed.")
             addProperty("files", corpus.size); addProperty("clauses", rows.size)
             addProperty("grammaticalFrames", rows.sumOf { it.getAsJsonArray("frames")?.size() ?: 0 })

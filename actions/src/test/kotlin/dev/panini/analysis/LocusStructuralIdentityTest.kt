@@ -5,6 +5,27 @@ import dev.panini.vyakaranam.ast.*
 import kotlin.test.*
 
 class LocusStructuralIdentityTest {
+    @Test fun `locus designations require action locus meaning independently of morphology`() {
+        data class Construction(val root: String, val prefixes: List<String>, val rule: String)
+        for ((root, prefixes, rule) in listOf(
+            Construction("पच्", emptyList(), "1.4.45"),
+            Construction("स्था", listOf("अधि"), "1.4.46"),
+            Construction("विश्", listOf("अभि", "नि"), "1.4.47"),
+            Construction("वस्", listOf("उप"), "1.4.48"))) {
+            for (voice in listOf(Prayoga.KARTARI, Prayoga.KARMANI, Prayoga.BHAVE))
+                for (source in SemanticEvidenceSource.entries) {
+                val participant = locus.copy(semanticEvidence = setOf(SemanticRelationEvidence(
+                    SemanticRelation.LOCATION, source, "Proposed action locus.")))
+                val verb = TingantaPada("verb", prefixes, DhatuPrakriti(root, root), Lakara.LAT,
+                    TingPratyaya("तिप्", "तिप्"))
+                val result = KarakaRuleEngine.resolve(KarakaRuleContext(DhatuIdentity(root), participant,
+                    listOf(participant), voice, verbNode = verb))
+                val established = source in setOf(SemanticEvidenceSource.CLAUSE_CONTEXT, SemanticEvidenceSource.LEXICAL_ENTRY)
+                assertEquals(established, result.evidence.any { it.sutra == rule }, "$rule $voice $source")
+            }
+        }
+    }
+
     @Test fun `conditioned locus readings cannot be established by morphological or valency hypotheses`() {
         data class Construction(val root: String, val prefixes: List<String>, val meaning: SemanticRelation, val rule: String)
         for ((root, prefixes, meaning, specialRule) in listOf(

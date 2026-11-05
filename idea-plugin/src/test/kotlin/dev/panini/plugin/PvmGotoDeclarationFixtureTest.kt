@@ -659,7 +659,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
         val warning = myFixture.doHighlighting().single {
             it.severity == HighlightSeverity.WARNING &&
-                it.description?.contains("multiple kāraka candidates") == true
+                it.description?.contains("सम्बन्धः सन्दर्भेण न निर्धारितः") == true
         }
         assertEquals("देव + भ्याम्", source.substring(warning.startOffset, warning.endOffset))
     }

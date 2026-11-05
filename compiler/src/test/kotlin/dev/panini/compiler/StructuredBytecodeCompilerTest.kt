@@ -1718,7 +1718,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `compiled execution preserves interpreter failure details`() {
-        val source = collectionProgram("सूची + अम् चतुर् + टा स्था + लोट् + सिप्")
+        val source = collectionProgram("मूल्य + अम् सूची + ङसिँ चतुर् + सुप् ग्रहँ + श्ना + लोट् + सिप्")
         val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Failure>().last()
         val bytes = BytecodeCompiler.compile(source, "CompiledInvalidListIndex")
         val runtimeCalls = mutableListOf<String>()
@@ -1902,7 +1902,7 @@ class StructuredBytecodeCompilerTest {
                 ततः फल + अम् पूर्वसूची + ङि स्था + णिच् + लोट् + सिप् ।
             त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् उत्तरसूची + ङि स्था + णिच् + लोट् + सिप् ।
-            पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।
+            पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
@@ -1946,7 +1946,7 @@ class StructuredBytecodeCompilerTest {
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
-            सूची + अम् द्वि + टा स्था + लोट् + सिप् ।
+            मूल्य + अम् सूची + ङसिँ द्वितीय + ङि ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
@@ -1964,7 +1964,7 @@ class StructuredBytecodeCompilerTest {
         val source = """
             दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
             द्वि + अम् क्रमाङ्क + ङे दा + लोट् + सिप् ।
-            सूची + अम् क्रमाङ्क + टा स्था + लोट् + सिप् ।
+            मूल्य + अम् सूची + ङसिँ क्रमाङ्क + ङि ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())

@@ -14,6 +14,24 @@ import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AvyayaPada
 
 class CanonicalKarakaRulesOnlyTest {
+    @Test fun `anabhihita gate blocks ordinary case proof without blocking expressed nominatives`() {
+        for (role in listOf(Karaka.KARTR, Karaka.KARMAN)) for (voice in listOf(Prayoga.KARTARI, Prayoga.KARMANI)) {
+            val expressed = (role == Karaka.KARTR) == (voice == Prayoga.KARTARI)
+            val ordinaryCase = if (role == Karaka.KARTR) Vibhakti.TRTIYA else Vibhakti.DVITIYA
+            for (observed in listOf(Vibhakti.PRATHAMA, ordinaryCase)) {
+                val participant = ParticipantFacts("p", AvyayaPada("p", "p"), setOf(observed),
+                    semanticRelations = setOf(if (role == Karaka.KARTR) SemanticRelation.INDEPENDENT_AGENT else SemanticRelation.DESIRED_OBJECT))
+                val result = KarakaRuleEngine.resolve(KarakaRuleContext(DhatuIdentity("कृ", sakarmaka = true),
+                    participant, listOf(participant), voice, candidates = setOf(role)))
+                val valid = (observed == Vibhakti.PRATHAMA) == expressed
+                val designation = if (role == Karaka.KARTR) "1.4.54" else "1.4.49"
+                val caseRule = if (expressed) "2.3.46" else if (role == Karaka.KARTR) "2.3.18" else "2.3.2"
+                assertEquals(listOf(designation) + if (valid) listOf(caseRule) else emptyList(),
+                    result.evidence.map { it.sutra }, "$role $voice $observed")
+                assertEquals(if (valid) observed else null, result.resolvedVibhakti)
+            }
+        }
+    }
     @Test fun `anabhihite governs eligibility without assigning nominative`() {
         val domain = AnabhihiteSutra.role as SutraRole.Adhikara
         for (abhihita in listOf(false, true)) {

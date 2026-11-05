@@ -8,6 +8,69 @@ import dev.panini.vyakaranam.lexicon.*
 import kotlin.test.*
 
 class KrtGovernorFrameTest {
+    @Test fun `meaning equivalent nominal secondary objects belong to their own action`() {
+        for ((root, prefixes) in listOf("भाष्" to emptyList(), "वच्" to emptyList(), "वद्" to listOf("अभि"),
+            "कथ्" to emptyList())) for (passive in listOf(false, true)) for (ending in listOf("ङस्", "टा")) {
+            val dependent = noun("माणवक", ending)
+            val governor = krt("ल्युट्", root).let {
+                it.copy(pratipadika = (it.pratipadika as KridantaPratipadika).copy(upasargas = prefixes))
+            }
+            val outer = verb(passive = passive)
+            val meanings = setOf(SemanticRelation.SECONDARY_OBJECT) +
+                if (root == "कथ्") setOf(SemanticRelation.DVIKARMAKA_ACTION_SENSE) else emptySet()
+            val frame = analyzer.analyze(AkhyataVakya("nominal meaning equivalent", listOf(dependent, governor, outer), outer),
+                semanticContext = VakyaSemanticContext(mapOf(0 to meanings),
+                    krtGovernors = mapOf(0 to KrtGovernorReading(1, emptySet(), setOf(Karaka.KARTR, Karaka.KARMAN)))))
+            val relation = frame.nominalKarakas.single().relation
+            assertEquals(listOf("1.4.51") + if (ending == "ङस्") listOf("2.3.66") else emptyList(), relation.evidence.map { it.sutra })
+            assertEquals(if (ending == "ङस्") Vibhakti.SASTHI else null, relation.resolvedVibhakti)
+            assertSame(dependent, relation.participant.pada)
+        }
+    }
+
+    @Test fun `nominal desired undesired and secondary object proofs require their own established readings`() {
+        for ((root, meaning, rule) in listOf(
+            Triple("भुज्", SemanticRelation.DESIRED_OBJECT, "1.4.49"),
+            Triple("भुज्", SemanticRelation.INDIFFERENT_OBJECT, "1.4.50"),
+            Triple("दुह्", SemanticRelation.SECONDARY_OBJECT, "1.4.51"))) {
+            for (passive in listOf(false, true)) for (ending in listOf("ङस्", "अम्", "टा"))
+                for (supplied in listOf(false, true)) {
+                val dependent = noun("फल", ending)
+                val governor = krt("ल्युट्", root)
+                val outer = verb(passive = passive)
+                val frame = analyzer.analyze(AkhyataVakya("nominal object reading", listOf(dependent, governor, outer), outer),
+                    semanticContext = VakyaSemanticContext(
+                        participantRelations = if (supplied) mapOf(0 to setOf(meaning)) else emptyMap(),
+                        krtGovernors = mapOf(0 to KrtGovernorReading(1, emptySet()))))
+                val relation = frame.nominalKarakas.single().relation
+                if (supplied) {
+                    assertEquals(Karaka.KARMAN, (relation.resolution as FrameKarakaResolution.Resolved).karaka)
+                    assertEquals(listOf(rule) + if (ending == "ङस्") listOf("2.3.66") else emptyList(),
+                        relation.evidence.map { it.sutra })
+                    assertEquals(if (ending == "ङस्") Vibhakti.SASTHI else null, relation.resolvedVibhakti)
+                } else assertTrue(relation.evidence.none { it.sutra in setOf("1.4.49", "1.4.50", "1.4.51") })
+                assertSame(dependent, relation.participant.pada)
+            }
+        }
+    }
+
+    @Test fun `nominal physical nonpath motion goal excludes krt genitive`() {
+        for (passive in listOf(false, true)) for (agentDenoting in listOf(false, true))
+            for (ending in listOf("अम्", "ङे", "ङस्")) {
+            val goal = noun("ग्राम", ending)
+            val governor = krt(if (agentDenoting) "तृच्" else "ल्युट्", "गम्")
+            val finite = verb(passive = passive)
+            val frame = analyzer.analyze(AkhyataVakya("nominal physical motion goal", listOf(goal, governor, finite), finite),
+                semanticContext = VakyaSemanticContext(mapOf(0 to setOf(SemanticRelation.DESIRED_OBJECT,
+                    SemanticRelation.MOTION_GOAL, SemanticRelation.PHYSICAL_MOTION, SemanticRelation.NON_PATH_DESTINATION)),
+                    krtGovernors = mapOf(0 to KrtGovernorReading(1, if (agentDenoting) setOf(Karaka.KARTR) else emptySet()))))
+            val relation = frame.nominalKarakas.single().relation
+            assertEquals(listOf("1.4.49") + if (ending == "ङस्") emptyList() else listOf("2.3.12"),
+                relation.evidence.map { it.sutra })
+            assertEquals(when (ending) { "अम्" -> Vibhakti.DVITIYA; "ङे" -> Vibhakti.CHATURTHI; else -> null },
+                relation.resolvedVibhakti)
+        }
+    }
     @Test fun `nominal recipient waits for competing object mediation to resolve`() {
         for (other in listOf(SemanticRelation.LOCATION, SemanticRelation.INSTRUMENT, SemanticRelation.SOURCE)) {
         val otherEnding = when (other) { SemanticRelation.LOCATION -> "ङि"; SemanticRelation.INSTRUMENT -> "टा"; else -> "ङसिँ" }
@@ -367,6 +430,7 @@ class KrtGovernorFrameTest {
             dhatu("नी"), dhatu("अद्", DhatuGana.ADADI), dhatu("खाद्"), dhatu("वह्"), dhatu("भक्ष्"),
             dhatu("दिव्", DhatuGana.DIVADI),
             dhatu("क्री", DhatuGana.KRYADI),
+            dhatu("गम्"), dhatu("दुह्", DhatuGana.ADADI), dhatu("भाष्"), dhatu("वच्"), dhatu("वद्"), dhatu("कथ्"),
             dhatu("विश्"), dhatu("वस्", karmatva = Karmatva.AKARMAKA)))))
     private fun verb(root: String = "दृश्", passive: Boolean = false) = TingantaPada(root, emptyList(),
         DhatuPrakriti(root, root), Lakara.LAT, TingPratyaya(if (passive) "त" else "तिप्", if (passive) "त" else "तिप्"),

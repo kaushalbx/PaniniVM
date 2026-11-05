@@ -396,11 +396,11 @@ class PvmUktiSadhakaConnectorTest {
     }
 
     @Test
-    fun `instrumental collection companion renders with causative yuj`() {
+    fun `coordinated collection objects render with causative yuj`() {
         assertEquals(
-            "पूर्वसूचीम् उत्तरसूच्या संयोजय ।",
+            "पूर्वसूचीम् उत्तरसूचीं च संयोजय ।",
             PvmUktiSadhaka().sadhayaLine(
-                "पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।",
+                "पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।",
             ),
         )
     }

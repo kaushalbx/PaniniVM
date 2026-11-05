@@ -1,5 +1,284 @@
 # Kāraka sūtra audit
 
+## Voice invariance and benchmark coverage
+
+A temporary probe moved 18 non-kāraka rules across all voices; their chains did not
+change once the fixture named the voice the harness infers. It tested one sample per rule.
+Forty-two commentary-based JSON cases now cover 2.3.4–11, 32, 41, 42, 51–53 and 55–60.
+Without the special rule, listed śeṣa objects correctly fall back to 2.3.50.
+Rules still lacking a JSON case carry an open integration criterion in the ledger.
+
+## 2.3.2–73 first-pass reassessment
+
+Every rule was compared with one commentary source. Fixes: 2.3.3 and 2.3.17 now check
+their named roots; 2.3.15 admits further bhāva affixes while excluding agent affixes;
+2.3.73 admits synonyms from the Kāśikā. Widening 2.3.72 to all stems broke governor
+discovery in NominalCaseLinkAnalyzer, so it was reverted and recorded as open.
+
+This pass is narrower than the 1.4 review. Integration remains partial for every rule,
+because passive, causative, taddhita and compound interaction was not verified per rule.
+Ledger evidence names files that mention the rule; assertions were not read one by one.
+
+## 1.4.24–41 reassessment
+
+Commentary review found that the -arthānām rules 1.4.25, 27, 33 and 37 define classes
+by meaning, while the code used closed lists. Established action-sense premises now
+admit equivalents, as with 1.4.51; absent premises remain unassigned. उद्-विज् now
+matches by root and prefix, and 1.4.25 uses the written action owner. Ten JSON
+regressions were added. अन्तर् is not modelled as an upasarga, which remains open.
+
+The SOURCE premise for 1.4.25–31 retains support from the Nyāsa. The RECIPIENT premise
+was removed from 1.4.33–38, 40 and 41: the commentaries read carry only the name, and
+Bāla-manoramā on 1.4.38 says the 1.4.32 condition does not apply. Each rule still needs
+its own established meaning. Twenty JSON cases that recorded the old requirement now
+expect designation without case proof, because their inputs have the wrong case.
+
+## 1.4.52–55 reassessment and procedure-call means
+
+Commentary review of 1.4.52 confirmed the existing exclusions and exposed two gaps.
+जल्प्, वि-लप् and आङ्-भाष् now count as speech additions, and शब्दाय is excluded.
+The list's extent and time/place objects under akarmaka remain open in the ledger.
+1.4.53 and 1.4.54 correctness are implemented. 1.4.55 remains partial because the
+ṇic condition was not settled from the sources read. Six JSON regressions were added.
+
+The special rules 1.4.25–41 retain their SOURCE/RECIPIENT premises. The Nyāsa carries
+ध्रुवम् into 1.4.25; the pages read do not settle 1.4.33 against 1.4.32.
+
+ProgramProcedureCallConstruction supplies means and locus meaning only for a call
+matched against known procedures. It serves editor grammar analysis; ordinary कृ
+receives no such premise. The earlier claim that the complete suite passed had become
+stale when these failures appeared; see the current ledger, which tracks the pending rules.
+
+## Branch-specific non-causative passive expression
+
+Finite case selection now retains the assigning 1.4 rule's identity. In an
+established non-causative dvikarmaka reading, दुहादि promotes the secondary
+object and नी/हृ/कृष्/वह् promotes the primary object. The other object remains
+unexpressed and receives 2.3.2. Wrong swapped endings retain their established
+1.4.49/51 designations without fabricated 2.3.46 or 2.3.2 proof.
+
+PassiveObjectExpression separates expression of the selected primary/secondary
+reading from the generic KARMAN name. A primary-only ordinary use remains
+distinct from an established dvikarmaka reading. Unclassified action-sense
+equivalents retain unknown promotion rather than treating unknown as unexpressed.
+Action-sense evidence is shared only within its actual finite/nominal/purpose
+owner; equal logical purpose identities do not require identical wrapper objects.
+
+Case merging no longer silently selects a case when competing proofs of the
+same KARMAN role license different cases. Both proofs survive with unresolved
+case and an ambiguity diagnostic. Passive agreement now requires a licensed
+nominative, rather than a KARMAN label plus an unvalidated nominative ending.
+Parsed regressions verify both objects' exact chains, dual patient agreement,
+wrong-number diagnostics, original occurrence identity and unknown-pattern negatives.
+
+The 32 new JSON cases cover known primary/secondary promotion classes, swapped
+case negatives and unknown-pattern cases. The benchmark has 1427 passing cases:
+1382 supplied-premise cases and 45 without. The complete nine-module suite passes.
+No new sūtra is registered; the projection conditions interpret canonical
+designation and expression rules using the cited traditional explanations.
+
+The ledger records this verified non-causative contract separately from remaining
+causative promotion choices, explicit promotion patterns for other meaning
+equivalents and joint consistency of competing participant readings. Kṛt,
+taddhita and compound expressed-role coverage retains its own open obligations.
+This is not complete passive coverage.
+
+## 1.4.51 meaning-based eligibility and passive expression obligation
+
+The closed lexical gate now recognizes the Kaumudi's भाष्, अभि-वद् and वच्
+equivalents through governing root and structured prefix identities. Other
+meaning equivalents may establish DVIKARMAKA_ACTION_SENSE through independently
+declared lexical action semantics or supplied clause context. This is an action
+valency premise, separate from SECONDARY_OBJECT for a particular participant;
+neither generic SPEECH nor weak category/valency hypotheses establish it.
+Unknown prefixes and borrowed lexical senses of an enclosing action are rejected.
+The construction-ambiguity diagnostic uses the same owner-specific eligibility;
+it still supplies no canonical object proof.
+
+Thirty new JSON cases cover finite active/passive speech equivalents, wrong
+endings, linked nominal governors under both outer voices and absent/malformed
+meaning conditions. The nominal 2.3.66 cases explicitly state dual eligibility,
+including prefixed governors; this is not a claim of automatic eligibility
+discovery. The benchmark has 1395 cases: 1350 supplied-premise cases and 45 without.
+Rule 1.4.51's designation correctness is reassessed as implemented under these
+independent premises, while integration and inference remain partial.
+
+This review also identifies a separate unresolved expression defect: the engine
+currently treats every finite passive KARMAN as expressed. Dvikarmaka constructions
+require a primary/secondary distinction: दुहादि and नी/हृ/कृष्/वह् classes do not
+promote the same object. See the
+[Śabdakaustubha on 1.4.51](https://sa.wikisource.org/wiki/शब्दकौस्तुभः/अध्यायः_१-पादः_४/आह्निकम्_३)
+and [Kāśikā on 3.4.69](https://vishvasa.github.io/sanskrit/vyAkaraNam/pANinIyam/mUlAni/kAshikA/puShpA-pratiH/3/04/).
+The ledger explicitly retains this integration obligation under 1.4.49, 1.4.51
+and 2.3.1, including competing readings and causative configurations. Passing
+single-object or selected secondary-object tests does not establish that contract.
+No new rule number, kārikā or vārttika is registered by the semantic extension.
+
+## Established object readings and remaining 1.4.51 domain work
+
+The 1.4.49–51 review exposed another circular proof path. Desired, undesired and
+secondary-object hypotheses based only on case, voice, category or root valency
+could establish canonical object proof. The rules now require independent lexical
+or clause-established meaning. Strong object readings survive weak competing
+causee/secondary tags, and equally established primary/secondary interpretations
+retain distinct proof alternatives for the same KARMAN role.
+
+An ambiguity marker for multiple unannotated dvikarmaka accusatives no longer
+creates a 1.4.51 proof. The obsolete competing-meaning/proof-generation path was
+deleted. Such participants remain unassigned with their KARMAN candidates and
+an explicit primary/secondary uncertainty reason. Positive fixtures now supply
+their intended readings, including passive agreement and prior-action fixtures;
+negative JSON cases preserve the absence of morphology-only proof.
+
+PVM's declared requested-object construction precedes means selection. It supplies
+object meaning only for otherwise unassigned unambiguous accusatives on registered
+active लोट्/लट् instructions whose grammatical triggers and declared object slots
+match. No runtime payload or successful overload is used. It does not infer passive
+object intention, secondary-object meaning or unrestricted Sanskrit intentions.
+Interpreter/compiler and reviewed corpus expectations pass under this distinction.
+The benchmark now contains 1365 cases, 1320 with supplied premises and 45 without.
+
+Linked nominal regressions independently verify 1.4.49/50/51→2.3.66 under both outer
+voices, with missing-meaning and invalid-ending negatives and original AST identity.
+The new ledger nevertheless marks 1.4.51 correctness partial: the
+[Kaumudi's meaning-based examples](https://sanskritdocuments.org/learning_tools/ashtadhyayi/vyakhya/1/1.4.51.htm)
+include भाष्, अभि-वद् and वच् equivalents beyond the current closed lexical gate.
+That is a concrete remaining domain obligation, separate from general sense inference.
+
+## Established locus rather than case-derived proof
+
+The 1.4.45–48 reassessment exposed circular assignment: location hypotheses from
+case, category or distributed root valency could acquire canonical designation
+proof without an established action-locus reading. A new source/voice matrix
+reproduced the defect. All four predicates now require independently lexical or
+clause-established locus meaning. Prefix domains, conditioned अभिनिवेश usage,
+residence/covering distinction and fasting exclusions remain separately tested.
+The Kāśikā conditions are interpreted under canonical rules; no vārttika is
+registered as an additional sūtra.
+
+The old ओस् test no longer claims that a lone participant and root valency prove
+the locative reading. It now verifies absence of false proof, followed by correct
+resolution when a locus reading is supplied. The ordinary-locus JSON fixture now
+explicitly supplies LOCATION, and a separate morphology-only negative is retained.
+The benchmark has 1360 passing cases: 1316 supplied-premise cases and 44 without.
+
+ProgramLocusConstruction records PVM's declared collection, position and state
+location operands as program-context meanings. It applies only to registered
+active लोट्/लट् instructions with matching grammatical triggers, a declared
+location slot and otherwise unassigned unambiguous locatives without competing
+lexical meanings. It neither selects an overload nor inspects runtime values.
+Passive heads and syncretic endings receive no such premise. Ordinary Sanskrit
+VakyaAnalyzer has no access to this PVM construction. Corpus expectations and
+interpreter/compiler tests pass under this distinction.
+
+## Selected-means reassessment and PVM construction boundary
+
+Removed an unjustified active-voice fallback in 1.4.42: root valency plus an
+instrumental candidate could previously establish करण without a selected-means
+reading. The strengthened regression reproduced that failure. Active, passive
+and bhāve now consistently reject root/category/morphology-only selection while
+retaining selected means under wrong endings without false case proof.
+
+PVM instructions have a separate declared operand construction. For a registered
+active लोट् instruction with a declared means slot, a proven object, and exactly
+one otherwise unassigned unambiguous instrumental, ProgramMeansConstruction
+supplies the instruction's selected-operand meaning as clause context. It does
+not select an overload or inspect runtime values. Missing-object, non-imperative,
+and multiple-operand negatives remain unresolved. This is a bounded PVM language
+meaning, not a fallback in the Sanskrit sūtra or a claim about unrestricted text.
+
+The obsolete स्था list-index overload and interpreter/compiler KARMAN/KARANA
+indexing fallbacks were deleted. Embedded PVM programs now use ग्रह् with an
+ablative source collection, locative position and result object. Existing natural
+indexing tests cover the surviving path, including named indices and identical
+interpreter/compiler out-of-bounds behavior. No obsolete compatibility test is
+retained merely to preserve the removed form.
+
+The ledger now reassesses 1.4.42 and 2.3.18. The selected-means rule's correctness
+and supported integration are implemented; general means discovery is partial.
+The instrumental rule's conditional correctness is implemented, while full
+taddhita/compound expression integration remains partial. These separate axes
+replace a misleading implication that every inference gap is a rule-logic bug.
+
+## Per-rule reassessment ledger
+
+[KARAKA_RULE_COVERAGE.json](KARAKA_RULE_COVERAGE.json) preserves all 106
+canonical entries in 1.4.23–55 and 2.3.1–73, including governing and prohibiting
+rules. It is the per-axis reassessment ledger; the historical matrix below still
+preserves earlier evidence. Pending review is explicit and makes no new
+completion claim about an already tested implementation.
+
+| Rule | Correctness | Integration | Inference |
+|---|---|---|---|
+| 1.4.23 | Implemented governing semantics | Implemented registry dispatch/non-assignment contract | Not a separate inference task; dependent rules own their semantic prerequisites |
+| 2.3.1 | Implemented eligibility predicate/non-assignment semantics | Partial: finite and selected kṛt readings verified; taddhita/compound expression remains open | Finite voice supported; kṛt readings may be supplied; general taddhita/compound extraction unsupported |
+| 1.4.42 | Implemented selected-means requirement and special-rule deferral | Implemented finite/linked-nominal analysis and bounded declared PVM means construction | General selection discovery partial; lexical, clause and declared-program evidence distinguished |
+| 2.3.18 | Implemented conditional agent/means instrumental realization | Partial: full taddhita/compound expression-source handling remains open | General expressed-role extraction partial |
+| 1.4.43 | Implemented simultaneous object/means names and shared-power expression | Partial: finite, linked nominal, binding and history verified; complete expression-source extraction remains open | General selected-means discovery and nominal readings partial |
+| 1.4.44 | Implemented fixed-term hiring and selected-means prerequisites, optional branches | Partial: finite/linked nominal proofs verified; complete expression-source extraction remains open | General hiring-versus-purchase interpretation and nominal readings partial |
+| 1.4.45 | Implemented independent locus meaning and special-domain deferral | Partial: finite/linked nominal and declared PVM location paths verified; complete expression sources remain open | General locus discovery partial |
+| 1.4.46 | Implemented governing अधि + शी/स्था/आस् locus domain | Partial: finite/linked nominal proofs verified; complete expression sources remain open | General locus/nominal ownership discovery partial |
+| 1.4.47 | Implemented ordered अभि-नि-विश् and conditioned locative usage | Partial: finite/linked nominal proofs verified; complete expression sources remain open | Conditioned usage discovery partial |
+| 1.4.48 | Implemented prefixed residence-वस् locus domain and sense exclusions | Partial: finite/linked nominal proofs verified; complete expression sources remain open | General residence/covering/fasting sense discovery partial |
+| 1.4.49 | Implemented established desired-object prerequisite and reading precedence | Partial: finite/nominal/PVM and prior-action cases verified; complete expression sources remain open | General intention discovery partial |
+| 1.4.50 | Implemented established undesired-object prerequisite and reading precedence | Partial: finite/nominal cases verified; complete expression sources remain open | General undesired-object interpretation partial |
+| 1.4.51 | Implemented independent participant and meaning-based action eligibility | Partial: finite/nominal cases verified; passive promotion and complete expression sources remain open | General meaning equivalence and primary/secondary distinction partial |
+
+An implemented correctness/integration axis does not claim automatic meaning
+discovery. The other 93 entries retain pending review on the new axes. The ledger's
+concrete criteria and evidence paths are validated against the canonical
+registry. An implemented axis cannot contain an open criterion, and a partial
+axis must identify a concrete remaining obligation. This validation protects
+claims and inventory; it does not replace authoritative semantic review.
+
+The governing eligibility regression checks active/passive agent/object roles
+with valid and wrong cases: 2.3.1 cannot create a case proof or block an expressed
+nominative licensed by 2.3.46. These governing rules supply no 1.4→2.3 chain of
+their own. Exact chains remain obligations of assigning/realizing rules.
+
+## Relation-family integration map and adverbial occurrence fix
+
+[SEMANTIC_RELATION_COVERAGE.json](SEMANTIC_RELATION_COVERAGE.json) maps ten
+relation families from the Kulkarni guidelines to current representations,
+source/test evidence, inference modes and concrete integration gaps. It is a
+family crosswalk, not a completed per-canonical-rule ledger. Annotation labels
+do not create canonical sūtras, and source examples still require independent
+grammatical validation before becoming test expectations.
+
+The mapping review exposed a scope-validator defect: two equal-valued adverb
+analyses could substitute for one another at different written indices. Scope
+validation now checks the source AST occurrence as well as analysis equality.
+Regressions reject reassigning the first बहु qualification to the second बहु,
+accept the actual second occurrence, and allow an equivalent analysis wrapper
+around the same original AST word. No morphology or relation is manufactured
+to repair a mismatched occurrence.
+
+The active audit now uses the separate correctness, integration and inference
+criteria in [KARAKA_AUDIT_CRITERIA.md](KARAKA_AUDIT_CRITERIA.md). Existing
+single-axis Partial labels remain historical aggregate judgments until their
+per-rule evidence has been reassessed; they must not be interpreted as proof
+that every implemented rule has incorrect logic.
+
+## 2.3.12 precedence over nominal genitives
+
+The domain of physical motion toward a non-path object now independently
+excludes 2.3.65/66, even when the written ending is genitive. Previously a wrong
+genitive made 2.3.12 fail its morphology check and incorrectly reactivated the
+kṛt genitive. The motion rule now exposes its case-independent domain predicate;
+both genitive rules defer to it. Accusative/dative alternatives retain 2.3.12
+proof. The independent 1.4.49 object designation survives an invalid ending.
+
+Rule correctness: this precedence follows [Kāśikā on 2.3.12](https://vishvasa.github.io/sanskrit/vyAkaraNam/pANinIyam/mUlAni/kAshikA/puShpA-pratiH/2/03/),
+including its nominal ग्रामं/ग्रामाय गन्ता examples excluding kṛt genitive.
+Integration: frame and 36 JSON records cover agent-denoting तृच् and action-only
+ल्युट्, both outer voices, all three written cases, and missing physical-motion
+or non-path premises. Inference: these meanings/readings are supplied; automatic
+motion/path interpretation is not established. Other applicable interactions
+remain subject to the full audit rather than being declared complete here.
+
+Current structured benchmark: 1359 passing records, 1315 with supplied premises
+and 44 without. No noncanonical rule or compatibility fallback was added.
+
 ## Competing nominal object mediation under 1.4.32
 
 Thirty-six additional JSON records check object/source, object/instrument and
