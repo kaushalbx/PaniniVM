@@ -1008,6 +1008,7 @@ internal object CompilerFrontend {
                 is ExecutionExpression.TypedOperand -> expression.referenceName == null &&
                     expression.value is dev.panini.execution.SanskritValue.Sankhya
                 is ExecutionExpression.Reference -> false
+                is ExecutionExpression.Superlative -> false
             }
             val dynamic = objects.isNotEmpty() && candidates.all { it.name in participantGroupOperations } &&
                 candidates.any { it.action !is dev.panini.actions.numeric.NumericFoldDhatuAction } &&

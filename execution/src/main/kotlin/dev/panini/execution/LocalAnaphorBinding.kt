@@ -93,6 +93,9 @@ internal object LocalAnaphorBinding {
                     val key = pada.pratipadika.semanticKey()
                     if (key == "फल" && dev.panini.core.SupAffix.SU in pada.sup.affixCandidates) return pada
                     val identity = scope.procedureBindings?.declaredIdentity(key) ?: return pada
+                    // सदस्यौ beside the loop's one सदस्य names two members, not that referent.
+                    val numbers = scope.procedureBindings?.visibleReferents().orEmpty().firstOrNull { it.identity == identity }?.grammaticalNumbers.orEmpty()
+                    if (numbers.isNotEmpty() && pada.sup.affixCandidates.none { it.vacana in numbers }) return pada
                     val name = aliases[identity] ?: return pada
                     return pada.copy(sourceText = "$name + ${pada.sup.text}",
                         pratipadika = MulaPratipadika(name, name)).inheritLocation(pada)
@@ -156,6 +159,9 @@ internal object LocalAnaphorBinding {
             val key = pada.pratipadika.semanticKey()
             if (key == "फल" && dev.panini.core.SupAffix.SU in pada.sup.affixCandidates) return pada
             val identity = scope.procedureBindings?.declaredIdentity(key) ?: return pada
+            // सदस्यौ beside the loop's one सदस्य names two members, not that referent.
+            val numbers = scope.procedureBindings?.visibleReferents().orEmpty().firstOrNull { it.identity == identity }?.grammaticalNumbers.orEmpty()
+            if (numbers.isNotEmpty() && pada.sup.affixCandidates.none { it.vacana in numbers }) return pada
             val name = aliases[identity] ?: return pada
             return pada.copy(sourceText = "$name + ${pada.sup.text}",
                 pratipadika = MulaPratipadika(name, name)).inheritLocation(pada)

@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.Upasarga
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya6.pada1.SavarnaDirghaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
@@ -16,7 +17,6 @@ import dev.panini.shiksha.Vyanjana
 class SandhiEngine(
     private val engine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras)
 ) {
-    private val voicedInitials = "अआइईउऊऋएऐओऔगघङजझञडढणदधनबभमयरलवह".toSet()
 
     /** Explicit completed-word input; spelling alone cannot identify a dual or a vocative. */
     data class Pada(val term: DerivationTerm, val rupa: Rupa = Rupa(), val samjnas: Set<Samjna> = emptySet(),
@@ -113,9 +113,27 @@ class SandhiEngine(
      */
     fun joinPrefix(left: String, right: String): String {
         // निस् and दुस् take र् before a voiced sound (8.2.66, 8.3.15 does not apply): निर्हर, दुर्गम.
-        if (left in setOf("निस्", "दुस्") && right.firstOrNull() in voicedInitials) return left.dropLast(2) + "र्" + right
+        // निस्, दुस्: the upasarga's final स् goes through the sūtras as any pada-final स् does
+        // (8.2.66 रु; then र्, visarga, स्, or ष् by 8.3.41), so निर्गच्छ, निष्क्राम, नीरस, दुराचार.
+        if (left.endsWith("स्") && Upasarga.fromUpadesha(left) != null) return join(
+            Pada(DerivationTerm("sandhi_left", left, TermKind.PRATIPADIKA, upadesha = left), samjnas = setOf(Samjna.UPASARGA)),
+            unspecifiedPada("sandhi_right", right)).final.surface
         var state = padaBoundaryState(left, right)
         val initialRight = state.terms.last().varnas.firstOrNull()
+        val finalLeft = state.terms.first().varnas.lastOrNull()
+        if (finalLeft is dev.panini.shiksha.Svara && initialRight is dev.panini.shiksha.Svara && !SavarnaDirghaSutra.matches(state)) {
+            val stem = left.dropLast(if (finalLeft == dev.panini.shiksha.Svara.A) 0 else 1)
+            val aFinal = finalLeft == dev.panini.shiksha.Svara.A || finalLeft == dev.panini.shiksha.Svara.AA
+            return when {
+                // 6.1.94 एङि पररूपम्: उप + एजते = उपेजते.
+                aFinal && initialRight in setOf(dev.panini.shiksha.Svara.E, dev.panini.shiksha.Svara.O) ->
+                    stem + (if (initialRight == dev.panini.shiksha.Svara.E) "े" else "ो") + right.drop(1)
+                // 6.1.91 उपसर्गादृति धातौ: प्र + ऋच्छति = प्रार्छति.
+                aFinal && initialRight == dev.panini.shiksha.Svara.R -> stem + "ार्" + right.drop(1)
+                // इको यणचि, आद्गुणः, वृद्धिरेचि hold across the prefix as across any words.
+                else -> join(left, right).final.surface
+            }
+        }
         if (SavarnaDirghaSutra.matches(state)) {
             state = SavarnaDirghaSutra.apply(state).state
         }

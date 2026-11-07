@@ -250,6 +250,7 @@ object SanskritGranthaSourceCompiler {
                 members = members.map { it.rewriteReferences(localIds) },
             )
             is ExecutionExpression.TypedOperand -> this
+            is ExecutionExpression.Superlative -> copy(group = group.rewriteReferences(localIds))
         }
 
     private fun ExecutionExpression.references(): Set<String> = when (this) {
@@ -257,6 +258,7 @@ object SanskritGranthaSourceCompiler {
         is ExecutionExpression.Reference -> setOf(name)
         is ExecutionExpression.Coordination -> members.flatMapTo(linkedSetOf()) { it.references() }
         is ExecutionExpression.TypedOperand -> emptySet()
+        is ExecutionExpression.Superlative -> group.references()
     }
 
     private fun ExecutionNode.remapInvocationIds(transform: (String) -> String): ExecutionNode = when (this) {

@@ -110,6 +110,13 @@ object ProgramSutraArthaCodec {
                 "sup" to SutraArthaValue.Symbol(expression.sup.name),
             ) + expression.referenceName?.let { mapOf("referenceName" to SutraArthaValue.Text(it)) }.orEmpty(),
         )
+        is ExecutionExpression.Superlative -> SutraArthaValue.Record(
+            mapOf(
+                "expressionType" to SutraArthaValue.Symbol("superlative"),
+                "group" to encodeExpression(expression.group),
+                "predicate" to SutraArthaValue.Symbol(expression.predicate.name),
+            ),
+        )
     }
 
     fun decodeExpression(value: SutraArthaValue): ExecutionExpression {
@@ -131,6 +138,10 @@ object ProgramSutraArthaCodec {
                 value = decodeValue(fields.getValue("value")),
                 sup = SupAffix.valueOf(fields.symbol("sup")),
                 referenceName = (fields["referenceName"] as? SutraArthaValue.Text)?.value,
+            )
+            "superlative" -> ExecutionExpression.Superlative(
+                group = decodeExpression(fields.getValue("group")),
+                predicate = dev.panini.execution.CopularPredicate.valueOf(fields.symbol("predicate")),
             )
             else -> throw IllegalArgumentException("Unknown execution expression type.")
         }

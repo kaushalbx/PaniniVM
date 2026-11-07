@@ -252,4 +252,19 @@ class KrdantaEngineTest {
         assertTrue(sutras("युज्", Samjna.GHAN).containsAll(setOf("7.3.86", "7.3.52")))
         assertTrue(sutras("युज्", Samjna.LYUT).containsAll(setOf("7.3.86", "7.1.1")))
     }
+
+    @Test
+    fun `6_1_45 gives aa to an ec-final root before any asit affix`() {
+        // वि + नि + मेङ् + ल्यप्: मे becomes मा, so विनिमाय (6.4.70 also allows विनिमित्य).
+        assertEquals("विनिमाय", engine.derive(KrdantaDerivationRequest("मे", Samjna.KTVA, "विनि")).final.surface)
+        assertEquals("ध्यात", engine.derive(KrdantaDerivationRequest("ध्यै", Samjna.KTA)).final.surface)
+    }
+
+    @Test
+    fun `a causative absolutive keeps the augment of its root`() {
+        // 7.3.36 पुक्: स्थापयित्वा, दापयित्वा.
+        for ((root, form) in listOf("स्था" to "स्थापयित्वा", "दा" to "दापयित्वा", "युज्" to "योजयित्वा")) {
+            assertEquals(form, engine.derive(KrdantaDerivationRequest(root, Samjna.KTVA, null, listOf("णिच्"))).final.surface, root)
+        }
+    }
 }

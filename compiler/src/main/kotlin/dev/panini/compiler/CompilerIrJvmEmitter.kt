@@ -421,6 +421,8 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.POP_PAIR -> "listPopPair"
             CollectionOperator.SLICE -> "listSlice"
             CollectionOperator.FLATTEN -> "listFlatten"
+            CollectionOperator.LEAST -> "listLeast"
+            CollectionOperator.GREATEST -> "listGreatest"
         }
         val value = "Ldev/panini/execution/SanskritValue;"
         val descriptor = when (operator) {
@@ -445,6 +447,8 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.POP,
             CollectionOperator.POP_PAIR,
             CollectionOperator.FLATTEN,
+            CollectionOperator.LEAST,
+            CollectionOperator.GREATEST,
             -> "($value)$value"
         }
         mv.visitMethodInsn(
@@ -776,6 +780,17 @@ internal class CompilerIrJvmEmitter(
                     "dev/panini/compiler/PaniniRuntime",
                     "createReferenceExpression",
                     "(Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Reference;",
+                    false,
+                )
+            }
+            is ExecutionExpression.Superlative -> {
+                emitExpression(expression.group)
+                mv.visitLdcInsn(expression.predicate.name)
+                mv.visitMethodInsn(
+                    INVOKESTATIC,
+                    "dev/panini/compiler/PaniniRuntime",
+                    "createSuperlativeExpression",
+                    "(Ldev/panini/execution/ExecutionExpression;Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Superlative;",
                     false,
                 )
             }

@@ -144,6 +144,18 @@ internal object KarakaExtractor {
 
         val consumedPadaIndices = mutableSetOf<Int>()
 
+        // उत्तरेषु न्यूनतमः (5.3.55, 2.3.41): the superlative is chosen from the locative group beside it.
+        val superlative = subantas.singleOrNull { superlativeOrder(it) != null }
+        val superlativeGroup = superlative?.let { chosen ->
+            // उत्तरेषु, or a collective in the singular as सूच्याम्.
+            requireNotNull(subantas.singleOrNull { it !== chosen && it.sup.affixCandidates.any { a -> a.vibhakti == Vibhakti.SAPTAMI } }) {
+                "A superlative names the one group it is chosen from in the locative (2.3.41 यतश्च निर्धारणम्)."
+            }
+        }
+        // That locative is a kāraka only when the action also takes it, as अन्विच्छ takes the place searched.
+        val groupIsOnlyNirdharana = superlativeGroup != null &&
+            (ctx.relationFor(superlativeGroup)?.resolution as? FrameKarakaResolution.Resolved)?.karaka != Karaka.ADHIKARANA
+
         // ---- main pada dispatch -----------------------------------------------------
 
         padas.forEachIndexed { index, pada ->
@@ -209,6 +221,14 @@ internal object KarakaExtractor {
                     trace += "परि + अन्त + अम् licenses inclusive collection limits."
                 }
                 is SubantaPada -> {
+                    if (pada === superlativeGroup && groupIsOnlyNirdharana) return@forEachIndexed
+                    if (pada === superlative) {
+                        val group = ExpressionBuilder.build(requireNotNull(superlativeGroup), ctx)
+                        addBinding(ExecutionExpression.Superlative(group, requireNotNull(superlativeOrder(pada))),
+                            inferKarakas(pada), pada.sup, pada)
+                        trace += "5.3.55 अतिशायने तमबिष्ठनौ: " + pada.sourceText + " is the extreme member of " + superlativeGroup.sourceText + "."
+                        return@forEachIndexed
+                    }
                     val copularPredicate =
                         (ctx.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS || isCopularClause) &&
                         pada.sup.supports(Vibhakti.PRATHAMA) &&
@@ -301,5 +321,16 @@ internal object KarakaExtractor {
         trace += ctx.grammaticalFrames.flatMap { it.qualifications }.map { "Kriyā qualification ${it.kind}: ${it.value}" }
         return ExtractedBindings(bindings, ambiguous, trace.distinct(), nominalBindings, parsedCopularPredicate,
             historyParticipants.takeIf { records -> records.any { it.coexistingKarakas.isNotEmpty() } }.orEmpty())
+    }
+}
+
+/** न्यूनतम, अधिकतम: न्यून or अधिक with तमप् selects one extreme member. */
+internal fun superlativeOrder(pada: SubantaPada): dev.panini.execution.CopularPredicate? {
+    val nominal = pada.pratipadika as? MulaPratipadika ?: return null
+    if (nominal.vikaras.none { (it as? dev.panini.vyakaranam.ast.TaddhitaVikara)?.affix == dev.panini.core.TaddhitaAffix.TAMAP }) return null
+    return when (nominal.lexicalIdentity) {
+        MulaPratipadikaIdentity.NYUNA -> dev.panini.execution.CopularPredicate.LESS_THAN
+        MulaPratipadikaIdentity.ADHIKA -> dev.panini.execution.CopularPredicate.GREATER_THAN
+        else -> null
     }
 }

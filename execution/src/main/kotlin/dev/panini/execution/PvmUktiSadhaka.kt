@@ -566,21 +566,27 @@ class PvmUktiSadhaka(
             )
         }
         val mula = normalized.pratipadika as? MulaPratipadika
-        val possessiveTaddhitas = mula?.vikaras?.filterIsInstance<TaddhitaVikara>()?.filter {
-            it.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE
+        // मतुप् (5.2.94) and the degree affixes तरप्, तमप् (5.3.57, 5.3.55) are derived, not dropped.
+        val derivedTaddhitas = mula?.vikaras?.filterIsInstance<TaddhitaVikara>()?.mapNotNull { vikara ->
+            when {
+                vikara.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE -> vikara to dev.panini.shiksha.Samjna.MATUP
+                vikara.affix == dev.panini.core.TaddhitaAffix.TARAP -> vikara to dev.panini.shiksha.Samjna.TARAP
+                vikara.affix == dev.panini.core.TaddhitaAffix.TAMAP -> vikara to dev.panini.shiksha.Samjna.TAMAP
+                else -> null
+            }
         }.orEmpty()
-        if (possessiveTaddhitas.size > 1) return subanta.sourceText
-        val possessiveTaddhita = possessiveTaddhitas.singleOrNull()
-        val taddhitaDerivation = possessiveTaddhita?.let {
+        if (derivedTaddhitas.size > 1) return subanta.sourceText
+        val derivedTaddhita = derivedTaddhitas.singleOrNull()
+        val taddhitaDerivation = derivedTaddhita?.let { (_, samjna) ->
             val source = requireNotNull(mula).text
-            runCatching { taddhitaEngine.derive(source, dev.panini.shiksha.Samjna.MATUP) }
+            runCatching { taddhitaEngine.derive(source, samjna) }
                     .getOrNull()
         }
         val taddhitaBase = taddhitaDerivation?.final?.surface
         val sourceAffixItMarkers = taddhitaDerivation?.final?.allEffectiveTerms
             ?.filter { it.kind == dev.panini.derivation.TermKind.PRATYAYA }
             ?.flatMap { it.itMarkers + it.sthaniProps?.itMarkers.orEmpty() }?.toSet().orEmpty()
-        if (possessiveTaddhita != null && taddhitaBase == null) return subanta.sourceText
+        if (derivedTaddhita != null && taddhitaBase == null) return subanta.sourceText
         val baseText = when {
             taddhitaBase != null -> taddhitaBase
             else -> sourceStem?.surface ?: normalized.pratipadika.baseText()

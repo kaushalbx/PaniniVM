@@ -116,7 +116,11 @@ class KrdantaEngine(
             "Canonical sutra ${selection.sutra} cannot select ${request.samjna} for ${request.dhatu}."
         }
         val bootstrap = buildList {
-            if (request.sanadiPratyayas.any { SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC }) add(canonicalSutra("3.1.26"))
+            if (request.sanadiPratyayas.any { SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC }) {
+                add(canonicalSutra("3.1.26"))
+                // स्थापयित्वा, ध्यापयित्वा: the root takes its augment before णिच् (6.1.45, 7.3.36, 7.3.37).
+                add(canonicalSutra("6.1.45")); add(canonicalSutra("7.3.36")); add(canonicalSutra("7.3.37"))
+            }
             add(selection)
             if (request.samjna == Samjna.KTA || request.samjna == Samjna.KTAVATU) {
                 add(canonicalSutra("1.1.26"))
@@ -138,6 +142,8 @@ class KrdantaEngine(
         Samjna.NVUL, Samjna.TRC -> "3.1.133"
         Samjna.GHAN -> "3.3.18"
         Samjna.LYUT -> "3.3.115"
+        Samjna.KA -> "3.1.135"
+        Samjna.NAMUL -> "3.4.22"
         else -> error("Unsupported Kṛdanta request: ${request.samjna}")
     })
 

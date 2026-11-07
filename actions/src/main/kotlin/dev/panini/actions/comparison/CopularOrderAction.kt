@@ -25,6 +25,9 @@ object CopularOrderAction : DhatuAction("न्यूनता", "एकस्�
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The subject of ordering must be a number.")
         val right = context.resolveValues(standard).singleOrNull()
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The ablative standard of comparison must be a number.")
+        // उत्तरेषु न्यूनतमः of an empty group is लोप: nothing is less or greater than anything.
+        if (left == SanskritValue.Lopa || right == SanskritValue.Lopa) return ExecutionResult.Success(
+            value = "असत्यम्", operation = operation.name, typedValue = SanskritValue.Satya(false), conditionValue = false)
         val order = compareNumericValues(left, right)
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Ordering requires two defined numeric values.")
         val result = if (predicate == CopularPredicate.LESS_THAN) order < 0 else order > 0

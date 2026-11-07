@@ -34,7 +34,12 @@ data class ExecutionContext(
         is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
             ?: emptyList()
         is ExecutionExpression.TypedOperand -> listOf(expression.currentValue())
+        is ExecutionExpression.Superlative -> listOf(superlative(expression))
     }
+
+    /** The extreme member of the group; लोप when the group is empty and so has none. */
+    fun superlative(expression: ExecutionExpression.Superlative): SanskritValue =
+        superlativeOf(resolveValues(expression.group).singleOrNull(), expression.predicate)
 
     fun resolve(expression: ExecutionExpression): List<String> =
         resolveValues(expression).map { it.toDisplayText() }
@@ -66,8 +71,27 @@ data class ExecutionContext(
         is ExecutionExpression.TypedOperand -> expression.currentValue().let { value ->
             listOf(ExecutionExpression.Pada(value.toDisplayText(), value.samjnas, value))
         }
+        is ExecutionExpression.Superlative -> superlative(expression).let { value ->
+            listOf(ExecutionExpression.Pada(value.toDisplayText(), value.samjnas, value))
+        }
     }
 
     private fun ExecutionExpression.TypedOperand.currentValue(): SanskritValue =
         referenceName?.let(variables::get) ?: value
+}
+
+/** One rule for both backends: the first of equal extremes is chosen, so the choice is stable. */
+fun superlativeOf(group: SanskritValue?, predicate: CopularPredicate): SanskritValue {
+    val members = when (group) {
+        is SanskritValue.Suchi -> group.items
+        is SanskritValue.Gana -> group.elements
+        else -> throw IllegalArgumentException("A superlative chooses from one list.")
+    }
+    val sign = if (predicate == CopularPredicate.LESS_THAN) -1 else 1
+    return members.fold(SanskritValue.Lopa as SanskritValue) { best, member ->
+        if (best == SanskritValue.Lopa) member else {
+            val order = requireNotNull(compareNumericValues(member, best)) { "A superlative compares numbers." }
+            if (order * sign > 0) member else best
+        }
+    }
 }

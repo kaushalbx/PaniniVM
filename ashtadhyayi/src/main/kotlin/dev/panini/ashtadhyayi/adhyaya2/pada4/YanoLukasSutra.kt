@@ -20,7 +20,7 @@ import dev.panini.sutra.SutraType
 object YanoLukasSutra : Sutra<DerivationState, DerivationChange>(
     number = "2.4.74",
     text = "यङोऽचि च",
-    hindiExplanation = "अच् से भिन्न प्रत्यय परे होने पर यङ् का लुक् होता है।",
+    hindiExplanation = "अच् प्रत्यय परे होने पर भी यङ् का लुक् होता है।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 4,

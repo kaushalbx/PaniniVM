@@ -3031,17 +3031,23 @@
     {
       "id": "judged_examples_algorithms_bubble_sort_pvm_item_1_clause_1",
       "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "फल+अम्दक्षिणक्रम+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "युज्+णिच्+ल्युट्+ङस्फल+अम्अनन्तरक्रम+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after the result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "युज्+णिच्+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -3056,7 +3062,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "दक्षिणक्रम+ङि",
+          "source": "अनन्तरक्रम+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -3131,9 +3137,9 @@
     {
       "id": "judged_examples_algorithms_bubble_sort_pvm_item_1_clause_3",
       "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "दत्तसूची+ङस्क्रम+ङिदक्षिणक्रम+ङिचवि+नि+मे+लोट्+थास्",
+      "clause": "दत्तसूची+ङस्क्रम+ङिअनन्तरक्रम+ङिचसदस्य+औट्वि+नि+मे+लोट्+थास्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
+      "rationale": "Re-reviewed after the exchanged members were written: सदस्यौ is the karman. Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
@@ -3162,13 +3168,26 @@
           "additionalDesignations": []
         },
         {
-          "source": "दक्षिणक्रम+ङि",
+          "source": "अनन्तरक्रम+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
           "chain": [
             "1.4.45",
             "2.3.36"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "सदस्य+औट्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
           ],
           "candidates": [],
           "alternatives": [],
@@ -3189,17 +3208,23 @@
     {
       "id": "judged_examples_algorithms_bubble_sort_pvm_item_1_clause_4",
       "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "फल+अम्दत्तसूची+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "वि+नि+मे+ल्युट्+ङस्फल+अम्दत्तसूची+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after the result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "वि+नि+मे+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -12777,17 +12802,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_0_clause_1",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्पेटिकाक्रमाङ्क+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "ग्रह्+ल्युट्+ङस्फल+अम्पेटिकाक्रमाङ्क+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "ग्रह्+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13104,9 +13135,9 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_3",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "पेटिकादर्शन+टाडुकृञ्+उ+लोट्+सिप्",
+      "clause": "दृश्+ल्युट्+टाडुकृञ्+उ+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
+      "rationale": "Re-reviewed after the procedure was named by its ल्युट् action noun. Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
         [
           1,
@@ -13115,7 +13146,7 @@
       ],
       "participants": [
         {
-          "source": "पेटिकादर्शन+टा",
+          "source": "दृश्+ल्युट्+टा",
           "resolution": "RESOLVED",
           "karaka": "KARANA",
           "case": "TRTIYA",
@@ -13134,11 +13165,12 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_4",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "स्वसङ्ख्याप्राप्ति+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
+      "clause": "स्वसङ्ख्याप्राप्ति+सुँनअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Re-reviewed after the condition was written with न. Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
         [
+          2,
           1,
           0
         ]
@@ -13160,50 +13192,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "असँ+लट्+तिप्"
-    },
-    {
-      "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_5",
-      "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "सत्य+अम्स्वसङ्ख्याप्राप्ति+ङिस्था+णिच्+लोट्+सिप्",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "सत्य+अम्",
-          "resolution": "RESOLVED",
-          "karaka": "KARMAN",
-          "case": "DVITIYA",
-          "chain": [
-            "1.4.49",
-            "2.3.2"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "स्वसङ्ख्याप्राप्ति+ङि",
-          "resolution": "RESOLVED",
-          "karaka": "ADHIKARANA",
-          "case": "SAPTAMI",
-          "chain": [
-            "1.4.45",
-            "2.3.36"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "स्था+णिच्+लोट्+सिप्"
     },
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_6",
@@ -13298,17 +13286,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_8",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्बन्दिसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "युज्+णिच्+ल्युट्+ङस्फल+अम्बन्दिसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "युज्+णिच्+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13353,17 +13347,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_1",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "चि+ल्युट्+ङस्फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "चि+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13427,17 +13427,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_3",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्पेटिकाक्रम+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "सम्+ग्रह्+ल्युट्+ङस्फल+अम्पेटिकाक्रम+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "सम्+ग्रह्+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13515,17 +13521,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_5",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "चि+ल्युट्+ङस्फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "चि+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13603,17 +13615,23 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_7",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "फल+अम्पेटिकाक्रम+ङिस्था+णिच्+लोट्+सिप्",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
+      "clause": "नि+क्षिप्+ल्युट्+ङस्फल+अम्पेटिकाक्रम+ङिस्था+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "wordOrders": [],
       "participants": [
+        {
+          "source": "नि+क्षिप्+ल्युट्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
         {
           "source": "फल+अम्",
           "resolution": "RESOLVED",
@@ -13647,9 +13665,9 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_4_clause_0",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "पेटिकाक्रमनिर्माण+टाडुकृञ्+उ+लोट्+सिप्",
+      "clause": "निस्+मा+ल्युट्+टाडुकृञ्+उ+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
+      "rationale": "Re-reviewed after the procedure was named by its ल्युट् action noun. Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
         [
           1,
@@ -13658,7 +13676,7 @@
       ],
       "participants": [
         {
-          "source": "पेटिकाक्रमनिर्माण+टा",
+          "source": "निस्+मा+ल्युट्+टा",
           "resolution": "RESOLVED",
           "karaka": "KARANA",
           "case": "TRTIYA",
@@ -13795,9 +13813,9 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_7_clause_1",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "बन्दीप्रयत्न+टाडुकृञ्+उ+लोट्+सिप्",
+      "clause": "बन्दिप्रयत्न+टाडुकृञ्+उ+लोट्+सिप्",
       "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
+      "rationale": "Re-reviewed after the procedure was named by its ल्युट् action noun. Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
         [
           1,
@@ -13806,7 +13824,7 @@
       ],
       "participants": [
         {
-          "source": "बन्दीप्रयत्न+टा",
+          "source": "बन्दिप्रयत्न+टा",
           "resolution": "RESOLVED",
           "karaka": "KARANA",
           "case": "TRTIYA",
@@ -16711,13 +16729,13 @@
     {
       "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_3",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+अम्दक्षिण+अम्चयुज्+णिच्+लोट्+सिप्",
+      "clause": "आद्य+अम्अपर+अम्चयुज्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "वाम+अम्",
+          "source": "आद्य+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -16730,7 +16748,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "दक्षिण+अम्",
+          "source": "अपर+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -16757,13 +16775,13 @@
     {
       "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_3",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+अम्दक्षिण+अम्चवि+युज्+णिच्+लोट्+सिप्",
+      "clause": "आद्य+अम्अपर+अम्चवि+युज्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "वाम+अम्",
+          "source": "आद्य+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -16776,7 +16794,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "दक्षिण+अम्",
+          "source": "अपर+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -17128,28 +17146,6 @@
         },
         {
           "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "additionalDesignations": [],
-          "alternatives": []
-        }
-      ]
-    },
-    {
-      "id": "rereview_examples_algorithms_bubble_sort_pvm_item_1_clause_5",
-      "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "सत्य+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
-      "participants": [
-        {
-          "source": "सत्य+सुँ",
           "resolution": "RESOLVED",
           "karaka": "KARTR",
           "case": "PRATHAMA",
@@ -18801,12 +18797,12 @@
     {
       "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_0",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "clause": "आद्य+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
       "occurrence": 0,
       "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
       "participants": [
         {
-          "source": "वाम+सुँ",
+          "source": "आद्य+सुँ",
           "resolution": "RESOLVED",
           "karaka": "ANIRDHARITA",
           "case": "PRATHAMA",
@@ -18847,12 +18843,12 @@
     {
       "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_1",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "दक्षिण+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "clause": "अपर+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
       "occurrence": 0,
       "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
       "participants": [
         {
-          "source": "दक्षिण+सुँ",
+          "source": "अपर+सुँ",
           "resolution": "RESOLVED",
           "karaka": "ANIRDHARITA",
           "case": "PRATHAMA",
@@ -18927,12 +18923,12 @@
     {
       "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_0",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "clause": "आद्य+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
       "occurrence": 1,
       "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
       "participants": [
         {
-          "source": "वाम+सुँ",
+          "source": "आद्य+सुँ",
           "resolution": "RESOLVED",
           "karaka": "ANIRDHARITA",
           "case": "PRATHAMA",
@@ -18973,12 +18969,12 @@
     {
       "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_1",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "दक्षिण+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "clause": "अपर+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
       "occurrence": 1,
       "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
       "participants": [
         {
-          "source": "दक्षिण+सुँ",
+          "source": "अपर+सुँ",
           "resolution": "RESOLVED",
           "karaka": "ANIRDHARITA",
           "case": "PRATHAMA",

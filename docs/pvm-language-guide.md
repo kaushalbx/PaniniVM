@@ -1110,6 +1110,24 @@ Only the selected outer branch evaluates that pipeline. A result event may use
 the temporal pair in the same position: `ततः यदा … तदा …` means “from that
 result, when this state obtains, then perform the selected action.”
 
+A superlative chooses one member from a group named in the locative (5.3.55
+अतिशायने तमबिष्ठनौ, 2.3.41 यतश्च निर्धारणम्). `न्यून + तमप्` is the least and
+`अधिक + तमप्` the greatest; the first of equal members is chosen. The group is
+a list, written as a plural locative (`उत्तर + सुप्`, "among the following")
+or a collective singular (`सूची + ङि`, "in the list"). When the action also
+takes that locative, as `अनु + इष्` takes the list it searches, the one word is
+both the place and the group:
+
+```pvm
+यदि उत्तर + सुप् न्यून + तमप् + सुँ सदस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप्
+तर्हि उत्तर + सुप् न्यून + तमप् + ङस् स्थान + अम् अनु + इष् + लोट् + सिप् ।
+```
+
+(यदि उत्तरेषु न्यूनतमः सदस्याद् न्यूनः अस्ति तर्हि उत्तरेषु न्यूनतमस्य स्थानम्
+अन्विच्छ.) An empty group has no extreme member: its superlative is लोप, and
+no order statement about it is true, so the condition above is false after the
+last member. `examples/algorithms/selection_sort.pvm` uses this construction.
+
 When one selected branch performs several complete actions, use `अथ` for an
 explicit succession (“and then”), or `च` for coordination (“and”). Neither
 connector pipes the preceding result into the next action. Action-level `च`

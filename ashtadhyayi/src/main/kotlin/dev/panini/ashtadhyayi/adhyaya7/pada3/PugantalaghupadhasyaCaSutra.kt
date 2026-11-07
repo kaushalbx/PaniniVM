@@ -56,6 +56,8 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val beforeArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
             context.terms.dropWhile { it.id != dhatu.id }.drop(1).any {
                 it.kind == TermKind.PRATYAYA &&
+                    // 1.1.5 क्ङिति च: no guṇa before a kit or ṅit affix.
+                    !it.hasEffectiveMarker(dev.panini.core.ItMarker.KIT) && !it.hasEffectiveMarker(dev.panini.core.ItMarker.NGIT) &&
                     !it.matchesAnyAffix(KrtAffix.KTA, KrtAffix.KTAVATU, KrtAffix.KTVA, KrtAffix.LYAP)
             }
         if (dhatu.blocksNicGuna) return false

@@ -75,7 +75,8 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
                 isNicEndingDhatu || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
             !vowelInitialAfterScheduledSubstitution &&
-            ending.varnas.firstOrNull()?.let { it !is Svara } == true &&
+            // वलादि is read without the it-letters: क is अ once 1.3.8 marks its क्.
+            ending.varnas.withIndex().firstOrNull { (i, _) -> ending.itDesignations.none { i >= it.start && i < it.endExclusive } }?.value.let { it != null && it !is Svara } &&
             isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }
     }

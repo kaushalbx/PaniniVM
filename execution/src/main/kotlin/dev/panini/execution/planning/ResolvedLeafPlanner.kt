@@ -408,6 +408,7 @@ object ResolvedLeafPlanner {
     private fun ExecutionExpression.references(): List<String> = when (this) {
         is ExecutionExpression.Reference -> listOf(name)
         is ExecutionExpression.Coordination -> members.flatMap { it.references() }
+        is ExecutionExpression.Superlative -> group.references()
         is ExecutionExpression.Pada,
         is ExecutionExpression.TypedOperand,
         -> emptyList()
@@ -440,6 +441,8 @@ object ResolvedLeafPlanner {
         is ExecutionExpression.Coordination -> copy(
             members = members.map { it.restoreSymbolicReferences(symbolicNames, copularReferences, resolvedKaraka) },
         )
+        // The group is a collection, never a copular operand.
+        is ExecutionExpression.Superlative -> this
         is ExecutionExpression.Reference -> if (name in symbolicNames) {
             copularOperand(name, resolvedKaraka, copularReferences) ?: this
         } else this
@@ -464,6 +467,7 @@ object ResolvedLeafPlanner {
         is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
         is ExecutionExpression.Coordination -> expression.members.all(::isMaterializable)
         is ExecutionExpression.Reference -> true
+        is ExecutionExpression.Superlative -> isMaterializable(expression.group)
     }
 
     private fun isConcrete(
@@ -474,6 +478,7 @@ object ResolvedLeafPlanner {
         is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
         is ExecutionExpression.Coordination -> expression.members.all { isConcrete(it, environment) }
         is ExecutionExpression.Reference -> expression.name in environment.values
+        is ExecutionExpression.Superlative -> false
     }
 
     private fun isEmbeddable(
@@ -484,6 +489,7 @@ object ResolvedLeafPlanner {
         is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
         is ExecutionExpression.Coordination -> expression.members.all { isEmbeddable(it, environment) }
         is ExecutionExpression.Reference -> expression.name in environment.values
+        is ExecutionExpression.Superlative -> isEmbeddable(expression.group, environment)
     }
 
     private fun isSupportedConstant(value: SanskritValue): Boolean = when (value) {

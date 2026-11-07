@@ -194,6 +194,7 @@ class CompiledProgramRuntime private constructor(
             ExecutionExpression.Pada(name, resolved.samjnas, resolved)
         } ?: this
         is ExecutionExpression.TypedOperand -> referenceName?.let(::runtimeValue)?.let { copy(value = it) } ?: this
+        is ExecutionExpression.Superlative -> copy(group = group.resolveCompiledReferences())
     }
 
     private fun runtimeValue(name: String): SanskritValue? =

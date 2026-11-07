@@ -123,6 +123,10 @@ object PaniniRuntime {
     }
 
     @JvmStatic
+    fun createSuperlativeExpression(group: ExecutionExpression, predicate: String): ExecutionExpression.Superlative =
+        ExecutionExpression.Superlative(group, dev.panini.execution.CopularPredicate.valueOf(predicate))
+
+    @JvmStatic
     fun createTypedOperandExpression(
         value: SanskritValue,
         sup: SupAffix,

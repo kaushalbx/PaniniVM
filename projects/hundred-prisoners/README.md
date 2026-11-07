@@ -36,7 +36,7 @@ strategy, whose group success probability is `(1/2)^100`.
 The `.pvm` program models the standard setup by drawing all values from 1
 through 100 without replacement. Appending the draws in order creates a
 uniformly random permutation: the value at position *i* is the slip placed in
-box *i*. This setup is isolated in the named `पेटिकाक्रमनिर्माण` procedure so
+box *i*. This setup is isolated in the named `निर्माणम्` (निस् + मा + ल्युट्) procedure so
 that permutation construction is distinct from the prisoners' strategy.
 
 It then runs all 100 prisoners. For each prisoner it starts at the box matching

@@ -250,16 +250,27 @@ internal object CompilerValueOperations {
     fun notEqual(left: SanskritValue, right: SanskritValue): Boolean = !left.semanticallyEquals(right)
 
     @JvmStatic
-    fun lessThan(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) < 0
+    fun lessThan(left: SanskritValue, right: SanskritValue): Boolean = !absent(left, right) && numericOrder(left, right) < 0
 
     @JvmStatic
     fun lessThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) <= 0
 
     @JvmStatic
-    fun greaterThan(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) > 0
+    fun greaterThan(left: SanskritValue, right: SanskritValue): Boolean = !absent(left, right) && numericOrder(left, right) > 0
 
     @JvmStatic
     fun greaterThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = numericOrder(left, right) >= 0
+
+    /** लोप, the superlative of an empty group, stands in no order. */
+    private fun absent(left: SanskritValue, right: SanskritValue) = left == SanskritValue.Lopa || right == SanskritValue.Lopa
+
+    @JvmStatic
+    fun listLeast(value: SanskritValue): SanskritValue =
+        dev.panini.execution.superlativeOf(value, dev.panini.execution.CopularPredicate.LESS_THAN)
+
+    @JvmStatic
+    fun listGreatest(value: SanskritValue): SanskritValue =
+        dev.panini.execution.superlativeOf(value, dev.panini.execution.CopularPredicate.GREATER_THAN)
 
     private fun numericOrder(left: SanskritValue, right: SanskritValue): Int =
         dev.panini.execution.compareNumericValues(left, right)

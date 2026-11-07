@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
@@ -23,9 +22,11 @@ object AbhikshnyeNamulCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.effectiveContext.rupa.lakara == null &&
-        context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA &&
-        context.allEffectiveTerms.none { it.upadesha == "णमुल्" }
+        // आभीक्ष्ण्य is repetition, not every भाव: णमुल् is given only when that sense is asked for.
+        (context.stage == dev.panini.derivation.DerivationStage.INITIAL || context.stage == dev.panini.derivation.DerivationStage.PRATYAYA_SELECTED) &&
+        context.samjnas.any { it.samjna == dev.panini.shiksha.Samjna.NAMUL } &&
+        context.terms.any { it.kind == TermKind.DHATU } &&
+        context.terms.none { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }
 
     override fun apply(context: DerivationState): DerivationChange {
         val namul = DerivationTerm("namul", "णमुँल्", TermKind.PRATYAYA, upadesha = "णमुल्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)

@@ -14,6 +14,28 @@ class PrefixBoundarySandhiTest {
     }
 
     @Test
+    fun `unlike prefix vowels follow yan, guna and the upasarga rules 6_1_91 and 6_1_94`() {
+        val engine = SandhiEngine()
+        assertEquals("अन्विच्छ", engine.joinPrefix("अनु", "इच्छ"))
+        assertEquals("अध्यस्ति", engine.joinPrefix("अधि", "अस्ति"))
+        assertEquals("प्रेच्छ", engine.joinPrefix("प्र", "इच्छ"))
+        assertEquals("उपैक्षत", engine.joinPrefix("उप", "ऐक्षत"))
+        assertEquals("उपेजते", engine.joinPrefix("उप", "एजते"))
+        assertEquals("प्रार्च्छति", engine.joinPrefix("प्र", "ऋच्छति"))
+    }
+
+    @Test
+    fun `the s of nis and dus follows the sutras, with 8_3_41 before ku and pu`() {
+        val engine = SandhiEngine()
+        for ((right, form) in listOf("गच्छ" to "निर्गच्छ", "क्राम" to "निष्क्राम", "पत" to "निष्पत", "तर" to "निस्तर",
+            "सर" to "निःसर", "रस" to "नीरस", "चल" to "निश्चल")) assertEquals(form, engine.joinPrefix("निस्", right), right)
+        assertEquals("दुष्कृत", engine.joinPrefix("दुस्", "कृत"))
+        assertEquals("दुराचार", engine.joinPrefix("दुस्", "आचार"))
+        // The visarga of a case ending is a pratyaya's: 8.3.41 leaves it to 8.3.37.
+        assertEquals(false, engine.join("अग्निः", "करोति").applications.any { it.sutra == "8.3.41" })
+    }
+
+    @Test
     fun `prefix nasal assimilation distinguishes varga from semivowels`() {
         val engine = SandhiEngine()
         assertEquals("सङ्करोति", engine.joinPrefix("सम्", "करोति"))

@@ -42,6 +42,19 @@ sealed interface ExecutionExpression {
     }
 
     /**
+     * उत्तरेषु न्यूनतमः (5.3.55 अतिशायने तमबिष्ठनौ, 2.3.41 यतश्च निर्धारणम्): the one member of [group]
+     * that exceeds all others in [predicate]'s order. An empty group has no such member.
+     */
+    data class Superlative(
+        val group: ExecutionExpression,
+        val predicate: CopularPredicate,
+    ) : ExecutionExpression {
+        init {
+            require(predicate != CopularPredicate.EQUAL) { "A superlative selects by न्यून or अधिक order." }
+        }
+    }
+
+    /**
      * A resolved value retaining its source-written sup slot and, for named operands,
      * its referent. Literal text is never evidence of reference identity.
      */
@@ -67,4 +80,5 @@ fun ExecutionExpression.bindingName(): String? = when (this) {
     is ExecutionExpression.Reference -> name
     is ExecutionExpression.TypedOperand -> referenceName
     is ExecutionExpression.Coordination -> null
+    is ExecutionExpression.Superlative -> null
 }

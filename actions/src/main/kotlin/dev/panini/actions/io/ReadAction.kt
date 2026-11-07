@@ -150,7 +150,7 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
     private fun ExecutionExpression.declarationIdentity(): String? = when (this) {
         is ExecutionExpression.Pada -> prakriti
         is ExecutionExpression.Reference -> name
-        is ExecutionExpression.TypedOperand, is ExecutionExpression.Coordination -> null
+        is ExecutionExpression.TypedOperand, is ExecutionExpression.Coordination, is ExecutionExpression.Superlative -> null
     }
 
     private val numericTypeNames = setOf("सङ्ख्या", "संख्या", "सङ्ख्यात्व", "संख्यात्व", "सङ्ख्यात्वेन", "संख्यात्वेन")

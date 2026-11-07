@@ -245,6 +245,8 @@ object OperationResolver {
                 is ExecutionExpression.Reference -> ExpressionShape.REFERENCE
                 is ExecutionExpression.TypedOperand ->
                     if (expression.referenceName != null) ExpressionShape.REFERENCE else ExpressionShape.LITERAL
+                // Chosen from state at run time, as a reference is.
+                is ExecutionExpression.Superlative -> ExpressionShape.REFERENCE
             }
             val expectedShape = requirement.shape
             if (expectedShape != null && expectedShape != shape) {
@@ -311,6 +313,14 @@ object OperationResolver {
             ?: context.resolveValues(this).map { ValueFact(value = it) }
         is ExecutionExpression.Reference -> context.variables[name]?.let { listOf(ValueFact(value = it)) }
             ?: constraints[name]?.let { listOf(ValueFact(constraint = it)) }
+        is ExecutionExpression.Superlative -> group.valueFacts(context, constraints)?.let { facts ->
+            // An empty group has no extreme member to type; the action decides what लोप means.
+            val known = facts.singleOrNull()?.value.let { it is dev.panini.execution.SanskritValue.Suchi || it is dev.panini.execution.SanskritValue.Gana }
+            if (known) context.resolveValues(this).map { chosen ->
+                if (chosen == dev.panini.execution.SanskritValue.Lopa) ValueFact(constraint = SemanticValueConstraint()) else ValueFact(value = chosen)
+            // Before the run, the group is known only by type: the chosen member is one value of it.
+            } else listOf(ValueFact(constraint = SemanticValueConstraint()))
+        }
         is ExecutionExpression.Coordination -> buildList {
             members.forEach { member -> addAll(member.valueFacts(context, constraints) ?: return null) }
         }

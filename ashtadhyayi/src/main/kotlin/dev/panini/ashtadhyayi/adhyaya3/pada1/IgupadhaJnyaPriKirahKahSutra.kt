@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
@@ -22,13 +23,15 @@ object IgupadhaJnyaPriKirahKahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310135,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    private val specialRoots = setOf("ज्ञा", "प्री", "कॄ", "बुध्", "विद्", "मुच्")
+    private val namedRoots = setOf("ज्ञा", "प्री", "कॄ")
 
     override fun matches(context: DerivationState): Boolean {
-        if (context.effectiveContext.rupa.lakara != null) return false
-        if (context.allEffectiveTerms.any { it.kind == TermKind.PRATYAYA }) return false
-        val rootTerm = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return rootTerm.upadesha in specialRoots || isIgupadha(rootTerm.varnas)
+        if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (context.terms.any { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }) return false
+        // क is asked for, as ण्वुल् and घञ् are; the sūtra then says which roots may take it.
+        if (context.samjnas.none { it.samjna == dev.panini.shiksha.Samjna.KA }) return false
+        val rootTerm = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
+        return rootTerm.upadesha in namedRoots || isIgupadha(rootTerm.varnas)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

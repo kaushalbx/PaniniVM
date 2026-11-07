@@ -97,6 +97,25 @@ object CollectionMemberMorphology {
         Analysis.Invalid(Diagnostic(error.code, error.message.orEmpty(), node.relationSpan(), node.sourceText))
     }
 
+    /**
+     * क्रमे न्यूनक्रमे च सदस्यौ विनिमयस्व: what is exchanged is the pair of members standing at the two
+     * positions, so a written object is the accusative dual of सदस्य (औट्). The positions locate them; the object names them.
+     */
+    private fun validateExchangedMembers(sentence: AkhyataVakya) {
+        val verb = sentence.tinganta
+        if (verb.dhatu.mulaDhatu !in setOf("मे", "मेङ्") ||
+            !verb.upasargaIdentities.containsAll(listOf(Upasarga.VI, Upasarga.NI))) return
+        val objects = sentence.padas.filterIsInstance<SubantaPada>().filter { pada ->
+            pada.sup.affixCandidates.isNotEmpty() && pada.sup.affixCandidates.all { it.vibhakti == dev.panini.core.Vibhakti.DVITIYA }
+        }
+        objects.forEach { pada ->
+            requireMember((pada.pratipadika as? MulaPratipadika)?.text == "सदस्य" && hasSlot(pada, SupAffix.AUT),
+                "COLLECTION_EXCHANGED_MEMBERS_AGREEMENT") {
+                "विनिमय exchanges two members: its object is सदस्य + औट्, not '${pada.sourceText}'."
+            }
+        }
+    }
+
     fun validate(node: Invocation) {
         val analysis = analyze(node)
         if (analysis is Analysis.Invalid) throw PvmSemanticException(
@@ -106,6 +125,7 @@ object CollectionMemberMorphology {
 
     private fun validateInternal(node: Invocation) {
         val sentence = node.vakya as? AkhyataVakya ?: return
+        validateExchangedMembers(sentence)
         if (sentence.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.HR ||
             Upasarga.UD !in sentence.tinganta.upasargaIdentities) return
         val nominals = sentence.padas.filterIsInstance<SubantaPada>()

@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.vyakaranam.ast.isRecognizedStriAffix
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.SemanticRelation
@@ -34,8 +35,9 @@ internal object ProgramAgentConstruction {
         val written = sentence.padas
         val namedDeclarations = written.indices.filter { written[it].let { p -> p is dev.panini.vyakaranam.ast.AvyayaPada && p.form == "नाम" } }
             .mapNotNull { written.getOrNull(it - 1) }
+        // न्यूनतमः is no predicate: तमप् makes it the member chosen, which can be a subject.
         fun stemOf(n: dev.panini.analysis.SubantaAnalysis) = ((n.pada as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika
-            as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text
+            as? dev.panini.vyakaranam.ast.MulaPratipadika)?.takeIf { it.vikaras.all { v -> v.isRecognizedStriAffix } }?.text
         val allNominals = frame.nominalRelations?.nominalPadas.orEmpty()
         val nominatives = allNominals.filterIndexed { at, n ->
             namedDeclarations.none { it === n.pada } && n.supCandidates.isNotEmpty() &&
@@ -43,16 +45,14 @@ internal object ProgramAgentConstruction {
                 n.supCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } && stemOf(n) !in predicateStems && !(declared && allNominals.getOrNull(at + 1)?.pada?.sourceText?.replace(" ", "") == "प्रक्रिया+सुँ") }
         // The known thing is stated before what is said of it, so the first nominative is the subject.
         val firstNominative = nominatives.firstOrNull()
-        val valueDeclaration = frame.nominalRelations?.nominalPadas.orEmpty().none { n ->
-            ((n.pada as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text in predicateStems }
+        val valueDeclaration = frame.nominalRelations?.nominalPadas.orEmpty().none { n -> stemOf(n) in predicateStems }
         return frame.nominalRelations?.nominalPadas.orEmpty().mapIndexedNotNull { index, nominal ->
             val relation = frame.relations.singleOrNull { it.participant.pada === nominal.pada }
                 ?: return@mapIndexedNotNull null
             if (namedDeclarations.any { it === nominal.pada }) return@mapIndexedNotNull appositive(index, nominal, relation)
             // The stated subject precedes its predicate in a value declaration.
             if (copular && valueDeclaration && firstNominative != null && nominal !== firstNominative) return@mapIndexedNotNull appositive(index, nominal, relation)
-            if (copular && ((nominal.pada as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika)
-                    ?.text in predicateStems) return@mapIndexedNotNull appositive(index, nominal, relation)
+            if (copular && stemOf(nominal) in predicateStems) return@mapIndexedNotNull appositive(index, nominal, relation)
             val unresolved = relation.resolution as? FrameKarakaResolution.Unassigned
             if (unresolved?.candidates != setOf(Karaka.KARTR) || relation.alternatives.isNotEmpty() ||
                 nominal.supCandidates.isEmpty() || nominal.supCandidates.any { it.vibhakti != Vibhakti.PRATHAMA } ||

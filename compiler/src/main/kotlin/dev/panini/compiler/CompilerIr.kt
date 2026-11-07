@@ -427,6 +427,8 @@ internal enum class CollectionOperator {
     POP_PAIR,
     SLICE,
     FLATTEN,
+    LEAST,
+    GREATEST,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -975,7 +977,14 @@ internal object CompilerIrLowering {
         is ExecutionExpression.Pada -> listOf(listOf(
             if (Samjna.REFERENCE in expression.samjnas) CompilerInstruction.LoadLastResult
             else CompilerInstruction.Constant(expression.value ?: SanskritValue.of(expression.prakriti, expression.samjnas))))
+        is ExecutionExpression.Superlative -> listOfNotNull(lowerSuperlative(expression))
     }
+
+    /** उत्तरेषु न्यूनतमः: load the group, then choose its extreme member. */
+    private fun lowerSuperlative(expression: ExecutionExpression.Superlative): List<CompilerInstruction>? =
+        lowerSingleCollectionValue(expression.group)?.plus(CompilerInstruction.Collection(
+            if (expression.predicate == dev.panini.execution.CopularPredicate.LESS_THAN) CollectionOperator.LEAST
+            else CollectionOperator.GREATEST))
 
     private fun lowerOperands(expression: ExecutionExpression): List<List<CompilerInstruction>>? = when (expression) {
         is ExecutionExpression.Coordination -> expression.members.map { member ->
@@ -1002,6 +1011,7 @@ internal object CompilerIrLowering {
             else CompilerInstruction.ResolveArgument(expression.name, SanskritValue.Shabda(expression.name)),
         )
         is ExecutionExpression.Coordination -> null
+        is ExecutionExpression.Superlative -> lowerSuperlative(expression)
     }
 
     private fun lowerOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
@@ -1016,6 +1026,7 @@ internal object CompilerIrLowering {
             else CompilerInstruction.Load(expression.name),
         )
         is ExecutionExpression.Coordination -> null
+        is ExecutionExpression.Superlative -> lowerSuperlative(expression)
     }
 
     /** A collection position is numeric: unresolved/self-form padas are state references, not text literals. */
@@ -1036,6 +1047,7 @@ internal object CompilerIrLowering {
             else CompilerInstruction.Load(expression.name),
         )
         is ExecutionExpression.Coordination -> null
+        is ExecutionExpression.Superlative -> lowerSuperlative(expression)
     }
 
     private fun lowerSingleCollectionValue(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
@@ -1056,6 +1068,8 @@ internal object CompilerIrLowering {
             expression.value is SanskritValue.Suchi || expression.value is SanskritValue.Gana)
             lowerTypedOperand(expression) else null
         is ExecutionExpression.Coordination -> null
+        // A superlative names one member, not a collection.
+        is ExecutionExpression.Superlative -> null
     }
 
     private fun lowerAssignmentOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
@@ -1068,6 +1082,7 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.BuildList(expression.members.size))
         }
         is ExecutionExpression.TypedOperand -> lowerTypedOperand(expression)
+        is ExecutionExpression.Superlative -> lowerSuperlative(expression)
     }
 
     private fun lowerTypedOperand(expression: ExecutionExpression.TypedOperand): List<CompilerInstruction> = listOf(
@@ -1347,6 +1362,8 @@ internal object CompilerIrVerifier {
                     CollectionOperator.POP,
                     CollectionOperator.POP_PAIR,
                     CollectionOperator.FLATTEN,
+                    CollectionOperator.LEAST,
+                    CollectionOperator.GREATEST,
                     -> 1
                 }
                 require(before.size >= arity) {
