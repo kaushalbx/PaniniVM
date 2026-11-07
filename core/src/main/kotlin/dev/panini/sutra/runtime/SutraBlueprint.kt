@@ -15,16 +15,6 @@ data class SutraBlueprint(
     val relations: Set<SutraRelation> = emptySet(),
     val governance: SutraGovernance = SutraGovernance(),
 ) {
-    fun withArthaField(
-        name: String,
-        value: SutraArthaValue,
-    ): SutraBlueprint {
-        require(name.isNotBlank()) { "A sūtra semantic field requires a non-blank name." }
-        return copy(artha = artha.copy(fields = artha.fields + (name to value)))
-    }
-
-    fun withoutArthaField(name: String): SutraBlueprint =
-        copy(artha = artha.copy(fields = artha.fields - name))
 
     fun specializedAs(
         newId: SutraId,

@@ -27,7 +27,7 @@ sealed interface PvmScriptStatement {
     /**
      * A named reusable prakriyā declaration:
      *
-     *     गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+     *     गुण् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
      *         सङ्ख्या + अम् सङ्ख्या + अम् च गण् + णिच् + लोट् + सिप् ॥
      *
      * [nameSegmented] is the segmented prātipadika form (e.g. "गुण् + ल्युट् + सुँ").

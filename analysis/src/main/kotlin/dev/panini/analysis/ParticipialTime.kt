@@ -4,7 +4,7 @@ import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 
-enum class ParticipialTime { PRIOR, SIMULTANEOUS }
+enum class ParticipialTime { PRIOR, SIMULTANEOUS, SUBSEQUENT }
 
 /**
  * How a declined participle's action stands to the finite action, read from morphology alone.
@@ -30,14 +30,16 @@ val KriyaFrame.participialRelations: List<ParticipialRelation>
             nominals[index].supCandidates.all { it.vibhakti == case }
         return nominals.indices.mapNotNull { index ->
             val present = affix(index) in setOf("शतृ", "शानच्")
+            val current = if (((nominals[index].pada as? SubantaPada)?.pratipadika as? KridantaPratipadika)?.future == true)
+                ParticipialTime.SUBSEQUENT else ParticipialTime.SIMULTANEOUS
             if (!present && affix(index) != "क्त") return@mapNotNull null
             val nouns = nominals.indices.filter { it != index && affix(it) !in setOf("शतृ", "शानच्", "क्त") && agrees(index, it) }
             val locative = isCase(index, Vibhakti.SAPTAMI)
             when {
                 locative && nouns.size == 1 -> ParticipialRelation(index,
-                    if (present) ParticipialTime.SIMULTANEOUS else ParticipialTime.PRIOR, true, nouns.single(),
+                    if (present) current else ParticipialTime.PRIOR, true, nouns.single(),
                     if (present || (index > 0 && isCase(index - 1, Vibhakti.DVITIYA))) dev.panini.core.Karaka.KARTR else dev.panini.core.Karaka.KARMAN)
-                present && !locative -> ParticipialRelation(index, ParticipialTime.SIMULTANEOUS, false, nouns.singleOrNull())
+                present && !locative -> ParticipialRelation(index, current, false, nouns.singleOrNull())
                 else -> null
             }
         }

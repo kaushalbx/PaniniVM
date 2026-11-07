@@ -57,6 +57,8 @@ class GuidelineGoldTest {
 
     @Test fun `score the second held out set`() = assertEquals(HOLDOUT2_WRONG, wrongAnswers("guideline_holdout2"))
 
+    @Test fun `score the third held out set`() { wrongAnswers("guideline_holdout3") }
+
     private companion object {
         val HOLDOUT2_WRONG = setOf<String>()
         val KNOWN_WRONG = setOf<String>()

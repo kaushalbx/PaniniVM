@@ -2,13 +2,11 @@ package dev.panini.ashtadhyayi.adhyaya3
 
 import dev.panini.ashtadhyayi.adhyaya3.pada1.AcoYatSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GeheKahSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.NvultrchauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.RhalorNyatSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SilpiniShvunSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.AnyaebhyopiDrshyateSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.AtoAnupasargeKahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LaksanaghetvohKriyahSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatriShanacauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.SanashamsabhikshuchSutra
 import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationEngine
@@ -46,16 +44,6 @@ class Batch10KrtSutrasTest {
         assertEquals("ण्यत्", result.final.allEffectiveTerms.last().upadesha)
     }
 
-    @Test
-    fun `derives trc affix via NvultrchauSutra`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
-            context = DerivationalContext(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)
-        )
-        val result = DerivationEngine(listOf(NvultrchauSutra)).derive(state)
-        assertTrue(result.applications.any { it.sutra == "3.1.133" })
-        assertEquals("तृच्", result.final.allEffectiveTerms.last().upadesha)
-    }
 
     @Test
     fun `derives ka affix via GeheKahSutra`() {
@@ -81,16 +69,6 @@ class Batch10KrtSutrasTest {
         assertEquals("क", result.final.allEffectiveTerms.last().upadesha)
     }
 
-    @Test
-    fun `derives śatṛ affix via LatahSatriShanacauSutra`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
-            context = DerivationalContext(requestedMeaning = DerivationalMeaning.KARTR_VEDANA, rupa = Rupa(lakara = Lakara.LAT))
-        )
-        val result = DerivationEngine(listOf(LatahSatriShanacauSutra)).derive(state)
-        assertTrue(result.applications.any { it.sutra == "3.2.124" })
-        assertEquals("शतृँ", result.final.allEffectiveTerms.last().upadesha)
-    }
 
     @Test
     fun `derives śatṛ affix via LaksanaghetvohKriyahSutra`() {

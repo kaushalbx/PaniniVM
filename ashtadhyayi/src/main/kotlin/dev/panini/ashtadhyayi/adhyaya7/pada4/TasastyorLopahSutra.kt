@@ -27,7 +27,14 @@ object TasastyorLopahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.LOPA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
+    /** असि: the root अस् before सिप्. It may already have lost its अ. */
+    private fun asRoot(context: DerivationState): Int = context.terms.indexOfFirst {
+        it.kind == dev.panini.derivation.TermKind.DHATU && it.upadesha == "असँ" && it.varnas.lastOrNull() == Vyanjana.SA
+    }.takeIf { it >= 0 && it < context.terms.lastIndex &&
+        context.terms[it + 1].varnas.firstOrNull() in setOf(Vyanjana.SA, Vyanjana.RA) } ?: -1
+
     override fun matches(context: DerivationState): Boolean {
+        if (asRoot(context) >= 0) return true
         val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" || it.id == "tasi" }
         if (tasiIndex == -1 || tasiIndex == context.terms.size - 1) return false
 
@@ -39,6 +46,10 @@ object TasastyorLopahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        asRoot(context).takeIf { it >= 0 }?.let { index ->
+            val root = context.terms[index]
+            return DerivationChange(context.deleteTermVarnas(root.id, root.varnas.lastIndex, 1, sutra), "7.4.50 deletes the s of अस् before an s-initial ending.")
+        }
         val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" || it.id == "tasi" }
         val tasiTerm = context.terms[tasiIndex]
 

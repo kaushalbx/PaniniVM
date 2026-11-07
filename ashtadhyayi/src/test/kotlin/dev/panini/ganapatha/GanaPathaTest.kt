@@ -180,17 +180,6 @@ class GanaPathaTest {
         assertEquals(emptyList(), GanaPatha.ganasContaining("अकल्पितशब्दः"))
     }
 
-    @Test
-    fun `gana exposes member lookup helpers`() {
-        val sarvadi = GanaPatha.require(1)
-
-        assertTrue(sarvadi.contains(" सर्व "))
-        assertEquals("सर्व", sarvadi.findMember("सर्व")?.text)
-        assertEquals("तद्", sarvadi.requireMember(" तद् ").text)
-        assertTrue("सर्व" in sarvadi.memberTexts)
-        assertTrue("किम्" in sarvadi.normalizedMemberTexts)
-        assertTrue(sarvadi.hasMeaning())
-    }
 
     @Test
     fun `instruction members match their licensed suffix patterns`() {

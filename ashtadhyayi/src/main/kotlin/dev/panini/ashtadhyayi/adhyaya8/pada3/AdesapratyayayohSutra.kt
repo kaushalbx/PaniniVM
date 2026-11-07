@@ -123,10 +123,8 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
 
             val isInIn = engine.contains(Pratyahara.IN, precedingVarna)
             val isInKu = precedingVarna in ku
-            val isTanadiStrongStem = i > 0 &&
-                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].varnas == listOf(Svara.O)
 
-            if (!isTanadiStrongStem && (isInIn || isInKu)) return RetroflexTarget(term, sIndex)
+            if (isInIn || isInKu) return RetroflexTarget(term, sIndex)
         }
         return null
     }

@@ -167,13 +167,7 @@ fun String.firstVarna(): Varna? = toSanskritText().first()?.varna
 
 fun String.lastVarna(): Varna? = toSanskritText().last()?.varna
 
-fun String.firstSvara(): Svara? = firstVarna() as? Svara
-
 fun String.lastSvara(): Svara? = lastVarna() as? Svara
-
-fun String.startsWithVarna(varna: Varna): Boolean = firstVarna() == varna
-
-fun String.endsWithVarna(varna: Varna): Boolean = lastVarna() == varna
 
 fun String.replaceLastVarna(expected: Varna, replacement: List<Varna>): String {
     val varnas = toVarnas().toMutableList()

@@ -212,116 +212,12 @@ class DerivationEngineTest {
 
 
 
-    @Test
-    fun `typed conditions inspect grammatical state and operations introduce an affix`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("bhu", "भू", TermKind.DHATU)),
-            context = DerivationalContext(rupa = Rupa(prayoga = Prayoga.KARTARI)),
-        )
-        val condition = HasTermKind(TermKind.DHATU)
-        val operation = IntroduceTerm(
-            term = DerivationTerm("sap", "शप्", TermKind.PRATYAYA, setOf(ItMarker.SIT)),
-            explanation = "Introduced a demonstration pratyaya.",
-        )
 
-        assertTrue(condition.matches(state))
-        assertTrue(HasMorphosyntax(prayoga = Prayoga.KARTARI).matches(state))
 
-        val result = operation.apply(state)
 
-        assertEquals(DerivationStage.PRATYAYA_SELECTED, result.state.stage)
-        assertEquals(TermKind.PRATYAYA, result.state.terms.single { it.id == "sap" }.kind)
-        assertTrue(HasItMarker(ItMarker.SIT).matches(result.state))
-    }
 
-    @Test
-    fun `conditions compose into a precise grammatical environment`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("bhu", "भू", TermKind.DHATU)),
-            context = DerivationalContext(rupa = Rupa(prayoga = Prayoga.KARTARI)),
-        )
-        val condition = AllOf(
-            HasTermKind(TermKind.DHATU),
-            HasMorphosyntax(prayoga = Prayoga.KARTARI),
-            Not(HasItMarker(ItMarker.KIT)),
-        )
 
-        assertTrue(condition.matches(state))
-        assertTrue(AnyOf(HasTermKind(TermKind.PRATYAYA), HasTermKind(TermKind.DHATU)).matches(state))
-    }
 
-    @Test
-    fun `operations compose into an ordered derivation step`() {
-        val state = DerivationState(listOf(DerivationTerm("bhu", "भू", TermKind.DHATU)))
-        val operation = SequenceOf(
-            IntroduceTerm(DerivationTerm("suffix", "ति", TermKind.PRATYAYA), explanation = "Added tiṅ."),
-            AdvanceDerivationStage(DerivationStage.IT_PROCESSED, "Processed it markers."),
-        )
-
-        val result = operation.apply(state)
-
-        assertEquals(DerivationStage.IT_PROCESSED, result.state.stage)
-        assertTrue(result.state.terms.any { it.id == "suffix" })
-    }
-
-    @Test
-    fun `adhikara operations establish reusable derivation scope`() {
-        val state = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
-
-        val result = ActivateAdhikara("3.1.68", "Opened kartari scope.").apply(state)
-
-        assertTrue(HasActiveAdhikara("3.1.68").matches(result.state))
-    }
-
-    @Test
-    fun `anuvrtti operations carry inherited conditions forward`() {
-        val state = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
-
-        val result = CarryAnuvrtti("कर्तरि", "Carried कर्तरि forward.").apply(state)
-
-        assertTrue(HasAnuvrtti("कर्तरि").matches(result.state))
-    }
-
-    @Test
-    fun `optional operations retain both permitted derivation outcomes`() {
-        val state = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
-        val optional = OptionalOperation(
-            AdvanceDerivationStage(DerivationStage.FINAL, "Applied optional operation."),
-            "Skipped optional operation.",
-        )
-
-        val outcomes = optional.applyAll(state)
-
-        assertEquals(DerivationStage.FINAL, outcomes[0].state.stage)
-        assertEquals(DerivationStage.INITIAL, outcomes[1].state.stage)
-    }
-
-    @Test
-    fun `deriveAll follows both optional branches`() {
-        val optionalSutra = object : Sutra<DerivationState, DerivationChange>(
-            number = "9.1.1", text = "test", hindiExplanation = "test", type = SutraType.VIBHASHA,
-            chapter = 9, pada = 1, optional = true, kramaValue = 910001,
-            role = SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
-        ), DerivationSutra {
-            override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
-
-            override fun apply(context: DerivationState): DerivationChange =
-                AdvanceDerivationStage(DerivationStage.FINAL, "Applied optional change.").apply(context)
-
-            override fun applyAll(state: DerivationState): List<DerivationChange> =
-                OptionalOperation(
-                    AdvanceDerivationStage(DerivationStage.FINAL, "Applied optional change."),
-                    "Skipped optional change.",
-                ).applyAll(state)
-        }
-        val initial = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
-
-        val results = DerivationEngine(listOf(optionalSutra)).deriveAll(initial)
-
-        assertEquals(setOf(DerivationStage.INITIAL, DerivationStage.FINAL), results.map { it.final.stage }.toSet())
-        assertTrue(results.all { it.events.any { event -> event is DerivationEvent.BranchCreated } })
-        assertEquals(setOf(0, 1), results.map { it.applications.size }.toSet())
-    }
 
     @Test
     fun `deriveAll branches when an optional rule becomes eligible after a mandatory rule`() {
@@ -368,29 +264,6 @@ class DerivationEngineTest {
         }
     }
 
-    @Test
-    fun `engine detects a cycle before reaching the step limit`() {
-        val toFinal = object : Sutra<DerivationState, DerivationChange>(
-            number = "6.4.130", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
-            chapter = 6, pada = 4, optional = false, kramaValue = 640130,
-            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
-        ), DerivationSutra {
-            override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
-            override fun apply(context: DerivationState): DerivationChange = AdvanceDerivationStage(DerivationStage.FINAL, "Advance.").apply(context)
-        }
-        val toInitial = object : Sutra<DerivationState, DerivationChange>(
-            number = "6.4.131", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
-            chapter = 6, pada = 4, optional = false, kramaValue = 640131,
-            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
-        ), DerivationSutra {
-            override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.FINAL
-            override fun apply(context: DerivationState): DerivationChange = AdvanceDerivationStage(DerivationStage.INITIAL, "Rewind.").apply(context)
-        }
-
-        assertFailsWith<IllegalArgumentException> {
-            DerivationEngine(listOf(toFinal, toInitial)).derive(DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA))))
-        }
-    }
 
     @Test
     fun `nishedha operations block a sutra for the current derivation`() {

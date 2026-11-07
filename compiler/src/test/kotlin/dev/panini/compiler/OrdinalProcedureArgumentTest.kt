@@ -20,7 +20,7 @@ class OrdinalProcedureArgumentTest {
     }
     @Test fun `cardinal procedure argument is not shadowed by a same spelled host name`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
-            "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मूल्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         val initial = mapOf("एक" to SanskritValue.Sankhya(99, "host"))
@@ -33,7 +33,7 @@ class OrdinalProcedureArgumentTest {
     }
     @Test fun `unbound ordinal cannot satisfy cardinal parameter but named cardinal can`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
-            "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मूल्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "प्रथम + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         val generated = BytecodeCompiler.compileAndLoad(source, "OrdinalArgumentFallback")
@@ -56,7 +56,7 @@ class OrdinalProcedureArgumentTest {
     }
     @Test fun `feminine ordinal is distinct from cardinal but its named referent remains live`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
-            "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मूल्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "प्रथम + टाप् + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         val generated = BytecodeCompiler.compileAndLoad(source, "FeminineOrdinalArgumentFallback")
@@ -79,7 +79,7 @@ class OrdinalProcedureArgumentTest {
     }
     @Test fun `ordinal named collection satisfies an explicitly declared collection parameter`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।\n" +
-            "सङ्ग्रह + सुँ सूची + सुँ इति मान + सुँ ।\n" +
+            "सङ्ग्रह + सुँ नाम मान + सुँ सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सङ्ग्रह + अम् गण + णिच् + लोट् + सिप् ॥\n" +
             "प्रथम + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         val initial = mapOf("प्रथम" to SanskritValue.Suchi(List(3) { SanskritValue.Sankhya(1, "एक") }))

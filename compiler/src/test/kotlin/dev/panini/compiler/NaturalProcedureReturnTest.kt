@@ -10,7 +10,7 @@ class NaturalProcedureReturnTest {
     @Test fun `qualified historical procedure arguments use the same identity as ordinary operands`() {
         val program = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             फल + सुँ मान + सुँ असँ + लट् + तिप् ॥
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
             द्वि + औट् त्रि + शस् च युज् + लोट् + सिप् ।
@@ -33,7 +33,7 @@ class NaturalProcedureReturnTest {
             "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि $one अन्यथा $nine ।",
             "द्वि + कृत्वसुच् $one ।",
             "यावत् एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तावत् $one ।",
-            "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् । सूची + ङस् सदस्य + अम् प्रति फल + सुँ सदस्य + सुँ असँ + लट् + तिप् ।")
+            "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् । सूची + ङस् सदस्य + अम् प्रति फल + सुँ सदस्य + सुँ असँ + लट् + तिप् ।")
         for ((index, body) in bodies.withIndex()) {
             val program = source(body)
             val interpreted = PaniniVM().evalScript(program)
@@ -52,7 +52,7 @@ class NaturalProcedureReturnTest {
     @Test fun `early return preserves collection payloads and resumes its caller`() {
         val program = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सूची + अम् जन् + णिच् + लट् + तिप् ।
-            मान + सुँ सूची + सुँ इति मान + सुँ ।
+            मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
             फल + सुँ मान + सुँ असँ + लट् + तिप् ।
             नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ॥
             सूची + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -101,7 +101,7 @@ class NaturalProcedureReturnTest {
             $one ।
             शून्य + अम् शून्य + अम् च युज् + णिच् + लोट् + सिप् ॥
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            फल + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            फल + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             अन्तर + टा डुकृञ् + उ + लोट् + सिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
             एक + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -116,7 +116,7 @@ class NaturalProcedureReturnTest {
     @Test fun `implicit branch results satisfy the same declared procedure contract`() {
         val program = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि एक + सुँ अन्यथा द्वि + औ ॥
+            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि एक + सुँ असँ + लट् + तिप् अन्यथा द्वि + औ असँ + लट् + तस् ॥
             परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(program).last())
@@ -141,7 +141,7 @@ class NaturalProcedureReturnTest {
     @Test fun `assignment to a participant named phala does not exit the procedure`() {
         val program = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            फल + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            फल + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             शून्य + अम् फल + ङे दा + लोट् + सिप् ।
             द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ॥
             एक + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।

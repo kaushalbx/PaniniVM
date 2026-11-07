@@ -33,7 +33,7 @@ class ModuleCompilerTest {
         PaniniModuleDescriptor("consistent", source, listOf(first, dependency("same", "गाणित", "गणित")))
         val localConflict = assertFailsWith<IllegalArgumentException> {
             BytecodeCompiler.compileModule(PaniniModuleDescriptor("local_inheritance_conflict",
-                listOf(PaniniModuleSource("main.pvm", "गणित + अण् + सुँ इति अधिकार + सुँ ।")),
+                listOf(PaniniModuleSource("main.pvm", "गणित + अण् + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।")),
                 listOf(dependency("imported", "गाणित", "भाषा"))), "LocalInheritanceConflict")
         }
         assertTrue(localConflict.message.orEmpty().contains("Conflicting parent domains"), localConflict.message)
@@ -140,7 +140,7 @@ class ModuleCompilerTest {
         fun library(type: String, module: String, className: String, body: String) =
             BytecodeCompiler.compileModule(PaniniModuleDescriptor(module, listOf(PaniniModuleSource("library.pvm", """
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ $type + सुँ इति मान + सुँ ।
+                मान + सुँ $type + सुँ असँ + लट् + तिप् ।
                 $body ॥
             """.trimIndent(), false))), className)
         val numeric = library("सङ्ख्या", "numeric_library", "NumericOverloadLibrary",
@@ -168,7 +168,7 @@ class ModuleCompilerTest {
     @Test fun `same imported procedure name in separate domains resolves to its qualified library`() {
         fun library(domain: String, module: String, className: String, operands: String) =
             BytecodeCompiler.compileModule(PaniniModuleDescriptor(module, listOf(PaniniModuleSource("library.pvm", """
-                $domain + सुँ इति अधिकार + सुँ ।
+                $domain + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 $operands युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(), false))), className)
@@ -193,7 +193,7 @@ class ModuleCompilerTest {
         val library = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
-            परीक्षण + सुँ इति अपवाद + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परीक्षण + सुँ नाम अपवाद + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             त्रि + शस् चतुर् + शस् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val artifact = BytecodeCompiler.compileModule(PaniniModuleDescriptor("precedence_library",
@@ -217,7 +217,7 @@ class ModuleCompilerTest {
 
     @Test fun `public wrapper retains library source scope when calling its private helper`() {
         val library = """
-            रहस्य + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            रहस्य + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             रहस्य + टा डुकृञ् + उ + लोट् + सिप् ॥
@@ -243,16 +243,16 @@ class ModuleCompilerTest {
     @Test
     fun `module procedure domains follow preceding adhikara in each source unit`() {
         val source = """
-            पूर्व + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            गणित + सुँ इति अधिकार + सुँ ।
-            मध्य + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            भाषा + सुँ इति अधिकार + सुँ ।
-            उत्तर + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            गणित + ङस् प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            पूर्व + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            मध्य + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            भाषा + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            उत्तर + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
         """.trimIndent()
         val analyzed = PaniniModuleAnalyzer.analyze(PaniniModuleDescriptor("scopes",
             listOf(PaniniModuleSource("first.pvm", source, false),
-                PaniniModuleSource("second.pvm", "स्वतन्त्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।", false))))
+                PaniniModuleSource("second.pvm", "स्वतन्त्र + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।", false))))
         assertEquals(mapOf("पूर्व" to null, "मध्य" to "गणित", "उत्तर" to "भाषा",
             "प्रयत्न" to "गणित", "स्वतन्त्र" to null), analyzed.procedures.associate { it.localSymbol to it.domain })
     }
@@ -328,7 +328,7 @@ class ModuleCompilerTest {
     @Test
     fun `internal symbols stay private and duplicate declarations fail analysis`() {
         val internalSource = """
-            रहस्य + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            रहस्य + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val internalArtifact = BytecodeCompiler.compileModule(
@@ -338,7 +338,7 @@ class ModuleCompilerTest {
         assertTrue(internalArtifact.metadata.procedures.isEmpty())
 
         val declaration = """
-            योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            योग + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val error = assertFailsWith<IllegalStateException> {

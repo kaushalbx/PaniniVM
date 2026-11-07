@@ -11,11 +11,11 @@ class PvmRangeDefinitionTest {
     @Test
     fun `procedure choice uses the range active at each call`() {
         val source = """
-            चयन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            चयन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ॥
-            एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ ।
+            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)
@@ -40,7 +40,7 @@ class PvmRangeDefinitionTest {
 
     @Test
     fun `parses one scoped inclusive range`() {
-        val statement = PvmScript.parse("एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।").single()
+        val statement = PvmScript.parse("एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।").single()
         val definition = assertIs<PvmScriptStatement.RangeDefinition>(statement, statement.toString())
 
         assertEquals(1L, definition.range.minimum.value)
@@ -50,9 +50,9 @@ class PvmRangeDefinitionTest {
     @Test
     fun `range references follow declaration order rather than the last declaration in the script`() {
         val results = PaniniVM().evalScript("""
-            एक + ङसिँ एक + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ एक + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            द्वि + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
         """.trimIndent())
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
@@ -62,7 +62,7 @@ class PvmRangeDefinitionTest {
 
     @Test
     fun `locative upper bound is rejected as a range declaration`() {
-        val source = "एक + ङसिँ दश + ङि इति सीमा + सुँ ।"
+        val source = "एक + ङसिँ दश + ङि इति सीमा + सुँ असँ + लट् + तिप् ।"
 
         assertFailsWith<IllegalArgumentException> { PvmScript.parse(source) }
         assertTrue(PrakriyaScriptValidator.validate(source).any { "पर्यन्त" in it.message })
@@ -72,7 +72,7 @@ class PvmRangeDefinitionTest {
     fun `scoped range drives choice and quoted output but not ordinary printing`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
             सङ्ख्या + अम् स्था + णिच् + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
             समाप्ताः + अम् मुद्र् + णिच् + लोट् + सिप् ।
@@ -91,7 +91,7 @@ class PvmRangeDefinitionTest {
     fun `exclusion absolutive removes collection values from range choice`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः क्षिप् + घञ् + ङस् फल + अम् क्रम + ङि स्था + णिच् + लोट् + सिप् ।
             क्रम + अम् वृज् + णिच् + क्त्वा चिञ् + श्नु + लोट् + सिप् ।
             """.trimIndent(),

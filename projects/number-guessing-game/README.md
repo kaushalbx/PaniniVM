@@ -24,7 +24,7 @@ The example demonstrates:
   result anaphor in `ततः फलम् मुद्रय`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a final equality test in the reusable attempt, whose truth value controls the loop;
-- a reusable prakriyā declared by `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्`;
+- a reusable prakriyā declared by `प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप्`;
 - a bounded result-controlled loop using `पञ्चन् + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.

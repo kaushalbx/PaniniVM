@@ -1,5 +1,6 @@
 package dev.panini.plugin
 
+import dev.panini.analysis.karakaLabel
 import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
 import com.intellij.ui.breadcrumbs.BreadcrumbsProvider
@@ -69,8 +70,8 @@ class PvmBreadcrumbsProvider : BreadcrumbsProvider {
 
     private fun semanticSubantaInfo(element: PsiElement): String {
         val semantic = (element.containingFile as? PvmFile)?.canonicalSemanticFrameAt(element.textOffset)
-        val resolved = semantic?.second?.resolution as? FrameKarakaResolution.Resolved
-        return resolved?.let { "${it.karaka.sanskritName} ${compact(element.text)}" }
+        val label = semantic?.let { (frame, relation) -> relation?.let { frame.karakaLabel(it) } }
+        return label?.let { "$it ${compact(element.text)}" }
             ?: "सुबन्तम् ${compact(element.text)}"
     }
 

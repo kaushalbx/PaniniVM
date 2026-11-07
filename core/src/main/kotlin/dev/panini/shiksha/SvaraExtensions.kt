@@ -40,11 +40,6 @@ fun Svara.toGunaVarnas(): List<Varna> = when (this) {
     else -> error("Guṇa is not defined here for $this.")
 }
 
-fun String.withFinalHrasva(): String {
-    val final = requireNotNull(lastSvara()) { "A final vowel is required in '$this'." }
-    return replaceLastVarna(final, listOf(final.toHrasva()))
-}
-
 fun String.withFinalDirgha(): String {
     val final = requireNotNull(lastSvara()) { "A final vowel is required in '$this'." }
     return replaceLastVarna(final, listOf(final.toDirgha()))

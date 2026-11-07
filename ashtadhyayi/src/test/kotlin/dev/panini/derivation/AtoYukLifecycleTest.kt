@@ -46,25 +46,6 @@ class AtoYukLifecycleTest {
         assertTrue(AtoYukCinKrtohSutra.matches(cin))
     }
 
-    @Test fun `vayu and payu use independent designation placement and lopa`() {
-        for ((root, expected) in listOf("वा" to "वायु", "पा" to "पायु")) {
-            val result = ParticipleEngine().derive(ParticipleDerivationRequest(root, Samjna.UNADI))
-            assertEquals(expected, result.final.surface)
-            val trace = result.applications.map { it.sutra }
-            val introduced = trace.indexOf("7.3.33")
-            assertEquals(1, trace.count { it == "7.3.33" })
-            assertTrue(introduced >= 0)
-            assertTrue(trace.indexOf("3.1.93") < introduced)
-            assertTrue(trace.drop(introduced + 1).containsAll(listOf("1.3.3", "1.1.46", "1.3.9")))
-            val augment = result.final.droppedTerms.single { it.createdBySutra == "7.3.33" }
-            assertEquals("युक्", augment.upadesha)
-            assertEquals("1.1.46", augment.droppedBySutra)
-            assertTrue(result.final.terms.any { term -> term.itMarkerProvenance.any {
-                it.designatedText == "क्" && it.designationSutra == "1.3.3"
-            } })
-            result.final.requireCompleteItProcessing()
-        }
-    }
 
     @Test fun `kit placement preserves annotated root identity and exact it indices`() {
         val original = state()

@@ -42,7 +42,7 @@ class ProjectSourceIdentityTest {
         fun library(folder: String, name: String) {
             val file = root.resolve("$folder/helper.pvm")
             file.parentFile.mkdirs()
-            file.writeText("$name + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            file.writeText("$name + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
                 "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
         }
         library("first", "रहस्य")

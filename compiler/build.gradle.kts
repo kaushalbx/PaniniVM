@@ -18,8 +18,6 @@ dependencies {
     implementation(project(":bhutasamkhya"))
     implementation(project(":actions"))
     implementation(project(":dhatupatha"))
-    compileOnly(gradleApi())
-    testImplementation(gradleApi())
     testImplementation(kotlin("test"))
 }
 

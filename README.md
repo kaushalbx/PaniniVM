@@ -117,7 +117,7 @@ The complete source is segmented Sanskrit; comments remain in English.
 ```pvm
 # Prakriya: define one reusable guessing attempt.
 # The prakriya reads a bounded input, compares it, and prints dynamic feedback.
-प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
 यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि लघु अन्यथा गुरु ततः फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
@@ -138,7 +138,7 @@ The complete source is segmented Sanskrit; comments remain in English.
 
 | Segmented form | Programming role |
 |---|---|
-| `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्` | Grammatically declares `प्रयत्नः` to be a reusable `प्रक्रिया`. |
+| `प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप्` | Grammatically declares `प्रयत्नः` to be a reusable `प्रक्रिया`. |
 | `निवेश + अम्` | Marks the input value as *karman* through the accusative ending. |
 | `सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप्` | Reads the input as a number using the grammatical instrumental type relation. |
 | `एक + ङसिँ दशन् + शस् परि + अन्त + अम्` | Expresses the inclusive bounds “from one through ten” inside the choice sentence. |

@@ -30,9 +30,6 @@ class SutraGranthaRegistry(
 
     fun sutra(address: SutraAddress): RuntimeSutra<*>? = sutras[address]
 
-    fun requireSutra(address: SutraAddress): RuntimeSutra<*> =
-        sutra(address) ?: error("Sūtra ${address.sutra} is not loaded from grantha ${address.grantha}.")
-
     fun exported(granthaId: GranthaId): List<RuntimeSutra<*>> {
         val grantha = byId[granthaId] ?: return emptyList()
         return grantha.exports.mapNotNull { sutras[SutraAddress(granthaId, it)] }

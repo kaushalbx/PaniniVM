@@ -9,4 +9,4 @@
 गुणवतः मूल्यं गृहाण ।
 
 # Step 3: Print retrieved attribute value
-मुद्रय मूल्यम् ।
+मुद्रय फलम् ।

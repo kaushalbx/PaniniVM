@@ -1,5 +1,6 @@
 package dev.panini.plugin
 
+import dev.panini.analysis.karakaLabel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
@@ -243,13 +244,14 @@ internal object PvmInlayHints {
                 }
             }
         val semanticHints = buildList {
+            VyakaranamExecutionAdapter.nonKriyaWords(document).filter { it.start >= 0 }.forEach { add(PvmInlayHint(it.start, "${it.reading} =", it.text, PvmSyntaxHighlighter.INLAY_KARAKA)) }
             for (sentence in sentences) {
                 if (isCanceled()) return emptyList()
                 val ukti = sentence.ukti ?: continue
                 val parameterHintSpans = mutableSetOf<dev.panini.vyakaranam.ast.DocumentSourceSpan>()
                 val analysis = VyakaranamExecutionAdapter.analyzeProcedureCall(ukti, knownOperations)
                     ?: grammarAnalyses?.firstOrNull { it.ukti === ukti }
-                    ?: runCatching { VyakaranamExecutionAdapter.analyzeGrammar(ukti) }.getOrNull()
+                    ?: runCatching { VyakaranamExecutionAdapter.analyzeAsWritten(ukti) }.getOrNull()
                 analysis?.frames?.forEach { frame ->
                     val span = (frame.kriya?.analysis?.pada as? SourceLocatedNode)?.sourceSpan
                         ?: return@forEach
@@ -289,13 +291,8 @@ internal object PvmInlayHints {
                     }
                 }
 
-                analysis?.frames?.flatMap { it.relations }?.forEach { relation ->
-                    val label = when (val resolution = relation.resolution) {
-                        is FrameKarakaResolution.Resolved -> resolution.karaka.sanskritName
-                        is FrameKarakaResolution.Ambiguous,
-                        is FrameKarakaResolution.Unassigned,
-                        -> return@forEach
-                    }
+                analysis?.frames?.flatMap { frame -> frame.relations.map { frame to it } }?.forEach { (frame, relation) ->
+                    val label = frame.karakaLabel(relation) ?: return@forEach
                     val span = (relation.participant.pada as? SourceLocatedNode)?.sourceSpan
                         ?: return@forEach
                     if (span in parameterHintSpans) return@forEach

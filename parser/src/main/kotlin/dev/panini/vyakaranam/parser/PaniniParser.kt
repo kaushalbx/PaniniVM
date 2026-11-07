@@ -84,6 +84,9 @@ class PaniniParser(
         return astBuilder.build(context)
     }
 
+    /** What a user runs as a program must write its verb; internal uses of parse handle single words too. */
+    fun requireWrittenVerbs(ukti: Ukti) = astBuilder.requireWrittenVerbs(ukti)
+
     fun parseOrNull(source: String): Ukti? =
         runCatching { parse(source) }.getOrNull()
 

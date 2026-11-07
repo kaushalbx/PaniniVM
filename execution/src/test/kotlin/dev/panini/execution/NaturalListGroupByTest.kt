@@ -9,7 +9,7 @@ class NaturalListGroupByTest {
     fun `natural vi bhaj sentence groups a named list by a typed key operation`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च द्वि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् द्वि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + अम् यु + टा वि + भजँ + लोट् + सिप् ।
             """.trimIndent(),
         )
@@ -28,7 +28,7 @@ class NaturalListGroupByTest {
     fun `natural vi Shish sentence retains first typed-distinct members`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङस् द्वि + ओस् एक + आम् त्रि + आम् च द्वि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ एक + जस् त्रि + जस् द्वि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + अम् वि + शिषॢँ + लोट् + सिप् ।
             """.trimIndent(),
         )
@@ -39,7 +39,7 @@ class NaturalListGroupByTest {
 
     @Test
     fun `natural Kram sentences sort ascending and descending`() {
-        val declaration = "त्रि + ङस् एक + ओस् द्वि + आम् च एक + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "त्रि + सुँ एक + औ द्वि + जस् एक + जस् इति सूची + सुँ असँ + लट् + तिप् ।"
         fun evaluate(prefix: String): List<Long> {
             val result = PaniniVM().evalScript(
                 "$declaration\nसूची + अम् $prefix क्रमुँ + णिच् + लोट् + सिप् ।",
@@ -56,7 +56,7 @@ class NaturalListGroupByTest {
     fun `natural prati vi Bhaj sentence partitions with a typed truth operation`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च द्वि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् द्वि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + अम् यु + टा प्रति + वि + भजँ + लोट् + सिप् ।
             """.trimIndent(),
         )
@@ -71,7 +71,7 @@ class NaturalListGroupByTest {
 
     @Test
     fun `natural map and filter use unary typed callbacks`() {
-        val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति सूची + सुँ असँ + लट् + तिप् ।"
         fun values(sentence: String): List<Long> {
             val result = PaniniVM().evalScript("$declaration\n$sentence").last()
             return assertIs<SanskritValue.Suchi>(

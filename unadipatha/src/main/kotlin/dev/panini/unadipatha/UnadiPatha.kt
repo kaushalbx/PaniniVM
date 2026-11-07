@@ -33,15 +33,6 @@ object UnadiPatha {
     val executableSutras: List<UnadiSutra> = modeledSourceSutras +
         legacyExecutableSutras.filter { legacy -> modeledSourceSutras.none { it.number == legacy.number } }
 
-    fun findPratyaya(dhatu: Dhatu, artha: Artha? = null): List<UnadiMatch> {
-        val matches = executableSutras.filter { it.matchesRoot(dhatu) }.map { it.matchFor(dhatu) }
-        return if (artha == null) matches else matches.filter { match ->
-            match.meaning == artha || match.samjnas.any { samjna ->
-                samjna is Samjna.Karaka && artha is Artha.Karaka && samjna.name == artha.name
-            }
-        }
-    }
-
     fun findSamjna(dhatu: Dhatu, pratyaya: String): List<UnadiMatch> = executableSutras
         .filter { it.matchesRoot(dhatu) && (it.pratyaya == pratyaya || it.pratyayaSurface == pratyaya) }
         .map { it.matchFor(dhatu) }

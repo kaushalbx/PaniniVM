@@ -8,7 +8,7 @@ class ProcedureNumericValidityTest {
     @Test fun `undefined host fraction cannot enter a numeric procedure parameter`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
             वस्तु + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()

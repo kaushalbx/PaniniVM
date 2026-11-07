@@ -1,16 +1,16 @@
 # तद्धित ग्रन्थ — Pāṇinian Closest Type Match Method Overload Dispatch (1.1.50 स्थानेऽन्तरतमः)
 
 # Step 1: Scope declaration
-गणितः इति अधिकारः ।
+गणितम् इति अधिकारः अस्ति ।
 
 # Step 2: Define Overload 1 (Numeric constraint): Adds numbers (5 + 5 = 10 -> दश)
-गणितस्य योजनम् इति प्रक्रिया अस्ति ।
-न प्रथम सङ्ख्याम् ।
-एकं द्वितीयं च योजय ॥
+गणितस्य योजनं नाम प्रक्रिया अस्ति ।
+प्रथमः सङ्ख्या न भवेत् ।
+प्रथमं द्वितीयं च योजय ॥
 
 # Step 3: Define Overload 2 (Text constraint): Concatenates text ("राम" + "कृष्ण" -> "रामकृष्ण")
-गणितस्य योजनम् इति प्रक्रिया अस्ति ।
-न एकं शब्दम् ।
+गणितस्य योजनं नाम प्रक्रिया अस्ति ।
+प्रथमः शब्दः न भवेत् ।
 रामं कृष्णं च योजय ॥
 
 # Step 4: Dispatch Overload 1 with numeric arguments (5 + 5) via Sūtra 1.1.50 (स्थानेऽन्तरतमः)

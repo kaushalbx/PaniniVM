@@ -13,5 +13,5 @@
 मुद्रय फलम् ।
 
 # Step 5: Use the nested field directly as an arithmetic operand (50 + 1)
-गाणितवतः मानवतः मूल्यम् एकं च युन्ग्धि ।
+गाणितवतः मानवतः मूल्यम् एकं च युङ्ग्धि ।
 फलं मुद्रय ।

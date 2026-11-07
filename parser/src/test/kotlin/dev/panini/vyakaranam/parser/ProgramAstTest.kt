@@ -46,18 +46,18 @@ class ProgramAstTest {
     }
 
     @Test fun `bare nominal branch retains the written word span through implicit nominative lowering`() {
-        val source = "# परीक्षण\nयदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि लघु अन्यथा गुरु ।"
+        val source = "# परीक्षण\nयदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ।"
         val document = PaniniParser().parseDocument(source)
         val clauses = document.items.filterIsInstance<dev.panini.vyakaranam.ast.Ukti>().single()
             .grammaticalVakyas().filterIsInstance<NamaVakya>()
         assertEquals(2, clauses.size)
-        assertEquals(listOf("लघु", "गुरु"), clauses.map { clause ->
+        assertEquals(listOf("लघु + सुँ असँ + लट् + तिप्", "गुरु + सुँ असँ + लट् + तिप्"), clauses.map { clause ->
             val span = assertNotNull(Invocation(clause).relationSpan())
             source.substring(span.start, span.endExclusive)
         })
         clauses.forEach { clause ->
             assertTrue(clause.sourceText.contains("सुँ"))
-            assertNotNull((clause.padas.single() as SubantaPada).sourceSpan)
+            assertNotNull(clause.padas.filterIsInstance<SubantaPada>().single().sourceSpan)
         }
     }
 
@@ -167,7 +167,9 @@ class ProgramAstTest {
 
     @Test
     fun `every grammar vikarana retains typed upadesha identity`() {
-        for (affix in dev.panini.vyakaranam.ast.Vikarana.entries) {
+        // स्य, तास् and च्लि follow from the lakāra, so source does not write them.
+        val decidedByLakara = setOf("स्य", "तास्", "तासि", "च्लि", "सिच्", "अङ्", "चङ्", "क्स")
+        for (affix in dev.panini.vyakaranam.ast.Vikarana.entries.filter { it.upadesha !in decidedByLakara }) {
             val invocation = assertIs<Invocation>(
                 parser.parse("भू + ${affix.upadesha} + लट् + तिप् ।").body,
             )
@@ -437,7 +439,7 @@ class ProgramAstTest {
                 "यदि एक + अम् एक + अम् च विद् + लोट् + सिप् " +
                     "तर्हि सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
                     "अथ एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
-                    "अथ वि + स्था + लोट् + सिप् अन्यथा असत्य + सुँ ।",
+                    "अथ वि + स्था + लोट् + सिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ।",
             ).body,
         )
 
@@ -605,7 +607,7 @@ class ProgramAstTest {
     fun `natural indexed iteration lowers to foreach member and index bindings`() {
         val loop = assertIs<ForEach>(
             parser.parse(
-                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा " +
+                "सूची + ङस् एकैक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च ग्रह् + क्त्वा " +
                     "क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।",
             ).body,
         )
@@ -637,7 +639,7 @@ class ProgramAstTest {
     @Test
     fun `kramashah opts natural indexed iteration into evolving collection state`() {
         val loop = assertIs<ForEach>(parser.parse(
-            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
+            "सूची + ङस् एकैक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
                 "तद् + ङस् उत्तर + अम् च ग्रह् + क्त्वा क्रमशः " +
                 "सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -649,7 +651,7 @@ class ProgramAstTest {
     @Test
     fun `natural indexed iteration retains previous and next member bindings`() {
         val loop = assertIs<ForEach>(parser.parse(
-            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
+            "सूची + ङस् एकैक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् " +
                 "तद् + ङस् पूर्व + अम् तद् + ङस् उत्तर + अम् च ग्रह् + क्त्वा " +
                 "सदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -665,7 +667,7 @@ class ProgramAstTest {
     @Test
     fun `natural neighbour iteration does not require an index binding`() {
         val loop = assertIs<ForEach>(parser.parse(
-            "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् उत्तर + शस् च ग्रह् + क्त्वा " +
+            "सूची + ङस् एकैक + अम् सदस्य + अम् तद् + ङस् उत्तर + शस् च ग्रह् + क्त्वा " +
                 "उत्तर + शस् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
 
@@ -679,7 +681,7 @@ class ProgramAstTest {
     @Test
     fun `natural neighbour iteration retains feminine anaphoric morphology`() {
         val loop = assertIs<ForEach>(parser.parse(
-            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + टाप् + ङस् उत्तर + टाप् + शस् च ग्रह् + क्त्वा " +
                 "उत्तर + टाप् + शस् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -692,7 +694,7 @@ class ProgramAstTest {
     @Test
     fun `direct relative action retains tad uttara as a typed semantic operand`() {
         val action = assertIs<CollectionRelativeAction>(parser.parse(
-            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - उत्तर + टाप् + भिस् सङ्ख्या + भिस् " +
                 "युज् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -705,7 +707,7 @@ class ProgramAstTest {
     @Test
     fun `direct relative action derives previous direction from the compound`() {
         val action = assertIs<CollectionRelativeAction>(parser.parse(
-            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - पूर्व + टाप् + भिस् सङ्ख्या + भिस् " +
                 "युज् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -723,7 +725,7 @@ class ProgramAstTest {
     @Test
     fun `direct singular relative action selects exactly the adjacent item`() {
         val action = assertIs<CollectionRelativeAction>(parser.parse(
-            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + टा " +
                 "युज् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -737,7 +739,7 @@ class ProgramAstTest {
     @Test
     fun `direct relative action safely infers an omitted repeated member noun`() {
         val action = assertIs<CollectionRelativeAction>(parser.parse(
-            "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+            "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                 "तद् + ङस् + लुक् - उत्तर + टाप् + भिस् " +
                 "युज् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -749,7 +751,7 @@ class ProgramAstTest {
 
     @Test
     fun `direct relative action requires number and gender agreement`() {
-        val numberSource = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+        val numberSource = "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
             "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
             "युज् + णिच् + लोट् + सिप् ।"
         val numberFailure = assertFailsWith<PaniniSemanticException> { parser.parse(numberSource) }
@@ -760,7 +762,7 @@ class ProgramAstTest {
                 .filterNot(Char::isWhitespace))
         val genderFailure = assertFailsWith<PaniniSemanticException> {
             parser.parse(
-                "सूची + ङस् प्रत्येक + अम् फल + अम् " +
+                "सूची + ङस् एकैक + अम् फल + अम् " +
                     "तद् + ङस् + लुक् - उत्तर + टाप् + टा फल + टा " +
                     "युज् + णिच् + लोट् + सिप् ।",
             )
@@ -773,7 +775,7 @@ class ProgramAstTest {
     fun `direct relative action rejects a compound without the genitive luk anchor`() {
         assertFailsWith<IllegalArgumentException> {
             parser.parse(
-                "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+                "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
                     "तद् + ङस् - उत्तर + टाप् + भिस् सङ्ख्या + भिस् " +
                     "युज् + णिच् + लोट् + सिप् ।",
             )
@@ -785,12 +787,12 @@ class ProgramAstTest {
         val body = "क्रम + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         assertFailsWith<IllegalArgumentException> {
             parser.parse(
-                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् अन्य + ङस् क्रम + अम् च ग्रह् + क्त्वा $body",
+                "सूची + ङस् एकैक + अम् सदस्य + अम् अन्य + ङस् क्रम + अम् च ग्रह् + क्त्वा $body",
             )
         }
         assertFailsWith<IllegalArgumentException> {
             parser.parse(
-                "सूची + ङस् प्रत्येक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च मुद्र् + क्त्वा $body",
+                "सूची + ङस् एकैक + अम् सदस्य + अम् तद् + ङस् क्रम + अम् च मुद्र् + क्त्वा $body",
             )
         }
     }
@@ -801,7 +803,7 @@ class ProgramAstTest {
         val conditional = assertIs<Conditional>(
             parser.parse(
                 "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
-                    "तर्हि लघु अन्यथा गुरु ततः मुद्र् + लोट् + सिप् ।",
+                    "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ततः मुद्र् + लोट् + सिप् ।",
             ).body,
         )
 

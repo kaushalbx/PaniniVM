@@ -54,7 +54,7 @@ class TatahResultPipelineTest {
     fun `tatah joins the result of either conditional branch`() {
         val result = PaniniVM().eval(
             "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
-                "तर्हि लघु अन्यथा गुरु " +
+                "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् " +
                 "ततः मुद्र् + णिच् + लोट् + सिप् ।",
         )
 

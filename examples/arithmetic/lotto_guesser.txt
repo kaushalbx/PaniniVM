@@ -1,7 +1,7 @@
 # Lotto Guesser: draw six distinct main numbers and one distinct bonus from 1..48.
 
 # One active range drives every draw.
-एकस्माद् अष्टाचत्वारिंशत्पर्यन्तम् इति सीमा ।
+एकस्माद् अष्टाचत्वारिंशत्पर्यन्तम् इति सीमा अस्ति ।
 
 # Draw the first value and initialize the result list.
 सङ्ख्यां चिनु ततः फलं चयने स्थापय ।

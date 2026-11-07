@@ -24,7 +24,9 @@ class VyutpattiGrammarTest {
     fun `derivation notation requires one root with prefixes before it`() {
         assertEquals("सम्+", parseDerivation("सम् + भू + शप् + लट् + तिप्")
             .tingantaPada().upasargaKrama()?.text)
-        for (source in listOf("शप् + लट् + तिप्", "भू + कृ + लट् + तिप्",
+        // शप् आक्रोशे is a root as well as a vikaraṇa, so शपति is valid.
+        assertEquals("शप्", parseDerivation("शप् + लट् + तिप्").tingantaPada().dhatuPrakriti().text)
+        for (source in listOf("भू + कृ + लट् + तिप्",
             "भू + सम् + शप् + लट् + तिप्", "भू + अभ्यासः(भू) + लट् + तिप्",
             "भू + आदेशः(भव) + लट् + तिप्")) {
             assertFailsWith<PaniniParseException>(source) { parseDerivation(source) }

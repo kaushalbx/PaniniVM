@@ -30,11 +30,6 @@ object PaniniRuntime {
     }
 
     @JvmStatic
-    fun shabdaWithSamjnas(text: String, samjnas: Array<Samjna>): SanskritValue {
-        return SanskritValue.Shabda(text, samjnas.toSet())
-    }
-
-    @JvmStatic
     fun shabdaWithEncodedSamjnas(text: String, samjnas: Array<String>): SanskritValue = SanskritValue.Shabda(
         text,
         samjnas.mapTo(linkedSetOf()) { encoded ->

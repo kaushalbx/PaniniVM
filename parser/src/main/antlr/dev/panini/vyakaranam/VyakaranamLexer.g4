@@ -64,6 +64,7 @@ ITI         : 'इति';
 NAAMA       : 'नाम';
 API         : 'अपि';
 YADYAPI     : 'यद्यपि';
+EKAIKA      : 'एकैक';
 TATHAAPI    : 'तथापि';
 EVA         : 'एव';
 TU_AVYAYA   : 'तु';
@@ -75,6 +76,7 @@ TATHA       : 'तथा';
 YADA        : 'यदा';
 TADA        : 'तदा';
 YATRA       : 'यत्र';
+CHET        : 'चेत्';
 TATRA       : 'तत्र';
 KADA        : 'कदा';
 KUTRA       : 'कुत्र';
@@ -91,7 +93,7 @@ ADYA        : 'अद्य';
 SHVAH       : 'श्वः';
 HYAH        : 'ह्यः';
 KASHCHIT    : 'कश्चित्';
-PRATYEKAH   : 'प्रत्येकः';
+EKAIKAH     : 'एकैकः';
 
 // ============================================================================
 // संख्याव्ययानि (Numeral Avyayas & Modifiers)
@@ -230,13 +232,6 @@ SHNA            : 'श्ना';
 U_VIKARANA      : 'उ';
 YAK             : 'यक्';
 SHAH            : 'शः';
-SYA             : 'स्य';
-TAS_VIKARANA    : 'तास्';
-CLI             : 'च्लि';
-SIC             : 'सिच्';
-ANG             : 'अङ्';
-CHANG           : 'चङ्';
-KSA             : 'क्स';
 
 // ============================================================================
 // आगमाः
@@ -401,12 +396,13 @@ IDENTIFIER
 
 fragment IDENTIFIER_START
     : [a-zA-Z]
-    | [\u0900-\u097F]
+    | [\u0904-\u0939\u0950\u0958-\u0961\u0966-\u096F\u0972-\u097F]
     ;
 
 fragment IDENTIFIER_PART
     : [a-zA-Z0-9_]
-    | [\u0900-\u097F]
+    // Everything in the block except danda and double danda, which end a sentence.
+    | [\u0900-\u0963\u0966-\u097F\u200C\u200D]
     | [\u0300-\u036F]
     ;
 

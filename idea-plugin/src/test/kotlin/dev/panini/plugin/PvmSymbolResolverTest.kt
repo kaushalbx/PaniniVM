@@ -9,8 +9,8 @@ class PvmSymbolResolverTest {
     @Test
     fun `semantic spans retain canonical declaration and pipeline categories`() {
         val source = """
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -27,7 +27,7 @@ class PvmSymbolResolverTest {
     @Test
     fun `pipeline operation navigates to matching canonical prakriya declaration`() {
         val source = """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -42,9 +42,9 @@ class PvmSymbolResolverTest {
     @Test
     fun `pipeline domain disambiguates declarations with the same operation identity`() {
         val source = """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            पाठ + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            पाठ + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -60,7 +60,7 @@ class PvmSymbolResolverTest {
     @Test
     fun `ordinary operands do not resolve as procedure declarations`() {
         val source = """
-            गणित + ङस् परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             परीक्षण + अम् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
@@ -76,7 +76,7 @@ class PvmSymbolResolverTest {
     @Test
     fun `runtime invocation matcher supplies identity for an ordinary prakriya call`() {
         val source = """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -93,8 +93,8 @@ class PvmSymbolResolverTest {
     @Test
     fun `declaration lookup uses active canonical domain and enforces cross file visibility`() {
         val source = """
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
-            गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
+            गण + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)

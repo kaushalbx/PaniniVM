@@ -22,6 +22,9 @@ object LinguisticActionsInitializer {
                         pratipadika = stem,
                         vibhakti = Vibhakti.PRATHAMA,
                         vacana = Vacana.EKAVACANA,
+                        // The stem's own gender: ज्ञान gives ज्ञानम्, not ज्ञानः.
+                        linga = dev.panini.linganushasanam.PaninianPratipadikaLexicon.findPratipadika(stem)?.linga?.singleOrNull()
+                            ?: dev.panini.core.Linga.PUMS,
                     ),
                 ).final.surface
             },

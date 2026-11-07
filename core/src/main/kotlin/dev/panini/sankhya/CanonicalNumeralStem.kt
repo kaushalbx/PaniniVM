@@ -21,8 +21,6 @@ object CanonicalNumeralStem {
     )
     private val candidate = Regex("(?<![\\p{L}\\p{M}])(${replacements.keys.joinToString("|")})(?=\\s*\\+)")
 
-    fun canonicalFor(surface: String): String? = replacements[surface]
-
     fun suggestions(source: String): List<CanonicalNumeralStemSuggestion> = buildList {
         var lineStart = 0
         source.lineSequence().forEach { line ->

@@ -7,7 +7,7 @@ class ReviewedConditionalExampleTest {
     @Test fun `conditional example selects and prints either branch result`() {
         val source = File("examples/control_flow/conditional.pvm").readText()
         for ((program, expected) in listOf(source to 7L,
-            source.replace("एक + टा सम", "द्वि + भ्याम् सम") to 0L)) {
+            source.replace("एक + टा सम + सुँ", "द्वि + भ्याम् सम + सुँ") to 0L)) {
             val results = PaniniVM().evalScript(program)
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
             val successes = results.filterIsInstance<ExecutionResult.Success>()

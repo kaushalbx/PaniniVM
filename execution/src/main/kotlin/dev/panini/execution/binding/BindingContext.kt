@@ -1,5 +1,7 @@
 package dev.panini.execution.binding
 
+import dev.panini.analysis.isNonBinding
+
 import dev.panini.analysis.KriyaFrame
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.SambhashanaContext
@@ -49,10 +51,16 @@ internal data class BindingContext(
         val owner = ownerOf(pada) ?: return null
         val index = owner.relations.indexOfFirst { it.participant.pada === pada }
         val relation = owner.relations.getOrNull(index) ?: return null
-        val nonBinding = owner.diagnostics.any { it.code == dev.panini.analysis.FrameDiagnosticCode.NON_BINDING_READING && it.nominalIndex == index }
+        val nonBinding = owner.isNonBinding(relation)
         if (!nonBinding) return relation
         // An instrumental reaches the program as what form leaves open: kartā or karaṇa.
         val instrumental = relation.participant.supCandidates.all { it.vibhakti == dev.panini.core.Vibhakti.TRTIYA }
+        // गुरुः शिष्येण पञ्च मुद्रयतु: a written prompter over a णिच् verb leaves the instrumental as the one who acts, so it is a kartā.
+        val head = (owner.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya)?.tinganta
+        val prompter = owner.relations.any { other -> other !== relation &&
+            other.participant.supCandidates.isNotEmpty() && other.participant.supCandidates.all { it.vibhakti == dev.panini.core.Vibhakti.PRATHAMA } }
+        if (instrumental && prompter && head?.dhatu?.sanadiPratyayas == listOf("णिच्")) return relation.copy(
+            resolution = dev.panini.analysis.FrameKarakaResolution.Resolved(dev.panini.core.Karaka.KARTR))
         return relation.copy(resolution = if (instrumental) dev.panini.analysis.FrameKarakaResolution.Ambiguous(
             setOf(dev.panini.core.Karaka.KARTR, dev.panini.core.Karaka.KARANA))
             else dev.panini.analysis.FrameKarakaResolution.Unassigned("This reading does not bind an operand."))

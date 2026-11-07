@@ -17,9 +17,6 @@ class SankhyaGenerator(
     private val derivationFactory: SankhyaDerivationFactory = SankhyaDerivationFactory(),
     private val derivationEngine: SankhyaDerivationEngine = SankhyaDerivationEngine(),
 ) {
-    /** Numeric identity of a canonical annotated prātipadika; surface forms are not accepted. */
-    fun annotatedPratipadikaValue(pratipadika: String): Long? =
-        PrimitiveSankhya.fromAnnotatedPratipadika(pratipadika)?.value
 
     fun cardinal(value: Long): DerivationResult = cardinalDeriver.derive(value)
 

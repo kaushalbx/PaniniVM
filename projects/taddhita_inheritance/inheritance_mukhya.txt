@@ -2,7 +2,7 @@
 
 # Step 1: Declare subclass inheritance: "गाणित is child class derived from parent गणित"
 # Linguistically: "गणितस्य अपत्यम् गाणितम् इति अधिकारः ।"
-गणितः इति अधिकारः ।
+गणितम् इति अधिकारः अस्ति ।
 
 # Step 2: Invoke inherited method 'वृध् + ल्युट्' (वर्द्धनम्) from parent class 'गणित' via child instance 'गाणितवतः':
 # Linguistically: "पञ्च द्वौ च गाणितवतः वर्द्धनेन कुरु ।" -> Inherits 'वृध् + ल्युट्' from 'गणित' -> Returns 5 + 2 = 7 (सप्त)

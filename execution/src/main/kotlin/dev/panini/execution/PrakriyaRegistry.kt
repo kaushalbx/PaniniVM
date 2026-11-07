@@ -83,8 +83,6 @@ class PrakriyaRegistry {
         inheritanceMap[relation.childStem] = relation.parentStem
     }
 
-    fun getParentClass(childStem: String): String? = inheritanceMap[childStem]
-
     fun register(kriya: Prakriya) {
         val key = if (kriya.domainStem != null) "${kriya.domainStem}::${kriya.nameStem}" else kriya.nameStem
         for (alias in setOf(key, kriya.nameStem)) {

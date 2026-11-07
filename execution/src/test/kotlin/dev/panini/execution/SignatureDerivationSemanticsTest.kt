@@ -5,9 +5,9 @@ import kotlin.test.*
 class SignatureDerivationSemanticsTest {
     @Test fun `type guard inference consumes the full prohibition clause`() {
         for (source in listOf(
-            "न न प्रथम + अम् सङ्ख्या + त्व + अम् ।",
-            "न प्रथम + अम् सङ्ख्या + त्व + अम् राम + टा ।",
-            "न प्रथम + अम् सङ्ख्या + त्व + ङस् ।",
+            "प्रथम + सुँ सङ्ख्या + त्व + सुँ न न भू + लिङ् + तिप् ।",
+            "प्रथम + अम् सङ्ख्या + त्व + अम् राम + टा न भू + लिङ् + तिप् ।",
+            "प्रथम + अम् सङ्ख्या + त्व + ङस् न भू + लिङ् + तिप् ।",
             "न प्रथम + अम् सङ्ख्या + त्व + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )) assertNull(PrakriyaSignatureCompiler.inferGuardType(sentence(source)), source)
     }
@@ -15,13 +15,13 @@ class SignatureDerivationSemanticsTest {
     @Test fun `plural nominals do not silently declare a singular contract`() {
         for (source in listOf(
             "सङ्ख्या + सुँ इति परिणाम + जस् असँ + लट् + तिप् ।",
-            "सङ्ख्या + सुँ इति परिणाम + औ ।",
-            "सङ्ख्या + जस् इति परिणाम + सुँ ।",
-            "नाम + जस् सङ्ख्या + सुँ इति मान + सुँ ।",
-            "नाम + सुँ सङ्ख्या + औ इति मान + सुँ ।",
+            "सङ्ख्या + सुँ इति परिणाम + औ असँ + लट् + तिप् ।",
+            "सङ्ख्या + जस् इति परिणाम + सुँ असँ + लट् + तिप् ।",
+            "वाम + जस् सङ्ख्या + सुँ इति मान + सुँ असँ + लट् + तिप् ।",
+            "वाम + सुँ सङ्ख्या + औ इति मान + सुँ असँ + लट् + तिप् ।",
         )) assertFalse(PrakriyaSignatureDeclarationParser.isDeclaration(sentence(source)), source)
         assertEquals(PrakriyaValueType.SUCHI, PrakriyaSignatureDeclarationParser.resultType(
-            sentence("सूची + सुँ इति परिणाम + सुँ असँ + लट् + तिप् ।")))
+            sentence("परिणाम + सुँ सूची + सुँ असँ + लट् + तिप् ।")))
     }
 
     private fun sentence(text: String): PvmScriptStatement.Sentence =
@@ -29,11 +29,11 @@ class SignatureDerivationSemanticsTest {
 
     @Test fun `derived type nouns do not inherit primitive signature meaning`() {
         for (type in listOf("सङ्ख्या", "शब्द", "सूची")) {
-            val plain = sentence("नाम + सुँ $type + सुँ इति मान + सुँ ।")
+            val plain = sentence("वाम + सुँ नाम मान + सुँ $type + सुँ असँ + लट् + तिप् ।")
             assertNotNull(PrakriyaSignatureDeclarationParser.parameter(plain))
-            val derived = sentence("नाम + सुँ $type + त्व + सुँ इति मान + सुँ ।")
+            val derived = sentence("वाम + सुँ नाम मान + सुँ $type + त्व + सुँ असँ + लट् + तिप् ।")
             assertNull(PrakriyaSignatureDeclarationParser.parameter(derived))
-            val result = sentence("$type + त्व + सुँ इति परिणाम + सुँ ।")
+            val result = sentence("परिणाम + सुँ $type + त्व + सुँ असँ + लट् + तिप् ।")
             val declaration = assertNotNull(PrakriyaSignatureDeclarationParser.result(result))
             assertNull(declaration.type)
             assertEquals("$type + त्व", declaration.schema)
@@ -42,31 +42,31 @@ class SignatureDerivationSemanticsTest {
 
     @Test fun `declarations do not discard additional participants`() {
         for (source in listOf(
-            "नाम + सुँ सङ्ख्या + सुँ एक + सुँ इति मान + सुँ ।",
-            "सङ्ख्या + सुँ एक + सुँ इति परिणाम + सुँ ।",
-            "सङ्ख्या + सुँ इति परिणाम + सुँ एक + सुँ ।",
-            "सङ्ख्या + सुँ इति परिणाम + सुँ मुद्र् + णिच् + लोट् + सिप् ।",
+            "वाम + सुँ सङ्ख्या + सुँ नाम मान + सुँ एक + सुँ असँ + लट् + तिप् ।",
+            "सङ्ख्या + सुँ परिणाम + सुँ एक + सुँ असँ + लट् + तिप् ।",
+            "परिणाम + सुँ सङ्ख्या + सुँ एक + सुँ असँ + लट् + तिप् ।",
+            "परिणाम + सुँ सङ्ख्या + सुँ मुद्र् + णिच् + लट् + तिप् ।",
         )) assertFalse(PrakriyaSignatureDeclarationParser.isDeclaration(sentence(source)), source)
     }
 
     @Test fun `a genuine finite copula can assert a signature declaration`() {
-        val result = sentence("सङ्ख्या + सुँ इति परिणाम + सुँ असँ + लट् + तिप् ।")
+        val result = sentence("परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।")
         assertEquals(PrakriyaValueType.SANKHYA, PrakriyaSignatureDeclarationParser.resultType(result))
-        val negated = sentence("सङ्ख्या + सुँ इति परिणाम + सुँ न असँ + लट् + तिप् ।")
+        val negated = sentence("परिणाम + सुँ सङ्ख्या + सुँ न असँ + लट् + तिप् ।")
         assertFalse(PrakriyaSignatureDeclarationParser.isDeclaration(negated))
     }
 
     @Test fun `derived markers do not introduce signature declarations`() {
         assertFalse(PrakriyaSignatureDeclarationParser.isDeclaration(
-            sentence("नाम + सुँ सङ्ख्या + सुँ इति मान + त्व + सुँ ।")))
+            sentence("वाम + सुँ सङ्ख्या + सुँ इति मान + त्व + सुँ असँ + लट् + तिप् ।")))
         assertFalse(PrakriyaSignatureDeclarationParser.isDeclaration(
-            sentence("सङ्ख्या + सुँ इति परिणाम + त्व + सुँ ।")))
+            sentence("सङ्ख्या + सुँ इति परिणाम + त्व + सुँ असँ + लट् + तिप् ।")))
     }
 
     @Test fun `guard inference consumes the complete derivation not any bhava suffix`() {
-        val plain = sentence("न प्रथम + अम् सङ्ख्या + त्व + अम् ।")
+        val plain = sentence("प्रथम + सुँ सङ्ख्या + त्व + सुँ न भू + लिङ् + तिप् ।")
         assertEquals(PrakriyaValueType.SANKHYA, PrakriyaSignatureCompiler.inferGuardType(plain))
-        val furtherDerived = sentence("न प्रथम + अम् सङ्ख्या + त्व + मतुप् + अम् ।")
+        val furtherDerived = sentence("प्रथम + सुँ सङ्ख्या + त्व + मतुप् + सुँ न भू + लिङ् + तिप् ।")
         assertNull(PrakriyaSignatureCompiler.inferGuardType(furtherDerived))
         assertNull(PrakriyaSignatureCompiler.compile(listOf(furtherDerived)).argumentType)
     }
@@ -75,7 +75,7 @@ class SignatureDerivationSemanticsTest {
         val schemaSentence = sentence("अवस्था + सुँ मूल्य + सुँ च शब्द + त्व + ङस् क्षेत्र + जस् असँ + लट् + झि ।")
         val schema = assertNotNull(TaddhitaStructEngine.detectResultSchema(schemaSentence.text, schemaSentence.ukti))
         val result = assertNotNull(PrakriyaSignatureDeclarationParser.result(
-            sentence("शब्द + त्व + सुँ इति परिणाम + सुँ ।")))
+            sentence("परिणाम + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।")))
         assertEquals("शब्द + त्व", schema.nameStem)
         assertEquals(schema.nameStem, result.schema)
         val registry = PrakriyaRegistry()

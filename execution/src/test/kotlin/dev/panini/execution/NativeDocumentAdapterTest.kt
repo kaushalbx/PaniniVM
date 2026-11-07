@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 class NativeDocumentAdapterTest {
     @Test
     fun `double danda closes the terminal body sentence across a line break`() {
-        val source = "गणित + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "गणित + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
             "एक + अम् कृ + लोट् + सिप्\n॥"
         val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
         assertEquals(1, definition.body.size)
@@ -25,7 +25,7 @@ class NativeDocumentAdapterTest {
     @Test
     fun `operation name source excludes domain and retains multiline morphology`() {
         val name = "हृ +\n ल्युट् + सुँ"
-        val header = "गणित + ङस् $name इति प्रक्रिया + सुँ असँ + लट् + तिप्"
+        val header = "गणित + ङस् $name नाम प्रक्रिया + सुँ असँ + लट् + तिप्"
         for (source in listOf("$header ।", "$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")) {
             val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
             assertEquals(name, definition.nameSegmented)
@@ -36,7 +36,7 @@ class NativeDocumentAdapterTest {
 
     @Test
     fun `standalone declarations retain qualifiers identity and source with optional final danda`() {
-        val header = "गणित + ङस् प्रयत्न + सुँ इति नित्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप्"
+        val header = "गणित + ङस् प्रयत्न + सुँ नाम नित्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप्"
         for (source in listOf(header, "$header ।")) {
             val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
             assertEquals(source, definition.text)
@@ -47,15 +47,15 @@ class NativeDocumentAdapterTest {
             assertEquals(emptyList(), definition.body)
         }
         assertFailsWith<IllegalArgumentException> {
-            PvmScript.parse("प्रयत्न + अम् इति प्रक्रिया + सुँ असँ + लट् + तिप् ।")
+            PvmScript.parse("प्रयत्न + अम् नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।")
         }
     }
 
     @Test
     fun `native body spans preserve multiline comments and each statement terminator`() {
-        val first = "मान + सुँ # parameter . ।\r\nसङ्ख्या + सुँ इति मान + सुँ ।"
+        val first = "मान + सुँ # parameter . ।\r\nसङ्ख्या + सुँ असँ + लट् + तिप् ।"
         val last = "मान + अम्\r\nमुद्र् + णिच् + लोट् + सिप् ॥"
-        val source = "प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\r\n$first\r\n$last"
+        val source = "प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\r\n$first\r\n$last"
         val document = PaniniParser().parseDocument(source)
         assertEquals(listOf(first, last), document.prakriyaBodySpans.getValue(0).map {
             source.substring(it.start, it.endExclusive)
@@ -67,7 +67,7 @@ class NativeDocumentAdapterTest {
 
     @Test
     fun `native comments preserve CRLF offsets and do not truncate header at comment punctuation`() {
-        val header = "प्रयत्न + सुँ # comment । .\r\nइति प्रक्रिया + सुँ असँ + लट् + तिप्"
+        val header = "प्रयत्न + सुँ # comment । .\r\nनाम प्रक्रिया + सुँ असँ + लट् + तिप्"
         val source = "# preface\r\n  $header ।\r\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
         val document = PaniniParser().parseDocument(source)
         val span = document.itemSpans.single()
@@ -82,10 +82,10 @@ class NativeDocumentAdapterTest {
     @Test
     fun `native document projects declarations and body ASTs without reparsing`() {
         val source = """
-            गणित + सुँ इति अधिकार + सुँ ।
-            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             पञ्चन् + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -99,7 +99,7 @@ class NativeDocumentAdapterTest {
         val original = assertIs<Prakriya>(document.items[2])
         assertSame(original.body.last(), definition.body.last().program)
         assertEquals("प्रयत्न", definition.prakriya.nameIdentity)
-        assertEquals("प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्", definition.headerSource)
+        assertEquals("प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप्", definition.headerSource)
         assertEquals(PrakriyaValueType.SANKHYA, PrakriyaSignatureDeclarationParser.parameter(definition.body.first())?.type)
         assertEquals("पञ्चन् + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।",
             assertIs<PvmScriptStatement.Sentence>(statements[3]).text)
@@ -109,7 +109,7 @@ class NativeDocumentAdapterTest {
     fun `native parsing handles comments and rejects descending range`() {
         assertEquals(1, PvmScript.parse("# comment\nएक + अम्\nमुद्र् + णिच् + लोट् + सिप् । // comment").size)
         assertFailsWith<IllegalArgumentException> {
-            PvmScript.parse("दशन् + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।")
+            PvmScript.parse("दशन् + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।")
         }
     }
 }

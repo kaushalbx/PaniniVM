@@ -12,7 +12,7 @@ class AdhikaraDocumentTest {
 
     @Test
     fun `returns presentation and semantic domain from one parsed header`() {
-        val declaration = kotlin.test.assertNotNull(scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ ।"))
+        val declaration = kotlin.test.assertNotNull(scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ असँ + लट् + तिप् ।"))
         assertEquals("गणित + अण् + सुँ", declaration.domain)
         assertEquals("गणित + अण्", declaration.domainIdentity)
     }
@@ -21,19 +21,19 @@ class AdhikaraDocumentTest {
     fun `extracts domain from lexical and derived adhikara markers`() {
         assertEquals(
             "गणित + सुँ",
-            scope("गणित + सुँ इति अधिकार + सुँ ।")?.domain,
+            scope("गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।")?.domain,
         )
         assertEquals(
             "गणित",
-            scope("गणित + सुँ इति अधिकार + सुँ ।")?.domainIdentity,
+            scope("गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।")?.domainIdentity,
         )
         assertEquals(
             "गणित + अण् + सुँ",
-            scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ ।")?.domain,
+            scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ असँ + लट् + तिप् ।")?.domain,
         )
         assertEquals(
             "गणित + अण्",
-            scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ ।")?.domainIdentity,
+            scope("गणित + अण् + सुँ इति अधि+कृ+घञ्+सुँ असँ + लट् + तिप् ।")?.domainIdentity,
         )
     }
 

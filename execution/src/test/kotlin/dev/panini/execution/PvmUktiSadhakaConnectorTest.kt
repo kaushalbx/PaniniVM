@@ -440,7 +440,7 @@ class PvmUktiSadhakaConnectorTest {
     fun `conditional result pipeline does not show a danda before tatah`() {
         val rendered = sadhaka.sadhayaLine(
             "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
-                "तर्हि लघु अन्यथा गुरु ततः मुद्र् + लोट् + सिप् ।",
+                "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ततः मुद्र् + लोट् + सिप् ।",
         )
 
         assertTrue(" ततः " in rendered, rendered)
@@ -454,10 +454,10 @@ class PvmUktiSadhakaConnectorTest {
     fun `segmented nominal conditional result is rendered from its retained AST`() {
         val rendered = sadhaka.sadhayaLine(
             "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
-                "तर्हि विजय + सुँ अन्यथा गुरु ततः फल + अम् मुद्र् + लोट् + सिप् ।",
+                "तर्हि विजय + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ततः फल + अम् मुद्र् + लोट् + सिप् ।",
         )
 
-        assertTrue("तर्हि विजयः" in rendered, rendered)
+        assertTrue("तर्हि विजयः अस्ति" in rendered, rendered)
         assertFalse("विजय+सुँ" in rendered, rendered)
         assertFalse("+" in rendered, rendered)
     }

@@ -128,24 +128,6 @@ object ResolvedLeafPlanner {
         }
     }
 
-    fun resultBindingName(source: String): String? {
-        val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
-        val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
-        val input = SanskritUktiInput(
-            speaker = conversation.speaker,
-            listener = conversation.listener,
-            text = segmentedSource,
-        )
-        val invocation = ((runCatching {
-            VyakaranamExecutionAdapter.bind(input, conversation)
-        }.getOrNull() as? ExecutionBindingResult.Bound)?.ukti?.invocations)?.singleOrNull() ?: return null
-        val operation = invocation.selectedOperation?.let { selected ->
-            invocation.dhatu.operations.singleOrNull { it.name == selected }
-        } ?: invocation.dhatu.operations.singleOrNull { it.resultBindingKaraka != null }
-        val karaka = operation?.resultBindingKaraka ?: return null
-        return invocation.bindings[karaka]?.bindingName()
-    }
-
     fun plans(
         source: String,
         environment: ValueEnvironment = ValueEnvironment(),

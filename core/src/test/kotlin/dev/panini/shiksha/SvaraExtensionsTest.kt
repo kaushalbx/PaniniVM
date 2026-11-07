@@ -24,11 +24,4 @@ class SvaraExtensionsTest {
         assertEquals(Svara.E, Svara.E.toDirgha())
     }
 
-    @Test
-    fun `changes the phonological final without inspecting matras`() {
-        assertEquals("गङ्ग", "गङ्गा".withFinalHrasva())
-        assertEquals("नदि", "नदी".withFinalHrasva())
-        assertEquals("नदी", "नदि".withFinalDirgha())
-        assertEquals("आ", "अ".withFinalDirgha())
-    }
 }

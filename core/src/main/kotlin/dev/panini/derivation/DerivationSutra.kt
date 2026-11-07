@@ -38,9 +38,6 @@ interface DerivationSutra {
     /** 6.4.22 - 6.4.129: Asiddhavat section. */
     fun isAbhiya(): Boolean = krama in 640022..640129
 
-    fun tryApply(state: DerivationState): DerivationChange? =
-        if (matches(state)) apply(state) else null
-
     fun applyAll(state: DerivationState): List<DerivationChange> {
         val applied = apply(state)
         return if (optional) {

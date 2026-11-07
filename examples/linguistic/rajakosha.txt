@@ -1,0 +1,5 @@
+# राजकोषः: place a hundred in the treasury, give ten to the storehouse, and print the result.
+# अधिकरण: in the treasury. सम्प्रदान: to the storehouse.
+शतं कोषे स्थापय ।
+दश भाण्डाराय देहि ।
+फलं मुद्रय ।

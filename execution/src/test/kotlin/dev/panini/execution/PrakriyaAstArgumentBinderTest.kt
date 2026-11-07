@@ -49,7 +49,7 @@ class PrakriyaAstArgumentBinderTest {
     fun `numeric prohibition does not drop an unresolved extra operand`() {
         val definition = PvmScript.parse(
             "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "न शून्य + अम् राम + अम् शून्य + अम् ।\n" +
+                "शून्य + अम् राम + अम् शून्य + अम् न भू + लिङ् + तिप् ।\n" +
                 "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
         ).single() as PvmScriptStatement.PrakriyaDefinition
         val guard = definition.body.single { it.isNishedha }
@@ -136,8 +136,8 @@ class PrakriyaAstArgumentBinderTest {
 
     @Test
     fun `procedure execution preserves ambiguous history failure`() {
-        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "युज् + ल्युट् + ङस् प्रथम + अम् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
@@ -254,7 +254,7 @@ class PrakriyaAstArgumentBinderTest {
     fun `ordinal placeholders bind in stored AST without reparsing`() {
         val definition = PvmScript.parse(
             """
-            गणित + ङस् वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् वृध् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथ् + अमच् + अम् द्वि + तीय + अम् च युज् + लोट् + सिप् ॥
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
@@ -422,8 +422,8 @@ class PrakriyaAstArgumentBinderTest {
     fun `nishedha guard binds ordinal parameters in its stored AST`() {
         val definition = PvmScript.parse(
             """
-            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            न द्वितीय + अम् शून्य + अम् ।
+            वि + भज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            द्वितीय + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
@@ -457,8 +457,8 @@ class PrakriyaAstArgumentBinderTest {
 
         val comparisonGuard = (PvmScript.parse(
             """
-            तुल् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            न प्रथम + अम् द्वितीय + अम् ।
+            तुल् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रथम + सुँ द्वितीय + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च युज् + लोट् + सिप् ॥
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition).body.single { it.isNishedha }

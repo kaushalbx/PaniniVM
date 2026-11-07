@@ -43,7 +43,7 @@ rangeDeclarationEntry
     ;
 
 rangeDeclaration
-    : boundary=paryantaRange ITI marker=subantaPada
+    : boundary=paryantaRange ITI marker=subantaPada copula=tingantaPada?
     ;
 
 scopeDeclarationEntry
@@ -51,7 +51,7 @@ scopeDeclarationEntry
     ;
 
 scopeDeclaration
-    : domain=subantaPada ITI marker=subantaPada
+    : domain=subantaPada ITI marker=subantaPada copula=tingantaPada?
     ;
 
 // Explicit nominal naming declaration; lexical marker/qualifier meaning is
@@ -62,7 +62,8 @@ prakriyaBlock
     ;
 
 prakriyaHeader
-    : names+=subantaPada+ (ITI | NAAMA) declaration=prakriyaDeclaration
+    // योजनं नाम प्रक्रिया अस्ति: नाम introduces a name; इति is kept for quotation.
+    : names+=subantaPada+ NAAMA declaration=prakriyaDeclaration
     ;
 
 prakriyaDeclaration
@@ -114,7 +115,7 @@ compoundSubantaPada
 // The nominative member introduces a scoped singular referent which is also the
 // implicit subject of the following finite predicate.
 quantifiedCollectionClause
-    : collection=subantaPada quantifier=(KASHCHIT | PRATYEKAH)
+    : collection=subantaPada quantifier=(KASHCHIT | EKAIKAH)
       member=subantaPada predicate=akhyataVakya
     ;
 
@@ -126,7 +127,7 @@ distributiveClause
 // Natural left reduction: “from this initial value, for each accumulated value and member …”.
 reductionClause
     : collection=subantaPada initial=subantaPada connector=IDENTIFIER
-      accumulator=subantaPada member=subantaPada PRATI body=utterance
+      accumulator=subantaPada member=subantaPada (PRATI | acquisition=avyayaKridanta) body=utterance
     ;
 
 // Natural indexed iteration: “having taken each member of the collection and its index ...”.
@@ -139,6 +140,15 @@ naturalIndexedDistributiveClause
       CHA acquisition=avyayaKridanta
       sequential=KRAMASHAH?
       body=utterance
+    // दत्तसूच्याः प्रत्येकं सदस्यं गृहीत्वा: प्रत्येक marks a loop where no other word could.
+    | collection=subantaPada each=eachQuantifier member=subantaPada
+      acquisition=avyayaKridanta
+      sequential=KRAMASHAH?
+      body=utterance
+    ;
+
+eachQuantifier
+    : EKAIKA pratipadikaVikara* PLUS supPratyaya
     ;
 
 quotationClause
@@ -199,7 +209,7 @@ conditionalClause
     ;
 
 conditionalExpression
-    : YADI condition=conditionClause TARHI consequent=conditionalArm
+    : (YADI condition=conditionClause TARHI | condition=conditionClause CHET) consequent=conditionalArm
       (DANDA TADA continuations+=utterance)*
       ((DANDA)? ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
     ;
@@ -221,7 +231,6 @@ conditionalArm
     | conditionalPipelineClause
     | conditionalActionSequence
     | temporalConditionalExpression
-    | value=pratipadika
     | vakya
     ;
 
@@ -475,6 +484,7 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    | EKAIKA
     | NAAMA
     | PRAKRIYA_NOUN
     | ADHIKA
@@ -490,8 +500,12 @@ samjnaQualifierPratipadika
 // कृदन्तप्रातिपदिकम्
 // ============================================================================
 
+// पठ् + लृट् + शतृ: लृटः सद्वा (3.3.14) replaces the lakāra, which gives the time. Plain शतृ is present (3.2.124).
 kridantaPratipadika
     : upasargaKrama?
+      dhatuPrakriti
+      PLUS LRT PLUS (SHATR | SHANACH)
+    | upasargaKrama?
       dhatuPrakriti
       PLUS krtPratyaya
     ;
@@ -633,12 +647,40 @@ dhatuPrakriti
       (PLUS sanadiPratyaya)*
     ;
 
+// Roots spelled like an affix or particle: the position after them tells them apart.
 dhatuMula
     : IDENTIFIER
     | DAA
     | DHAA
     | SU
     | VAA
+    | MAA
+    | TU_AVYAYA
+    | HI
+    | UNA
+    | SAM
+    | SAN
+    | LAT
+    | LUT
+    | TIP
+    | TAS
+    | VAS
+    | MAS
+    | IT
+    | SUP_JAS
+    | SUP_AM
+    | SUP_SHAS
+    | SUP_BHYAS
+    | SHAP
+    | U_VIKARANA
+    | SIC
+    | AT
+    | MUT
+    | KHAL
+    | AC
+    | AN
+    | KAN
+    | LUP
     ;
 
 // ============================================================================
@@ -783,6 +825,7 @@ supPratyaya
 // विकरणाः
 // ============================================================================
 
+// Only what the lakāra does not decide: the gaṇa of a homonym and the passive. स्य, तास् and च्लि follow from the lakāra (3.1.33, 3.1.43).
 vikarana
     : SHAP
     | SHYAN
@@ -792,13 +835,6 @@ vikarana
     | U_VIKARANA
     | YAK
     | SHAH
-    | SYA
-    | TAS_VIKARANA
-    | CLI
-    | SIC
-    | ANG
-    | CHANG
-    | KSA
     ;
 
 // ============================================================================
@@ -901,8 +937,19 @@ sankhyaAvyaya
     | IDENTIFIER SHAH
     ;
 
+// A prefix written alone is karmapravacanīya (1.4.83): जपम् अनु प्रावर्षत्.
 mulaAvyaya
     : IDENTIFIER
+    | ANUU
+    | UPA
+    | APA
+    | PARI
+    | AANG
+    | PRATI
+    | ADHI
+    | ABHI
+    | ATI
+    | SU
     | MAA
     | YAVAT
     | TAVAT

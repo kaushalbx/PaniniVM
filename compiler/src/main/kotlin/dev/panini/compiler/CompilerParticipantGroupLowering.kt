@@ -12,7 +12,7 @@ internal object CompilerParticipantGroupLowering {
         val sentence = node.vakya as? AkhyataVakya ?: return null
         val ukti = Ukti(node.sourceText, body = node)
         val frame = VyakaranamExecutionAdapter.analyzeGrammar(ukti)?.frames?.singleOrNull() ?: return null
-        val objects = frame.relations.filter {
+        val objects = frame.relations.filterNot { with(dev.panini.analysis.NonBindingAccess) { frame.nonBinding(it) } }.filter {
             (it.resolution as? dev.panini.analysis.FrameKarakaResolution.Resolved)?.karaka == Karaka.KARMAN
         }
         if (objects.size < 2 || objects.any { it.resolvedVibhakti == null }) return null

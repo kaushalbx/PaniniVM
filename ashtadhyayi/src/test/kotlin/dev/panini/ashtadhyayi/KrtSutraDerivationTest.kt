@@ -67,4 +67,10 @@ class KrtSutraDerivationTest {
         assertEquals("1.3.8", designated.terms.last().itDesignations.single().sutra)
         assertEquals("अ", TasyaLopahSutra.apply(designated).state.terms.last().surface)
     }
+
+    @Test
+    fun `connected krt rules are in the executable grammar`() {
+        val numbers = dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras.mapNotNull { (it as? dev.panini.sutra.Sutra<*, *>)?.number }.toSet()
+        for (number in listOf("2.4.74", "3.1.135", "3.2.78", "3.4.22")) assertTrue(number in numbers, number)
+    }
 }

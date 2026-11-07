@@ -2,7 +2,7 @@
 # Uses a public prakriyā from private_lib.pvm — no imports needed.
 
 # Step 1: Call public जटिलगणितम् (which uses private गणनम् internally): (3 * 2) + 4 = 10 (दश)
-त्रीनि चत्वारि च जटिलगणितेन कुरु ।
+त्रीणि चत्वारि च जटिलगणितेन कुरु ।
 
 # Step 2: Print the result
 मुद्रय फलम् ।

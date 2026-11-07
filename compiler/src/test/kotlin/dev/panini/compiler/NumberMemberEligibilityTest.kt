@@ -9,7 +9,7 @@ class NumberMemberEligibilityTest {
     @Test fun `fraction member sum flows through typed procedure and later copular equality`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् योग + ङे दा + लोट् + सिप् ॥
             सूची + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप्
                 ततः परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।

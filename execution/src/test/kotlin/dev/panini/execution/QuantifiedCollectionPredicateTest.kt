@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFails
 
 class QuantifiedCollectionPredicateTest {
-    private val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+    private val declaration = "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।"
 
     @Test
     fun `some member predicate returns true and short circuits`() {
@@ -24,7 +24,7 @@ class QuantifiedCollectionPredicateTest {
     @Test
     fun `some member predicate returns false when no member matches`() {
         val results = PaniniVM().evalScript(
-            "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$anySource",
+            "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।\n$anySource",
         )
 
         assertEquals(
@@ -36,10 +36,10 @@ class QuantifiedCollectionPredicateTest {
     @Test
     fun `every member predicate distinguishes partial and complete matches`() {
         val partial = PaniniVM().evalScript(
-            "$declaration\nसूची + ङस् प्रत्येकः सदस्य + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+            "$declaration\nसूची + ङस् एकैकः सदस्य + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
         ).last()
         val complete = PaniniVM().evalScript(
-            "$declaration\nसूची + ङस् प्रत्येकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+            "$declaration\nसूची + ङस् एकैकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
         ).last()
 
         assertEquals(false, assertIs<SanskritValue.Satya>(assertIs<ExecutionResult.Success>(partial).typedValue).boolean)
@@ -50,7 +50,7 @@ class QuantifiedCollectionPredicateTest {
     fun `quantified predicate composes as a conditional condition`() {
         val results = PaniniVM().evalScript(
             "$declaration\nयदि सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् " +
-                "तर्हि नव अन्यथा शून्य ।",
+                "तर्हि नव + जस् असँ + लट् + झि अन्यथा शून्य + सुँ असँ + लट् + तिप् ।",
         )
 
         assertEquals("नव", assertIs<ExecutionResult.Success>(results.last()).value)
@@ -119,7 +119,7 @@ class QuantifiedCollectionPredicateTest {
     private val anySource =
         "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
     private val allSource =
-        "सूची + ङस् प्रत्येकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
+        "सूची + ङस् एकैकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
 
     private fun evaluate(source: String, collection: SanskritValue): SanskritValue.Satya {
         val vm = PaniniVM()

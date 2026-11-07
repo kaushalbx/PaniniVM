@@ -12,7 +12,7 @@ class ExecutionMetricsTest {
         val vm = PaniniVM(executionMetrics = metrics)
         vm.evalScript(
             """
-            योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            योग + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             योग + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent(),
@@ -50,7 +50,7 @@ class ExecutionMetricsTest {
             entry.writeText("योग + टा डुकृञ् + उ + लोट् + सिप् ।")
             library.writeText(
                 """
-                योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                योग + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 एक + अम् मुद्र् + लोट् + सिप् ॥
                 """.trimIndent(),
             )

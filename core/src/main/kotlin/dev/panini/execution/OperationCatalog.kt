@@ -45,10 +45,6 @@ class OperationCatalog(
         return compatible.filter { it.signature.specificity == strongest }.singleOrNull()
     }
 
-    fun duplicateUpadeshas(): Map<String, List<Dhatu>> = dhatus()
-        .groupBy(Dhatu::upadesha)
-        .filterValues { candidates -> candidates.map(Dhatu::id).distinct().size > 1 }
-
     companion object {
         val default: OperationCatalog = OperationCatalog(
             operationsForUpadesha = { upadesha ->

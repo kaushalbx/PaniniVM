@@ -17,8 +17,6 @@ object DhatuPatha {
 
     fun find(id: String): Dhatu? = all.singleOrNull { it.id == id }
 
-    fun findByUpadesha(upadesha: String): List<Dhatu> = all.filter { it.upadesha == upadesha }
-
     fun findOneByUpadesha(upadesha: String): Dhatu? = all.single { it.upadesha == upadesha }
 
     fun resolveOperation(dhatuUpadesha: String, operationName: String): DhatuOperation {

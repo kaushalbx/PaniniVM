@@ -20,7 +20,8 @@
     "1.4.24": "https://ashtadhyayi.com/sutraani/1/4/24",
     "2.3.28": "https://ashtadhyayi.com/sutraani/2/3/28",
     "2.3.15": "https://ashtadhyayi.com/sutraani/2/3/15",
-    "1.4.43": "https://ashtadhyayi.com/sutraani/1/4/43"
+    "1.4.43": "https://ashtadhyayi.com/sutraani/1/4/43",
+    "1.4.55": "https://vishvasa.github.io/sanskrit/vyAkaraNam/pANinIyam/mUlAni/kAshikA/puShpA-pratiH/1/04/"
   },
   "reviews": [
     {
@@ -1348,240 +1349,6 @@
       ]
     },
     {
-      "id": "sort_and_partition_chained_members",
-      "rationale": "Chained ca coordinates the genitive member enumeration attached to the written list head. Repeated equal numerals remain distinct occurrences with the same nominal relation; genitive anchors resolve dual os members.",
-      "participants": [
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "alternatives": [],
-          "karaka": "KARTR",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "PRATHAMA"
-        }
-      ],
-      "occurrence": 0,
-      "path": "examples/collections/sort_and_partition.pvm",
-      "clause": "त्रि + आम् एक + ङस् द्वि + ओस् च एक + ङस् च सूची + सुँ असँ + लट् + तिप्"
-    },
-    {
-      "id": "group_by_chained_members",
-      "rationale": "Chained ca coordinates the genitive member enumeration attached to the written list head. Repeated equal numerals remain distinct occurrences with the same nominal relation; genitive anchors resolve dual os members.",
-      "participants": [
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "alternatives": [],
-          "karaka": "KARTR",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "PRATHAMA"
-        }
-      ],
-      "occurrence": 0,
-      "path": "examples/collections/group_by.pvm",
-      "clause": "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च द्वि + ओस् च सूची + सुँ असँ + लट् + तिप्"
-    },
-    {
-      "id": "distinct_chained_members",
-      "rationale": "Chained ca coordinates the genitive member enumeration attached to the written list head. Repeated equal numerals remain distinct occurrences with the same nominal relation; genitive anchors resolve dual os members.",
-      "participants": [
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "2.3.50"
-          ],
-          "alternatives": [],
-          "karaka": "SAMBANDHA",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "SASTHI"
-        },
-        {
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "alternatives": [],
-          "karaka": "KARTR",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "candidates": [],
-          "additionalDesignations": [],
-          "case": "PRATHAMA"
-        }
-      ],
-      "occurrence": 0,
-      "path": "examples/collections/distinct.pvm",
-      "clause": "एक + ङस् द्वि + ओस् एक + ङस् त्रि + आम् च द्वि + ओस् च सूची + सुँ असँ + लट् + तिप्"
-    },
-    {
       "id": "sort_ascending",
       "rationale": "The list is the affected object being sorted. Sorting direction does not turn the collection into a locus.",
       "path": "examples/collections/sort_and_partition.pvm",
@@ -1801,74 +1568,6 @@
       ]
     },
     {
-      "id": "count_collection_members",
-      "occurrence": 0,
-      "wordOrders": [
-        [
-          4,
-          5,
-          0,
-          1,
-          2,
-          3
-        ]
-      ],
-      "path": "examples/arithmetic/count_demo.pvm",
-      "clause": "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप्",
-      "participants": [
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "KARTR",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "case": "PRATHAMA",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED"
-        }
-      ],
-      "rationale": "The coordinated numeral enumeration specifies the members of the written list. Unambiguous genitives anchor the shared nominal relation, selecting genitive rather than locative for the syncretic dual os. The list itself is the existential subject."
-    },
-    {
       "id": "count_list_object",
       "path": "examples/arithmetic/count_demo.pvm",
       "clause": "सूची + अम् गण + णिच् + लोट् + सिप्",
@@ -1974,142 +1673,6 @@
           "karaka": "KARMAN"
         }
       ]
-    },
-    {
-      "id": "foreach_collection_members",
-      "occurrence": 0,
-      "wordOrders": [
-        [
-          4,
-          5,
-          0,
-          1,
-          2,
-          3
-        ]
-      ],
-      "path": "examples/control_flow/foreach.pvm",
-      "clause": "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप्",
-      "participants": [
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "KARTR",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "case": "PRATHAMA",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED"
-        }
-      ],
-      "rationale": "The coordinated numeral enumeration specifies the members of the written list. Unambiguous genitives anchor the shared nominal relation, selecting genitive rather than locative for the syncretic dual os. The list itself is the existential subject."
-    },
-    {
-      "id": "local_pronouns_collection_members",
-      "occurrence": 0,
-      "wordOrders": [
-        [
-          4,
-          5,
-          0,
-          1,
-          2,
-          3
-        ]
-      ],
-      "path": "examples/control_flow/local_pronouns.pvm",
-      "clause": "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप्",
-      "participants": [
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "SAMBANDHA",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "2.3.50"
-          ],
-          "case": "SASTHI",
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED"
-        },
-        {
-          "karaka": "KARTR",
-          "additionalDesignations": [],
-          "candidates": [],
-          "alternatives": [],
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "case": "PRATHAMA",
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED"
-        }
-      ],
-      "rationale": "The coordinated numeral enumeration specifies the members of the written list. Unambiguous genitives anchor the shared nominal relation, selecting genitive rather than locative for the syncretic dual os. The list itself is the existential subject."
     },
     {
       "id": "foreach_member_print",
@@ -3420,156 +2983,6 @@
       ]
     },
     {
-      "id": "judged_examples_algorithms_bubble_sort_pvm_item_0_clause_0",
-      "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "पञ्चन्+आम्एक+ङस्चतुर्+आम्द्वि+ओस्अष्टन्+आम्त्रि+आम्चदत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          11,
-          10,
-          9,
-          8,
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "पञ्चन्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "अष्टन्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "दत्तसूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "ANIRDHARITA",
-          "case": "PRATHAMA",
-          "chain": [
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        },
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_algorithms_bubble_sort_pvm_item_1_clause_0",
       "path": "examples/algorithms/bubble_sort.pvm",
       "clause": "क्रम+अम्एक+अम्चयुज्+णिच्+लोट्+सिप्",
@@ -3816,16 +3229,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "स्था+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_algorithms_bubble_sort_pvm_item_1_clause_5",
-      "path": "examples/algorithms/bubble_sort.pvm",
-      "clause": "सत्य+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_examples_algorithms_bubble_sort_pvm_item_2_clause_0",
@@ -6720,130 +6123,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_algorithms_two_sum_pvm_item_0_clause_0",
-      "path": "examples/algorithms/two_sum.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्चदत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          9,
-          8,
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "दत्तसूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "ANIRDHARITA",
-          "case": "PRATHAMA",
-          "chain": [
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        },
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_algorithms_two_sum_pvm_item_1_clause_0",
       "path": "examples/algorithms/two_sum.pvm",
       "clause": "युज्+णिच्+लोट्+सिप्",
@@ -6911,16 +6190,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "असँ+लट्+तिप्"
-    },
-    {
-      "id": "judged_examples_algorithms_two_sum_pvm_item_1_clause_3",
-      "path": "examples/algorithms/two_sum.pvm",
-      "clause": "असत्य+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_examples_algorithms_vector_dot_product_pvm_item_0_clause_0",
@@ -8145,46 +7414,6 @@
       ]
     },
     {
-      "id": "judged_examples_arithmetic_random_demo_pvm_item_0_clause_0",
-      "path": "examples/arithmetic/random_demo.pvm",
-      "clause": "अक्ष+अम्दिव्+श्यन्+लोट्+सिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "अक्ष+अम्",
-          "resolution": "RESOLVED",
-          "karaka": "KARMAN",
-          "case": "DVITIYA",
-          "chain": [
-            "1.4.43",
-            "2.3.2"
-          ],
-          "candidates": [],
-          "alternatives": [
-            {
-              "case": "TRTIYA",
-              "kind": "COEXISTENT_CASE",
-              "chain": [
-                "1.4.43",
-                "2.3.18"
-              ],
-              "observed": false
-            }
-          ],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "दिव्+श्यन्+लोट्+सिप्"
-    },
-    {
       "id": "judged_examples_arithmetic_random_demo_pvm_item_1_clause_0",
       "path": "examples/arithmetic/random_demo.pvm",
       "clause": "मुद्र्+णिच्+लोट्+सिप्फल+अम्",
@@ -8215,130 +7444,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_collections_adjacent_addition_pvm_item_0_clause_0",
-      "path": "examples/collections/adjacent_addition.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्चदत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          9,
-          8,
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "दत्तसूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "ANIRDHARITA",
-          "case": "PRATHAMA",
-          "chain": [
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        },
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_collections_adjacent_addition_pvm_item_1_clause_0",
       "path": "examples/collections/adjacent_addition.pvm",
       "clause": "युज्+णिच्+लोट्+सिप्",
@@ -8348,84 +7453,6 @@
       "participants": [],
       "headKind": "FINITE",
       "headSource": "युज्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_list_declaration_pvm_item_0_clause_0",
-      "path": "examples/collections/list_declaration.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_list_declaration_pvm_item_1_clause_0",
@@ -8569,97 +7596,6 @@
       "headSource": "उद्+हृ+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_collections_member_sum_pvm_item_0_clause_0",
-      "path": "examples/collections/member_sum.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_collections_member_sum_pvm_item_1_clause_0",
       "path": "examples/collections/member_sum.pvm",
       "clause": "सूची+ङस्सङ्ख्या+शस्युज्+णिच्+क्त्वामुद्र्+णिच्+लोट्+सिप्",
@@ -8708,94 +7644,6 @@
       ]
     },
     {
-      "id": "judged_examples_collections_membership_pvm_item_0_clause_0",
-      "path": "examples/collections/membership.pvm",
-      "clause": "एक+ङस्त्रि+आम्चसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
-      "id": "judged_examples_collections_membership_pvm_item_1_clause_1",
-      "path": "examples/collections/membership.pvm",
-      "clause": "सत्य+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_collections_membership_pvm_item_1_clause_2",
       "path": "examples/collections/membership.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -8824,16 +7672,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_membership_pvm_item_1_clause_3",
-      "path": "examples/collections/membership.pvm",
-      "clause": "असत्य+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_examples_collections_membership_pvm_item_1_clause_4",
@@ -8866,16 +7704,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_collections_membership_pvm_item_2_clause_1",
-      "path": "examples/collections/membership.pvm",
-      "clause": "सत्य+सुँ",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_collections_membership_pvm_item_2_clause_2",
       "path": "examples/collections/membership.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -8906,16 +7734,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_collections_membership_pvm_item_2_clause_3",
-      "path": "examples/collections/membership.pvm",
-      "clause": "असत्य+सुँ",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_collections_membership_pvm_item_2_clause_4",
       "path": "examples/collections/membership.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -8944,117 +7762,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_named_list_declaration_pvm_item_0_clause_0",
-      "path": "examples/collections/named_list_declaration.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चक्रम+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          8,
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "क्रम+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "ANIRDHARITA",
-          "case": "PRATHAMA",
-          "chain": [
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        },
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_named_list_declaration_pvm_item_1_clause_0",
@@ -9173,110 +7880,6 @@
       ]
     },
     {
-      "id": "judged_examples_collections_numeric_list_declaration_pvm_item_0_clause_0",
-      "path": "examples/collections/numeric_list_declaration.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्चसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_collections_numeric_list_declaration_pvm_item_1_clause_0",
       "path": "examples/collections/numeric_list_declaration.pvm",
       "clause": "सूची+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -9305,97 +7908,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_ordinal_index_pvm_item_0_clause_0",
-      "path": "examples/collections/ordinal_index.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सङ्ख्या+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_ordinal_index_pvm_item_1_clause_0",
@@ -9483,84 +7995,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_ordinal_members_pvm_item_0_clause_0",
-      "path": "examples/collections/ordinal_members.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_ordinal_members_pvm_item_1_clause_0",
@@ -10388,75 +8822,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_collections_quantified_predicates_pvm_item_0_clause_0",
-      "path": "examples/collections/quantified_predicates.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
-    },
-    {
       "id": "judged_examples_collections_quantified_predicates_pvm_item_2_clause_0",
       "path": "examples/collections/quantified_predicates.pvm",
       "clause": "सदस्य+सुँशून्य+ङसिँअधिक+सुँअसँ+लट्+तिप्",
@@ -10504,97 +8869,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "असँ+लट्+तिप्"
-    },
-    {
-      "id": "judged_examples_collections_reduction_pvm_item_0_clause_0",
-      "path": "examples/collections/reduction.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_reduction_pvm_item_1_clause_0",
@@ -10805,26 +9079,6 @@
       "headSource": "असँ+लट्+तिप्"
     },
     {
-      "id": "judged_examples_collections_reduction_pvm_item_5_clause_1",
-      "path": "examples/collections/reduction.pvm",
-      "clause": "सदस्य+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_examples_collections_reduction_pvm_item_5_clause_2",
-      "path": "examples/collections/reduction.pvm",
-      "clause": "सञ्चित+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_collections_reduction_pvm_item_6_clause_0",
       "path": "examples/collections/reduction.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -10853,84 +9107,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_collections_word_list_declaration_pvm_item_0_clause_0",
-      "path": "examples/collections/word_list_declaration.pvm",
-      "clause": "राम+ङस्सीता+ङस्चशब्द+आम्सूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "राम+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सीता+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "शब्द+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_examples_collections_word_list_declaration_pvm_item_1_clause_0",
@@ -11189,23 +9365,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_control_flow_local_pronouns_pvm_item_0_clause_0",
-      "path": "examples/control_flow/local_pronouns.pvm",
-      "clause": "मान+सुँसङ्ख्या+सुँइतिमान+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_control_flow_local_pronouns_pvm_item_0_clause_2",
       "path": "examples/control_flow/local_pronouns.pvm",
       "clause": "तद्+सुँद्वि+भ्याम्सम+सुँअसँ+लट्+तिप्",
@@ -11269,26 +9428,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "असँ+लट्+तिप्"
-    },
-    {
-      "id": "judged_examples_control_flow_local_pronouns_pvm_item_0_clause_3",
-      "path": "examples/control_flow/local_pronouns.pvm",
-      "clause": "तद्+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_examples_control_flow_local_pronouns_pvm_item_0_clause_4",
-      "path": "examples/control_flow/local_pronouns.pvm",
-      "clause": "एक+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_examples_control_flow_local_pronouns_pvm_item_1_clause_0",
@@ -11460,16 +9599,6 @@
       "headSource": "असँ+लट्+तिप्"
     },
     {
-      "id": "judged_examples_control_flow_nominal_results_pvm_item_0_clause_1",
-      "path": "examples/control_flow/nominal_results.pvm",
-      "clause": "द्वि+औ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_examples_control_flow_nominal_results_pvm_item_0_clause_2",
       "path": "examples/control_flow/nominal_results.pvm",
       "clause": "मुद्र्+णिच्+लोट्+सिप्",
@@ -11479,16 +9608,6 @@
       "participants": [],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_examples_control_flow_nominal_results_pvm_item_0_clause_3",
-      "path": "examples/control_flow/nominal_results.pvm",
-      "clause": "त्रि+जस्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_examples_control_flow_nominal_results_pvm_item_0_clause_4",
@@ -13802,36 +11921,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_linguistic_summarize_demo_pvm_item_0_clause_0",
-      "path": "examples/linguistic/summarize_demo.pvm",
-      "clause": "वाक्य+अम्सु+णिच्+लोट्+सिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "वाक्य+अम्",
-          "resolution": "RESOLVED",
-          "karaka": "KARMAN",
-          "case": "DVITIYA",
-          "chain": [
-            "1.4.49",
-            "2.3.2"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "सु+णिच्+लोट्+सिप्"
-    },
-    {
       "id": "judged_examples_linguistic_summarize_demo_pvm_item_1_clause_0",
       "path": "examples/linguistic/summarize_demo.pvm",
       "clause": "मुद्र्+णिच्+लोट्+सिप्फल+अम्",
@@ -14137,6 +12226,18 @@
           "additionalDesignations": []
         },
         {
+          "source": "गुण+मतुप्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
           "source": "वृध्+ल्युट्+टा",
           "resolution": "RESOLVED",
           "karaka": "KARANA",
@@ -14333,36 +12434,6 @@
       "headSource": "ग्रहँ+श्ना+लोट्+सिप्"
     },
     {
-      "id": "judged_examples_taddhita_structs_struct_mukhya_pvm_item_3_clause_0",
-      "path": "examples/taddhita_structs/struct_mukhya.pvm",
-      "clause": "मुद्र्+णिच्+लोट्+सिप्मूल्य+अम्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "मूल्य+अम्",
-          "resolution": "RESOLVED",
-          "karaka": "KARMAN",
-          "case": "DVITIYA",
-          "chain": [
-            "1.4.49",
-            "2.3.2"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
       "id": "judged_projects_adhikara_domain_math_ganita_lib_pvm_item_1_clause_0",
       "path": "projects/adhikara_domain/math/ganita_lib.pvm",
       "clause": "प्रथम+अम्द्वितीय+अम्चयुज्+णिच्+लोट्+सिप्",
@@ -14446,6 +12517,18 @@
           "chain": [
             "1.4.49",
             "2.3.2"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "गणित+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
           ],
           "candidates": [],
           "alternatives": [],
@@ -15830,39 +13913,6 @@
       "headSource": "मुद्र्+लोट्+सिप्"
     },
     {
-      "id": "judged_projects_list_operations_samavaya_lib_pvm_item_0_clause_0",
-      "path": "projects/list_operations/samavaya_lib.pvm",
-      "clause": "मान+सुँसूची+सुँइतिमान+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_list_operations_samavaya_lib_pvm_item_0_clause_1",
-      "path": "projects/list_operations/samavaya_lib.pvm",
-      "clause": "सङ्ख्या+सुँइतिपरिणाम+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_list_operations_samavaya_lib_pvm_item_0_clause_2",
       "path": "projects/list_operations/samavaya_lib.pvm",
       "clause": "मान+ङस्सङ्ख्या+शस्युज्+णिच्+लोट्+सिप्",
@@ -15904,110 +13954,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "युज्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_projects_list_operations_samavaya_mukhya_pvm_item_0_clause_0",
-      "path": "projects/list_operations/samavaya_mukhya.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्पञ्चन्+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "पञ्चन्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_projects_list_operations_samavaya_mukhya_pvm_item_1_clause_0",
@@ -16130,22 +14076,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_projects_multifile_ganita_pvm_item_1_clause_0",
-      "path": "projects/multifile/ganita.pvm",
-      "clause": "नद्वितीय+अम्शून्य+अम्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_multifile_ganita_pvm_item_1_clause_1",
       "path": "projects/multifile/ganita.pvm",
       "clause": "प्रथम+अम्द्वितीय+अम्चवि+भज्+णिच्+लोट्+सिप्",
@@ -16190,39 +14120,6 @@
           "repetitionCount": null
         }
       ]
-    },
-    {
-      "id": "judged_projects_multifile_ganita_pvm_item_2_clause_0",
-      "path": "projects/multifile/ganita.pvm",
-      "clause": "मान+सुँसूची+सुँइतिमान+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_multifile_ganita_pvm_item_2_clause_1",
-      "path": "projects/multifile/ganita.pvm",
-      "clause": "सङ्ख्या+सुँइतिपरिणाम+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_projects_multifile_ganita_pvm_item_2_clause_2",
@@ -16336,110 +14233,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "डुकृञ्+उ+लोट्+सिप्"
-    },
-    {
-      "id": "judged_projects_multifile_mukhya_pvm_item_1_clause_0",
-      "path": "projects/multifile/mukhya.pvm",
-      "clause": "एक+ङस्द्वि+ओस्त्रि+आम्चतुर्+आम्पञ्चन्+आम्चसूची+सुँअसँ+लट्+तिप्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
-      "wordOrders": [
-        [
-          7,
-          6,
-          5,
-          4,
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [
-        {
-          "source": "एक+ङस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "द्वि+ओस्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "त्रि+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "चतुर्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "पञ्चन्+आम्",
-          "resolution": "RESOLVED",
-          "karaka": "SAMBANDHA",
-          "case": "SASTHI",
-          "chain": [
-            "2.3.50"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        },
-        {
-          "source": "सूची+सुँ",
-          "resolution": "RESOLVED",
-          "karaka": "KARTR",
-          "case": "PRATHAMA",
-          "chain": [
-            "1.4.54",
-            "2.3.46"
-          ],
-          "candidates": [],
-          "alternatives": [],
-          "additionalDesignations": []
-        }
-      ],
-      "headKind": "FINITE",
-      "headSource": "असँ+लट्+तिप्",
-      "qualifications": [
-        {
-          "kind": "OTHER",
-          "function": null,
-          "scopes": null,
-          "repetitionCount": null
-        }
-      ]
     },
     {
       "id": "judged_projects_multifile_mukhya_pvm_item_2_clause_0",
@@ -16600,16 +14393,6 @@
       "headSource": "असँ+लट्+तिप्"
     },
     {
-      "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_2",
-      "path": "projects/number-guessing-game/number_guessing_game.pvm",
-      "clause": "विजय+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_3",
       "path": "projects/number-guessing-game/number_guessing_game.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -16701,16 +14484,6 @@
       "headSource": "असँ+लट्+तिप्"
     },
     {
-      "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_5",
-      "path": "projects/number-guessing-game/number_guessing_game.pvm",
-      "clause": "लघु + सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_6",
       "path": "projects/number-guessing-game/number_guessing_game.pvm",
       "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
@@ -16739,16 +14512,6 @@
       ],
       "headKind": "FINITE",
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
-    },
-    {
-      "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_7",
-      "path": "projects/number-guessing-game/number_guessing_game.pvm",
-      "clause": "गुरु + सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_8",
@@ -17063,22 +14826,6 @@
           "repetitionCount": null
         }
       ]
-    },
-    {
-      "id": "judged_projects_paninian_morphology_morph_lib_pvm_item_2_clause_0",
-      "path": "projects/paninian_morphology/morph_lib.pvm",
-      "clause": "नप्रथम+अम्सङ्ख्या+त्व+अम्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_projects_paninian_morphology_morph_lib_pvm_item_2_clause_1",
@@ -17705,22 +15452,6 @@
       "headSource": "डुकृञ्+उ+लोट्+सिप्"
     },
     {
-      "id": "judged_projects_taddhita_inheritance_antaratama_overload_pvm_item_1_clause_0",
-      "path": "projects/taddhita_inheritance/antaratama_overload.pvm",
-      "clause": "नप्रथम+अम्सङ्ख्या+त्व+अम्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_taddhita_inheritance_antaratama_overload_pvm_item_1_clause_1",
       "path": "projects/taddhita_inheritance/antaratama_overload.pvm",
       "clause": "प्रथम+अम्द्वितीय+अम्चयुज्+णिच्+लोट्+सिप्",
@@ -17765,22 +15496,6 @@
           "repetitionCount": null
         }
       ]
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_antaratama_overload_pvm_item_2_clause_0",
-      "path": "projects/taddhita_inheritance/antaratama_overload.pvm",
-      "clause": "नप्रथम+अम्शब्द+त्व+अम्",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_projects_taddhita_inheritance_antaratama_overload_pvm_item_2_clause_1",
@@ -17857,6 +15572,18 @@
           "chain": [
             "1.4.49",
             "2.3.2"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "गणित+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
           ],
           "candidates": [],
           "alternatives": [],
@@ -18031,6 +15758,18 @@
           "chain": [
             "1.4.49",
             "2.3.2"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "गाणित+मतुप्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
           ],
           "candidates": [],
           "alternatives": [],
@@ -18319,6 +16058,18 @@
           "additionalDesignations": []
         },
         {
+          "source": "गणित+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
           "source": "गण+ल्युट्+टा",
           "resolution": "RESOLVED",
           "karaka": "KARANA",
@@ -18479,6 +16230,18 @@
           "chain": [
             "1.4.49",
             "2.3.2"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "गाणित+मतुप्+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
           ],
           "candidates": [],
           "alternatives": [],
@@ -18946,56 +16709,6 @@
       "headSource": "मुद्र्+णिच्+लोट्+सिप्"
     },
     {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_0",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+सुँसङ्ख्या+सुँइतिमान+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_1",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "दक्षिण+सुँसङ्ख्या+सुँइतिमान+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_2",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "सङ्ख्या+सुँइतिपरिणाम+सुँ",
-      "occurrence": 0,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
       "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_3",
       "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
       "clause": "वाम+अम्दक्षिण+अम्चयुज्+णिच्+लोट्+सिप्",
@@ -19040,56 +16753,6 @@
           "repetitionCount": null
         }
       ]
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_0",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "वाम+सुँसङ्ख्या+सुँइतिमान+सुँ",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_1",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "दक्षिण+सुँसङ्ख्या+सुँइतिमान+सुँ",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          3,
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
-    },
-    {
-      "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_2",
-      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
-      "clause": "सङ्ख्या+सुँइतिपरिणाम+सुँ",
-      "occurrence": 1,
-      "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
-      "wordOrders": [
-        [
-          2,
-          1,
-          0
-        ]
-      ],
-      "participants": [],
-      "headKind": "NOMINAL"
     },
     {
       "id": "judged_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_3",
@@ -19251,6 +16914,18 @@
           "chain": [
             "1.4.49",
             "2.3.2"
+          ],
+          "candidates": [],
+          "alternatives": [],
+          "additionalDesignations": []
+        },
+        {
+          "source": "गाणित+ङस्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
           ],
           "candidates": [],
           "alternatives": [],
@@ -19419,6 +17094,1961 @@
       ],
       "headKind": "FINITE",
       "headSource": "असँ+लट्+तिप्"
+    },
+    {
+      "id": "rereview_examples_algorithms_bubble_sort_pvm_item_0_clause_0",
+      "path": "examples/algorithms/bubble_sort.pvm",
+      "clause": "दत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दत्तसूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_algorithms_bubble_sort_pvm_item_1_clause_5",
+      "path": "examples/algorithms/bubble_sort.pvm",
+      "clause": "सत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_algorithms_two_sum_pvm_item_0_clause_0",
+      "path": "examples/algorithms/two_sum.pvm",
+      "clause": "दत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दत्तसूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_algorithms_two_sum_pvm_item_1_clause_3",
+      "path": "examples/algorithms/two_sum.pvm",
+      "clause": "असत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "असत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_arithmetic_count_demo_pvm_item_0_clause_0",
+      "path": "examples/arithmetic/count_demo.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_arithmetic_random_demo_pvm_item_0_clause_0",
+      "path": "examples/arithmetic/random_demo.pvm",
+      "clause": "एक+ङसिँषष्+ङिदिव्+श्यन्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "एक+ङसिँ",
+          "resolution": "RESOLVED",
+          "karaka": "APADANA",
+          "case": "PANCHAMI",
+          "chain": [
+            "1.4.24",
+            "2.3.28"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "षष्+ङि",
+          "resolution": "RESOLVED",
+          "karaka": "ADHIKARANA",
+          "case": "SAPTAMI",
+          "chain": [
+            "1.4.45",
+            "2.3.36"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_adjacent_addition_pvm_item_0_clause_0",
+      "path": "examples/collections/adjacent_addition.pvm",
+      "clause": "दत्तसूची+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दत्तसूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_distinct_pvm_item_0_clause_0",
+      "path": "examples/collections/distinct.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_group_by_pvm_item_0_clause_0",
+      "path": "examples/collections/group_by.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_list_declaration_pvm_item_0_clause_0",
+      "path": "examples/collections/list_declaration.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_member_sum_pvm_item_0_clause_0",
+      "path": "examples/collections/member_sum.pvm",
+      "clause": "सङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_membership_pvm_item_0_clause_0",
+      "path": "examples/collections/membership.pvm",
+      "clause": "सङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_membership_pvm_item_1_clause_1",
+      "path": "examples/collections/membership.pvm",
+      "clause": "सत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_membership_pvm_item_1_clause_3",
+      "path": "examples/collections/membership.pvm",
+      "clause": "असत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "असत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_membership_pvm_item_2_clause_1",
+      "path": "examples/collections/membership.pvm",
+      "clause": "सत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_membership_pvm_item_2_clause_3",
+      "path": "examples/collections/membership.pvm",
+      "clause": "असत्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "असत्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_named_list_declaration_pvm_item_0_clause_0",
+      "path": "examples/collections/named_list_declaration.pvm",
+      "clause": "क्रम+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "क्रम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_numeric_list_declaration_pvm_item_0_clause_0",
+      "path": "examples/collections/numeric_list_declaration.pvm",
+      "clause": "सङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_ordinal_index_pvm_item_0_clause_0",
+      "path": "examples/collections/ordinal_index.pvm",
+      "clause": "सङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_ordinal_members_pvm_item_0_clause_0",
+      "path": "examples/collections/ordinal_members.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_quantified_predicates_pvm_item_0_clause_0",
+      "path": "examples/collections/quantified_predicates.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_reduction_pvm_item_0_clause_0",
+      "path": "examples/collections/reduction.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_reduction_pvm_item_5_clause_1",
+      "path": "examples/collections/reduction.pvm",
+      "clause": "सदस्य+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सदस्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_reduction_pvm_item_5_clause_2",
+      "path": "examples/collections/reduction.pvm",
+      "clause": "सञ्चित+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सञ्चित+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_sort_and_partition_pvm_item_0_clause_0",
+      "path": "examples/collections/sort_and_partition.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_collections_word_list_declaration_pvm_item_0_clause_0",
+      "path": "examples/collections/word_list_declaration.pvm",
+      "clause": "शब्द+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "शब्द+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_chet_pvm_item_0_clause_0",
+      "path": "examples/control_flow/chet.pvm",
+      "clause": "एक+सुँएक+टासम+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "एक+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "एक+टा",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "TRTIYA",
+          "chain": [
+            "2.3.72"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": [
+            {
+              "case": "SASTHI",
+              "kind": "OPTIONAL_VIBHAKTI",
+              "chain": [
+                "2.3.72"
+              ],
+              "observed": false
+            }
+          ]
+        },
+        {
+          "source": "सम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_chet_pvm_item_0_clause_1",
+      "path": "examples/control_flow/chet.pvm",
+      "clause": "पञ्चन्+शस्मुद्र्+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "पञ्चन्+शस्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_foreach_pvm_item_0_clause_0",
+      "path": "examples/control_flow/foreach.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_local_pronouns_pvm_item_0_clause_0",
+      "path": "examples/control_flow/local_pronouns.pvm",
+      "clause": "मान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_local_pronouns_pvm_item_0_clause_3",
+      "path": "examples/control_flow/local_pronouns.pvm",
+      "clause": "तद्+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "तद्+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_local_pronouns_pvm_item_0_clause_4",
+      "path": "examples/control_flow/local_pronouns.pvm",
+      "clause": "एक+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "एक+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_local_pronouns_pvm_item_3_clause_0",
+      "path": "examples/control_flow/local_pronouns.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_nominal_results_pvm_item_0_clause_1",
+      "path": "examples/control_flow/nominal_results.pvm",
+      "clause": "द्वि+औअसँ+लट्+तस्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "द्वि+औ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_control_flow_nominal_results_pvm_item_0_clause_3",
+      "path": "examples/control_flow/nominal_results.pvm",
+      "clause": "त्रि+जस्असँ+लट्+झि",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "त्रि+जस्",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_apadana_pvm_item_0_clause_0",
+      "path": "examples/linguistic/apadana.pvm",
+      "clause": "कोष+सुँनामसङ्ख्या+आम्सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "कोष+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+आम्",
+          "resolution": "RESOLVED",
+          "karaka": "SAMBANDHA",
+          "case": "SASTHI",
+          "chain": [
+            "2.3.50"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_apadana_pvm_item_1_clause_0",
+      "path": "examples/linguistic/apadana.pvm",
+      "clause": "कोष+ङसिँएक+ङिमूल्य+अम्ग्रहँ+श्ना+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "कोष+ङसिँ",
+          "resolution": "RESOLVED",
+          "karaka": "APADANA",
+          "case": "PANCHAMI",
+          "chain": [
+            "1.4.24",
+            "2.3.28"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "एक+ङि",
+          "resolution": "RESOLVED",
+          "karaka": "ADHIKARANA",
+          "case": "SAPTAMI",
+          "chain": [
+            "1.4.45",
+            "2.3.36"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "मूल्य+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_apadana_pvm_item_2_clause_0",
+      "path": "examples/linguistic/apadana.pvm",
+      "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "फल+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_karmani_pvm_item_0_clause_0",
+      "path": "examples/linguistic/karmani.pvm",
+      "clause": "पञ्चन्+जस्राम+टामुद्र्+यक्+लोट्+झ",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "पञ्चन्+जस्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.49",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "राम+टा",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "TRTIYA",
+          "chain": [
+            "1.4.54",
+            "2.3.18"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_nijanta_pvm_item_0_clause_0",
+      "path": "examples/linguistic/nijanta.pvm",
+      "clause": "गुरु+सुँशिष्य+टापञ्चन्+शस्मुद्र्+णिच्+लोट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "गुरु+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.55",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [
+            "HETU"
+          ],
+          "alternatives": []
+        },
+        {
+          "source": "शिष्य+टा",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "TRTIYA",
+          "chain": [
+            "1.4.54",
+            "2.3.18"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "पञ्चन्+शस्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_rajakosha_pvm_item_0_clause_0",
+      "path": "examples/linguistic/rajakosha.pvm",
+      "clause": "शत+अम्कोष+ङिस्था+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "शत+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "कोष+ङि",
+          "resolution": "RESOLVED",
+          "karaka": "ADHIKARANA",
+          "case": "SAPTAMI",
+          "chain": [
+            "1.4.45",
+            "2.3.36"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_rajakosha_pvm_item_1_clause_0",
+      "path": "examples/linguistic/rajakosha.pvm",
+      "clause": "दशन्+शस्भाण्डार+ङेदा+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दशन्+शस्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "भाण्डार+ङे",
+          "resolution": "RESOLVED",
+          "karaka": "SAMPRADANA",
+          "case": "CHATURTHI",
+          "chain": [
+            "1.4.32",
+            "2.3.13"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_rajakosha_pvm_item_2_clause_0",
+      "path": "examples/linguistic/rajakosha.pvm",
+      "clause": "फल+अम्मुद्र्+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "फल+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_linguistic_summarize_demo_pvm_item_0_clause_0",
+      "path": "examples/linguistic/summarize_demo.pvm",
+      "clause": "विद्याविनयसम्पन्नब्राह्मणगवीहस्तिनि+अम्सु+णिच्+लोट्+सिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "विद्याविनयसम्पन्नब्राह्मणगवीहस्तिनि+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_examples_taddhita_structs_struct_mukhya_pvm_item_3_clause_0",
+      "path": "examples/taddhita_structs/struct_mukhya.pvm",
+      "clause": "मुद्र्+णिच्+लोट्+सिप्फल+अम्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "फल+अम्",
+          "resolution": "RESOLVED",
+          "karaka": "KARMAN",
+          "case": "DVITIYA",
+          "chain": [
+            "1.4.49",
+            "2.3.2"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_list_operations_samavaya_lib_pvm_item_0_clause_0",
+      "path": "projects/list_operations/samavaya_lib.pvm",
+      "clause": "मान+सुँसूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_list_operations_samavaya_lib_pvm_item_0_clause_1",
+      "path": "projects/list_operations/samavaya_lib.pvm",
+      "clause": "परिणाम+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "परिणाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_list_operations_samavaya_mukhya_pvm_item_0_clause_0",
+      "path": "projects/list_operations/samavaya_mukhya.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_multifile_ganita_pvm_item_1_clause_0",
+      "path": "projects/multifile/ganita.pvm",
+      "clause": "द्वितीय+सुँशून्य+सुँनभू+लिङ्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "द्वितीय+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "शून्य+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_multifile_ganita_pvm_item_2_clause_0",
+      "path": "projects/multifile/ganita.pvm",
+      "clause": "मान+सुँसूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_multifile_ganita_pvm_item_2_clause_1",
+      "path": "projects/multifile/ganita.pvm",
+      "clause": "परिणाम+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "परिणाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_multifile_mukhya_pvm_item_1_clause_0",
+      "path": "projects/multifile/mukhya.pvm",
+      "clause": "सूची+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "सूची+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_2",
+      "path": "projects/number-guessing-game/number_guessing_game.pvm",
+      "clause": "विजय+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "विजय+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_5",
+      "path": "projects/number-guessing-game/number_guessing_game.pvm",
+      "clause": "लघु+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "लघु+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_number_guessing_game_number_guessing_game_pvm_item_0_clause_7",
+      "path": "projects/number-guessing-game/number_guessing_game.pvm",
+      "clause": "गुरु+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "गुरु+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_paninian_morphology_morph_lib_pvm_item_2_clause_0",
+      "path": "projects/paninian_morphology/morph_lib.pvm",
+      "clause": "प्रथम+सुँसङ्ख्या+त्व+सुँनभू+लिङ्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "प्रथम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+त्व+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_antaratama_overload_pvm_item_1_clause_0",
+      "path": "projects/taddhita_inheritance/antaratama_overload.pvm",
+      "clause": "प्रथम+सुँसङ्ख्या+त्व+सुँनभू+लिङ्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "प्रथम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+त्व+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_antaratama_overload_pvm_item_2_clause_0",
+      "path": "projects/taddhita_inheritance/antaratama_overload.pvm",
+      "clause": "प्रथम+सुँशब्द+त्व+सुँनभू+लिङ्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "प्रथम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "शब्द+त्व+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_0",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "वाम+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "वाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_1",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "दक्षिण+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दक्षिण+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_1_clause_2",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "परिणाम+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 0,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "परिणाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_0",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "वाम+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "वाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_1",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "दक्षिण+सुँनाममान+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "दक्षिण+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "मान+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "rereview_projects_taddhita_inheritance_purvapara_pipeline_pvm_item_2_clause_2",
+      "path": "projects/taddhita_inheritance/purvapara_pipeline.pvm",
+      "clause": "परिणाम+सुँसङ्ख्या+सुँअसँ+लट्+तिप्",
+      "occurrence": 1,
+      "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
+      "participants": [
+        {
+          "source": "परिणाम+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "KARTR",
+          "case": "PRATHAMA",
+          "chain": [
+            "1.4.54",
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        },
+        {
+          "source": "सङ्ख्या+सुँ",
+          "resolution": "RESOLVED",
+          "karaka": "ANIRDHARITA",
+          "case": "PRATHAMA",
+          "chain": [
+            "2.3.46"
+          ],
+          "candidates": [],
+          "additionalDesignations": [],
+          "alternatives": []
+        }
+      ]
     }
   ]
 }

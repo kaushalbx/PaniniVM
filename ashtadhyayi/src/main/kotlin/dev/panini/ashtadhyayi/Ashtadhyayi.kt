@@ -111,8 +111,6 @@ object Ashtadhyayi {
     /** Resolves an implemented sūtra associated with a Gaṇapāṭha entry. */
     fun sutraFor(gana: Gana): Sutra<*, *> = registry.require(gana.sutra)
 
-    fun getSutrasByRole(role: SutraRole): List<Sutra<*, *>> = registry.sutras.filter { it.role == role }
-
     fun executableSutrasUnder(adhikaraNumber: String): List<DerivationSutra> =
         registry.governedBy(adhikaraNumber).filterIsInstance<DerivationSutra>()
 
@@ -127,7 +125,6 @@ object Ashtadhyayi {
         return executableSutras.filter { it.stage in included }
     }
 
-    fun sandhiSutrasAt(stage: SutraStage): List<DerivationSutra> = sandhiSutras.at(stage)
     fun sankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> =
         if (stage == SutraStage.IT_PROCESSING) {
             executableSutrasAt(stage).filter { sutra ->

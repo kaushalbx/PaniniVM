@@ -33,7 +33,7 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull {
-            it.kind == TermKind.DHATU && "1.1.47" in it.establishedBySutras
+            it.kind == TermKind.DHATU && ("1.1.47" in it.establishedBySutras || isAs(it))
         } ?: return false
         val ending = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val rupa = context.effectiveContext.rupa
@@ -52,17 +52,22 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
         // 1.2.4 supplies ṅ-it status to an apit sārvadhātuka ending. A later
         // explicit p-it assignment (3.4.92) blocks that atideśa.
         val isKngit = separateKngit || !ending.hasEffectiveMarker(ItMarker.P)
-        return isSarvadhatuka && isKngit && inherentAAfterInfixN(stem.varnas) != null
+        return isSarvadhatuka && isKngit && (isAs(stem) || inherentAAfterInfixN(stem.varnas) != null)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms.first { it.kind == TermKind.DHATU && "1.1.47" in it.establishedBySutras }
+        val root = context.terms.first { it.kind == TermKind.DHATU && ("1.1.47" in it.establishedBySutras || isAs(it)) }
+        // अस्: स्तः, सन्ति. Its only vowel is the अ this sūtra names.
+        if (isAs(root)) return DerivationChange(context.deleteTermVarnas(root.id, 0, 1, sutra), "6.4.111 deletes the अ of अस् before a k/ṅ-it sārvadhātuka ending.")
+        val stem = root
         val aIndex = requireNotNull(inherentAAfterInfixN(stem.varnas))
         return DerivationChange(
             context.deleteTermVarnas(stem.id, aIndex, 1, sutra),
             "6.4.111 deletes the inherent अ after the surviving न of श्नम् before a k/ṅ-it sārvadhātuka ending.",
         )
     }
+
+    private fun isAs(term: dev.panini.derivation.DerivationTerm) = term.upadesha == "असँ" && term.varnas == listOf(Svara.A, Vyanjana.SA)
 
     private fun inherentAAfterInfixN(varnas: List<dev.panini.shiksha.Varna>): Int? =
         (1 until varnas.lastIndex).firstOrNull { index ->

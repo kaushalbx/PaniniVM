@@ -11,7 +11,7 @@ import kotlin.test.assertNotNull
 class OrdinalObjectDiagnosticParityTest {
     @Test
     fun `derived collection selector diagnostic has interpreter compiler parity`() {
-        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् प्रथम + मतुप् + अम् उद् + हृ + लोट् + सिप् ।"
         val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
         val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)
@@ -27,7 +27,7 @@ class OrdinalObjectDiagnosticParityTest {
 
     @Test
     fun `ordinal object agreement diagnostic has interpreter compiler parity`() {
-        val source = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् प्रथम + टा मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
         val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
         val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)

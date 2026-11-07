@@ -50,7 +50,7 @@ internal class SessionRuntime(
     ): ExecutionResult {
         if (utterance.isBlank()) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
             "The Sanskrit utterance is empty.")
-        val parsed = try { parser.parse(utterance) }
+        val parsed = try { parser.parse(utterance).also(parser::requireWrittenVerbs) }
         catch (failure: dev.panini.vyakaranam.parser.PaniniParseException) {
             return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
                 failure.message ?: "Invalid annotated Sanskrit morphology.")
@@ -260,10 +260,6 @@ internal class SessionRuntime(
             previousResultSamjnas = context.previousResultSamjnas + values.mapValues { it.value.samjnas },
             previousTypedResults = context.previousTypedResults + values,
         ), persistSession)
-    }
-
-    fun save(sessionKey: String) {
-        sessions[sessionKey]?.let { store.save(sessionKey, it) }
     }
 
     fun listKeys(): List<String> = store.listKeys()

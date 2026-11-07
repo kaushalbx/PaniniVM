@@ -53,7 +53,7 @@ class PrakriyaEffectSemanticsTest {
 
     private fun procedure(resultType: PrakriyaValueType? = null, resultSchema: String? = null): Prakriya {
         val definition = PvmScript.parse("""
-            सिध् + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            सिध् + क्त + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
         """.trimIndent()).filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().single()
         return Prakriya(definition.nameSegmented, definition.prakriya.nameIdentity, definition.body,

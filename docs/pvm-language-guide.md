@@ -79,7 +79,7 @@ Use a single danda `।` to end an ordinary sentence:
 Use a double danda `॥` to close the final sentence of a reusable kriyā block:
 
 ```pvm
-दर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+दर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 सन्देश + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 ```
 
@@ -114,7 +114,6 @@ supported alternatives, not a license to ignore case or agreement.
 | Print a preceding result | Use an objectless display stage after `ततः` or a prior action | Write `फल + अम्` explicitly |
 | Supply procedure arguments | Place values positionally in declaration order | Pair each locative parameter name with its accusative value |
 | Feed a procedure from a pipeline | Let the prior result fill one missing parameter | Supply all arguments explicitly at the call site |
-| Name a procedure | Use `इति प्रक्रिया … अस्ति` | Use the preferred `नाम प्रक्रिया … अस्ति` form |
 | Name a list declaration | Put a nominative name before `इति` | Put the nominative name immediately before `नाम` inside the declaration |
 | Read a collection member | Use a genitive whole with an agreeing ordinal object | Use an ablative source with a locative numeric or ordinal position |
 | Build a collection | Use a copular `… सूची अस्ति` declaration | Request collection formation with the supported `सम् + ग्रहँ` action |
@@ -1344,8 +1343,8 @@ This restriction concerns the named referents, not the number of input values.
 Declarations likewise use a nominative singular name and, when scoped, a genitive
 singular domain. Dual/plural declarations do not currently define multiple symbols.
 
-`नाम` is the naming particle. The existing `इति प्रक्रिया … अस्ति` form remains
-supported and produces the same native procedure identity. For a neuter name
+`नाम` is the naming particle, as in रामायणं नाम काव्यम्; it is the only way to
+declare a procedure. `इति` marks quotation and is rejected in a header. For a neuter name
 such as गणनम्, use nominative `गणन + सुँ`, not accusative `गणन + अम्`:
 
 ```pvm
@@ -1360,11 +1359,11 @@ The “this” pronoun is not part of this new construction.
 ```
 
 Derived action nouns still use `ल्युट्` on a verbal root, for example
-`गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्` and the
+`गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप्` and the
 matching call `गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप्`.
 Keep the same nominal identity in the declaration and call. A bare
 `… + ल्युट् + सुँ ।` is a nominal statement, not a procedure declaration in
-the default native document parser. Use an explicit `नाम प्रक्रिया … अस्ति` or `इति प्रक्रिया … अस्ति`
+the default native document parser. Use an explicit `नाम प्रक्रिया … अस्ति`
 declaration. Parsing follows grammatical statement delimiters, not physical
 lines, so a declaration or body statement may span several lines. Older bare
 headers are listed only as compatibility syntax in §16.1.
@@ -1448,7 +1447,7 @@ supported.
 Place signature declarations at the beginning of the block:
 
 ```pvm
-योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
 दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
 सङ्ख्या + सुँ इति परिणाम + सुँ ।
@@ -1543,7 +1542,7 @@ Qualify `प्रक्रिया` with the segmented feminine adjective `अ
 to make the definition file-private:
 
 ```pvm
-गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+गण + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
 प्रथम + अम् द्वि + औट् च गुण + णिच् + लोट् + सिप् ॥
 ```
 
@@ -1558,7 +1557,7 @@ An अधिकार declaration governs following definitions:
 A definition can also carry the domain explicitly:
 
 ```pvm
-गणित + ङस् योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+गणित + ङस् योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 ...
 ```
 
@@ -1609,7 +1608,7 @@ Readable Sanskrit: `अवस्था प्रयत्नसङ्ख्य�
 A typed kriyā can declare that schema as its result:
 
 ```pvm
-अनुमान + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+अनुमान + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।
 ...
 ```
@@ -1820,7 +1819,7 @@ look equally idiomatic.
 | Join collections | `सृज्` with a dative second collection | `सम् + युज्` with coordinated accusative collections (§7.7) |
 | Slice a collection | `भज्` with instrumental start and dative end | Genitive whole, ablative start, and `पर्यन्तम्` end (§7.9) |
 | Extract the final member | Accusative collection frame | Genitive whole with `अन्तिमम्` (§7.11) |
-| Declare a procedure | Bare `… + ल्युट् + सुँ ।` header, accepted by migration tools only | Explicit `नाम प्रक्रिया … अस्ति` or `इति प्रक्रिया … अस्ति` (§11.1) |
+| Declare a procedure | Bare `… + ल्युट् + सुँ ।` header, accepted by migration tools only | Explicit `नाम प्रक्रिया … अस्ति` (§11.1) |
 | Name a procedure argument | Ṣaṣṭhī label | Saptamī parameter slot followed by its accusative value (§11.4) |
 | Exit the nearest loop | `वि + स्था + लोट् + सिप्` | `स्था + लोट् + सिप्` (§17) |
 | Iterate with member and position | `सूची + ङस् सदस्य + अम् क्रम + अम् प्रति` | `प्रत्येकम् … तस्य क्रमम् च गृहीत्वा` (§17) |

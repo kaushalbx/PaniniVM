@@ -130,7 +130,7 @@ object NominalCaseLinkAnalyzer {
         fun isModifier(index: Int): Boolean = nominals[index].let {
             it.lexicalEntry?.nominalUse in setOf(NominalUse.MODIFIER, NominalUse.ENTITY_OR_MODIFIER) ||
                 it.pada is dev.panini.vyakaranam.ast.SankhyaPuranaPada ||
-                headStem(index) in setOf("प्रथम", "द्वितीय", "तृतीय", "प्रथमा", "द्वितीया", "तृतीया")
+                headStem(index)?.let(::isOrdinalWord) == true
         }
         val comparisonModifiers = if (comparisonHead == null) emptySet() else nominals.indices.filterTo(mutableSetOf()) { modifier ->
             modifier != comparisonHead && isModifier(modifier) && nominals.indices.filter { head ->
@@ -138,7 +138,7 @@ object NominalCaseLinkAnalyzer {
                     nominals[modifier].supCandidates.any { m -> nominals[head].supCandidates.any { h ->
                         m.vibhakti == h.vibhakti && m.vacana == h.vacana
                     } } && (nominals[modifier].linga.isEmpty() || nominals[head].linga.isEmpty() ||
-                    headStem(modifier) in setOf("प्रथम", "द्वितीय", "तृतीय", "प्रथमा", "द्वितीया", "तृतीया") ||
+                    headStem(modifier)?.let(::isOrdinalWord) == true ||
                     nominals[modifier].linga.intersect(nominals[head].linga).isNotEmpty())
             }.size == 1
         }

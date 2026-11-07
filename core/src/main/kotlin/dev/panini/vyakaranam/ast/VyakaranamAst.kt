@@ -193,6 +193,7 @@ data class WhileLoop(
     val body: ProgramNode,
     val maximumIterationStems: List<String> = emptyList(),
     val maximumBoundaryPadas: List<Pada> = emptyList(),
+    val maximumFrequency: Pada? = null,
     val exhausted: ProgramNode? = null,
     val resultTarget: ProgramNode? = null,
 ) : ProgramNode
@@ -614,6 +615,8 @@ data class KridantaPratipadika(
     val krtPratyaya: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
     val derivationEvidence: KrtDerivationEvidence? = null,
+    /** Written with लृट्: a future participle under 3.3.14. */
+    val future: Boolean = false,
 ) : Pratipadika {
     /** Shared grammatical identity, independent of the derived stem's ending. */
     val krtAffix: KrtAffix? = KrtAffix.fromUpadesha(krtPratyaya)
@@ -717,7 +720,12 @@ data class SankhyaAbhyasaPada(
     override val sourceText: String,
     val stems: List<String>,
     val value: Long? = null,
-) : Pada
+) : Pada, SourceLocatedNode {
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+
+    fun locatedAt(span: DocumentSourceSpan?): SankhyaAbhyasaPada = apply { sourceSpan = span }
+}
 
 data class KatapayadiPada(
     override val sourceText: String,

@@ -1,5 +1,6 @@
 package dev.panini.plugin
 
+import dev.panini.analysis.karakaLabel
 import com.intellij.ide.structureView.StructureViewBuilder
 import com.intellij.ide.structureView.StructureViewModel
 import com.intellij.ide.structureView.StructureViewModelBase
@@ -117,10 +118,9 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
 
     private fun semanticSubantaLabel(subanta: PvmSubantaPsi): String {
         val source = subanta.canonicalPada()?.sourceText ?: compact(subanta.text, 45)
-        val relation = (subanta.containingFile as? PvmFile)
-            ?.canonicalSemanticFrameAt(subanta.textOffset)?.second
-        val resolved = relation?.resolution as? FrameKarakaResolution.Resolved
-        return resolved?.let { "${it.karaka.sanskritName} · ${compact(source, 45)}" }
+        val semantic = (subanta.containingFile as? PvmFile)?.canonicalSemanticFrameAt(subanta.textOffset)
+        val label = semantic?.let { (frame, relation) -> relation?.let { frame.karakaLabel(it) } }
+        return label?.let { "$it · ${compact(source, 45)}" }
             ?: compact(source, 60)
     }
 

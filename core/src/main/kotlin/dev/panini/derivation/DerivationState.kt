@@ -1057,9 +1057,6 @@ class DerivationState(
     fun blockOperation(operation: BlockedOperationDomain, blocker: String): DerivationState =
         copy(blockedOperations = blockedOperations + (operation to blocker))
 
-    fun addComparison(comparison: VarnaComparison): DerivationState =
-        copy(varnaComparisons = varnaComparisons + comparison)
-
     fun addSubstitution(substitution: VarnaSubstitution): DerivationState =
         copy(substitutions = substitutions + substitution)
 
@@ -1536,18 +1533,6 @@ data class DerivationTerm(
         require(varnas.isNotEmpty()) { "An initial varṇa is required for $id." }
         return if (varnas.first() is dev.panini.shiksha.Vyanjana && varnas.getOrNull(1) == dev.panini.shiksha.Svara.A) 1
         else listOf(varnas.first()).toDevanagari().length
-    }
-
-    /** UTF-16 boundary before the final phonological varṇa in the written upadeśa. */
-    fun orthographicStartOfFinalVarna(): Int {
-        require(varnas.isNotEmpty()) { "A final varṇa is required for $id." }
-        return surface.length - listOf(varnas.last()).toDevanagari().length
-    }
-
-    /** UTF-16 boundary after [index], derived from the canonical phonological prefix. */
-    fun orthographicBoundaryAfterVarna(index: Int): Int {
-        require(index in varnas.indices) { "Varṇa index $index is outside $id." }
-        return varnas.take(index + 1).toDevanagari().length
     }
 
     init {

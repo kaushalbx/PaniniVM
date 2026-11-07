@@ -20,11 +20,4 @@ class VarnamalaVarnaApiTest {
         assertEquals(listOf(Svara.AA, Vyanjana.RA), Varnamala.getVrddhi(Svara.R))
     }
 
-    @Test
-    fun `ending predicates recognize inherent vowels through parser`() {
-        assertTrue(Varnamala.endsWithA("राम"))
-        assertTrue(Varnamala.endsWithAA("रमा"))
-        assertTrue(Varnamala.endsWithI("हरि"))
-        assertFalse(Varnamala.endsWithA("राम्"))
-    }
 }

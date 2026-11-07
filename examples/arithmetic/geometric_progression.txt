@@ -9,5 +9,5 @@
 # Loop 3 times (त्रिः): multiply 'पदसङ्ख्या' by 'गुणक' and place the result in 'पदसङ्ख्या'.
 त्रिः पदसङ्ख्यां गुणकं च गुणय ततः फलं पदसङ्ख्यायां स्थापय ।
 
-# Print final term 'पदसङ्ख्या' (renders 54 = चतुर्पञ्चाशत्)
+# Print final term 'पदसङ्ख्या' (renders 54 = चतुःपञ्चाशत्)
 पदसङ्ख्यां मुद्रय ।

@@ -27,6 +27,13 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1", "3.4.113"), stage = SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        reduplicated(context)?.let { root ->
+            if (!isKngitSarvadhatuka(context, root)) return false
+            // देहि, धेहि: 6.4.119 gives ए before हि, not this lopa.
+            if (context.effectiveContext.rupa.lakara == Lakara.LOT && "3.4.87" in context.appliedSutras) return false
+            // 6.4.113 gives other roots ī before a consonant; a ghu root (दा, धा) is excepted, so it loses ā there too.
+            return nextInitial(context, root) is Svara || root.upadesha in setOf("डुदाञ्", "डुधाञ्", "दा", "धा")
+        }
         val shna = shna(context) ?: return false
         val lingAtmanepada = context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.effectiveContext.rupa.pada == PadaType.ATMANEPADA
@@ -35,6 +42,10 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        reduplicated(context)?.let { root ->
+            return DerivationChange(context.deleteTermVarnas(root.id, root.varnas.lastIndex, 1, sutra),
+                "6.4.112 elides the ā of a reduplicated base before a k/ṅ-it sārvadhātuka.")
+        }
         val shna = requireNotNull(shna(context))
         return DerivationChange(
             context.deleteTermVarnas(shna.id, shna.varnas.lastIndex, 1, sutra),
@@ -42,6 +53,11 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 }
+
+/** A root ending in ā after its abhyāsa: ददा-, दधा-. */
+private fun reduplicated(context: DerivationState) = context.terms.firstOrNull {
+    it.kind == TermKind.DHATU && it.varnas.lastOrNull() == Svara.AA
+}?.takeIf { context.samjnas.any { samjna -> samjna.targetId == "abhyasa" && samjna.samjna == Samjna.ABHYASA } }
 
 internal fun shna(context: DerivationState) = context.terms.firstOrNull {
     it.kind == TermKind.PRATYAYA && it.upadesha == "श्ना" && it.varnas.lastOrNull() == Svara.AA

@@ -43,21 +43,6 @@ class SubantaEngine(
         }
     }
 
-    private fun pluralNumeral(
-        nominativeAccusative: String,
-        instrumental: String,
-        dativeAblative: String,
-        genitive: String,
-        locative: String,
-        vibhakti: Vibhakti,
-    ): String = when (vibhakti) {
-        Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> nominativeAccusative
-        Vibhakti.TRTIYA -> instrumental
-        Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> dativeAblative
-        Vibhakti.SASTHI -> genitive
-        Vibhakti.SAPTAMI -> locative
-    }
-
     fun deriveSupportedParadigm(
         pratipadika: String,
         linga: Linga = Linga.PUMS,

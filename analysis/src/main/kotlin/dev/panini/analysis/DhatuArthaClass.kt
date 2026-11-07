@@ -10,6 +10,7 @@ enum class DhatuArthaClass(private vararg val glosses: String) {
     MOTION("गतौ", "गति", "प्रापणे", "सञ्चलने"),
     FALLING("पतने", "अवस्रंसने"),
     BEING("सत्तायाम्", "भुवि", "वर्तने"),
+    DOING("करणे"),
     FEAR("भये"),
     ANGER("क्रोधे", "जिघांसा", "ईर्ष्या", "असूया"),
     DELIGHT("भिप्रीतौ"),

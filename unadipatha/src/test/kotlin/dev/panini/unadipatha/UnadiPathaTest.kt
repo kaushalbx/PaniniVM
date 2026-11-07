@@ -2680,17 +2680,6 @@ class UnadiPathaTest {
         }
     }
 
-    @Test
-    fun testForwardPratyayaLookup() {
-        val matches = UnadiPatha.findPratyaya(KruDhatu())
-        assertTrue(matches.isNotEmpty(), "KruDhatu should match Uṇādi sūtras")
-
-        val match1 = matches.firstOrNull { it.sutraNumber == "1.1" }
-        assertTrue(match1 != null, "Should find sūtra 1.1 for KruDhatu")
-        assertEquals("उण्", match1.pratyaya)
-        assertEquals("उ", match1.pratyayaSurface)
-        assertTrue(match1.itMarkers.contains(ItMarker.NIT))
-    }
 
     @Test
     fun testReverseSamjnaLookupForKanin() {

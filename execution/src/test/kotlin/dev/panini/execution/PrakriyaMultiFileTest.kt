@@ -16,21 +16,21 @@ class PrakriyaMultiFileTest {
     @Test
     fun `named operations can recursively dispatch a two-counter machine`() {
         val script = """
-            वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वृध् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             योग + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् योग + ङे ।
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            हृ + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् सङ्ख्या + ङे ।
             एक + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-            स्था + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            स्था + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-            चर् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            चर् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि सङ्ख्या + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा स्था + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            दिश् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            दिश् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि अवस्था + अम् एक + अम् च विद् + लोट् + सिप् तर्हि चर् + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वृध् + ल्युट् + टा कृ + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -54,7 +54,7 @@ class PrakriyaMultiFileTest {
     @Test
     fun `frequency qualifier repeats a samjna kriya body`() {
         val script = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             आवृत्ति + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
             पञ्च + कृत्वसुच् प्रयत्न + टा कृ + लोट् + सिप् ।
@@ -68,7 +68,7 @@ class PrakriyaMultiFileTest {
     @Test
     fun `vi stha terminates the nearest samjna repetition`() {
         val script = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वि + स्था + लोट् + सिप् ॥
 
             पञ्च + कृत्वसुच् प्रयत्न + टा कृ + लोट् + सिप् ।
@@ -100,7 +100,7 @@ class PrakriyaMultiFileTest {
     @Test
     fun `test pure paninian samjna header parsing with double danda on last sentence`() {
         val script = """
-            युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            युज् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -115,7 +115,7 @@ class PrakriyaMultiFileTest {
     @Test
     fun `test multi-sentence samjna definition block parsing`() {
         val script = """
-            युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            युज् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
             युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
@@ -278,8 +278,8 @@ class PrakriyaMultiFileTest {
     @Test
     fun `test nishedha sutra parsing and guard separation`() {
         val script = """
-            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            न द्वितीय + अम् शून्य + अम् ।
+            वि + भज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            द्वितीय + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -293,7 +293,7 @@ class PrakriyaMultiFileTest {
         )
 
         assertEquals(1, kriya.nishedhaGuards.size, "Should identify 1 prohibition rule (निषेध-सूत्र).")
-        assertEquals("न द्वितीय + अम् शून्य + अम् ।", kriya.nishedhaGuards.first().text)
+        assertEquals("द्वितीय + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।", kriya.nishedhaGuards.first().text)
         assertNotNull(kriya.nishedhaGuards.first().ukti, "Niṣedha classification must come from a parsed utterance.")
         assertEquals(1, kriya.vidhiSentences.size, "Should identify 1 mandate rule (विधि-सूत्र).")
     }
@@ -303,8 +303,8 @@ class PrakriyaMultiFileTest {
         val vm = PaniniVM()
         val registry = PrakriyaRegistry()
         val script = """
-            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            न द्वितीय + अम् शून्य + अम् ।
+            वि + भज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            द्वितीय + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -334,9 +334,9 @@ class PrakriyaMultiFileTest {
         val vm = PaniniVM()
         val registry = PrakriyaRegistry()
         val script = """
-            समवाय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सूची + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            समवाय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -349,7 +349,7 @@ class PrakriyaMultiFileTest {
             ),
         )
 
-        val invocationText = "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् पञ्चन् + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val invocationText = "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् पञ्चन् + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + अम् समवाय + टा डुकृञ् + उ + लोट् + सिप् ।"
         val results = vm.evalScript(invocationText, prakriyaRegistry = registry)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -373,7 +373,7 @@ class PrakriyaMultiFileTest {
         val vm = PaniniVM()
         val registry = PrakriyaRegistry()
         val script = """
-            गुणप्रक्रिया + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गुणप्रक्रिया + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -407,7 +407,7 @@ class PrakriyaMultiFileTest {
 
     @Test
     fun `test antaranga internal prakriya parsing visibility and precedence`() {
-        val header = "गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
+        val header = "गण + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
         val headerQualifiers = PrakriyaDefinitionMarkerParser.qualifiers(header)
         assertTrue(
             PrakriyaDefinitionQualifier.ANTARANGA in headerQualifiers?.qualifiers.orEmpty(),
@@ -417,7 +417,7 @@ class PrakriyaMultiFileTest {
             $header
             प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
 
-            जटिलगणित + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            जटिलगणित + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -483,9 +483,9 @@ class PrakriyaMultiFileTest {
     @Test
     fun `test adhikara sutra parsing with segmented sup suffix`() {
         val script = """
-            गणित + सुँ इति अधिकार + सुँ ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
 
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -499,9 +499,9 @@ class PrakriyaMultiFileTest {
     @Test
     fun `krt named procedures preserve nominal identity and morphological adhikara`() {
         val script = """
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
 
-            सिध् + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            सिध् + क्त + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -551,7 +551,7 @@ class PrakriyaMultiFileTest {
     fun `test taddhita struct member method definition and tritiya invocation`() {
         val vm = PaniniVM()
         val script = """
-            गुण + वत् + ङस् वर्द्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गुण + वत् + ङस् वर्द्धन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             पञ्च + अम् द्वि + अम् गुण + वत् + ङस् वर्द्धन + टा कृ + लोट् + सिप् ।

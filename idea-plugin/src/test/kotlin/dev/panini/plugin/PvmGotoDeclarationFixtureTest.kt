@@ -69,8 +69,8 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val declaration = myFixture.addFileToProject(
             "registry-declaration.pvm",
             """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -100,8 +100,8 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val declaration = myFixture.addFileToProject(
             "binding-declaration.pvm",
             """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -133,10 +133,10 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val library = myFixture.addFileToProject(
             "rename-library.pvm",
             """
-            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            व्यवकलन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -159,7 +159,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
         myFixture.renameElement(parameter, "पूर्व")
 
-        assertTrue(library.text.contains("पूर्व + सुँ सङ्ख्या"))
+        assertTrue(library.text.contains("पूर्व + सुँ नाम मान"))
         assertTrue(library.text.contains("पूर्व + अम् दक्षिण + अम्"))
         assertTrue(namedCall.text.contains("पूर्व + ङि पञ्च + अम्"))
         assertEquals(
@@ -175,7 +175,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val library = myFixture.addFileToProject(
             "library.pvm",
             """
-            गणित + ङस् युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् युज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -230,14 +230,14 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val library = myFixture.addFileToProject(
             "library.pvm",
             """
-            गणित + सुँ इति अधिकार + सुँ ।
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
         val unrelated = myFixture.addFileToProject(
             "unrelated.pvm",
-            "मुद्र् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मुद्र् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
                 "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
         )
         val plain = myFixture.addFileToProject(
@@ -286,7 +286,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val file = myFixture.configureByText(
             PvmFileType.INSTANCE,
             """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             राम +
             """.trimIndent(),
@@ -316,7 +316,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val file = myFixture.configureByText(
             PvmFileType.INSTANCE,
             """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -354,10 +354,10 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val library = myFixture.addFileToProject(
             "library.pvm",
             """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ शब्द + सुँ इति मान + सुँ ।
-            सूची + सुँ इति परिणाम + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ शब्द + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सूची + सुँ असँ + लट् + तिप् ।
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -458,14 +458,14 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val publicFile = myFixture.addFileToProject(
             "public.pvm",
             """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
         val internalFile = myFixture.configureByText(
             "internal.pvm",
             """
-            गणित + ङस् गम् + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गम् + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -501,10 +501,10 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val file = myFixture.configureByText(
             PvmFileType.INSTANCE,
             """
-            गणित + सुँ इति अधिकार + सुँ ।
-            युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            युज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥
-            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             त्रि + शस् सम् + ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),
         )
@@ -554,8 +554,8 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "library.pvm",
             """
-            गणित + सुँ इति अधिकार + सुँ ।
-            युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            युज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -589,7 +589,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
     fun testNonOperationTokenInPipelineIsNotAPrakriyaReference() {
         myFixture.addFileToProject(
             "library.pvm",
-            "युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\nप्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥",
+            "युज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\nप्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥",
         )
         myFixture.configureByText(
             PvmFileType.INSTANCE,
@@ -603,8 +603,8 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val library = myFixture.addFileToProject(
             "library.pvm",
             """
-            गणित + सुँ इति अधिकार + सुँ ।
-            युज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            युज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + टा युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         ) as PvmFile
@@ -706,7 +706,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
     fun testStructuralPsiUsesTypedCanonicalAstFacades() {
         val source = """
-            गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
@@ -742,7 +742,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
     }
 
     fun testCanonicalSemanticErrorPreservesParserSpanInEditor() {
-        val source = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+        val source = "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
             "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
             "युज् + णिच् + लोट् + सिप् ।"
         val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
@@ -869,7 +869,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
     }
     fun testPipelineStageNavigatesThroughEditorPsiToCanonicalDeclaration() {
         val source = """
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् <caret>गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -887,8 +887,8 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
     fun testCanonicalSemanticCategoriesProduceDistinctEditorHighlights() {
         val source = """
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
-            गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             राम + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -905,9 +905,9 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
     fun testResolvedPrakriyaParametersAndArgumentsHaveDistinctSemanticColors() {
         val source = """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ शब्द + सुँ इति मान + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ शब्द + सुँ असँ + लट् + तिप् ।
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             द्वि + अम् राम + अम् च योजन + टा कृ + लोट् + सिप् ।
             वाम + ङि पञ्च + अम् दक्षिण + ङि राम + अम् योजन + टा कृ + लोट् + सिप् ।
@@ -941,7 +941,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "library.pvm",
             """
-                गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -961,7 +961,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "private.pvm",
             """
-                गणित + ङस् गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गण + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -979,7 +979,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "library.pvm",
             """
-                गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -999,14 +999,14 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "library.pvm",
             """
-                गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
         myFixture.addFileToProject(
             "private.pvm",
             """
-                गणित + ङस् गम् + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गम् + ल्युट् + सुँ नाम अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -1023,7 +1023,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         myFixture.addFileToProject(
             "library.pvm",
             """
-                गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
@@ -1077,7 +1077,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
     fun testProjectDocumentCacheInvalidatesAfterPsiEdit() {
         val library = myFixture.addFileToProject(
             "library.pvm",
-            "युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "युज् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
                 "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
         ) as PvmFile
         val anchor = myFixture.configureByText("main.pvm", "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ।") as PvmFile
@@ -1091,7 +1091,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
         val document = requireNotNull(library.viewProvider.document)
         WriteCommandAction.runWriteCommandAction(project) {
             document.setText(
-                "गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
                     "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
             )
         }
@@ -1118,7 +1118,7 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
 
         myFixture.addFileToProject(
             "library.pvm",
-            "गणित + ङस् गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
                 "पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
         )
         myFixture.configureByText("main.pvm", call)
@@ -1127,5 +1127,15 @@ class PvmGotoDeclarationFixtureTest : BasePlatformTestCase() {
             it.severity == HighlightSeverity.ERROR &&
                 it.description?.contains("Unresolved PaniniVM prakriyā") == true
         })
+    }
+
+    fun testHoverShowsTheRoleOfADeclarationWord() {
+        val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
+        val doc = PvmDocumentationProvider().generateDoc(file.findElementAt(0), file.findElementAt(0)).orEmpty()
+        assertTrue(doc, "कर्तृ-समानाधिकरण: सञ्ज्ञा" in doc)
+        val second = file.findElementAt(source.indexOf("प्रक्रिया"))
+        val secondDoc = PvmDocumentationProvider().generateDoc(second, second).orEmpty()
+        assertTrue(secondDoc, "कर्तृ" in secondDoc)
     }
 }

@@ -90,7 +90,8 @@ sealed interface SanskritValue {
         val fields: Map<String, SanskritValue>,
     ) : SanskritValue {
         override val samjnas: Set<Samjna> = fields.values.flatMap { it.samjnas }.toSet() + Samjna.SHABDA
-        override fun toDisplayText(): String = schema
+        override fun toDisplayText(): String = if (fields.isEmpty()) schema else
+            schema + "(" + fields.entries.joinToString(", ") { (name, value) -> name + ": " + value.toDisplayText() } + ")"
     }
 
     data class Satya(

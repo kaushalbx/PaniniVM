@@ -59,7 +59,7 @@ class PvmColorSettingsPage : ColorSettingsPage {
             यदि प्र + कृ + सन् + लट् + तिप् तर्हि राम + सुँ फल + अम् च पठ् + शप् + लोट् + सिप् ।
             नदी + ङीप् अण् + तद्धितम् नुम् लुक् उणादि च ।
             <domainDeclaration>गणित</domainDeclaration> + सुँ इति अधि + कृ + घञ् + सुँ ।
-            <domainReference>गणित</domainReference> + ङस् <prakriyaDeclaration>गण</prakriyaDeclaration> + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            <domainReference>गणित</domainReference> + ङस् <prakriyaDeclaration>गण</prakriyaDeclaration> + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             <nominalStem>राम</nominalStem> + सुँ भू + लट् + तिप् ।
             <prakriyaParameter>वाम</prakriyaParameter> + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             <prakriyaArgument>द्वि</prakriyaArgument> + अम् गण + टा कृ + लोट् + सिप् ।

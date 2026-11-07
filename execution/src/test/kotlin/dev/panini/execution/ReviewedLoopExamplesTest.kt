@@ -33,7 +33,7 @@ class ReviewedLoopExamplesTest {
         val source = File("examples/control_flow/yada_tada.pvm").readText()
         assertEquals(listOf("एक", "द्वि"), run("examples/control_flow/yada_tada.pvm")
             .filter { it.outputKind == OutputKind.CONSOLE }.map { it.value })
-        val falseResults = PaniniVM().evalScript(source.replace("एक + टा सम", "द्वि + भ्याम् सम"))
+        val falseResults = PaniniVM().evalScript(source.replace("एक + टा सम + सुँ", "द्वि + भ्याम् सम + सुँ"))
         assertTrue(falseResults.all { it is ExecutionResult.Success }, falseResults.toString())
         assertTrue(falseResults.filterIsInstance<ExecutionResult.Success>().none { it.outputKind == OutputKind.CONSOLE })
         assertEquals(listOf("द्वि", "एक", "द्वि", "त्रि"), run("examples/control_flow/local_pronouns.pvm")

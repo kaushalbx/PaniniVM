@@ -2,11 +2,11 @@
 
 # अन्तरङ्गा प्रक्रिया: गणनम् (File-private internal helper procedure; doubles its operand)
 # Only visible and callable within private_lib.pvm
-गणनम् इति अन्तरङ्गा प्रक्रिया अस्ति ।
-एकं द्वे च गणय ॥
+गणनं नाम अन्तरङ्गा प्रक्रिया अस्ति ।
+प्रथमं द्वे च गुणय ॥
 
 # प्रक्रिया: जटिलगणितम् (Public prakriyā accessible to all .pvm files)
 # Invokes internal helper गणनम् locally
-जटिलगणितः इति प्रक्रिया अस्ति ।
-एकं गणनेन कुरु ।
+जटिलगणितः नाम प्रक्रिया अस्ति ।
+प्रथमं गणनेन कुरु ।
 फलं द्वितीयं च योजय ॥

@@ -58,7 +58,7 @@ class ProcedureLocalBindingsTest {
     }
 
     @Test fun `referent metadata comes from declaration morphology not payload shape`() {
-        val sentence = PvmScript.parse("मान + सुँ सूची + सुँ इति मान + सुँ ।")
+        val sentence = PvmScript.parse("मान + सुँ सूची + सुँ असँ + लट् + तिप् ।")
             .filterIsInstance<PvmScriptStatement.Sentence>().single()
         val declaration = assertNotNull(PrakriyaSignatureDeclarationParser.parameterDeclaration(sentence))
         val parameter = assertNotNull(PrakriyaSignatureDeclarationParser.parameter(sentence))

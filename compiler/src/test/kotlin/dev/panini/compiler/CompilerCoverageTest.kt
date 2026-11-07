@@ -10,11 +10,11 @@ class CompilerCoverageTest {
     @Test
     fun `compiled procedure choices observe sequential range declarations`() {
         val source = """
-            चयन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            चयन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ॥
-            एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ततः पूर्व + ङे दा + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ ।
+            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ततः उत्तर + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val generated = BytecodeCompiler.compileAndLoad(source, "SequentialRangeChoice")
@@ -107,8 +107,8 @@ class CompilerCoverageTest {
         val ordinary = File("examples/algorithms/two_sum.pvm").readText()
         val duplicate = ordinary
             .replace(
-                "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च",
-                "त्रि + ङस् त्रि + ओस् चतुर् + आम् पञ्चन् + आम् च",
+                "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति",
+                "त्रि + सुँ त्रि + औ चतुर् + जस् पञ्चन् + जस् इति",
             )
             .replace(
                 "पञ्चन् + भिस् सम",

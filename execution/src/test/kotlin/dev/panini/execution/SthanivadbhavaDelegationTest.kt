@@ -12,13 +12,13 @@ class SthanivadbhavaDelegationTest {
     fun testSthanivadbhavaPolymorphicDelegationToParent() {
         val script = """
             # Step 1: Parent domain declaration 'गणित'
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
 
             # Step 2: Child domain declaration 'गाणित' extending 'गणित' (Taddhita AṆ 4.1.83)
-            गणित + अण् + सुँ इति अधि + कृ + घञ् + सुँ ।
+            गणित + अण् + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
 
             # Step 3: Define method 'गुण्' on Parent class 'गणित' (Multiplication: 5 * 2 = 10 -> दश)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् गुण् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Step 4: Invoke 'गुण्' on Child class 'गाणित' (which has NO explicit override).

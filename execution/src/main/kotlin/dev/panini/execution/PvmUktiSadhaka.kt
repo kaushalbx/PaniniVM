@@ -190,7 +190,8 @@ class PvmUktiSadhaka(
         private fun render(node: ProgramNode): String = node.accept(this)
         override fun visitInvocation(node: Invocation): String = when {
             NaturalScriptStop.matches(node) -> "विरम"
-            node.implicitValuePada != null -> sadhayaPada(requireNotNull(node.implicitValuePada))
+            node.implicitValuePada != null -> sadhayaPada(requireNotNull(node.implicitValuePada)) +
+                node.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().joinToString("") { " " + sadhayaPada(it) }
             node.implicitValue != null -> requireNotNull(node.implicitValue)
             else -> sadhayaPadas(node.vakya.padas)
         }
@@ -252,7 +253,7 @@ class PvmUktiSadhaka(
             val related = selections.joinToString(" ") { (relation, selection) ->
                 "${relation?.let(::sadhayaSubanta) ?: "तस्य"} ${sadhayaSubanta(selection)}"
             }
-            val quantifier = node.quantifier?.let(::sadhayaSubanta) ?: "प्रत्येकं"
+            val quantifier = node.quantifier?.let(::sadhayaSubanta) ?: "एकैकम्"
             val sequential = if (node.sequential) " क्रमशः" else ""
             return "${sadhayaSubanta(node.collection)} $quantifier ${sadhayaSubanta(node.member)} " +
                 "$related च गृहीत्वा$sequential ${render(node.body)}"
@@ -274,7 +275,7 @@ class PvmUktiSadhaka(
         ): String {
             val quantifier = when (node.quantifier) {
                 dev.panini.vyakaranam.ast.CollectionQuantifier.ANY -> "कश्चित्"
-                dev.panini.vyakaranam.ast.CollectionQuantifier.ALL -> "प्रत्येकः"
+                dev.panini.vyakaranam.ast.CollectionQuantifier.ALL -> "एकैकः"
             }
             return "${sadhayaSubanta(node.collection)} $quantifier ${sadhayaSubanta(node.member)} " +
                 sadhayaPadas(node.predicate.vakya.padas.drop(1))
@@ -331,7 +332,8 @@ class PvmUktiSadhaka(
         ) return null
         val predicateSup = SupAffix.fromUpadesha(predicate.sup.text) ?: return null
         if (predicateSup.vibhakti != Vibhakti.PRATHAMA) return null
-        val subject = padas.firstOrNull { candidate ->
+        // प्रथमा सङ्ख्या समा: the noun next to the predicate is the head, and an ordinal before it only qualifies it.
+        val subject = padas.take(index).lastOrNull { supAffixOf(it)?.vibhakti == Vibhakti.PRATHAMA } ?: padas.firstOrNull { candidate ->
             candidate !== predicate && supAffixOf(candidate)?.vibhakti == Vibhakti.PRATHAMA
         } ?: return null
         if (numeralValue(subject) != null) {
@@ -339,6 +341,7 @@ class PvmUktiSadhaka(
                 ?: numeralAgreementLinga(padas, padas.indexOf(subject)) ?: Linga.NAPUMSAKA
         }
         if (subject !is SubantaPada) return null
+        if ((subject.pratipadika as? MulaPratipadika)?.vikaras.orEmpty().any { it is dev.panini.vyakaranam.ast.StriVikara }) return Linga.STRI
         return pratipadikaLexicon.findPratipadika(subject.pratipadika.baseText())?.linga?.singleOrNull()
             ?: Linga.NAPUMSAKA.takeIf {
                 (subject.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PHALA
@@ -434,9 +437,10 @@ class PvmUktiSadhaka(
             is SankhyaPuranaPada -> requireNotNull(PuranaPratyayaResolver.ordinalValue(boundary))
         }
         val upper = when (range.upperLimit) {
-            is SankhyaPada -> sankhyaGenerator.cardinal(upperValue).final.surface
+            is SankhyaPada -> sankhyaGenerator.cardinal(upperValue).final.surface.let { if (it == "षष्") "षट्" else it }
             is SankhyaPuranaPada -> sankhyaGenerator.ordinal(upperValue).final.surface
         }
+        // 8.2.39: षष् ends a word as षट्, also before the second member of a compound.
         val boundary = range.marker.pratipadika.baseText()
         val upperBoundary = samasaEngine.derive(
             padas = listOf(
@@ -671,6 +675,22 @@ class PvmUktiSadhaka(
         }
     }
 
+    /**
+     * 3.1.67 सार्वधातुके यक्: मुद्र्यते, मुद्र्यन्ते. A consonant-final root takes य, then the ātmanepada ending of an a-stem,
+     * read from लभते so the endings stay derived. Vowel-final roots change their stem, so they keep their written form.
+     */
+    private fun passiveSurface(tinganta: TingantaPada): String? {
+        if (tinganta.vikarana != dev.panini.vyakaranam.ast.Vikarana.YAK || tinganta.dhatu.sanadiPratyayas.isNotEmpty() ||
+            tinganta.upasargas.isNotEmpty() || tinganta.lakara !in setOf(dev.panini.core.Lakara.LAT, dev.panini.core.Lakara.LOT)) return null
+        val root = tinganta.dhatu.mulaDhatu
+        if (!root.endsWith("्")) return null
+        val affix = tinganta.ting.affix ?: return null
+        val model = runCatching { tingantaEngine.derive(dev.panini.derivation.TingantaDerivationRequest(dhatu = "डुलभँष्",
+            vacana = affix.vacana, purusha = affix.purusha, lakara = tinganta.lakara,
+            pada = dev.panini.core.PadaType.ATMANEPADA, gana = dev.panini.core.DhatuGana.BHVADI)).final.surface }.getOrNull() ?: return null
+        return if (model.startsWith("लभ")) root + "य" + model.removePrefix("लभ") else null
+    }
+
     fun sadhayaTinganta(tinganta: TingantaPada): String {
         if (NaturalScriptStop.matchesHead(tinganta)) return "विरम"
         if (tinganta.hasContradictoryActiveCausativeVikarana()) return tinganta.sourceText
@@ -680,6 +700,7 @@ class PvmUktiSadhaka(
             return sadhayaPada(AvyayaPada(source, source, derivation))
         }
         val rawDhatu = tinganta.dhatu.mulaDhatu
+        passiveSurface(tinganta)?.let { return it }
         val explicitGana = tinganta.lexicalGanaConstraint()
         val matchingDhatus = DhatuPatha.all.filter { candidate ->
             sameDhatuSurface(candidate.upadesha, rawDhatu) ||

@@ -1,8 +1,8 @@
 # Random Choice Generator Demo in PaniniVM Script (.pvm)
-# Generates a random die outcome using the Divādi root दिव् (दीव्य)
+# Rolls a die, choosing a face from one through six, with the Divādi root दिव् (दीव्य)
 
-# Step 1: Play/roll the die (अक्षं दीव्य)
-अक्षं दीव्य ।
+# Step 1: Roll the die over the range one through six
+एकस्मात् षष्+ङि दीव्य ।
 
-# Step 2: Print selected random outcome
+# Step 2: Print the face rolled
 मुद्रय फलम् ।

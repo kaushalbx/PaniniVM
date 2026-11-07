@@ -37,7 +37,7 @@ class TwoSumExampleTest {
     fun `two sum example derives and prints the matching addition operands`() {
         val source = File("examples/algorithms/two_sum.pvm").readText()
         val readable = PvmUktiSadhaka().sadhayaScript(source)
-        assertTrue(readable.contains("प्रत्येकां सङ्ख्यां तदुत्तराभिः योजय"), readable)
+        assertTrue(readable.contains("एकैकां सङ्ख्यां तदुत्तराभिः योजय"), readable)
         assertTrue(readable.contains("योजनस्य कर्मणी"), readable)
         assertEquals(
             listOf("एक चतुर्"),
@@ -49,8 +49,8 @@ class TwoSumExampleTest {
     fun `two sum uses two distinct positions for duplicate values`() {
         val source = File("examples/algorithms/two_sum.pvm").readText()
             .replace(
-                "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च",
-                "त्रि + ङस् त्रि + ओस् चतुर् + आम् पञ्चन् + आम् च",
+                "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति",
+                "त्रि + सुँ त्रि + औ चतुर् + जस् पञ्चन् + जस् इति",
             )
             .replace(
                 "पञ्चन् + भिस् सम",

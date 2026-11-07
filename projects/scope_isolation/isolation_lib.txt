@@ -4,7 +4,7 @@
 # 1. Add 1st (प्रथम) + 2nd (द्वितीय) -> stored in local phala
 # 2. Multiply local phala with 3rd (तृतीय) -> stored in local phala
 # 3. Print final phala
-सीमा इति प्रक्रिया अस्ति ।
-एकं द्वितीयं च योजय ।
-फलं तृतीयं च गणय ।
+सीमा नाम प्रक्रिया अस्ति ।
+प्रथमं द्वितीयं च योजय ।
+फलं तृतीयं च गुणय ।
 मुद्रय फलम् ॥

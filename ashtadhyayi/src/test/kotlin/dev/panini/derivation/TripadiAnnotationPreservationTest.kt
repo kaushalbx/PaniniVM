@@ -28,7 +28,7 @@ class TripadiAnnotationPreservationTest {
             Triple(SamyogantasyaLopaSutra, state("अँक्त्ऽ"), listOf(Svara.A, Vyanjana.KA)),
             Triple(HaliSarveshamSutra, state("आँय्ऽ", "ह"), listOf(Svara.AA)),
             Triple(VisarjaniyasyaSahSutra, state("अँःऽ", "त"), listOf(Svara.A, Vyanjana.SA)),
-            Triple(BhoBhagoSutra, state("अँर्ऽ", "इ", rutva = true).addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66"), listOf(Svara.A, Vyanjana.YA)),
+            Triple(BhoBhagoAghoApurvasyaYoshiSutra, state("अँर्ऽ", "इ", rutva = true).addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66"), listOf(Svara.A, Vyanjana.YA)),
             Triple(StosShcunaShcuhSutra, state("अँत्श्ऽ"), listOf(Svara.A, Vyanjana.CA, Vyanjana.SHA)),
             Triple(StunaShtuhSutra, state("अँत्ष्ऽ"), listOf(Svara.A, Vyanjana.TTA, Vyanjana.SSA)),
             Triple(DhoDheLopaSutra, state("अँढ्ऽ", "ढ"), listOf(Svara.A)),

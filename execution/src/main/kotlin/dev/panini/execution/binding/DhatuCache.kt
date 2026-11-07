@@ -180,8 +180,9 @@ internal object DhatuCache {
         if (executable.isNotEmpty()) return executable.singleOrNull()
         lexicalUpadeshas[text]?.singleOrNull()?.let { return it }
         // गम् names गमॢँ when the Dhātupāṭha has one such root; homonyms stay unresolved.
-        return DhatuPatha.all.filter { it.sourceSurface == text || it.derivationalSurface == text }
-            .distinctBy { it.id }.singleOrNull()
+        val written = DhatuPatha.all.filter { it.sourceSurface == text || it.derivationalSurface == text }.distinctBy { it.id }
+        // जन् names जनीँ: the Dhātupāṭha marks which homonym a bare surface means.
+        return written.singleOrNull() ?: written.singleOrNull { it.preferredForSourceDerivation }
     }
 
     private fun sourceCandidates(text: String): List<Dhatu> =

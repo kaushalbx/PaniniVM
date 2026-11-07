@@ -22,7 +22,7 @@ class PrakriyaTypeFlowTest {
 
     @Test
     fun `validator preserves parser semantic code span and offending text`() {
-        val source = "सूची + ङस् प्रत्येक + टाप् + अम् सङ्ख्या + अम् " +
+        val source = "सूची + ङस् एकैक + टाप् + अम् सङ्ख्या + अम् " +
             "तद् + ङस् + लुक् - उत्तर + टाप् + टा सङ्ख्या + भिस् " +
             "युज् + णिच् + लोट् + सिप् ।"
 
@@ -37,20 +37,20 @@ class PrakriyaTypeFlowTest {
 
     @Test
     fun `explicit reusable header validates through the document parser`() {
-        val source = "वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        val source = "वृध् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
         assertTrue(PrakriyaScriptValidator.validate(source).isEmpty())
         assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(source).single())
     }
 
     @Test
-    fun `ordinary nominal sentences remain ordinary statements`() {
-        assertTrue(PrakriyaScriptValidator.validate("वृध् + ल्युट् + सुँ ।").isEmpty())
+    fun `a nominal sentence with no verb is rejected`() {
+        assertTrue(runCatching { dev.panini.vyakaranam.parser.PaniniParser().parseDocument("वृध् + ल्युट् + सुँ ।") }.isFailure)
     }
 
     @Test
     fun `invalid prakriya bodies are rejected before execution`() {
         val source = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अवैध + ॥
         """.trimIndent()
 
@@ -62,7 +62,7 @@ class PrakriyaTypeFlowTest {
 
     @Test
     fun `samjna declaration is rejected as a reusable prakriya marker`() {
-        val source = "गणित + सुँ इति संज्ञा + सुँ ।"
+        val source = "गणित + सुँ इति संज्ञा + सुँ असँ + लट् + तिप् ।"
 
         assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(source))
         val diagnostic = PrakriyaScriptValidator.validate(source).single()
@@ -81,15 +81,15 @@ class PrakriyaTypeFlowTest {
     @Test
     fun `validator reports duplicate parameters and bad call arity`() {
         val source = """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            गणन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            पूर्व + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            उत्तर + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            पूर्व + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            उत्तर + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             पूर्व + अम् उत्तर + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             त्रि + अम् गणन + टा कृ + लोट् + सिप् ।
@@ -105,8 +105,8 @@ class PrakriyaTypeFlowTest {
     fun `custom structured result declaration resolves its schema`() {
         val source = """
             अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
-            अनुमान + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।
+            अनुमान + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ अनुमानपरिणाम + सुँ असँ + लट् + तिप् ।
             विजय + अम् दा + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -123,18 +123,18 @@ class PrakriyaTypeFlowTest {
     fun `typed values remain typed between prakriya pipeline stages`() {
         val results = PaniniVM().evalScript(
             """
-            गणित + सुँ इति अधिकार + सुँ ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
 
-            प्रथमक्रिया + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            प्रथमक्रिया + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वितीयक्रिया + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            फलमान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            द्वितीयक्रिया + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            फलमान + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             फलमान + अम् दक्षिण + अम् च गुण + णिच् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।

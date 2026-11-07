@@ -37,7 +37,8 @@ object NishedhaGuardEvaluator {
     ): NumericProhibition? {
         val program = guard.program ?: return null
         val bound = PrakriyaAstArgumentBinder.bind(program, parameters, argumentCount)
-        val padas = bound.invocations().flatMap { it.vakya.padas }
+        // द्वितीयं शून्यं न भवेत्: the verb carries no operand.
+        val padas = bound.invocations().flatMap { it.vakya.padas }.filterNot { it is dev.panini.vyakaranam.ast.TingantaPada && it.dhatu.mulaDhatu in setOf("भू", "असँ", "अस्") }
         val expanded = padas.flatMap(::expand)
         val prohibitions = expanded.filterIsInstance<AvyayaPada>().filter { it.function == AvyayaFunction.NISHEDHA }
         if (prohibitions.size != 1) return null
@@ -84,7 +85,7 @@ object NishedhaGuardEvaluator {
         if (pada is SamuccitaSubanta) pada.members else listOf(pada)
 
     private fun isAccusative(pada: Pada): Boolean {
-        return (pada as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup?.supports(Vibhakti.DVITIYA) == true
+        return (pada as? dev.panini.vyakaranam.ast.SupBearingPada)?.sup?.let { it.supports(Vibhakti.DVITIYA) || it.supports(Vibhakti.PRATHAMA) } == true
     }
 
 }

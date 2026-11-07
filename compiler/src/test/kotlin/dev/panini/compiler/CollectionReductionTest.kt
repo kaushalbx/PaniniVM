@@ -12,14 +12,14 @@ import kotlin.test.assertFailsWith
 
 class CollectionReductionTest {
     private val declaration =
-        "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+        "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति सूची + सुँ असँ + लट् + तिप् ।"
 
     @Test fun `first member reduction supports reusable arithmetic and conditional reducers`() {
         val reducers = listOf(
             "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप्" to 10L,
             "सञ्चित + अम् सदस्य + अम् च गुण + णिच् + लोट् + सिप्" to 24L,
             ("यदि सदस्य + सुँ सञ्चित + ङसिँ अधिक + सुँ असँ + लट् + तिप् " +
-                "तर्हि सदस्य + सुँ अन्यथा सञ्चित + सुँ") to 4L,
+                "तर्हि सदस्य + सुँ असँ + लट् + तिप् अन्यथा सञ्चित + सुँ असँ + लट् + तिप्") to 4L,
         )
         reducers.forEachIndexed { index, (body, expected) ->
             val source = "$declaration\nसूची + ङस् प्रथम + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति $body ।"
@@ -35,7 +35,7 @@ class CollectionReductionTest {
     }
 
     @Test fun `one member reduction returns that member without invoking its body`() {
-        val source = "नवन् + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "नवन् + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् प्रथम + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति " +
             "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप् ।"
         assertEquals(9L, assertIs<SanskritValue.Sankhya>(

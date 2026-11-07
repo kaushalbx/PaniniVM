@@ -20,7 +20,7 @@ class ReviewedScalarExamplesTest {
             "examples/arithmetic/sqrt_demo.pvm" to "त्रीणि",
             "examples/arithmetic/count_demo.pvm" to "त्रीणि",
             "examples/arithmetic/power_demo.pvm" to "एकाशीतिः",
-            "examples/arithmetic/geometric_progression.pvm" to "चतुर्पञ्चाशत्",
+            "examples/arithmetic/geometric_progression.pvm" to "चतुःपञ्चाशत्",
             "examples/algorithms/min_subset_sum_diff.pvm" to "एकम्",
             "examples/algorithms/double_danda_problems.pvm" to "पञ्च",
             "examples/arithmetic/subtraction.pvm" to "सप्त").withIndex()) {

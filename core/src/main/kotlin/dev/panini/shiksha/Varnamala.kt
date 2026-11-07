@@ -7,7 +7,6 @@ object Varnamala {
             ?: Vyanjana.fromDevanagari(c)
     }
 
-    fun isVowel(c: Char): Boolean = Svara.fromIndependent(c) != null || Svara.fromMatra(c) != null
     fun isConsonant(c: Char): Boolean = Vyanjana.fromDevanagari(c) != null
 
     fun getSthana(varna: Varna): Set<Sthana> =
@@ -47,32 +46,6 @@ object Varnamala {
         val v1 = fromChar(c1) ?: return false
         val v2 = fromChar(c2) ?: return false
         return areSavarna(v1, v2)
-    }
-
-    /** 1.1.69: Maps Udit (ku, cu, etc.) to their respective vargas. */
-    fun expandUdit(udit: String): Set<Char> = when (udit) {
-        "कु" -> setOf('क', 'ख', 'ग', 'घ', 'ङ')
-        "चु" -> setOf('च', 'छ', 'ज', 'झ', 'ञ')
-        "टु" -> setOf('ट', 'ठ', 'ड', 'ढ', 'ण')
-        "तु" -> setOf('त', 'थ', 'द', 'ध', 'न')
-        "पु" -> setOf('प', 'फ', 'ब', 'भ', 'म')
-        else -> emptySet()
-    }
-
-    /** Helper to get the specific member of a varga at a given index. */
-    fun getVargaMember(varga: String, index: Int): Char? {
-        val members = expandUdit(varga).toList().sorted() // Assumes standard Devanagari order
-        return members.getOrNull(index)
-    }
-
-    /** Helper to find which varga a consonant belongs to and its index. */
-    fun getVargaInfo(c: Char): Pair<String, Int>? {
-        listOf("कु", "चु", "टु", "तु", "पु").forEach { varga ->
-            val members = expandUdit(varga).toList().sorted()
-            val index = members.indexOf(c)
-            if (index != -1) return varga to index
-        }
-        return null
     }
 
     /** 1.1.48: eca igghrasvādeśe. Mapping EC to IK for shortening. */
@@ -152,14 +125,6 @@ object Varnamala {
         add('ँ')
         add(Vyanjana.VIRAMA)
     }
-
-    fun endsWithA(surface: String): Boolean = surface.lastSvara() == Svara.A
-
-    fun endsWithAA(surface: String): Boolean = surface.lastSvara() == Svara.AA
-
-    fun endsWithI(surface: String): Boolean = surface.lastSvara() == Svara.I
-
-    fun endsWithU(surface: String): Boolean = surface.lastSvara() == Svara.U
 
     private fun svaraFamily(svara: Svara): Svara = when (svara) {
         Svara.A, Svara.AA -> Svara.A

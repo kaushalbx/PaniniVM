@@ -85,15 +85,45 @@ class VyakaranamAstBuilder {
                 requireNotNull(it.stop).stopIndex + 1)
         }
         fun scopeSpan(utterance: PaniniyaVyakaranamParser.UtteranceContext): DocumentSourceSpan? {
-            val domain = utterance.vakya().firstOrNull()?.namaVakya()?.vakyaPada()?.firstOrNull()
-                ?: return null
+            // The written copula moves the domain under a quotation, so read the first word wherever it stands.
+            fun first(tree: ParserRuleContext): ParserRuleContext? {
+                if (tree is PaniniyaVyakaranamParser.VakyaPadaContext) return tree
+                return tree.children.orEmpty().filterIsInstance<ParserRuleContext>().firstNotNullOfOrNull { first(it) }
+            }
+            val domain = first(utterance) ?: return null
             return DocumentSourceSpan(requireNotNull(domain.start).startIndex, requireNotNull(domain.stop).stopIndex + 1)
         }
         val domains = context.documentItem().mapIndexedNotNull { index, item ->
             if (items[index] is Scope) item.utterance()?.let(::scopeSpan)?.let { index to it } else null
         }.toMap().toMutableMap()
         context.trailing?.let { if (items.last() is Scope) scopeSpan(it)?.let { span -> domains[items.lastIndex] = span } }
+        items.forEach(::requireWrittenVerbs)
         return ProgramDocument(context.text, items, spans, headers, bodies, names, domains)
+    }
+
+    /** Every sentence writes its kriyā. Words quoted before इति belong to the sentence that reports them. */
+    internal fun requireWrittenVerbs(item: VyakaranamNode) {
+        fun check(node: ProgramNode?) {
+            when (node) {
+                is Invocation -> require(node.vakya !is NamaVakya || node.vakya.padas.any { it is TingantaPada }) {
+                    "VERBLESS_SENTENCE: वाक्ये क्रिया लेखनीया: '${node.sourceText}'"
+                }
+                is Quotation -> check(node.reporting)
+                is Sequence -> node.statements.forEach(::check)
+                is Conditional -> { check(node.consequent); check(node.alternate) }
+                is WhileLoop -> { check(node.body); check(node.exhausted) }
+                is Repeat -> check(node.body)
+                is Recurrence -> check(node.body)
+                is ForEach -> check(node.body)
+                is CollectionRelativeAction -> check(node.continuation)
+                else -> Unit
+            }
+        }
+        when (item) {
+            is Ukti -> check(item.body)
+            is Prakriya -> item.body.forEach(::check)
+            else -> Unit
+        }
     }
 
     private fun classifyDocumentUtterance(ukti: Ukti): VyakaranamNode {
@@ -102,6 +132,23 @@ class VyakaranamAstBuilder {
             quotation.reporting.invocations().flatMap { it.vakya.padas }.filterIsInstance<SubantaPada>()
                 .any { (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PRAKRIYA }) {
             error("A prakriyā declaration requires a body ending in ॥.")
+        }
+        // गणितम् इति अधिकारः अस्ति, एकस्मात् शतपर्यन्तम् इति सीमा अस्ति: the same declarations with their verb written.
+        (ukti.body as? Quotation)?.let { quotation ->
+            val reporting = (quotation.reporting as? Invocation)?.vakya as? AkhyataVakya ?: return@let
+            if (reporting.tinganta.dhatu.mulaDhatu !in setOf("असँ", "अस्")) return@let
+            val marker = reporting.padas.filter { it !== reporting.tinganta }.singleOrNull() as? SubantaPada ?: return@let
+            val identity = (marker.pratipadika as? MulaPratipadika)?.lexicalIdentity
+            require(identity != MulaPratipadikaIdentity.SIMA || quotation.quoted.vakya.padas.singleOrNull() is ParyantaRangePada) {
+                "A सीमा declaration requires ablative and पर्यन्त bounds and nominative सीमा."
+            }
+            val quoted = quotation.quoted.vakya.padas.singleOrNull() ?: return@let
+            if (identity == MulaPratipadikaIdentity.SIMA && quoted is ParyantaRangePada) {
+                return RangeDeclaration(ukti.sourceText, quoted, marker)
+            }
+            val isScope = identity == MulaPratipadikaIdentity.ADHIKARA ||
+                (marker.pratipadika as? KridantaPratipadika)?.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
+            if (isScope && quoted is SubantaPada) return Scope(ukti.sourceText, quoted.sourceText, quoted.pratipadika.morphologicalKey())
         }
         val padas = ((ukti.body as? Invocation)?.vakya as? NamaVakya)?.padas ?: return ukti
         if (padas.none { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }) return ukti
@@ -112,7 +159,7 @@ class VyakaranamAstBuilder {
                 marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "A सीमा declaration requires ablative and पर्यन्त bounds and nominative सीमा."
             }
-            return RangeDeclaration(ukti.sourceText, padas.first() as ParyantaRangePada, marker)
+            error("VERBLESS_SENTENCE: सीमा-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
         }
         val isScope = identity == MulaPratipadikaIdentity.ADHIKARA ||
             (marker.pratipadika as? KridantaPratipadika)?.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
@@ -123,7 +170,7 @@ class VyakaranamAstBuilder {
                 marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "An अधिकार declaration requires a nominative domain and marker."
             }
-            return Scope(ukti.sourceText, domain.sourceText, domain.pratipadika.morphologicalKey())
+            error("VERBLESS_SENTENCE: अधिकार-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
         }
         return ukti
     }
@@ -282,6 +329,7 @@ class VyakaranamAstBuilder {
                 sourceText = loop.text,
                 condition = Invocation(buildVakya(loop.condition!!)),
                 body = Invocation(buildVakya(loop.body!!)),
+                maximumFrequency = limit,
                 maximumIterationStems = limit?.stems?.dropLast(1)
                     ?: (boundary.firstOrNull() as? SankhyaPuranaPada)?.stems?.dropLast(1).orEmpty(),
                 maximumBoundaryPadas = boundary,
@@ -513,14 +561,15 @@ class VyakaranamAstBuilder {
         clause: PaniniyaVyakaranamParser.NaturalIndexedDistributiveClauseContext,
     ): ForEach {
         val collection = buildSubanta(requireNotNull(clause.collection))
-        val quantifier = buildSubanta(requireNotNull(clause.quantifier))
+        val quantifier = clause.quantifier?.let(::buildSubanta) ?: (PaniniParser().parse("${requireNotNull(clause.each).text} ।").body as Invocation)
+            .vakya.padas.single() as SubantaPada
         val member = buildSubanta(requireNotNull(clause.member))
         val relations = clause.relations.map(::buildSubanta)
         val selections = clause.selections.map(::buildSubanta)
         require(collection.sup.affixCandidates == listOf(SupAffix.NGAS)) {
             "Natural indexed iteration requires a genitive singular collection."
         }
-        require(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
+        require(quantifier.pratipadika.semanticKey() == "एकैक" &&
             quantifier.sup.affixCandidates == listOf(SupAffix.AM)) {
             "Natural indexed iteration requires प्रत्येक + अम्."
         }
@@ -613,7 +662,7 @@ class VyakaranamAstBuilder {
         semanticRequire(collection.sup.affixCandidates == listOf(SupAffix.NGAS), requireNotNull(clause.collection),
             PaniniSemanticDiagnosticCode.COLLECTION_SOURCE_CASE,
             "A direct relative action requires a genitive singular collection.")
-        semanticRequire(quantifier.pratipadika.semanticKey() == "प्रत्येक" &&
+        semanticRequire(quantifier.pratipadika.semanticKey() == "एकैक" &&
             quantifier.sup.affixCandidates == listOf(SupAffix.AM), requireNotNull(clause.quantifier),
             PaniniSemanticDiagnosticCode.DISTRIBUTIVE_AGREEMENT,
             "A direct relative action requires an accusative प्रत्येक qualifier.")
@@ -744,16 +793,8 @@ class VyakaranamAstBuilder {
         ?: context.conditionalActionSequence()?.let(::buildActionSequence)
         ?: context.vakya()?.let {
         val vakya = buildVakya(it)
-        val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull()
-        if (nominal is SubantaPada || nominal is SankhyaBoundaryPada || nominal is KatapayadiPada ||
-            nominal is AryabhatiyaPada || nominal is BhutasamkhyaPada) {
-            implicitNominalReturn(requireNotNull(nominal))
-        } else Invocation(vakya)
-    }
-        ?: requireNotNull(context.value).let { value ->
-            implicitPratipadikaReturn(buildPratipadika(value),
-                DocumentSourceSpan(requireNotNull(value.start).startIndex, requireNotNull(value.stop).stopIndex + 1))
-        }
+        writtenValueReturn(vakya) ?: Invocation(vakya)
+    } ?: error("A conditional arm requires a sentence.")
 
     private fun buildActionSequence(
         sequence: PaniniyaVyakaranamParser.ConditionalActionSequenceContext,
@@ -765,6 +806,15 @@ class VyakaranamAstBuilder {
             Invocation(AkhyataVakya(coordinated.text, padas + tinganta, tinganta))
         } + Invocation(buildVakya(requireNotNull(sequence.finalStatement)))
         return Sequence(sequence.text, statements, sequence.connectors.map { it.text }, independentActions = true)
+    }
+
+    /** तर्हि सत्यम् अस्ति: a branch that only states one nominative value yields it, with its verb kept in the sentence. */
+    private fun writtenValueReturn(vakya: Vakya): ProgramNode? {
+        val written = vakya as? AkhyataVakya ?: return null
+        if (written.tinganta.dhatu.mulaDhatu !in setOf("असँ", "अस्") || written.tinganta.upasargas.isNotEmpty()) return null
+        val value = written.padas.filter { it !== written.tinganta }.singleOrNull() ?: return null
+        if (value !is SubantaPada || SupAffix.candidates(value.sup.text).none { it.vibhakti == Vibhakti.PRATHAMA }) return null
+        return (implicitNominalReturn(value) as Invocation).copy(vakya = NamaVakya(written.sourceText, listOf(value, written.tinganta)))
     }
 
     /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
@@ -803,20 +853,6 @@ class VyakaranamAstBuilder {
         is MulaPratipadika -> if (value.vikaras.all { it.isRecognizedStriAffix })
             dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(value.text)?.value else null
         else -> null
-    }
-
-    /** A bare nominal branch has an understood nominative ending, not a fictitious action. */
-    private fun implicitPratipadikaReturn(value: Pratipadika, span: DocumentSourceSpan): ProgramNode {
-        val cardinal = primitiveCardinalValue(value)
-        val vacana = cardinal?.let(dev.panini.sankhya.SankhyaVacana::requiredFor) ?: dev.panini.core.Vacana.EKAVACANA
-        val sup = SupAffix.entries.first { it.vibhakti == Vibhakti.PRATHAMA && it.vacana == vacana }.upadesha
-        return implicitNominalReturn(
-            SubantaPada(
-                sourceText = "${value.sourceText} + $sup",
-                pratipadika = value,
-                sup = SupPratyaya(sourceText = sup, text = sup),
-            ).locatedAt(span),
-        )
     }
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
@@ -915,7 +951,10 @@ class VyakaranamAstBuilder {
             else -> error("अज्ञातः वाक्यप्रकारः: ${context.text}")
         }
 
-    private fun buildAkhyataVakya(
+    private fun buildAkhyataVakya(context: PaniniyaVyakaranamParser.AkhyataVakyaContext): AkhyataVakya =
+        buildWrittenAkhyataVakya(context)
+
+    private fun buildWrittenAkhyataVakya(
         context: PaniniyaVyakaranamParser.AkhyataVakyaContext,
     ): AkhyataVakya {
         val purvaPadas = context.purvaVakyaPada()
@@ -1055,7 +1094,10 @@ class VyakaranamAstBuilder {
         return SankhyaAbhyasaPada(
             sourceText = context.text,
             stems = stems,
-        )
+        ).locatedAt(DocumentSourceSpan(
+            requireNotNull(context.start).startIndex,
+            requireNotNull(context.stop).stopIndex + 1,
+        ))
     }
 
     private fun buildKatapayadiPada(
@@ -1258,13 +1300,16 @@ class VyakaranamAstBuilder {
 
     private fun buildKridanta(
         context: PaniniyaVyakaranamParser.KridantaPratipadikaContext,
-    ): KridantaPratipadika =
-        KridantaPratipadika(
+    ): KridantaPratipadika {
+        val krt = context.krtPratyaya()?.text ?: context.SHATR()?.text ?: context.SHANACH()!!.text
+        return KridantaPratipadika(
             sourceText = context.text,
             upasargas = buildUpasargas(context.upasargaKrama()),
             dhatu = buildDhatu(context.dhatuPrakriti()!!),
-            krtPratyaya = context.krtPratyaya()!!.text,
+            krtPratyaya = krt,
+            future = context.LRT() != null,
         )
+    }
 
     private fun buildUnadyanta(
         context: PaniniyaVyakaranamParser.UnadyantaPratipadikaContext,
@@ -1482,5 +1527,4 @@ class VyakaranamAstBuilder {
             is SamasaPratipadika -> pratipadika.copy(vikaras = vikaras)
         }
 
-    private fun startTokenIndex(pada: Pada): Int = 0
 }

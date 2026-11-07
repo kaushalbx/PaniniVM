@@ -301,20 +301,6 @@ class SankhyaEvaluator {
         return 1L
     }
 
-    /**
-     * Evaluates a sentence-level Adhika expression given a remainder expression and a base expression.
-     */
-    fun evaluateAdhika(remainder: SankhyaExpression, base: SankhyaExpression): SankhyaExpression {
-        return SankhyaExpression.Adhika(remainder = remainder, base = base)
-    }
-
-    /**
-     * Evaluates a sentence-level Una expression given a subtrahend expression and a base expression.
-     */
-    fun evaluateUna(subtrahend: SankhyaExpression, base: SankhyaExpression): SankhyaExpression {
-        return SankhyaExpression.Una(subtrahend = subtrahend, base = base)
-    }
-
     private fun isUnit(prim: PrimitiveSankhya): Boolean = prim.value in 1L..9L
 
     private fun isTen(prim: PrimitiveSankhya): Boolean = prim.value in listOf(10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L)

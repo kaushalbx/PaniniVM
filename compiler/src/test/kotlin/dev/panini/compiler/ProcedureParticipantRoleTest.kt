@@ -6,7 +6,7 @@ import kotlin.test.*
 class ProcedureParticipantRoleTest {
     @Test fun `extracted text cannot acquire numeric meaning through unknown static kind`() {
         val source = """
-            राम + ङस् सूची + सुँ असँ + लट् + तिप् ।
+            राम + सुँ इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
             फल + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
@@ -20,7 +20,7 @@ class ProcedureParticipantRoleTest {
 
     @Test fun `extracted member composes with arithmetic using its runtime type`() {
         val source = """
-            एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
             फल + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
@@ -41,7 +41,7 @@ class ProcedureParticipantRoleTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ॥
-            एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         assertTrue(CompilerFrontend.lower(source, "MemberRoleSignature").procedures.single().parameterNames.isEmpty())
@@ -65,7 +65,7 @@ class ProcedureParticipantRoleTest {
             प्रथम + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             प्रथम + टा डुकृञ् + उ + लोट् + सिप् ॥
             पञ्च + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()

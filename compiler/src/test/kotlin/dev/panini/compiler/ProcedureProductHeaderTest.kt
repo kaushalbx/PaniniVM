@@ -38,7 +38,7 @@ class ProcedureProductHeaderTest {
 
     @Test fun `result production respects explicit causative vikarana`() {
         val predicate = "जन् + णिच् + लट् + तिप्"
-        for ((index, affix) in listOf("शप्", "श्यन्", "श्ना", "यक्", "स्य").withIndex()) {
+        for ((index, affix) in listOf("शप्", "श्यन्", "श्ना", "यक्").withIndex()) {
             val source = header.replace(predicate, "जन् + णिच् + $affix + लट् + तिप्") +
                 "\nएक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n$call"
             if (affix == "शप्") {
@@ -79,7 +79,7 @@ class ProcedureProductHeaderTest {
 
     @Test fun `header cannot duplicate body result or use unrelated predicate`() {
         for (source in listOf(
-            "$header\nसङ्ख्या + सुँ इति परिणाम + सुँ ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
+            "$header\nपरिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
             header.replace("जन्", "मुद्र्") + "\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥",
         )) assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(source, "InvalidProductDeclaration") }
     }

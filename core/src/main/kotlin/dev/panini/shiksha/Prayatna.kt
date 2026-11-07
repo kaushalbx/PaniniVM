@@ -7,10 +7,3 @@ enum class AbhyantaraPrayatna {
     VIVRTA,       // Vowels
     SAMVRTA       // Short 'a' in actual speech
 }
-
-enum class BahyaPrayatna {
-    VIVARA, SVASA, AGHOSA,
-    SAMVARA, NADA, GHOSA,
-    ALPAPRANA, MAHAPRANA,
-    UDATTA, ANUDATTA, SVARITA
-}

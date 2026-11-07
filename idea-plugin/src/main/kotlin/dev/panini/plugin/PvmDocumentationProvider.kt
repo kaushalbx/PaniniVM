@@ -1,5 +1,6 @@
 package dev.panini.plugin
 
+import dev.panini.analysis.karakaLabel
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -45,9 +46,14 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         if (text.isEmpty()) return null
 
         prakriyaParameterDeclarationDoc(target)?.let { return it }
-        projectPrakriyaDoc(target)?.let { return it }
+        projectPrakriyaDoc(target)?.let { doc ->
+            // A procedure's name is also a word of its declaration, with its own role there.
+            val role = nonKriyaWord(target)?.let { "<li><b>कारकम्:</b> " + html(it.reading) + "</li>" }.orEmpty()
+            return doc.replaceFirst("<ul>", "<ul>$role")
+        }
         prakriyaArgumentDoc(target)?.let { return it }
         canonicalPadaDoc(target)?.let { return it }
+        nonKriyaWordDoc(target)?.let { return it }
 
         // 0. Check for Sandhi Expression containing '+'
         val parentText = target.parent?.text?.trim() ?: ""
@@ -256,13 +262,13 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
 
     private fun canonicalPadaDoc(target: PsiElement): String? {
         var structural: PsiElement? = target
-        while (structural != null && structural.node.elementType !in setOf(
+        while (structural != null && structural !is com.intellij.psi.PsiFile && structural.node.elementType !in setOf(
                 PvmTokenTypes.SUBANTA,
                 PvmTokenTypes.TINGANTA,
             )) {
             structural = structural.parent
         }
-        val node = structural ?: return null
+        val node = structural?.takeUnless { it is com.intellij.psi.PsiFile } ?: return null
         val file = node.containingFile as? PvmFile ?: return null
         val semantic = file.canonicalSemanticFrameAt(node.textRange.startOffset)
         return when (val pada = file.canonicalPadaAt(node.textRange.startOffset)) {
@@ -315,7 +321,7 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             }
             when (val resolution = relation.resolution) {
                 is FrameKarakaResolution.Resolved -> append("<li><b>कारकम्:</b> ")
-                    .append(html(resolution.karaka.sanskritName)).append("</li>")
+                    .append(html(frame.karakaLabel(relation) ?: resolution.karaka.sanskritName)).append("</li>")
                 is FrameKarakaResolution.Ambiguous -> append("<li><b>कारकम्:</b> unresolved — ")
                     .append(html(resolution.candidates.joinToString { it.sanskritName })).append("</li>")
                 is FrameKarakaResolution.Unassigned -> append("<li><b>कारकम्:</b> unresolved — ")
@@ -361,13 +367,24 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         frame?.let {
             append("</li><li><b>प्रयोगः:</b> ").append(html(it.prayoga.name.lowercase()))
             val resolved = it.relations.mapNotNull { relation ->
-                (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka?.sanskritName
+                it.karakaLabel(relation)
             }
             if (resolved.isNotEmpty()) {
                 append("</li><li><b>कारक-आकृतिः:</b> ").append(html(resolved.joinToString()))
             }
         }
         append("</li></ul></body></html>")
+    }
+
+    /** A declaration word has no kriyā frame to report, so hover shows the role it was given directly. */
+    private fun nonKriyaWordDoc(target: PsiElement): String? = nonKriyaWord(target)?.let { word ->
+        "<html><body><b>" + html(word.text) + "</b><ul><li><b>कारकम्:</b> " + html(word.reading) + "</li></ul></body></html>"
+    }
+
+    private fun nonKriyaWord(target: PsiElement): dev.panini.analysis.NonKriyaWord? {
+        val document = (target.containingFile as? PvmFile)?.canonicalDocument() ?: return null
+        val offset = target.textOffset
+        return dev.panini.execution.binding.VyakaranamExecutionAdapter.nonKriyaWords(document).firstOrNull { offset >= it.start && offset < it.end && it.start >= 0 }
     }
 
     private fun projectPrakriyaDoc(target: PsiElement): String? {

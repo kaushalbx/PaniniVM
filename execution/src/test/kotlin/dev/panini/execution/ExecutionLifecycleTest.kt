@@ -116,8 +116,8 @@ class ExecutionLifecycleTest {
         val sadhaka = PvmUktiSadhaka()
 
         assertEquals(
-            "भूतः इति प्रक्रिया अस्ति ।",
-            sadhaka.sadhayaLine("भू + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
+            "भूतः नाम प्रक्रिया अस्ति ।",
+            sadhaka.sadhayaLine("भू + क्त + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
         )
         assertEquals(
             "गणितस्य भूतेन कुरु ।",
@@ -422,19 +422,19 @@ class ExecutionLifecycleTest {
         """.trimIndent()
         assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(utterance))
         assertEquals("panini.eval", assertIs<ExecutionResult.Success>(PaniniVM().eval(utterance)).operation)
-        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ ।"))
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ असँ + लट् + तिप् ।"))
         assertEquals(
             PvmSourceKind.UTTERANCE,
-            PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ ।"),
+            PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ असँ + लट् + तिप् ।"),
             "संज्ञा names a technical term; it does not declare reusable code.",
         )
         assertEquals(
             PvmSourceKind.SCRIPT,
-            PvmScript.classify("प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
+            PvmScript.classify("प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
         )
         assertEquals(
             PvmSourceKind.UTTERANCE,
-            PvmScript.classify("संज्ञा + सुँ ।"),
+            PvmScript.classify("संज्ञा + सुँ असँ + लट् + तिप् ।"),
             "A marker lexeme without the parsed इति construction remains an utterance.",
         )
 

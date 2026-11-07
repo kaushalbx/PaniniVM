@@ -158,7 +158,7 @@ class PriorActionTest {
     @Test
     fun `failed prior action does not invoke the reusable main command`() {
         val source = """
-            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रदर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ॥
             एक + अम् द्वि + औट् च वि + युज् + णिच् + ल्यप्
             प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -171,7 +171,7 @@ class PriorActionTest {
     @Test
     fun `prior action executes before a reusable procedure main command`() {
         val source = """
-            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रदर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा
             प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।

@@ -1,6 +1,6 @@
 # Ordinal positions are one-based: take the second member of a collection.
 # The collection is the genitive whole; the ordinal agrees with its object noun.
 
-एकस्य द्वयोः त्रयाणां च सङ्ख्यानां सूची अस्ति ।
+एकं द्वे त्रीणि इति सङ्ख्यानां सूची अस्ति ।
 
 सूच्याः द्वितीयं मूल्यं गृहाण ततः फलं मुद्रय ।

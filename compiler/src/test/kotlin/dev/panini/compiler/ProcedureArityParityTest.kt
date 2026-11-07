@@ -6,7 +6,7 @@ import kotlin.test.*
 class ProcedureArityParityTest {
     private fun definition(explicit: Boolean): String = """
         परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-        ${if (explicit) "प्रथम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\nद्वितीय + सुँ सङ्ख्या + सुँ इति मान + सुँ ।" else ""}
+        ${if (explicit) "प्रथम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\nद्वितीय + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।" else ""}
         प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
     """.trimIndent()
 
@@ -38,7 +38,7 @@ class ProcedureArityParityTest {
     @Test fun `one list is one argument irrespective of its member count`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सूची + सुँ इति मान + सुँ ।
+            मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
             फल + सुँ मान + सुँ असँ + लट् + तिप् ॥
             सूची + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()

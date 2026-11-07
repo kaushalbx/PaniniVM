@@ -30,18 +30,18 @@ enum class Vikarana(val upadesha: String, val gana: DhatuGana? = null) {
 
 /**
  * Gaṇa evidence about the original lexical root, not about a derived stem.
- * In the supported present/imperative single-णिच् construction, शप् attaches
- * to the causative stem (3.1.68) and does not reclassify the original root.
+ * In a sārvadhātuka lakāra शप् attaches to a sanādi stem (3.1.32, 3.1.68) and
+ * does not reclassify the original root.
  * This lookup constraint is not a complete affix-compatibility validator.
  */
 fun TingantaPada.lexicalGanaConstraint(): DhatuGana? =
-    if (vikarana == Vikarana.SHAP && dhatu.sanadiAffixes == listOf(SanadiAffix.NIC) &&
-        lakara in setOf(dev.panini.core.Lakara.LAT, dev.panini.core.Lakara.LOT)) null
+    if (vikarana == Vikarana.SHAP && dhatu.sanadiAffixes.isNotEmpty() &&
+        lakara in setOf(dev.panini.core.Lakara.LAT, dev.panini.core.Lakara.LOT, dev.panini.core.Lakara.LANG, dev.panini.core.Lakara.LING)) null
     else vikarana?.gana
 
 /** A known contradiction, not a claim to validate every verbal derivation. */
 fun TingantaPada.hasContradictoryActiveCausativeVikarana(): Boolean =
     dhatu.sanadiAffixes == listOf(SanadiAffix.NIC) &&
-        lakara in setOf(dev.panini.core.Lakara.LAT, dev.panini.core.Lakara.LOT) &&
-        ting.affix?.pada == dev.panini.core.PadaType.PARASMAIPADA &&
-        vikarana != null && vikarana != Vikarana.SHAP
+        lakara in setOf(dev.panini.core.Lakara.LAT, dev.panini.core.Lakara.LOT, dev.panini.core.Lakara.LANG, dev.panini.core.Lakara.LING) &&
+        // यक् marks the passive, the one other vikaraṇa a causative may take.
+        vikarana != null && vikarana != Vikarana.SHAP && vikarana != Vikarana.YAK

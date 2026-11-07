@@ -1,13 +1,13 @@
 # तद्धित ग्रन्थ — Pāṇinian Sthānivadbhāva Polymorphic Delegation (1.1.56 स्थानिवदादेशोऽनल्विधौ)
 
 # Step 1: Parent domain declaration 'गणित'
-गणितः इति अधिकारः ।
+गणितम् इति अधिकारः अस्ति ।
 
 # Step 2: Child domain declaration 'गाणित' extending 'गणित' (Taddhita AṆ 4.1.83)
-गणितः इति अधिकारः ।
+गणितम् इति अधिकारः अस्ति ।
 
 # Step 3: Define method 'गुण्' on Parent class 'गणित' (Addition: 5 + 2 = 7 -> सप्त)
-गणितस्य गणनम् इति प्रक्रिया अस्ति ।
+गणितस्य गणनं नाम प्रक्रिया अस्ति ।
 पञ्च द्वे च योजय ॥
 
 # Step 4: Invoke 'गुण्' on Child class 'गाणित' (which has NO explicit override).

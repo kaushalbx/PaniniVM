@@ -9,12 +9,12 @@ class NativeRepositorySyntaxTest {
     @Test
     fun `adhikara governs subsequent declarations without retroactive scope`() {
         val source = """
-            पूर्व + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            गणित + सुँ इति अधिकार + सुँ ।
-            मध्य + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            भाषा + सुँ इति अधिकार + सुँ ।
-            उत्तर + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            गणित + ङस् प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            पूर्व + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            मध्य + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            भाषा + सुँ इति अधिकार + सुँ असँ + लट् + तिप् ।
+            उत्तर + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
         """.trimIndent()
         val registry = PrakriyaRegistry()
         PvmProjectLoader().registerDeclarations(registry, PvmScript.parse(source), "scope.pvm")

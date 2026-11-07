@@ -10,7 +10,7 @@ class ProcedureArgumentMorphologyParityTest {
         for ((index, call) in calls.withIndex()) {
             val source = """
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+                मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
                 मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
                 पञ्च + अम् $call डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
@@ -30,7 +30,7 @@ class ProcedureArgumentMorphologyParityTest {
         for ((index, ending) in listOf("सुँ", "टा", "ङे", "ङसिँ").withIndex()) {
             val source = """
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+                मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
                 मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
                 राम + $ending पञ्च + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()

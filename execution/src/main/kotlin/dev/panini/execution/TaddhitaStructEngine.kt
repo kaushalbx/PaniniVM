@@ -293,7 +293,8 @@ object TaddhitaStructEngine {
         val verb = vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()
             ?: return AttributeAccessAnalysis.NotAccess
         if (verb.canonicalDhatuIdentity() != CanonicalDhatuIdentity.GRAH) return AttributeAccessAnalysis.NotAccess
-        val operands = vakya.padas.filter { it !== verb }
+        // मूल्यं गुणवतः गृहाण: the genitive chain relates by case, wherever it is written.
+        val operands = vakya.padas.filter { it !== verb }.sortedBy { if (it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI)) 0 else 1 }
         if (operands.none { it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) &&
                 it.pratipadika.isMatup() }) return AttributeAccessAnalysis.NotAccess
         fun invalid(code: String, message: String) = AttributeAccessAnalysis.Invalid(AttributeAccessDiagnostic(
@@ -393,24 +394,6 @@ object TaddhitaStructEngine {
         val receiver = padas[receiverIndex] as SubantaPada
         val method = padas.drop(receiverIndex + 1).filterIsInstance<SubantaPada>().firstOrNull() ?: return null
         return receiver.pratipadika.baseIdentity() to method
-    }
-
-    /**
-     * Detects struct method invocation: "<karma> <struct> + मतुप् + ङस् <method> + ल्युट् + टा कृ"
-     * e.g. "पञ्च + अम् गुण + मतुप् + ङस् वृध् + ल्युट् + टा कृ + लोट् + सिप्"
-     */
-    fun detectMethodInvocation(sentenceText: String): Triple<String, String, String>? {
-        val ukti = parsed(sentenceText, null) ?: return null
-        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
-        val receiverIndex = padas.indexOfFirst {
-            it is SubantaPada && it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika.isMatup()
-        }
-        if (receiverIndex < 0) return null
-        val receiver = padas[receiverIndex] as SubantaPada
-        val method = padas.drop(receiverIndex + 1).filterIsInstance<SubantaPada>()
-            .firstOrNull { it.hasVibhakti(Vibhakti.TRTIYA) } ?: return null
-        val karma = padas.take(receiverIndex).joinToString(" ") { it.canonicalSource() }
-        return Triple(receiver.pratipadika.baseIdentity(), method.pratipadika.baseIdentity(), karma)
     }
 
     private fun parsed(text: String, supplied: Ukti?): Ukti? =

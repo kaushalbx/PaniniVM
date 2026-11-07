@@ -166,13 +166,13 @@ object PrakriyaSignatureCompiler {
 
     /** Reads a type predicate from its parsed भाववाचक `त्व` derivation. */
     fun inferGuardType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? {
-        val padas = sentence.ukti?.grammaticalVakyas()?.singleOrNull()?.padas ?: return null
+        val padas = sentence.ukti?.grammaticalVakyas()?.singleOrNull()?.padas?.filterNot { it is TingantaPada && it.dhatu.mulaDhatu in setOf("भू", "असँ", "अस्") } ?: return null
         val negations = padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
             .filter { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
         if (negations.size != 1) return null
         val nominals = padas.filterIsInstance<SubantaPada>()
         if (nominals.size != 2 || padas.size != 3 || nominals.any {
-                !it.sup.supports(Vibhakti.DVITIYA)
+                !it.sup.supports(Vibhakti.DVITIYA) && !it.sup.supports(Vibhakti.PRATHAMA)
             }) return null
         return nominals.mapNotNull { pada ->
                 val stem = pada.pratipadika as? MulaPratipadika ?: return@mapNotNull null
@@ -243,29 +243,35 @@ object PrakriyaSignatureDeclarationParser {
         else -> null
     }
 
+    /** परिणामः सङ्ख्या अस्ति, मानं सङ्ख्या अस्ति, दक्षिणं नाम मानं सङ्ख्या अस्ति: a plain sentence saying what a value is. */
+    private fun naturalDeclaration(sentence: PvmScriptStatement.Sentence): Pair<List<SubantaPada>, SubantaPada>? {
+        val invocation = sentence.ukti?.body as? dev.panini.vyakaranam.ast.Invocation ?: return null
+        val vakya = invocation.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya ?: return null
+        val copula = vakya.tinganta
+        if (copula.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS || copula.upasargas.isNotEmpty() ||
+            copula.lakara != Lakara.LAT || copula.ting.affix != TingAffix.TIP) return null
+        val words = vakya.padas.filterNot { it === copula || (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.form == "नाम" }
+        val nouns = words.filterIsInstance<SubantaPada>()
+        if (nouns.size != words.size || nouns.size < 2) return null
+        val type = nouns.last()
+        val marker = nouns[nouns.size - 2]
+        // परिणामः फलरूपम् अस्ति: a result may name a schema; a value must name a type.
+        if (type.lexicalIdentity()?.let(::typeOrNull) == null && marker.lexicalIdentity() != MulaPratipadikaIdentity.PARINAMA) return null
+        return when (marker.lexicalIdentity()) {
+            MulaPratipadikaIdentity.PARINAMA -> if (nouns.size == 2) listOf(type) to marker else null
+            MulaPratipadikaIdentity.MANA -> when (nouns.size) {
+                2 -> listOf(marker, type) to marker
+                3 -> listOf(nouns[0], type) to marker
+                else -> null
+            }
+            else -> null
+        }
+    }
+
     private fun declarationPadas(
         sentence: PvmScriptStatement.Sentence,
     ): Pair<List<SubantaPada>, SubantaPada>? {
-        val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return null
-        val declared = declaration.declaredPadas.filterIsInstance<SubantaPada>()
-        if (declared.size != declaration.declaredPadas.size) return null
-        val marker = declaration.nominativeMarker ?: return null
-        val reporting = declaration.markerPadas.filter { it !== marker }
-        if (reporting.isNotEmpty()) {
-            val copula = reporting.singleOrNull() as? TingantaPada ?: return null
-            if (copula.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS ||
-                copula.upasargas.isNotEmpty() || copula.dhatu.sanadiPratyayas.isNotEmpty() ||
-                copula.lakara != Lakara.LAT || copula.ting.affix != TingAffix.TIP
-            ) return null
-        }
-        // These contracts declare one named slot or one result, even when its
-        // payload is a collection. Plural morphology is not a singular contract.
-        if ((declared + marker).any {
-                !it.sup.supports(Vibhakti.PRATHAMA, dev.panini.core.Vacana.EKAVACANA)
-            }) {
-            return null
-        }
-        return declared to marker
+        return naturalDeclaration(sentence)
     }
 
     private fun SubantaPada.lexicalIdentity(): MulaPratipadikaIdentity? =

@@ -19,7 +19,7 @@ class NegationScopeClassificationTest {
 
     @Test
     fun `standalone nominal prohibition retains guard classification`() {
-        val source = "प्रथम + अम् शून्य + अम् न ।"
+        val source = "प्रथम + अम् शून्य + अम् न भू + लिङ् + तिप् ।"
         assertTrue(assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(source).single()).isNishedha)
     }
 }

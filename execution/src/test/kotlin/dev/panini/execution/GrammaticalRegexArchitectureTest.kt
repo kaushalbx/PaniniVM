@@ -11,7 +11,7 @@ class GrammaticalRegexArchitectureTest {
         val repository = if (workingDirectory.name == "execution") workingDirectory.parentFile else workingDirectory
         val consumers = listOf(
             "CopularAgreement.kt", "ItiDeclaration.kt",
-            "PaniniMorphologyEngines.kt", "TaddhitaStructEngine.kt", "AnaphoricOperandProjection.kt",
+            "TaddhitaStructEngine.kt", "AnaphoricOperandProjection.kt",
             "ReferentAgreement.kt", "PrakriyaInvocationMatcher.kt", "PrakriyaHeaderIdentity.kt",
             "PrakriyaRegistry.kt", "NaturalSemanticNormalizer.kt", "NishedhaGuardEvaluator.kt",
             "PrakriyaDefinitionMarkerParser.kt", "PrakriyaScriptValidator.kt", "PvmScript.kt",

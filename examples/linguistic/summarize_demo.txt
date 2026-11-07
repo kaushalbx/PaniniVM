@@ -1,8 +1,8 @@
 # Linguistic Text Summarization Demo in PaniniVM Script (.pvm)
-# Generates grammatical summary of text input (भावविवरणम्)
+# Shortens a text to its first fifteen characters; this is truncation, not a summary of meaning
 
 # Step 1: Summarize input sentence (भावया/सु)
-वाक्यं सावय ।
+विद्याविनयसम्पन्नब्राह्मणगवीहस्तिनिं सावय ।
 
 # Step 2: Print generated summary
 मुद्रय फलम् ।

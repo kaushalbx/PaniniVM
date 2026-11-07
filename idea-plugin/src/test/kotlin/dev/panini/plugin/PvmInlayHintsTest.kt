@@ -14,7 +14,7 @@ class PvmInlayHintsTest {
     @Test
     fun `hints use canonical ukti spans and skip declarations`() {
         val source = """
-            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
             पञ्चन् + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
@@ -38,9 +38,9 @@ class PvmInlayHintsTest {
     @Test
     fun `positional kriya arguments show resolved canonical parameter names`() {
         val source = """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।
@@ -73,9 +73,9 @@ class PvmInlayHintsTest {
     @Test
     fun `explicit named arguments do not receive redundant parameter hints`() {
         val source = """
-            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             दक्षिण + ङि त्रि + अम् वाम + ङि द्वि + अम् योजन + टा कृ + लोट् + सिप् ।
@@ -190,5 +190,39 @@ class PvmInlayHintsTest {
         assertTrue(karman.explanation.orEmpty().contains("पदम्: फल + अम्"))
         assertTrue(karman.explanation.orEmpty().contains("अष्टाध्यायी-प्रमाणम्:"))
         assertTrue(karman.explanation.orEmpty().contains("1.4.49"))
+    }
+
+    @Test
+    fun `a named procedure header shows its roles`() {
+        val header = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"
+        for (source in listOf(header, "$header\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")) {
+            val document = PaniniParser().parseDocument(source)
+            val registry = PrakriyaRegistry().also { it.registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm") }
+            val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")
+            assertTrue(hints.any { it.offset == 0 && it.text == "कर्तृ-समानाधिकरण: सञ्ज्ञा =" })
+            assertTrue(hints.any { it.offset == source.indexOf("प्रक्रिया") && it.text.startsWith("कर्तृ") })
+        }
+    }
+
+    @Test
+    fun `comments get no hints`() {
+        val comment = "# गणित + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"
+        val inner = "# द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "$comment\nपरीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n$inner\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n$comment\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val document = PaniniParser().parseDocument(source)
+        val registry = PrakriyaRegistry().also { it.registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm") }
+        val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")
+        val commentRanges = Regex("#[^\n]*").findAll(source).map { it.range }.toList()
+        assertTrue(hints.none { hint -> commentRanges.any { hint.offset in it } }, hints.map { it.offset to it.text }.toString())
+        assertTrue(hints.any { it.offset == source.indexOf("परीक्षण") })
+    }
+
+    @Test
+    fun `a repetition count qualifies the action`() {
+        val source = "षष् + कृत्वसुच् एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val document = PaniniParser().parseDocument(source)
+        val registry = PrakriyaRegistry().also { it.registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm") }
+        val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")
+        assertTrue(hints.any { it.offset == 0 && it.text == "क्रियाविशेषण =" }, hints.map { it.offset to it.text }.toString())
     }
 }

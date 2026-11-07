@@ -1,0 +1,4 @@
+# अपादानम्: taking from a source. Take the value at position one from the treasury list and print it.
+एकं द्वे त्रीणि इति कोषः नाम सङ्ख्यानां सूची अस्ति ।
+कोषाद् एकस्मिन् मूल्यं गृहाण ।
+फलं मुद्रय ।

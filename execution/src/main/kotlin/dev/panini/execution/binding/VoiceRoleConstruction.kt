@@ -68,21 +68,26 @@ internal object VoiceRoleConstruction {
         val absoluteObjects = frame.participialRelations.filter { it.participle > 0 }.mapNotNull { relation ->
             absoluteObject(frame, relation)?.let { it to KrtGovernorReading(relation.participle, setOf(Karaka.KARTR)) }
         }.toMap()
-        return absoluteObjects + genitiveOnActionNoun(nominals)
+        return absoluteObjects + genitiveOnActionNoun(frame, nominals)
     }
 
     /** रामे वनं गच्छति, पाठं पठन्: the accusative written directly before a participle is its object. */
     private fun absoluteObject(frame: KriyaFrame, relation: dev.panini.analysis.ParticipialRelation): Int? {
         val nominals = frame.nominalRelations?.nominalPadas.orEmpty()
-        val before = relation.participle - 1
-        return before.takeIf { it >= 0 && it != relation.bearer && nominals[it].supCandidates.isNotEmpty() &&
-            nominals[it].supCandidates.all { sup -> sup.vibhakti == Vibhakti.DVITIYA } }
+        val accusatives = nominals.indices.filter { it != relation.bearer && it != relation.participle && !isAgreeingParticiple(nominals[it]) &&
+            nominals[it].supCandidates.isNotEmpty() && nominals[it].supCandidates.all { sup -> sup.vibhakti == Vibhakti.DVITIYA } }
+        return CaseFormConstruction.ownedBy(frame.vakya.padas, accusatives.map { it to nominals[it].pada }, nominals[relation.participle].pada, frame.vakya.padas.lastOrNull { it is dev.panini.vyakaranam.ast.TingantaPada })
     }
 
-    private fun genitiveOnActionNoun(nominals: List<dev.panini.analysis.SubantaAnalysis>): Map<Int, KrtGovernorReading> {
+    private fun genitiveOnActionNoun(frame: KriyaFrame, nominals: List<dev.panini.analysis.SubantaAnalysis>): Map<Int, KrtGovernorReading> {
         val governor = nominals.indices.filter { index ->
             ((nominals[index].pada as? SubantaPada)?.pratipadika as? KridantaPratipadika)?.krtPratyaya in actionNounAffixes
         }.singleOrNull() ?: return emptyMap()
+        // गुणवतः वर्धनेन कुरु: an action noun means of करोति names what is done; the genitive owns it (2.3.50), it is no kartā or karma of it.
+        if (nominals[governor].supCandidates.all { it.vibhakti == Vibhakti.TRTIYA } && frame.kriya?.dhatu.hasArtha(DhatuArthaClass.DOING)) return emptyMap()
+        // गणितस्य योजनं नाम प्रक्रिया: a name before नाम is a word, not an action, so the genitive owns it (2.3.50).
+        val padas = frame.vakya.padas
+        if ((padas.getOrNull(padas.indexOfFirst { it === nominals[governor].pada } + 1) as? AvyayaPada)?.form == "नाम") return emptyMap()
         val genitive = nominals.indices.filter { index -> nominals[index].supCandidates.isNotEmpty() &&
             nominals[index].supCandidates.all { it.vibhakti == Vibhakti.SASTHI } }.singleOrNull() ?: return emptyMap()
         return if (genitive == governor) emptyMap()
@@ -94,6 +99,8 @@ internal object VoiceRoleConstruction {
      * and a motion causative the causee. Cognition, eating and speech causatives may express either, so they stay open.
      */
     private fun passiveObjects(frame: KriyaFrame, dhatu: Dhatu, written: String, causative: Boolean, nominative: Int?, accusative: Int?): Map<Int, Set<SemanticRelation>> {
+        // पञ्च मुद्र्यन्ते: with no second object, the nominative of a passive is simply what the passive expresses.
+        if (frame.prayoga == Prayoga.KARMANI && nominative != null && accusative == null && !causative) return mapOf(nominative to setOf(SemanticRelation.DESIRED_OBJECT))
         if (frame.prayoga != Prayoga.KARMANI || nominative == null || accusative == null) return emptyMap()
         val names = setOf(written, dhatu.sourceSurface)
         fun pair(expressed: SemanticRelation, other: SemanticRelation) = mapOf(nominative to setOf(expressed, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
@@ -159,7 +166,7 @@ internal object VoiceRoleConstruction {
         }.keys
     }
 
-    fun infer(sentence: AkhyataVakya, dhatu: Dhatu?, frame: KriyaFrame, priorAction: Boolean = false): Map<Int, Set<SemanticRelation>> {
+    fun infer(sentence: AkhyataVakya, dhatu: Dhatu?, frame: KriyaFrame, priorAction: Boolean = false, declared: Boolean = false): Map<Int, Set<SemanticRelation>> {
         val head = sentence.tinganta
         val nominals = frame.nominalRelations?.nominalPadas.orEmpty()
         // A nominative in active voice is the kartā whichever homonym was meant; only object questions need the root.
@@ -172,7 +179,19 @@ internal object VoiceRoleConstruction {
             nominals[index].supCandidates.isNotEmpty() && nominals[index].supCandidates.all { it.vibhakti == case }
         }
         val coordinated = sentence.padas.any { (it is AvyayaPada && it.form in setOf("च", "वा")) || it is dev.panini.vyakaranam.ast.SamuccitaSubanta }
-        val nominatives = inCase(Vibhakti.PRATHAMA).filterNot { isAgreeingParticiple(nominals[it]) }
+        // प्रथमा सङ्ख्या: an ordinal before its noun qualifies it, so the two share one role.
+        val ordinals = inCase(Vibhakti.PRATHAMA).filter { index -> index + 1 in inCase(Vibhakti.PRATHAMA) &&
+            // प्रथमा सङ्ख्या qualifies a noun for a kind of value; द्वितीयः शून्यं न भवेत् says something of the second.
+            nominals[index + 1].pada.sourceText.replace(" ", "").substringBeforeLast("+") in setOf("सङ्ख्या", "शब्द", "सूची") &&
+            dev.panini.analysis.isOrdinalWord(nominals[index].pada.sourceText) }
+        // X नाम अपवादः प्रक्रिया: once the thing is named, the kind of procedure qualifies it. Bare गणनं प्रक्रिया अस्ति stays subject and predicate.
+        val procedureQualifiers = inCase(Vibhakti.PRATHAMA).filter { index -> declared && index + 1 in inCase(Vibhakti.PRATHAMA) &&
+            nominals[index + 1].pada.sourceText.replace(" ", "") == "प्रक्रिया+सुँ" }
+        // मारीचः नाम राक्षसः: the word before नाम is the name, not the subject.
+        val namedAt = sentence.padas.indexOfFirst { it is AvyayaPada && it.form == "नाम" }
+        val name = sentence.padas.getOrNull(namedAt - 1)?.let { before -> nominals.indexOfFirst { it.pada === before }.takeIf { it >= 0 && it in inCase(Vibhakti.PRATHAMA) } }
+        val nominalQualifiers = ordinals + procedureQualifiers.filterNot { it == name }
+        val nominatives = inCase(Vibhakti.PRATHAMA).filterNot { isAgreeingParticiple(nominals[it]) || it == name || it in nominalQualifiers }
             .takeIf { it.size == 1 || coordinated }.orEmpty()
         // 2.3.41: क्षत्रियेषु शूरः, a plural beside a subject and its predicate names the group selected from.
         val groups = if (dhatu.hasArtha(DhatuArthaClass.BEING) && inCase(Vibhakti.PRATHAMA).size == 2) nominals.indices.filter { index ->
@@ -201,10 +220,7 @@ internal object VoiceRoleConstruction {
         // With a क्त्वा or ल्यप् action in the clause, the instrumental may belong to either action, so it stays open.
         val passiveAgent = instrumentals.singleOrNull()?.takeIf { !priorAction }?.takeIf { index -> isDoerNoun(index) || stem(index).let { it != null && !namesMeans(it) && it !in timeWords && it !in distanceWords &&
             CaseFormConstruction.infer(frame)[index] == null } }
-        // मारीचः नाम राक्षसः: the word before नाम is the name, not the subject.
-        val namedAt = sentence.padas.indexOfFirst { it is AvyayaPada && it.form == "नाम" }
-        val name = sentence.padas.getOrNull(namedAt - 1)?.let { before -> nominals.indexOfFirst { it.pada === before }.takeIf { it >= 0 && it in inCase(Vibhakti.PRATHAMA) } }
-        val plainNominatives = inCase(Vibhakti.PRATHAMA).filterNot { isAgreeingParticiple(nominals[it]) || it == name }
+        val plainNominatives = inCase(Vibhakti.PRATHAMA).filterNot { isAgreeingParticiple(nominals[it]) || it == name || it in nominalQualifiers }
         val namedSubject = plainNominatives.singleOrNull().takeIf { name != null }
         val sameNumber = plainNominatives.size == 2 && nominals[plainNominatives[0]].supCandidates.any { one ->
             nominals[plainNominatives[1]].supCandidates.any { it.vacana == one.vacana } }
@@ -229,6 +245,9 @@ internal object VoiceRoleConstruction {
                     if (sakarmaka) accusative?.let { obj -> put(obj, SemanticRelation.DESIRED_OBJECT to Karaka.KARMAN) } }
             }
             // 1.4.42 दात्रेण लुनाति: active voice expresses the kartā, so a plain instrumental is the means.
+            // गणनेन कुरु: an action or result noun with करोति is the means of doing.
+            if (dhatu.hasArtha(DhatuArthaClass.DOING) && frame.prayoga == Prayoga.KARTARI) instrumentals.filter { stem(it) == null }
+                .forEach { put(it, SemanticRelation.INSTRUMENT to Karaka.KARANA) }
             if (frame.prayoga == Prayoga.KARTARI) instrumentals.filter { stem(it) != null && stem(it) !in timeWords &&
                 stem(it) !in distanceWords && CaseFormConstruction.infer(frame)[it] == null }
                 .forEach { put(it, SemanticRelation.INSTRUMENT to Karaka.KARANA) }
@@ -259,6 +278,24 @@ internal object VoiceRoleConstruction {
         // Vārttika on 2.3.18: वेगेन धावति, प्रकृत्या दर्शनीयः names the manner, not a means.
         val mannerInstrumentals = inCase(Vibhakti.TRTIYA).filter { stem(it) in setOf("प्रकृति", "प्राय", "गोत्र", "सम", "विषम", "वेग", "सुख", "दुःख") }
         val lostAbsolutive = if (head.dhatu.mulaDhatu in setOf("ईक्ष्", "ईक्षँ")) inCase(Vibhakti.PANCHAMI) else emptyList()
+        // भ्याम्, भ्यस् and ओस् cover several cases. The root and the voice narrow them, always as a marked default.
+        // पत् is glossed only गतौ, yet रथात् पतितः always leaves a point.
+        val fromAway = dhatu.hasArtha(DhatuArthaClass.FALLING) || dhatu.sourceSurface == "पत्" ||
+            (dhatu.hasArtha(DhatuArthaClass.MOTION) && head.upasargas.any { it in setOf("आङ्", "अप", "निर्", "निस्") })
+        val giving = "दाने" in dhatu.artha
+        val syncretic = nominals.indices.filter { index -> nominals[index].supCandidates.map { it.vibhakti }.toSet().size > 1 && index !in upapada && !dhatu.hasArtha(DhatuArthaClass.BEING) }.mapNotNull { index ->
+            val cases = nominals[index].supCandidates.map { it.vibhakti }.toSet()
+            val adjoining = listOf(index - 1, index + 1).any { it in nominals.indices }
+            when {
+                Vibhakti.PANCHAMI in cases && fromAway -> index to setOf(SemanticRelation.SOURCE, SemanticRelation.SEPARATION_REFERENCE)
+                Vibhakti.CHATURTHI in cases && giving && accusative != null -> index to setOf(SemanticRelation.RECIPIENT)
+                Vibhakti.TRTIYA in cases && frame.prayoga == Prayoga.KARTARI && !giving && !dhatu.hasArtha(DhatuArthaClass.MOTION) -> index to setOf(SemanticRelation.INSTRUMENT)
+                Vibhakti.TRTIYA in cases && frame.prayoga == Prayoga.KARMANI && !priorAction && instrumentals.isEmpty() && stem(index)?.let { namesMeans(it) } == false ->
+                    index to setOf(if (causative) SemanticRelation.PROMPTER_CAUSE else SemanticRelation.INDEPENDENT_AGENT)
+                Vibhakti.SAPTAMI in cases && !adjoining -> index to setOf(SemanticRelation.LOCATION)
+                else -> null
+            }
+        }.toMap()
         return roles.mapNotNull { (index, role) ->
             val (meaning, karaka) = role
             val relation = frame.relations.singleOrNull { it.participant.pada === nominals[index].pada }
@@ -271,6 +308,9 @@ internal object VoiceRoleConstruction {
                 index to setOf(meaning) else null
         }.toMap() + groups.associateWith { setOf(SemanticRelation.GROUP_SELECTION, SemanticRelation.NIRDHARANA_REFERENCE) } +
             absolutes.flatMap { listOfNotNull(it.participle, it.bearer) }.associateWith { setOf(SemanticRelation.ACTION_MARKING) } +
+            // उद्घटते तालम्, अतिशेते: an upasarga gives an akarmaka root its object, and no candidate was offered for it.
+            (accusative?.takeIf { dhatu.karmatva == Karmatva.AKARMAKA && head.upasargas.isNotEmpty() && frame.prayoga == Prayoga.KARTARI }
+                ?.let { mapOf(it to setOf(SemanticRelation.DESIRED_OBJECT)) }.orEmpty()) +
             extents.associateWith { setOf(SemanticRelation.CONTINUOUS_TIME_DISTANCE_EXTENT) } +
             twoObjects(frame, dhatu, head.dhatu.mulaDhatu, causative, (accusatives - notObjects.toSet())) +
             // बालं शयानं पश्य, त्वां मूढं मन्ये, मन्दं गच्छति: said of the object or the action, not a second object.
@@ -278,9 +318,11 @@ internal object VoiceRoleConstruction {
                 accusatives.filter { AdverbialAnalyzer.licensesCaseForm(stem(it)) } +
                 listOfNotNull((accusatives - notObjects.toSet()).takeIf { it.size == 2 && (head.dhatu.mulaDhatu in setOf("मन्", "मनँ") || dhatu.sourceSurface == "मन्") }?.get(1)))
                 .associateWith { setOf(SemanticRelation.ACCUSATIVE_CONCORD) } +
+            syncretic +
             mannerInstrumentals.associateWith { setOf(SemanticRelation.PRAKRTYADI_MANNER) } +
             lostAbsolutive.associateWith { setOf(SemanticRelation.LYAB_LOPA_REFERENCE) } +
             passiveObjects(frame, dhatu, head.dhatu.mulaDhatu, causative, inCase(Vibhakti.PRATHAMA).singleOrNull(), accusative) +
+            nominalQualifiers.associateWith { setOf(SemanticRelation.BARE_NOMINAL_MEANING) } +
             listOfNotNull(predicate, name).plus(participles).associateWith { setOf(SemanticRelation.BARE_NOMINAL_MEANING) } +
             absoluteObjects.associateWith { setOf(SemanticRelation.DESIRED_OBJECT) } +
             goals.associateWith { setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.MOTION_GOAL, SemanticRelation.PHYSICAL_MOTION, SemanticRelation.NON_PATH_DESTINATION) } +

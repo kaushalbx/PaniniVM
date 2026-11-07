@@ -339,7 +339,7 @@ class VakyaAnalyzer(
     /** Ṇic makes even an originally akarmaka root syntactically transitive. */
     private fun isEffectivelySakarmaka(tinganta: TingantaAnalysis): Boolean =
         SanadiAffix.NIC in tinganta.pada.dhatu.sanadiAffixes ||
-            tinganta.lexicalEntry?.karmatva != Karmatva.AKARMAKA
+            tinganta.lexicalEntry?.karmatva != Karmatva.AKARMAKA || tinganta.pada.upasargas.isNotEmpty()
 
     private data class KarakaAnalysis(
         val relations: List<KarakaRelation>,
@@ -443,7 +443,6 @@ class VakyaAnalyzer(
             indices.forEachIndexed { localIndex, index -> distributedDhatuRelations[index] = distributed[localIndex] }
         }
         val actionResultRelations = ActionNominalRelationEvidence.infer(subantas, semanticContext)
-        val collectionRelations = CollectionMembershipEvidence.infer(subantas, writtenPadas, tinganta.pada, semanticContext)
         val allParticipants = subantas.mapIndexed { index, sub ->
             val possibleVibhaktis = possibleVibhaktisByParticipant[index]
             val reading = semanticContext.krtGovernors[index]
@@ -482,7 +481,7 @@ class VakyaAnalyzer(
                 SemanticRelation.PURPOSE_ACTION_PARTICIPANT, SemanticEvidenceSource.CLAUSE_CONTEXT,
                 "Supplied purpose-action binding ${it.id}: ${it.dhatu}; prefixes ${it.upasargas}; ${it::class.simpleName}.")) }.orEmpty()
             val writtenEvidence = inferredEvidence + ambiguityEvidence + contextEvidence + bindingEvidence + purposeEvidence +
-                listOfNotNull(actionResultRelations[index], collectionRelations[index])
+                listOfNotNull(actionResultRelations[index])
             // Śeṣa is defined as what remains: a written genitive with no other established reading.
             val residualSesha = if (possibleVibhaktis == setOf(Vibhakti.SASTHI) && writtenEvidence.isEmpty() && reading == null &&
                 semanticContext.avyayaGovernors[index] == null && purposeReading == null) setOf(SemanticRelationEvidence(

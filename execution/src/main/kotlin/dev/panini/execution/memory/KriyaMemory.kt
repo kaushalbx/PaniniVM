@@ -65,19 +65,8 @@ data class KriyaMemory(
 
     fun latestKarakaRelations(karaka: Karaka, count: Int = 1): List<KarakaRelation> {
         require(count >= 0) { "A memory query count cannot be negative." }
-        return entries.asReversed().flatMap { entry -> entry.frame.relations.asReversed() }
+        return entries.asReversed().flatMap { entry -> entry.frame.relations.asReversed().filterNot { with(dev.panini.analysis.NonBindingAccess) { entry.frame.nonBinding(it) } } }
             .filter { (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == karaka || karaka in it.coexistingKarakas }
-            .take(count)
-            .reversed()
-    }
-
-    fun latestPhalas(
-        count: Int = 1,
-        requiredSamjnas: Set<Samjna> = emptySet(),
-    ): List<SanskritValue> {
-        require(count >= 0) { "A memory query count cannot be negative." }
-        return entries.asReversed().mapNotNull(RememberedKriya::phala)
-            .filter { it.samjnas.containsAll(requiredSamjnas) }
             .take(count)
             .reversed()
     }

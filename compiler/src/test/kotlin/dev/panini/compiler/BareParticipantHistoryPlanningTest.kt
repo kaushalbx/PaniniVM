@@ -50,7 +50,7 @@ class BareParticipantHistoryPlanningTest {
     @Test fun `dynamic history destination updates procedure slot without overwriting caller`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             दा + ल्युट् + ङस् कर्मन् + अम् मान + ङे गुण + णिच् + लोट् + सिप् ॥
             नवन् + शस् मान + ङे दा + लोट् + सिप् ।
             द्वि + औट् त्रि + शस् च आधार + ङे दा + लोट् + सिप् ।
@@ -105,7 +105,7 @@ class BareParticipantHistoryPlanningTest {
     }
 
     @Test fun `bare history call keeps collection participant intact for counting`() {
-        val source = "एक + ङस् द्वि + ङस् त्रि + ङस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + सुँ त्रि + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + अम् मान + ङे दा + लोट् + सिप् ।\n" +
             "दा + ल्युट् + ङस् कर्मन् + अम् गण + णिच् + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())

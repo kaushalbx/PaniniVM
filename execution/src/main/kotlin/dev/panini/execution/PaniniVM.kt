@@ -154,19 +154,6 @@ class PaniniVM(
         prakriyaRegistry = prakriyaRegistry, onResult = onResult,
     )
 
-    fun evalScriptWithFileContext(
-        scriptContent: String,
-        sourceFile: String? = null,
-        sessionKey: String? = null,
-        scope: ExecutionScope = defaultScope,
-        speaker: String = "प्रयोक्ता",
-        listener: String = "यन्त्रम्",
-        prakriyaRegistry: PrakriyaRegistry? = null,
-        onResult: ((ExecutionResult) -> Unit)? = null,
-    ): List<ExecutionResult> = scriptExecutor.evalScript(
-        scriptContent, sourceFile, sessionKey, scope, speaker, listener, prakriyaRegistry, onResult,
-    )
-
     fun evalProject(
         entryFile: File,
         sessionKey: String? = null,
@@ -234,8 +221,6 @@ class PaniniVM(
     internal fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String,
         listener: String, persistSession: Boolean) =
         sessionRuntime.retainStructuredResult(sessionKey, value, speaker, listener, persistSession)
-
-    fun saveSession(sessionKey: String) = sessionRuntime.save(sessionKey)
 
     fun listSessions(): List<String> = sessionRuntime.listKeys()
 

@@ -15,7 +15,9 @@ enum class Karaka(val pratipadikas: Set<String>) {
 
     /** Traditional Sanskrit label used in grammatical diagnostics. */
     val sanskritName: String
-        get() = pratipadikas.firstOrNull() ?: "अनिर्धारितकारक"
+        // A resolved word without a kāraka, as in दत्तसूची नाम; an undecided word stays Ambiguous or Unassigned.
+        // KarakaRelation.akarakaReason gives why.
+        get() = pratipadikas.firstOrNull() ?: "अकारक"
 
     companion object {
         fun fromPratipadika(text: String): Karaka? =

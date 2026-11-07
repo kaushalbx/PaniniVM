@@ -9,8 +9,8 @@ import kotlin.test.assertTrue
 
 class QuantifiedCollectionPredicateCompilerTest {
     private val any = "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
-    private val all = "सूची + ङस् प्रत्येकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
-    private val allPartial = "सूची + ङस् प्रत्येकः सदस्य + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
+    private val all = "सूची + ङस् एकैकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
+    private val allPartial = "सूची + ङस् एकैकः सदस्य + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
 
     @Test
     fun `native any and all predicates match typed collection semantics`() {
@@ -78,7 +78,7 @@ class QuantifiedCollectionPredicateCompilerTest {
 
     @Test
     fun `quantified predicate composes with native conditional lowering and restores member scope`() {
-        val source = "यदि ${any.removeSuffix(" ।")} तर्हि नव अन्यथा शून्य ।"
+        val source = "यदि ${any.removeSuffix(" ।")} तर्हि नव + जस् असँ + लट् + झि अन्यथा शून्य + सुँ असँ + लट् + तिप् ।"
         val initial = mapOf(
             "सूची" to SanskritValue.Suchi(listOf(SanskritValue.Sankhya(3, "त्रि"))),
             "सदस्य" to SanskritValue.Sankhya(9, "नव"),

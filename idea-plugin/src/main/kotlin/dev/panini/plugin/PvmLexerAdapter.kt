@@ -130,7 +130,7 @@ class PvmLexerAdapter : LexerBase() {
                 "SAHASAA", "SHANAIH", "PUNAH", "NYUNATAYA", "ADYA", "SHVAH", "HYAH",
                 "YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT",
                 "KATAPAYADI", "ARYABHATIYA", "BHUTASAMKHYA", "PRAKRIYA_NOUN", "NAAMA",
-                "KASHCHIT", "PRATYEKAH", "ADHIKA", "UNA",
+                "KASHCHIT", "EKAIKAH", "ADHIKA", "UNA",
                 "SAKRIT", "DVIH", "TRIH", "CHATUH"
             ) -> PvmTokenTypes.KEYWORD
             name == "WS" -> PvmTokenTypes.WHITE_SPACE

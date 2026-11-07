@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya3
 
-import dev.panini.ashtadhyayi.adhyaya3.pada3.BhaveSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.HetuhetumatorLingSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.KalaSamayaVelashuTumunSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.NapumsakeBhaveKtahSutra
@@ -22,15 +21,6 @@ import kotlin.test.assertTrue
 
 class Batch10GerundInfinitiveMoodSutrasTest {
 
-    @Test
-    fun `derives ghañ affix for bhāva via BhaveSutra`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("root", "पच्", TermKind.DHATU, upadesha = "पच्")),
-            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
-        )
-        assertTrue(BhaveSutra.matches(state))
-        assertEquals("घञ्", BhaveSutra.apply(state).state.allEffectiveTerms.last().upadesha)
-    }
 
     @Test
     fun `derives ap affix via RadorApsutra`() {

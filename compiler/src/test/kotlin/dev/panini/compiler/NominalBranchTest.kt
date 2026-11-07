@@ -7,7 +7,7 @@ import kotlin.test.*
 
 class NominalBranchTest {
     @Test fun `bare primitive numeral branches infer grammatical nominative endings`() {
-        val source = "$condition द्वि अन्यथा त्रि ।"
+        val source = "$condition द्वि + औ असँ + लट् + तस् अन्यथा त्रि + जस् असँ + लट् + झि ।"
         val conditional = assertIs<Conditional>(PaniniParser().parse(source).body)
         val first = assertIs<SubantaPada>(assertIs<Invocation>(conditional.consequent).implicitValuePada)
         val second = assertIs<SubantaPada>(assertIs<Invocation>(conditional.alternate).implicitValuePada)
@@ -19,14 +19,14 @@ class NominalBranchTest {
 
     @Test fun `explicit wrong cardinal number is rejected by both value paths`() {
         for (nominal in listOf("द्वि + सुँ", "त्रि + औ")) {
-            val source = "$condition $nominal अन्यथा असत्य + सुँ ।"
+            val source = "$condition $nominal अन्यथा असत्य + सुँ असँ + लट् + तिप् ।"
             assertFailsWith<IllegalArgumentException> { PaniniVM().eval(source) }
             assertFailsWith<IllegalArgumentException> { compiled(source, "InvalidCardinalNominal") }
         }
     }
     @Test fun `inflected numeral branches retain scalar numbers regardless of vacana`() {
-        for ((nominal, expected) in listOf("द्वि + औ" to 2L, "त्रि + जस्" to 3L)) {
-            val source = "$condition $nominal अन्यथा असत्य + सुँ ।"
+        for ((nominal, expected) in listOf("द्वि + औ असँ + लट् + तस्" to 2L, "त्रि + जस् असँ + लट् + झि" to 3L)) {
+            val source = "$condition $nominal अन्यथा असत्य + सुँ असँ + लट् + तिप् ।"
             val result = assertIs<ExecutionResult.Success>(PaniniVM().eval(source))
             assertEquals(expected, assertIs<SanskritValue.Sankhya>(result.typedValue).value)
             assertEquals(expected, assertIs<SanskritValue.Sankhya>(
@@ -36,13 +36,13 @@ class NominalBranchTest {
     @Test fun `oblique single nominal is not silently made a nominative result`() {
         for (ending in listOf("अम्", "टा", "ङे", "ङस्", "ङि")) {
             assertFailsWith<IllegalArgumentException> {
-                PaniniParser().parse("$condition विजय + $ending अन्यथा पराजय ।")
+                PaniniParser().parse("$condition विजय + $ending + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।")
             }
         }
     }
 
     @Test fun `derived nominal result never aliases an underived base binding`() {
-        val source = "नव + अम् विजय + ङे दा + लोट् + सिप् ।\n$condition विजय + मतुप् + सुँ अन्यथा पराजय ।"
+        val source = "नव + अम् विजय + ङे दा + लोट् + सिप् ।\n$condition विजय + मतुप् + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         val value = assertIs<ExecutionResult.Success>(results.last()).typedValue
@@ -57,18 +57,18 @@ class NominalBranchTest {
         return type.getMethod("execute").invoke(null) as Map<String, SanskritValue>
     }
 
-    @Test fun `nominal branch retains its grammatical sentence without a synthetic verb`() {
-        val node = assertIs<Conditional>(PaniniParser().parse("$condition विजय अन्यथा पराजय ।").body)
+    @Test fun `nominal branch keeps its written verb and adds no synthetic one`() {
+        val node = assertIs<Conditional>(PaniniParser().parse("$condition विजय + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।").body)
         val branch = assertIs<Invocation>(node.consequent)
         assertIs<NamaVakya>(branch.vakya)
-        assertTrue(branch.vakya.padas.none { it is TingantaPada })
+        assertTrue(branch.vakya.padas.any { it is TingantaPada })
         assertFalse("दा" in branch.sourceText)
-        val ir = CompilerFrontend.lower("$condition विजय अन्यथा पराजय ।", "NominalHistoryIr")
+        val ir = CompilerFrontend.lower("$condition विजय + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।", "NominalHistoryIr")
         assertTrue(ir.entryPoint.filterIsInstance<CompilerInstruction.RecordActionFrame>().isEmpty())
     }
 
     @Test fun `nominal branch resolves a typed named list without invoking dana`() {
-        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n$condition सूची + सुँ अन्यथा असत्य + सुँ ।"
+        val source = "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।\n$condition सूची + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         val list = assertIs<SanskritValue.Suchi>(result.typedValue)
         assertEquals(2, list.items.size)
@@ -77,7 +77,7 @@ class NominalBranchTest {
     }
 
     @Test fun `direct utterance nominal branch pipes its typed result`() {
-        val source = "$condition सत्य + सुँ अन्यथा असत्य + सुँ ततः मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "$condition सत्य + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ततः मुद्र् + णिच् + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM().eval(source))
         assertEquals("सत्यम्", result.value)
         assertEquals(OutputKind.CONSOLE, result.outputKind)
@@ -87,9 +87,9 @@ class NominalBranchTest {
     @Test fun `nominal procedure branch retains a typed argument reference`() {
         val source = """
             चयन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सूची + सुँ इति मान + सुँ ।
-            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि मान + सुँ अन्यथा असत्य + सुँ ॥
-            एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
+            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि मान + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ॥
+            एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + अम् चयन + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)

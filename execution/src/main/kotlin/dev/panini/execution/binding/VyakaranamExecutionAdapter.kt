@@ -103,6 +103,38 @@ object VyakaranamExecutionAdapter {
     /** Grammar-only consumers receive partial frames with blocking diagnostics for unresolved heads. */
     fun analyzeGrammar(ukti: Ukti): UktiAnalysis? = analyze(ukti)
 
+    /** The roles of the words outside a running sentence's frame, declaration words read from their own frames. */
+    fun nonKriyaWords(document: dev.panini.vyakaranam.ast.ProgramDocument): List<dev.panini.analysis.NonKriyaWord> =
+        dev.panini.analysis.NonKriyaWords.of(document) { statement -> runCatching { analyzeAsWritten(parser.parse(statement)) }.getOrNull() }
+
+    fun analyzeAsWritten(ukti: Ukti): UktiAnalysis? {
+        val analysis = analyzeUncached(ukti, asWritten = true)
+        val headers = loopHeaders(ukti.body).mapIndexedNotNull { position, header ->
+            analyzeUncached(Ukti(header.sourceText, body = Invocation(header)), asWritten = true, loopHeader = true).frames.singleOrNull()
+                ?.let { it.copy(id = dev.panini.analysis.KriyaId("loop-header-$position")) }
+        }
+        return analysis.copy(frames = headers + analysis.frames)
+    }
+
+    private val takingHead by lazy {
+        (parser.parse("ग्रह् + लोट् + सिप् ।").body as Invocation).vakya.let { (it as AkhyataVakya).tinganta }
+    }
+
+    /** दत्तसूच्याः प्रत्येकं सदस्यं गृहीत्वा: the words a loop header consumes, as the sentence of its own action. */
+    private fun loopHeaders(node: ProgramNode?): List<AkhyataVakya> = when (node) {
+        is dev.panini.vyakaranam.ast.ForEach -> {
+            val selections = node.relativeSelections.flatMap { listOf(it.relation, it.binding) }
+            val padas = listOfNotNull(node.collection, node.reduction?.initial, node.reduction?.accumulator, node.quantifier, node.member,
+                node.indexRelation, node.index) + selections
+            listOf(AkhyataVakya(node.sourceText, padas + takingHead, takingHead)) + loopHeaders(node.body)
+        }
+        is dev.panini.vyakaranam.ast.Sequence -> node.statements.flatMap(::loopHeaders)
+        is dev.panini.vyakaranam.ast.Conditional -> loopHeaders(node.consequent) + loopHeaders(node.alternate)
+        is dev.panini.vyakaranam.ast.WhileLoop -> loopHeaders(node.body) + loopHeaders(node.exhausted)
+        is dev.panini.vyakaranam.ast.Repeat -> loopHeaders(node.body)
+        else -> emptyList()
+    }
+
     /** Grammar of a written call to a known procedure; null when the utterance is not such a call. */
     fun analyzeProcedureCall(ukti: Ukti, procedureStems: Set<String>): UktiAnalysis? {
         val call = runCatching { dev.panini.execution.PrakriyaInvocationMatcher.match(ukti, procedureStems) }.getOrNull()
@@ -135,7 +167,12 @@ object VyakaranamExecutionAdapter {
 
     /** Structural object evidence is analyzed separately from the cached grammar-only result. */
     private fun analyzeUncached(ukti: Ukti, suppliedObjectVakyas: Set<Vakya> = emptySet(),
-        procedureCall: dev.panini.execution.PrakriyaInvocationShape? = null): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
+        procedureCall: dev.panini.execution.PrakriyaInvocationShape? = null, asWritten: Boolean = false, loopHeader: Boolean = false): UktiAnalysis = UktiAnalyzer { executed, frameId ->
+        // तर्हि सत्यम् अस्ति: a value branch keeps its written verb, so it is analysed as the verbal sentence it is.
+        val stated = (executed as? dev.panini.vyakaranam.ast.NamaVakya)?.let { nama ->
+            nama.padas.filterIsInstance<dev.panini.vyakaranam.ast.TingantaPada>().singleOrNull()?.let { AkhyataVakya(nama.sourceText, nama.padas, it) }
+        } ?: executed
+        val vakya = stated
         val akhyata = vakya as? AkhyataVakya
         if (akhyata == null) {
             VakyaAnalyzer(
@@ -164,19 +201,23 @@ object VyakaranamExecutionAdapter {
             )
             val initialFrame = analyzer.analyze(vakya, frameId)
             val voiceRelations = VoiceRoleConstruction.infer(akhyata, dhatu, initialFrame,
-                priorAction = "क्त्वा" in ukti.sourceText || "ल्यप्" in ukti.sourceText)
+                priorAction = "क्त्वा" in ukti.sourceText || "ल्यप्" in ukti.sourceText, declared = akhyata.padas.any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.form == "नाम" }) +
+                // Each thing taken by a loop header is an object of that taking.
+                (if (loopHeader) initialFrame.nominalRelations?.nominalPadas.orEmpty().withIndex().filter { (_, nominal) ->
+                    nominal.supCandidates.isNotEmpty() && nominal.supCandidates.all { it.vibhakti == Vibhakti.DVITIYA }
+                }.associate { it.index to setOf(dev.panini.analysis.SemanticRelation.DESIRED_OBJECT) } else emptyMap())
             val objectContext = dev.panini.analysis.VakyaSemanticContext(
                 // Non-binding readings wait, so that the instruction's own slots may claim those words first.
                 participantRelations = voiceRelations.filterKeys { it !in VoiceRoleConstruction.nonBinding(initialFrame, voiceRelations) } +
                     ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) +
-                    ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame))
+                    ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame, akhyata.padas.any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.form == "नाम" }))
             val objectFrame = if (objectContext.participantRelations.isEmpty()) initialFrame else
                 analyzer.analyze(vakya, frameId, objectContext)
             val construction = dev.panini.analysis.VakyaSemanticContext(
                 // What the instruction declares comes last and so wins over these general readings.
                 participantRelations = voiceRelations + CaseFormConstruction.infer(initialFrame) + CaseFormConstruction.upapadaDependents(akhyata, initialFrame) +
                     objectContext.participantRelations.filterKeys { it !in voiceRelations } +
-                    ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame) +
+                    ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame) + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame, akhyata.padas.any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.form == "नाम" }) +
                     ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame) +
                     ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame) +
                     procedureCall?.let { ProgramProcedureCallConstruction.infer(it, objectFrame) }.orEmpty() +
@@ -192,7 +233,7 @@ object VyakaranamExecutionAdapter {
                 defaultReadings = (VoiceRoleConstruction.defaults(initialFrame, voiceRelations + CaseFormConstruction.infer(initialFrame) +
                     CaseFormConstruction.upapadaDependents(akhyata, initialFrame)) +
                     VoiceRoleConstruction.krtGovernors(initialFrame).keys + CaseFormConstruction.infinitiveObjects(akhyata, initialFrame).keys) -
-                    (ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame).keys + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame).keys +
+                    (ProgramObjectConstruction.infer(akhyata, dhatu, initialFrame).keys + ProgramAgentConstruction.infer(akhyata, dhatu, initialFrame, akhyata.padas.any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.form == "नाम" }).keys +
                         ProgramMeansConstruction.infer(akhyata, dhatu, objectFrame).keys + ProgramLocusConstruction.infer(akhyata, dhatu, objectFrame).keys))
             val frame = if (construction == objectContext) objectFrame else
                 analyzer.analyze(vakya, frameId, construction)

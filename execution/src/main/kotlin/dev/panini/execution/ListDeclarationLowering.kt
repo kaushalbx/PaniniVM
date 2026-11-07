@@ -9,7 +9,10 @@ import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.parser.PaniniParser
 
-/** Semantic projection of a genitive membership declaration, not a new verb syntax. */
+/**
+ * Semantic projection of a list declaration, not a new verb syntax. The members stand before इति in the nominative,
+ * so their written order is the order of the list: पञ्च एकः त्रयः इति दत्तसूची नाम सङ्ख्यानां सूची अस्ति.
+ */
 object ListDeclarationLowering {
     data class Diagnostic(
         override val code: String,
@@ -66,14 +69,9 @@ object ListDeclarationLowering {
 
     private fun expandInternal(node: Quotation): Sequence? {
         val quoted = node.quoted.vakya as? NamaVakya ?: return null
-        val name = quoted.padas.singleOrNull() as? SubantaPada ?: return null
         val reporting = node.reporting as? Invocation ?: return null
-        val declaration = expand(reporting) ?: return null
-        requireDeclaration(reporting.vakya.padas.none { (it as? AvyayaPada)?.function == AvyayaFunction.NAMING },
-            "LIST_DECLARATION_DUPLICATE_NAME") {
-            "A declaration cannot supply both इति and नाम names."
-        }
-        return withName(declaration, name, node.sourceText)
+        // What stands before इति is always the members; a name comes only from नाम.
+        return expandInternal(reporting, quoted.padas)
     }
 
     private fun withName(declaration: Sequence, name: SubantaPada, sourceText: String): Sequence {
@@ -95,7 +93,9 @@ object ListDeclarationLowering {
             connectors = listOf("ततः", "ततः"))
     }
 
-    private fun expandInternal(node: Invocation): Sequence? {
+    private fun expandInternal(node: Invocation): Sequence? = expandInternal(node, null)
+
+    private fun expandInternal(node: Invocation, quotedMembers: List<Pada>?): Sequence? {
         val sentence = node.vakya as? AkhyataVakya ?: return null
         if (sentence.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.AS) return null
         val target = sentence.padas.filterIsInstance<SubantaPada>().singleOrNull {
@@ -139,17 +139,22 @@ object ListDeclarationLowering {
             "LIST_DECLARATION_DERIVED_MEMBER_TYPE") {
             "Derived member qualifiers require their own semantics, not the base noun's member type."
         }
-        val members = sentence.padas.filter { it !== target && it !== sentence.tinganta && it !== qualifier &&
+        val written = sentence.padas.filter { it !== target && it !== sentence.tinganta && it !== qualifier &&
             it !== name && it !in naming }
+        requireDeclaration(written.isEmpty(), "LIST_DECLARATION_MEMBER_CASE") {
+            "List members stand before इति, not beside the list noun."
+        }
+        val members = quotedMembers.orEmpty()
         if (members.isEmpty()) {
             requireDeclaration(qualifier != null, "LIST_DECLARATION_EMPTY_MEMBER_TYPE") {
                 "An empty list declaration requires an explicit member-type qualifier."
             }
         }
         fun accusative(sup: SupPratyaya): SupPratyaya {
-            val genitive = sup.affixCandidates.singleOrNull { it.vibhakti == Vibhakti.SASTHI }
+            val memberCase = Vibhakti.PRATHAMA
+            val genitive = sup.affixCandidates.singleOrNull { it.vibhakti == memberCase }
                 ?: throw InvalidDeclaration("LIST_DECLARATION_MEMBER_CASE",
-                    "List declaration members require genitive case.")
+                    "List members before इति require the nominative.")
             val text = SupAffix.select(Vibhakti.DVITIYA, genitive.vacana).upadesha
             return SupPratyaya(text, text)
         }

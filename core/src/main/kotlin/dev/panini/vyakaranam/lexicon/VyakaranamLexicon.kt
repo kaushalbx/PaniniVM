@@ -45,6 +45,7 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
             nominalMeanings = setOf(dev.panini.analysis.NominalMeaning.PROPERTY),
         ))
         put("उत्पल", PratipadikaEntry("उत्पल", setOf(Linga.NAPUMSAKA)))
+        put("ज्ञान", PratipadikaEntry("ज्ञान", setOf(Linga.NAPUMSAKA)))
         listOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्").forEach { text ->
             put(
                 text,
@@ -55,7 +56,7 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
                 ),
             )
         }
-        listOf("मूल्य", "परिमाण", "मान", "फल", "परीक्षण").forEach { text ->
+        listOf("मूल्य", "परिमाण", "मान", "फल", "परीक्षण", "गणित").forEach { text ->
             put(text, PratipadikaEntry(text = text, linga = setOf(Linga.NAPUMSAKA)))
         }
         // Technical category and grammatical gender are independent metadata.

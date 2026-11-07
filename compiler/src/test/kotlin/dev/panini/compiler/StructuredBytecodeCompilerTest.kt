@@ -47,8 +47,8 @@ class StructuredBytecodeCompilerTest {
     @Test fun `pronoun assignment remains live across action connectors`() {
         for ((index, assignment) in listOf("दा + क्त्वा", "दा + लोट् + सिप् ततः").withIndex()) {
             val source = """
-                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+                परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
                 द्वि + अम् तद् + ङे $assignment तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
                 नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
             """.trimIndent()
@@ -63,10 +63,10 @@ class StructuredBytecodeCompilerTest {
     @Test fun `prior action pronouns preserve explicit objects and omitted result display`() {
         for ((index, objectPhrase) in listOf("", "तद् + अम्").withIndex()) {
             val source = """
-                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ सूची + सुँ इति मान + सुँ ।
+                परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
                 तद् + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा $objectPhrase मुद्र् + णिच् + लोट् + सिप् ॥
-                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+                एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
                 सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
             """.trimIndent()
             val interpreted = PaniniVM().evalScript(source)
@@ -84,10 +84,10 @@ class StructuredBytecodeCompilerTest {
     @Test fun `genitive pronoun preserves ordinal and final member selection`() {
         for ((index, selector) in listOf("द्वि + तीय + अम्", "अन्तिम + अम्").withIndex()) {
             val source = """
-                परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                मान + सुँ सूची + सुँ इति मान + सुँ ।
+                परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
                 तद् + ङस् $selector उद् + हृ + लोट् + सिप् ॥
-                एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+                एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
                 सूची + अम् परीक्षण + टा कृ + लोट् + सिप् ।
             """.trimIndent()
             val expected = if (index == 0) 2L else 3L
@@ -101,8 +101,8 @@ class StructuredBytecodeCompilerTest {
 
     @Test fun `coordinated pronouns remain two participants referencing one antecedent`() {
         val source = """
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             तद् + अम् तद् + अम् च युज् + लोट् + सिप् ॥
             नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -115,11 +115,11 @@ class StructuredBytecodeCompilerTest {
 
     @Test fun `pronoun values bind through named procedure slots`() {
         val source = """
-            दर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ॥
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मूल्य + ङि तद् + अम् दर्शन + टा कृ + लोट् + सिप् ॥
             नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -132,11 +132,11 @@ class StructuredBytecodeCompilerTest {
 
     @Test fun `callee pronouns do not capture dynamic caller participants`() {
         val source = """
-            दर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             द्वि + औट् दर्शन + टा कृ + लोट् + सिप् ॥
             नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -149,9 +149,9 @@ class StructuredBytecodeCompilerTest {
 
     @Test fun `implicit branch pronoun returns its participant rather than literal text`() {
         val source = """
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि तद् + सुँ अन्यथा द्वि + औ ॥
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि तद् + सुँ असँ + लट् + तिप् अन्यथा द्वि + औ असँ + लट् + तस् ॥
             नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
@@ -169,9 +169,9 @@ class StructuredBytecodeCompilerTest {
         assertEquals("MISSING_ANTECEDENT", missingDiagnostic.code)
         assertEquals(dev.panini.vyakaranam.ast.DocumentSourceSpan(0, 9), missingDiagnostic.span)
         val source = """
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             तद् + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             नवन् + शस् द्वि + औट् च परीक्षण + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -186,8 +186,8 @@ class StructuredBytecodeCompilerTest {
 
     @Test fun `local pronouns preserve participant identity through assignment and predicates`() {
         val source = """
-            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             यावत् तद् + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् तावत् द्वि + अम् तद् + ङे दा + लोट् + सिप् ।
             यदि तद् + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् तर्हि तद् + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             नवन् + शस् परीक्षण + टा कृ + लोट् + सिप् ।
@@ -202,7 +202,7 @@ class StructuredBytecodeCompilerTest {
     fun `procedure arguments read derived named values instead of their base bindings`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            निवेश + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            निवेश + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             निवेश + अम् एक + अम् च युज् + लोट् + सिप् ॥
             पञ्च + अम् मान + ङि स्था + णिच् + लोट् + सिप् ।
             नवन् + अम् मान + त्व + ङि स्था + णिच् + लोट् + सिप् ।
@@ -220,8 +220,8 @@ class StructuredBytecodeCompilerTest {
     fun `derived parameter names remain distinct through positional and named calls`() {
         val procedure = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            मान + त्व + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            मान + त्व + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् मान + त्व + अम् च वि + युज् + लोट् + सिप् ॥
         """.trimIndent()
         val calls = listOf("नवन् + अम् द्वि + अम् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।",
@@ -370,7 +370,7 @@ class StructuredBytecodeCompilerTest {
         val arithmetic = "गुण + मतुप् + ङस् मूल्य + अम् एक + अम् च युज् + लोट् + सिप् ।"
         val procedure = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् एक + अम् च युज् + लोट् + सिप् ॥
         """.trimIndent()
         val programs = listOf(declarations + "\n" + arithmetic,
@@ -394,7 +394,7 @@ class StructuredBytecodeCompilerTest {
         val query = "गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप्"
         val procedure = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             $query ॥
         """.trimIndent()
         val programs = listOf(
@@ -526,7 +526,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `unsupported prohibition is rejected rather than silently ignored`() {
         val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "न शून्य + अम् राम + अम् शून्य + अम् ।\n" +
+            "शून्य + अम् राम + अम् शून्य + अम् न भू + लिङ् + तिप् ।\n" +
             "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
         val interpreted = PaniniVM().evalScript(source).last() as ExecutionResult.Failure
@@ -564,13 +564,13 @@ class StructuredBytecodeCompilerTest {
     fun `nested procedure prohibition compares resolved parameter values`() {
         for ((index, second) in listOf("एक", "द्वि").withIndex()) {
             val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "पूर्व + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-                "उत्तर + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-                "न पूर्व + अम् उत्तर + अम् ।\n" +
+                "पूर्व + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+                "उत्तर + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+                "पूर्व + सुँ उत्तर + सुँ न भू + लिङ् + तिप् ।\n" +
                 "पूर्व + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
                 "प्रेषण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "आदि + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-                "अन्त + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "आदि + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+                "अन्त + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
                 "आदि + अम् अन्त + अम् च वाचन + टा डुकृञ् + उ + लोट् + सिप् ॥\n" +
                 "एक + अम् निवेश + ङे दा + लोट् + सिप् ।\n" +
                 "$second + अम् मान + ङे दा + लोट् + सिप् ।\n" +
@@ -592,8 +592,8 @@ class StructuredBytecodeCompilerTest {
     fun `numeric prohibition checks named runtime values before procedure body`() {
         for ((index, number) in listOf("शून्य", "एक").withIndex()) {
             val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-                "न मान + अम् शून्य + अम् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।\n" +
                 "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
                 "$number + अम् निवेश + ङे दा + लोट् + सिप् ।\n" +
                 "निवेश + अम् वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
@@ -622,10 +622,10 @@ class StructuredBytecodeCompilerTest {
         ).withIndex()) {
             val (name, prior) = specification
             val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
-                "$name + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "मान + सुँ सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "$name + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
                 "$prior $name + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
-                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + अम् नवन् + शस् च वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -638,7 +638,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `single scalar cannot masquerade as a declared list parameter`() {
         val source = "योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
+            "मान + सुँ सूची + सुँ असँ + लट् + तिप् ।\n" +
             "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
         assertTrue(PaniniVM().evalScript(source).last() is ExecutionResult.Failure)
@@ -650,10 +650,10 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `typed procedure list parameter uses natural member sum rather than reserved slot`() {
         val source = "योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
-            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+            "मान + सुँ सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
-            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -663,7 +663,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `nonfinite member sum prints through shared typed collection lowering`() {
-        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -674,7 +674,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `genitive list number members sum through typed collection IR`() {
         for ((index, phrase) in listOf("सूची + ङस् सङ्ख्या + शस्", "सङ्ख्या + शस् सूची + ङस्").withIndex()) {
-            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase युज् + णिच् + लोट् + सिप् ।"
             assertEquals(6L, (compileAndInspect(source, "CompiledMemberSum$index")
                 .values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -733,7 +733,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `indexed replacement has backend parity`() {
         val source = """
-            एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ त्रि + जस् इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + ङस् द्वि + तीय + ङि नवन् + शस् स्था + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
@@ -746,7 +746,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `indexed insertion removal and final pair have backend parity`() {
-        val declaration = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val declaration = "एक + सुँ द्वि + औ त्रि + जस् इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val programs = listOf(
             declaration + "\nक्रम + ङस् द्वि + तीय + ङि नवन् + शस् नि + क्षिप् + लोट् + सिप् ।",
             declaration + "\nक्रम + ङस् द्वि + तीय + ङि सदस्य + अम् निस् + हृ + लोट् + सिप् ।",
@@ -765,7 +765,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `final removal record fields have backend parity`() {
         val source = """
-            एक + ङस् द्वि + ओस् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+            एक + सुँ द्वि + औ इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
             क्रम + अम् निस् + हृ + लोट् + सिप्
                 ततः फल + अम् निष्कासन + ङि स्था + णिच् + लोट् + सिप् ।
             निष्कासन + मतुप् + ङस् निष्कासितमूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
@@ -787,7 +787,7 @@ class StructuredBytecodeCompilerTest {
                     "InvalidNonfiniteFinalMember")
             }
         }
-        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"
         assertEquals("द्वि", compileAndInspect(source, "CompiledNonfiniteFinalMember")
             .values.getValue("LastResult").toDisplayText())
@@ -803,7 +803,7 @@ class StructuredBytecodeCompilerTest {
             }
         }
         for ((index, phrase) in listOf("सूची + ङस् अन्तिम + अम्", "अन्तिम + अम् सूची + ङस्").withIndex()) {
-            val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ द्वि + औ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase उद् + हृ + लोट् + सिप् ।"
             assertEquals(2L, (compileAndInspect(source, "CompiledFinalMemberOrder$index")
                 .values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -825,7 +825,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `compiler cannot erase affixes from an ordinal value object`() {
         for (affix in listOf("मतुप्", "तरप्", "टाप्")) {
-            val source = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् प्रथम + अम् मूल्य + $affix + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
             assertFailsWith<IllegalArgumentException>(affix) {
                 CompilerFrontend.lower(source, "InvalidDerivedOrdinalObject")
@@ -834,10 +834,11 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
-    fun `nama procedure declaration executes like iti in both backends`() {
-        for ((index, marker) in listOf("नाम", "इति").withIndex()) {
-            val source = "गणन + सुँ $marker प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+    fun `nama procedure declaration executes in both backends`() {
+        run {
+            val index = 0
+            val source = "गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
                 "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
                 "नवन् + शस् गणन + टा डुकृञ् + उ + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
@@ -861,8 +862,8 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `compiled procedure rejects competing history selectors before rebinding`() {
-        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "युज् + ल्युट् + ङस् प्रथम + अम् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
@@ -878,8 +879,8 @@ class StructuredBytecodeCompilerTest {
             "युज् + ल्युट् + ङस् फल + अम् प्रथम + अम्",
             "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
         ).withIndex()) {
-            val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase मुद्र् + णिच् + लोट् + सिप् ॥\n" +
                 "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
                 "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
@@ -928,7 +929,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `compiler rejects feminine ordinal attached to neuter value object`() {
         for (ordinal in listOf("प्रथमा", "द्वितीया", "तृतीया", "प्रथम + टाप्")) {
-            val source = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "सूची + ङस् $ordinal + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
             assertFailsWith<IllegalArgumentException>(ordinal) {
                 CompilerFrontend.lower(source, "InvalidOrdinalGender")
@@ -942,7 +943,7 @@ class StructuredBytecodeCompilerTest {
             "मूल्य + अम् सूची + ङस् द्वितीय + अम्",
             "द्वि + तीय + अम् सूची + ङस् मूल्य + अम्",
         ).withIndex()) {
-            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            val source = "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
                 "$phrase ग्रहँ + श्ना + लोट् + सिप् ।"
             val result = compileAndInspect(source, "CompiledOrdinalWordOrder$index")
             assertEquals(2L, (result.values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -951,7 +952,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `compiled nama declaration and bare list reference follow the requested discourse`() {
-        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "एक + सुँ द्वि + औ त्रि + जस् इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
             "क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।\n" +
             "सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।"
         val result = compileAndInspect(source, "CompiledNamaListDiscourse")
@@ -961,8 +962,8 @@ class StructuredBytecodeCompilerTest {
             .map { (it as SanskritValue.Sankhya).value })
     }
     @Test
-    fun `compiled nominal iti naming retains list identity across cases`() {
-        val source = "क्रम + सुँ इति एक + ङस् द्वि + ओस् च सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+    fun `compiled named list retains list identity across cases`() {
+        val source = "एक + सुँ द्वि + औ इति क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
             "क्रम + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
         val result = compileAndInspect(source, "CompiledNamedNaturalList")
         assertEquals(2L, (result.values.getValue("LastResult") as SanskritValue.Sankhya).value)
@@ -989,14 +990,14 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `compiled word qualifier creates a typed word list`() {
-        val source = "राम + ङस् सीता + ङस् च शब्द + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val source = "राम + सुँ सीता + सुँ इति शब्द + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val value = compileAndInspect(source, "CompiledWordList").values.getValue("सूची") as SanskritValue.Suchi
         assertEquals(dev.panini.execution.ListMemberType.TEXT, value.memberType)
         assertEquals(listOf("राम", "सीता"), value.items.map { (it as SanskritValue.Shabda).text })
     }
     @Test
-    fun `compiled genitive number qualifier constrains list members`() {
-        val source = "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च " +
+    fun `compiled number qualifier constrains list members`() {
+        val source = "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति " +
             "सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
         val value = compileAndInspect(source, "CompiledTypedNaturalList").values.getValue("सूची") as SanskritValue.Suchi
         assertEquals(dev.panini.execution.ListMemberType.NUMBER, value.memberType)
@@ -1004,7 +1005,7 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `compiled genitive declaration creates an ordered list`() {
-        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+        val source = "एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।"
         val value = compileAndInspect(source, "CompiledNaturalList").values.getValue("सूची") as SanskritValue.Suchi
         assertEquals(listOf(1L, 2L, 3L), value.items.map { (it as SanskritValue.Sankhya).value })
     }
@@ -1019,8 +1020,8 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `compiled procedure body selects participant history instead of argument one`() {
-        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
@@ -1050,8 +1051,8 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `coordinated history heads match interpreter values in compiled procedures`() {
         for ((head, expected) in listOf("कर्मन्" to "एक द्वि नवन्", "फल" to "त्रीणि नवन्")) {
-            val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
                 "युज् + ल्युट् + ङस् $head + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ॥\n" +
                 "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
                 "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
@@ -1102,8 +1103,8 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `procedure arguments preserve independent historical operands`() {
         val source = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-            "मूल्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+            "मूल्य + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मान + अम् मूल्य + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
@@ -1123,7 +1124,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `invalid history arguments fail before procedure body effects`() {
         val prefix = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n"
         val missing = prefix + "युज् + ल्युट् + ङस् द्वि + तीय + अम् फल + अम् वाचन + टा कृ + लोट् + सिप् ।"
@@ -1153,7 +1154,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `history assignment updates owning procedure cell without leaking operand frames`() {
         val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मान + ङे दा + लोट् + सिप् ।\n" +
             "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "सप्तन् + अम् मान + ङे दा + लोट् + सिप् ।\n" +
@@ -1272,8 +1273,8 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `procedure body preserves history ordinal rather than rebinding it as argument one`() {
-        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
@@ -1306,10 +1307,10 @@ class StructuredBytecodeCompilerTest {
     }
     @Test
     fun `two procedure operands retain distinct named result occurrences`() {
-        val source = "संयोजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-            "दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+        val source = "संयोजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+            "दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+            "परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
             "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
@@ -1325,9 +1326,9 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `procedure arguments select named action history in both backends`() {
-        val definition = "वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
-            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+        val definition = "वर्धन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
+            "परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n"
         for ((index, fixture) in listOf("" to 6L, "पूर्व + अम् " to 4L, "प्रथम + अम् " to 4L).withIndex()) {
             val (qualifier, expected) = fixture
@@ -1348,8 +1349,8 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `missing named procedure argument fails before executing its body`() {
-        val source = "वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
-            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+        val source = "वर्धन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।\n" +
             "मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
             "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
             "युज् + ल्युट् + ङस् फल + अम् वर्धन + टा कृ + लोट् + सिप् ।"
@@ -1540,7 +1541,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `failed compiled prior action stops before the reusable main command`() {
         val source = """
-            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रदर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ॥
             एक + अम् द्वि + औट् च वि + युज् + णिच् + ल्यप्
             प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -1554,7 +1555,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `prior action executes before a compiled reusable procedure call`() {
         val source = """
-            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रदर्शन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा
             प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -1606,9 +1607,9 @@ class StructuredBytecodeCompilerTest {
         val source = """
             एक + अम् त्रि + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
-            यदि एक + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ अन्यथा असत्य + सुँ
+            यदि एक + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप्
                 ततः फल + अम् उपस्थित + ङि स्था + णिच् + लोट् + सिप् ।
-            यदि शून्य + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ अन्यथा असत्य + सुँ ।
+            यदि शून्य + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ।
         """.trimIndent()
         val compiled = compileAndInspect(source, "CompiledNaturalMembership")
         assertEquals(SanskritValue.Satya(true), compiled.values.getValue("उपस्थित"))
@@ -1635,7 +1636,7 @@ class StructuredBytecodeCompilerTest {
     fun `bare numeric conditional values remain typed compiler constants`() {
         val source =
             "यदि एक + अम् एक + अम् च विद् + लोट् + सिप् " +
-                "तर्हि द्वि अन्यथा त्रि ।"
+                "तर्हि द्वि + औ असँ + लट् + तस् अन्यथा त्रि + जस् असँ + लट् + झि ।"
 
         val compiled = compileAndInspect(source, "CompiledBareNumericConditional")
 
@@ -1705,7 +1706,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `natural range choice excludes values in ablative collection`() {
         val source = """
-            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
             क्रम + अम् वृज् + णिच् + क्त्वा चिञ् + श्नु + लोट् + सिप् ततः चयन + ङे दा + लोट् + सिप् ।
         """.trimIndent()
@@ -1819,7 +1820,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `nested stored lists flatten directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च प्रथमा + ङे दा + लोट् + सिप् ।
@@ -1895,7 +1896,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `two stored lists concatenate directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
@@ -1919,7 +1920,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `constructed list and length execute directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
@@ -1942,7 +1943,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `state backed list indexing executes directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
@@ -1980,7 +1981,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `state backed list containment executes directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
@@ -2002,7 +2003,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `implicit tatah print consumes the direct numeric result`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।
@@ -2052,7 +2053,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `print leaf loads previously compiled state directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             सप्त + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2111,7 +2112,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `simple print leaf executes directly without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             पञ्च + अम् मुद्र् + लोट् + सिप् ।
@@ -2160,7 +2161,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `tatah numeric pipeline stores its result without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
@@ -2212,7 +2213,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `explicit phala stores the previous direct result without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -2271,7 +2272,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `fixed repetition loads compiled state directly on every iteration`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2324,7 +2325,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `simple loop result target executes without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2378,7 +2379,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `bounded direct state loop lowers its exhaustion leaf directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2456,7 +2457,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `bounded state loop loads and stores directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2512,7 +2513,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `assigned state feeds a directly compiled final conditional`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2573,7 +2574,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `straight line assignment is loaded directly by a later numeric leaf`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2633,7 +2634,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `terminal literal assignment stores compiled state directly`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2683,7 +2684,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `literal numeric condition branches without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् अन्यथा शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -2735,7 +2736,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `pure numeric leaves execute directly without the interpreter bridge`() {
         val source = """
-            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -2877,17 +2878,17 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `nested compiled loops preserve interpreter state parity`() {
         val source = """
-            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            हृ + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अन्तरावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अन्तरावस्था + ङे ॥
 
-            क्षि + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            क्षि + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             बाह्यावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् बाह्यावस्था + ङे ॥
 
-            अन्तरचक्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            अन्तरचक्र + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् अन्तरावस्था + ङे दा + लोट् + सिप् ।
             यावत् अन्तरावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            बाह्यचक्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            बाह्यचक्र + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अन्तरचक्र + टा कृ + लोट् + सिप् ।
             क्षि + ल्युट् + टा कृ + लोट् + सिप् ॥
 
@@ -2909,11 +2910,11 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `recursive generated samjna calls unwind and resume top-level execution`() {
         val source = """
-            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            हृ + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
             गण् + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            गण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गण् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वि + स्था + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -2934,14 +2935,14 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `compiled named calls enforce signatures and prohibitions`() {
         val wrongType = """
-            गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val prohibited = """
-            वि + भज् + णिच् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            न द्वितीय + अम् शून्य + अम् ।
+            वि + भज् + णिच् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            द्वितीय + सुँ शून्य + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च वि + भज् + णिच् + लोट् + सिप् ॥
             दशन् + शस् शून्य + अम् च वि + भज् + णिच् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -2974,12 +2975,12 @@ class StructuredBytecodeCompilerTest {
         }
 
         val exhausted = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val victory = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
             पञ्च + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + टा कृ + लोट् + सिप् ।
         """.trimIndent()
@@ -3001,7 +3002,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `bounded compiled loop publishes and pipes its exhaustion outcome`() {
         val source = """
-            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            हृ + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -3022,7 +3023,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `break signal exits the nearest compiled repetition`() {
         val source = """
-            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वि + स्था + लोट् + सिप् ॥
 
             पञ्च + कृत्वसुच् प्रयत्न + टा कृ + लोट् + सिप् ।
@@ -3087,10 +3088,10 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `parameterized named operation has interpreter compiler parity`() {
         val source = """
-            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            व्यवकलन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
             दक्षिण + ङस् द्वि + अम् वाम + ङस् पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
@@ -3109,9 +3110,9 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `pipeline result enters a typed generated samjna operation`() {
         val source = """
-            वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            वर्धन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+            परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ततः वर्धन + टा कृ + लोट् + सिप् ।
@@ -3241,7 +3242,7 @@ class StructuredBytecodeCompilerTest {
     )
 
     private fun collectionProgram(operation: String): String = """
-        परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+        परिचय + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
         एक + अम् मुद्र् + लोट् + सिप् ॥
 
         एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।

@@ -71,9 +71,7 @@ class PvmSentenceClassificationTest {
 
     @Test
     fun `predicate-less genitive fragment is not an attribute read`() {
-        assertIs<PvmSentenceSemantics.Executable>(
-            sentence("सङ्ख्या + मतुप् + ङस् मूल्य + अम् ।").semantics,
-        )
+        kotlin.test.assertTrue(runCatching { sentence("सङ्ख्या + मतुप् + ङस् मूल्य + अम् ।") }.isFailure)
     }
 
     @Test

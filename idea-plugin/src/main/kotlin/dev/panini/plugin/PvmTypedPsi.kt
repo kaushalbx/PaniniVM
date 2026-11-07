@@ -33,8 +33,6 @@ class PvmPrakriyaNamePsi(node: ASTNode) : PvmPsiElement(node) {
 }
 
 class PvmScopeDeclarationPsi(node: ASTNode) : PvmPsiElement(node) {
-    fun canonicalScope(): Scope? =
-        (containingFile as? PvmFile)?.canonicalItemAt(textOffset) as? Scope
 }
 
 class PvmRangeDeclarationPsi(node: ASTNode) : PvmPsiElement(node) {

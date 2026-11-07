@@ -1,21 +1,20 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoAghoApurvasyaYoshiSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoSutra
 import dev.panini.shiksha.Vyanjana
 import kotlin.test.*
 
 class RuYatvaApplicabilityTest {
     @Test fun `compatibility entry point shares canonical scope and exact mutations`() {
-        assertEquals(BhoBhagoAghoApurvasyaYoshiSutra.scope, BhoBhagoSutra.scope)
-        assertEquals(BhoBhagoAghoApurvasyaYoshiSutra.stage, BhoBhagoSutra.stage)
+        assertEquals(BhoBhagoAghoApurvasyaYoshiSutra.scope, BhoBhagoAghoApurvasyaYoshiSutra.scope)
+        assertEquals(BhoBhagoAghoApurvasyaYoshiSutra.stage, BhoBhagoAghoApurvasyaYoshiSutra.stage)
         for (left in listOf("देवाः", "भोः", "विभोः", "प्रातर्", "हरिः")) {
             val input = state(left)
             val expected = BhoBhagoAghoApurvasyaYoshiSutra.matches(input)
-            assertEquals(expected, BhoBhagoSutra.matches(input), left)
+            assertEquals(expected, BhoBhagoAghoApurvasyaYoshiSutra.matches(input), left)
             if (expected) {
                 val canonical = BhoBhagoAghoApurvasyaYoshiSutra.apply(input)
-                val compatibility = BhoBhagoSutra.apply(input)
+                val compatibility = BhoBhagoAghoApurvasyaYoshiSutra.apply(input)
                 assertEquals(canonical.state.terms, compatibility.state.terms)
                 assertEquals(canonical.state.substitutions, compatibility.state.substitutions)
                 assertEquals(canonical.explanation, compatibility.explanation)

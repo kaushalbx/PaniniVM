@@ -17,10 +17,6 @@ class ExternalCapabilityDispatcher {
         handlers[effect] = handler
     }
 
-    fun unregister(effect: ExecutionEffect) {
-        handlers.remove(effect)
-    }
-
     fun dispatch(effect: ExecutionEffect, payload: String): String {
         val handler = handlers[effect]
             ?: return "Simulated dispatch for effect $effect with payload '$payload'"

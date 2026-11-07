@@ -189,6 +189,17 @@ object FrameDiagnosticPolicy {
         severity(diagnostic.code) == FrameDiagnosticSeverity.ERROR
 }
 
+/** True where grammar reports a reading that a program may not take as an operand. */
+fun KriyaFrame.isNonBinding(relation: KarakaRelation): Boolean {
+    val index = relations.indexOf(relation)
+    return diagnostics.any { it.code == FrameDiagnosticCode.NON_BINDING_READING && it.nominalIndex == index }
+}
+
+/** Java-friendly access for callers that do not import the extension. */
+object NonBindingAccess {
+    fun KriyaFrame.nonBinding(relation: KarakaRelation): Boolean = isNonBinding(relation)
+}
+
 data class FrameDiagnostic(
     val code: FrameDiagnosticCode,
     val message: String,

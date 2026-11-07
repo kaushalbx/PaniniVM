@@ -20,7 +20,7 @@ internal object ProgramAgentConstruction {
             relation.resolution is FrameKarakaResolution.Unassigned && nominal.supCandidates.isNotEmpty() &&
                 nominal.supCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } }
 
-    fun infer(sentence: AkhyataVakya, dhatu: Dhatu?, frame: KriyaFrame): Map<Int, Set<SemanticRelation>> {
+    fun infer(sentence: AkhyataVakya, dhatu: Dhatu?, frame: KriyaFrame, declared: Boolean = false): Map<Int, Set<SemanticRelation>> {
         val head = sentence.tinganta
         if (dhatu == null || head.lakara !in setOf(Lakara.LOT, Lakara.LAT) || head.vikarana == Vikarana.YAK ||
             head.upasargaIdentities.any { it == null } || head.dhatu.sanadiAffixes.any { it == null }) return emptyMap()
@@ -36,9 +36,11 @@ internal object ProgramAgentConstruction {
             .mapNotNull { written.getOrNull(it - 1) }
         fun stemOf(n: dev.panini.analysis.SubantaAnalysis) = ((n.pada as? dev.panini.vyakaranam.ast.SubantaPada)?.pratipadika
             as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text
-        val nominatives = frame.nominalRelations?.nominalPadas.orEmpty().filter { n ->
+        val allNominals = frame.nominalRelations?.nominalPadas.orEmpty()
+        val nominatives = allNominals.filterIndexed { at, n ->
             namedDeclarations.none { it === n.pada } && n.supCandidates.isNotEmpty() &&
-                n.supCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } && stemOf(n) !in predicateStems }
+                // अपवादः प्रक्रिया: the kind qualifies the procedure, which is the subject.
+                n.supCandidates.all { it.vibhakti == Vibhakti.PRATHAMA } && stemOf(n) !in predicateStems && !(declared && allNominals.getOrNull(at + 1)?.pada?.sourceText?.replace(" ", "") == "प्रक्रिया+सुँ") }
         // The known thing is stated before what is said of it, so the first nominative is the subject.
         val firstNominative = nominatives.firstOrNull()
         val valueDeclaration = frame.nominalRelations?.nominalPadas.orEmpty().none { n ->

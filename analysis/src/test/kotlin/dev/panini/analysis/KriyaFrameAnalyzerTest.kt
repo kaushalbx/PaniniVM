@@ -533,9 +533,9 @@ class KriyaFrameAnalyzerTest {
         val consequent = akhyata(subanta("फल + अम्", "फल", "अम्"))
         val analysis = UktiAnalyzer(analyzer).analyze(
             Ukti(
-                sourceText = "यदि ... तर्हि ...",
+                sourceText = "यदि ... तर्हि ... + सुँ असँ + लट् + तिप्",
                 body = Conditional(
-                    sourceText = "यदि ... तर्हि ...",
+                    sourceText = "यदि ... तर्हि ... + सुँ असँ + लट् + तिप्",
                     condition = Invocation(condition),
                     consequent = Invocation(consequent),
                 ),

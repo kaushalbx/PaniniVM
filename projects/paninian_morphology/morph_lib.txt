@@ -1,14 +1,14 @@
 # रूपसाधन ग्रन्थ — Upasargas, Kṛt Pratyayas, and Tva Type Guards
 
 # अधिकार-सूत्र (Governing Domain: गणित)
-गणितः इति अधिकारः ।
+गणितम् इति अधिकारः अस्ति ।
 
 # क्त-प्रत्यय (Memoized Constant Procedure: भू + क्त + सुँ → भूतः)
-# Evaluated once and cached in registry
-भूतः इति प्रक्रिया अस्ति ।
-द्वे त्रीनि च योजय ॥
+# Each call executes the body; nominal morphology does not imply caching
+भूतः नाम प्रक्रिया अस्ति ।
+द्वे त्रीणि च योजय ॥
 
 # तव्यत्-प्रत्यय (Mandatory Assertion with सङ्ख्यात्व Type Guard: शुध् + णिच् + तव्यत् + सुँ)
-शोधयितव्यः इति प्रक्रिया अस्ति ।
-न प्रथम सङ्ख्याम् ।
-एकं द्वितीयं च योजय ॥
+शोधयितव्यः नाम प्रक्रिया अस्ति ।
+प्रथमः सङ्ख्या न भवेत् ।
+प्रथमं द्वितीयं च योजय ॥

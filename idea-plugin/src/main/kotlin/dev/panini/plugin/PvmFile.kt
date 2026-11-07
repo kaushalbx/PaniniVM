@@ -54,7 +54,7 @@ class PvmFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, PvmLan
                     }
                 }.mapNotNull { sentence ->
                     sentence.ukti?.let {
-                        runCatching { VyakaranamExecutionAdapter.analyzeGrammar(it) }.getOrNull()
+                        runCatching { VyakaranamExecutionAdapter.analyzeAsWritten(it) }.getOrNull()
                     }
                 }
             }.orEmpty()

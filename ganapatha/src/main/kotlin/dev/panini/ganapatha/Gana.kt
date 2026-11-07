@@ -86,9 +86,6 @@ abstract class Gana(
     fun isAntarGanaMember(text: String): Boolean =
         antarGanasContaining(text).isNotEmpty()
 
-    fun hasMeaning(): Boolean =
-        sanskritMeaning.isNotBlank() || hindiMeaning.isNotBlank() || englishMeaning.isNotBlank()
-
     private fun matchesInstruction(context: GanaInstructionContext): Boolean =
         members.asSequence()
             .filter { it.isInstruction }

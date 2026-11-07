@@ -21,15 +21,6 @@ class SutraRegistry(
     fun require(sutraNumber: String): Sutra<*, *> =
         get(sutraNumber) ?: error("Sutra $sutraNumber is not present in this registry.")
 
-    fun withAction(action: SutraAction): List<Sutra<*, *>> =
-        sutras.filter { it.action == action }
-
-    fun withRole(role: SutraRole): List<Sutra<*, *>> =
-        sutras.filter { it.role == role }
-
-    fun inScope(scope: SutraScope): List<Sutra<*, *>> =
-        sutras.filter { it.scope == scope }
-
     /** Canonical view of an adhikāra and the sūtras governed by its textual range. */
     fun governedBy(adhikaraNumber: String): List<Sutra<*, *>> {
         val adhikara = require(adhikaraNumber)
@@ -39,9 +30,4 @@ class SutraRegistry(
         return sutras.filter { it == adhikara || it.krama in start..role.endKrama }
     }
 
-    fun dependenciesOf(sutraNumber: String): List<Sutra<*, *>> =
-        require(sutraNumber).dependencies.mapNotNull(::get)
-
-    fun dependentsOf(sutraNumber: String): List<Sutra<*, *>> =
-        sutras.filter { sutraNumber in it.dependencies }
 }

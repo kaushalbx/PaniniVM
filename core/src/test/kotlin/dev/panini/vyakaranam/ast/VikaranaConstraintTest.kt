@@ -8,8 +8,9 @@ class VikaranaConstraintTest {
     @Test fun `known active causative contradictions do not claim to reject passive morphology`() {
         for (affix in Vikarana.entries) {
             val form = causative.copy(vikarana = affix)
-            assertEquals(affix != Vikarana.SHAP, form.hasContradictoryActiveCausativeVikarana())
-            assertFalse(form.copy(ting = TingPratyaya("त", "त")).hasContradictoryActiveCausativeVikarana())
+            val contradictory = affix != Vikarana.SHAP && affix != Vikarana.YAK
+            assertEquals(contradictory, form.hasContradictoryActiveCausativeVikarana())
+            assertEquals(contradictory, form.copy(ting = TingPratyaya("त", "त")).hasContradictoryActiveCausativeVikarana())
         }
         assertFalse(causative.copy(vikarana = null).hasContradictoryActiveCausativeVikarana())
     }
@@ -24,7 +25,9 @@ class VikaranaConstraintTest {
         assertNull(causative.copy(lakara = Lakara.LAT).lexicalGanaConstraint())
         assertEquals(DhatuGana.BHVADI, causative.copy(
             dhatu = causative.dhatu.copy(sanadiPratyayas = emptyList())).lexicalGanaConstraint())
-        assertEquals(DhatuGana.BHVADI, causative.copy(
+        assertNull(causative.copy(lakara = Lakara.LANG).lexicalGanaConstraint())
+        assertNull(causative.copy(lakara = Lakara.LING).lexicalGanaConstraint())
+        assertNull(causative.copy(
             dhatu = causative.dhatu.copy(sanadiPratyayas = listOf("सन्", "णिच्"))).lexicalGanaConstraint())
         assertEquals(DhatuGana.BHVADI, causative.copy(lakara = Lakara.LIT).lexicalGanaConstraint())
         for (affix in Vikarana.entries.filter { it != Vikarana.SHAP }) {
