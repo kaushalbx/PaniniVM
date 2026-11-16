@@ -55,6 +55,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val leftTerm = context.terms[index]
             val rightTerm = context.terms[index + 1]
             if (rightTerm.upadesha == "इट्" && rightTerm.varnas.lastOrNull() == Vyanjana.TTA) return@any false
+            // A prakṛtibhāva (6.1.125, 6.1.128) keeps both vowels at this boundary.
+            if (context.isBlockedAtBoundary(sutra, leftTerm.id, rightTerm.id)) return@any false
             val isTaddhita = "4.1.76" in context.activeAdhikaras ||
                 TaddhitaAffix.entries.any(rightTerm::hasCurrentAffix)
             if (isTaddhita) return@any false

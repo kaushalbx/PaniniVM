@@ -66,7 +66,7 @@ class NumeralNutLifecycleTest {
 
     @Test fun `astan optional aa and retained n branches derive independently`() {
         val request = SubantaDerivationRequest("अष्टन्", Vibhakti.SASTHI, Vacana.BAHUVACANA)
-        val results = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).deriveAll(request.initialState())
+        val results = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).deriveAll(request.initialState()).withoutIndependentOptions()
         assertEquals(setOf("अष्टानाम्"), results.map { it.final.surface }.toSet())
         assertTrue(results.any { result -> result.applications.any { it.sutra == "7.2.84" } })
         assertTrue(results.any { result -> result.applications.any { it.sutra == "6.4.7" } &&

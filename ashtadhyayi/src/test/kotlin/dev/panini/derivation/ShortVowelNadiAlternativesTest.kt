@@ -15,7 +15,7 @@ class ShortVowelNadiAlternativesTest {
         )) {
             for ((index, vibhakti) in listOf(Vibhakti.CHATURTHI, Vibhakti.PANCHAMI, Vibhakti.SASTHI, Vibhakti.SAPTAMI).withIndex()) {
                 val initial = SubantaDerivationRequest(stem, vibhakti, Vacana.EKAVACANA, Linga.STRI).initialState()
-                val results = engine.deriveAll(initial)
+                val results = engine.deriveAll(initial).withoutIndependentOptions()
                 assertEquals(setOf(endings[index].first, endings[index].second), results.map { it.final.surface }.toSet(), "$stem $vibhakti")
                 for (result in results) {
                     val trace = result.applications.map { it.sutra }

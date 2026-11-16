@@ -40,12 +40,26 @@ object SuptingantamPadamSutra : Sutra<DerivationState, DerivationChange>(
         }
     }
 
+    /**
+     * 1.1.62 प्रत्ययलोपे प्रत्ययलक्षणम्: when the final sup/tiṅ is elided (as 7.1.23 does to अम्),
+     * the word still ends in it and is a pada. 1.1.63 withholds only aṅga operations.
+     */
+    private fun lukPadaCarrier(context: DerivationState): Set<SamjnaAssignment> {
+        val last = context.terms.lastOrNull() ?: return emptySet()
+        if (context.terms.any { term -> context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } }) return emptySet()
+        val elidedVibhakti = context.droppedTerms.any { dropped ->
+            (dropped.sourceSupAffix != null || dropped.kind == dev.panini.derivation.TermKind.PRATYAYA) &&
+                context.samjnas.any { it.targetId == dropped.id && it.samjna == Samjna.PRATYAYA }
+        }
+        return if (elidedVibhakti) setOf(SamjnaAssignment(last.id, Samjna.PADA)) else emptySet()
+    }
+
     override fun apply(context: DerivationState): DerivationChange {
         // In a full implementation, the 'Pada' Samjna often applies to the whole combination.
         // Here we mark the last term (affix) as the trigger for the Pada boundary.
         val assignments = context.terms.filter { term ->
             context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA }
-        }.map { SamjnaAssignment(it.id, Samjna.PADA) }.toSet()
+        }.map { SamjnaAssignment(it.id, Samjna.PADA) }.toSet() + lukPadaCarrier(context)
 
         return DerivationChange(
             state = context.withSamjnas(assignments).copy(stage = DerivationStage.PADA_FORMED),

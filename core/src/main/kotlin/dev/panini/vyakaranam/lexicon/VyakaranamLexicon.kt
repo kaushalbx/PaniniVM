@@ -125,6 +125,22 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         listOf("इन्द्र", "शक्र").forEach { text ->
             put(text, PratipadikaEntry(text, setOf(Linga.PUMS)))
         }
+        // Names of sounds (pratyāhāras, letters, तपर vowels) are built from varṇas by the derivation
+        // module's PratyaharaNamePratipadikas, never typed here as characters.
+        // Saṃjñās defined by their own sūtras, with the gender those sūtras show:
+        // लोप 1.1.60 अदर्शनं लोपः; ह्रस्व, दीर्घ, प्लुत 1.2.27 (qualifying masculine अच्);
+        // अनुनासिक 1.1.8; उदात्त, अनुदात्त, स्वरित 1.2.29–31; संयोग 1.1.7; धातु 1.3.1 भूवादयो धातवः;
+        // प्रत्यय 3.1.1; वृद्धि 1.1.1 and उपधा 1.1.65 (feminine); पद 1.4.14 and अङ्ग 1.4.13 (neuter).
+        listOf("लोप", "ह्रस्व", "दीर्घ", "प्लुत", "अनुनासिक", "उदात्त", "अनुदात्त", "स्वरित", "संयोग",
+            "धातु", "प्रत्यय").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.PUMS), categories = setOf(NominalCategory.TECHNICAL_SAMJNA)))
+        }
+        put("वृद्धि", PratipadikaEntry("वृद्धि", setOf(Linga.STRI), categories = setOf(NominalCategory.TECHNICAL_SAMJNA)))
+        put("उपधा", PratipadikaEntry("उपधा", setOf(Linga.STRI), categories = setOf(NominalCategory.TECHNICAL_SAMJNA),
+            stemFormation = NominalStemFormation.AP))
+        listOf("पद", "अङ्ग").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.NAPUMSAKA), categories = setOf(NominalCategory.TECHNICAL_SAMJNA)))
+        }
         // Sarvādi pronouns; lexical gender is independent of their derived
         // ka/ya/sa and feminine forms (7.2.102/103, then genuine ṭāp formation).
         listOf("किम्", "यद्", "तद्", "एतद्", "इदम्").forEach { text ->

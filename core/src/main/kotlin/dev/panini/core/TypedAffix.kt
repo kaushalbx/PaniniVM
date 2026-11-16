@@ -107,6 +107,7 @@ enum class KrtAffix(
     KANAC("कानच्"),
     KVASU("क्वसुँ", alternateUpadeshas = setOf("क्वसु")),
     KI("कि"),
+    IK("इक्"),
     KIN("किन्"),
     U("उ"),
     UKAN("उकञ्"),

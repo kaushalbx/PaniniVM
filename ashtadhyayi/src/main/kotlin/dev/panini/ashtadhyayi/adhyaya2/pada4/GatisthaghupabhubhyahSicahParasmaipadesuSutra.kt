@@ -30,14 +30,20 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
         if (sicIndex <= 0 || sicIndex == context.terms.lastIndex) return false
         val dhatu = context.terms.subList(0, sicIndex).lastOrNull { it.kind == TermKind.DHATU } ?: return false
         val ending = context.terms.last()
-        return dhatu.matchesUpadesha("भू") && ending.sourceTingAffix != null
+        return isGatisthaGhuPaBhu(context, dhatu) && ending.sourceTingAffix?.pada == dev.panini.core.PadaType.PARASMAIPADA
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val sic = context.terms.first { it.upadesha == "सिँच्" }
         return DerivationChange(
             context.removeTerm(sic.id, sutra),
-            "2.4.77 applies luk to सिच् after भू before a Parasmaipada ending.",
+            "2.4.77 applies luk to सिच् after गा, स्था, घु, पा or भू before a Parasmaipada ending.",
         )
     }
 }
+
+/** The roots of 2.4.77: गा (substitute of इण्, 2.4.45), स्था (ष्ठा, 01.1077), घु (1.1.20), पा पाने (01.1074, not पा रक्षणे), भू. */
+internal fun isGatisthaGhuPaBhu(context: DerivationState, dhatu: dev.panini.derivation.DerivationTerm): Boolean =
+    dhatu.matchesUpadesha("भू") || dhatu.sourceDhatuId in setOf("01.1077", "01.1074") ||
+        dev.panini.derivation.SamjnaAssignment(dhatu.id, dev.panini.shiksha.Samjna.GHU) in context.samjnas ||
+        (dhatu.matchesUpadesha("इण्") && dhatu.surface == "गा")

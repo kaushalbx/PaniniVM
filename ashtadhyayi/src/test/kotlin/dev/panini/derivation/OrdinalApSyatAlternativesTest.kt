@@ -30,7 +30,7 @@ class OrdinalApSyatAlternativesTest {
             )) {
                 val initial = SubantaDerivationRequest(stem, vibhakti, Vacana.EKAVACANA, Linga.STRI,
                     stemFormation = NominalStemFormation.AP, pratipadikaUpadesha = base).initialState()
-                val results = engine.deriveAll(initial)
+                val results = engine.deriveAll(initial).withoutIndependentOptions()
                 assertEquals(setOf(base + endings.first, base + endings.second), results.map { it.final.surface }.toSet())
                 for (result in results) {
                     assertEquals(DerivationStage.FINAL, result.final.stage)

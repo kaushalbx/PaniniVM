@@ -18,7 +18,7 @@ sealed interface Samjna {
         ANIYAR, NYAT, YAT, KTAVATU, NISHTHA, NIC, SAN, YAN, KYAC,
         YAN_LUK, CAN, TAP, NIP, NIS, NIN, TI_PRATYAYA, TVA, TARAP,
         TAMAP, KVASU, KANAC, YANG, SANADYANTA_DHATU, AN_PRATYAYA,
-        IN_PRATYAYA, YAN_PRATYAYA, APATYA, ASUN, USI, KA, NAMUL
+        IN_PRATYAYA, YAN_PRATYAYA, APATYA, ASUN, USI, KA, NAMUL, IK_PRATYAYA
     }
 
     /** Phonological & Vowel Grade Classifications (स्वर/गुण/वृद्धि - Aṣṭādhyāyī 1.1.1, 1.1.2, 1.1.7) */
@@ -72,6 +72,7 @@ sealed interface Samjna {
         val GHAN: Samjna = Affix.GHAN
         val KA: Samjna = Affix.KA
         val NAMUL: Samjna = Affix.NAMUL
+        val IK_PRATYAYA: Samjna = Affix.IK_PRATYAYA
         val NVUL: Samjna = Affix.NVUL
         val TRC: Samjna = Affix.TRC
         val KTA: Samjna = Affix.KTA

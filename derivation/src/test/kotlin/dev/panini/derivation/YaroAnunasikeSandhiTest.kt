@@ -8,14 +8,14 @@ class YaroAnunasikeSandhiTest {
     private val engine = SandhiEngine()
 
     @Test fun `dental stops optionally become dental nasals before n or m`() {
-        assertEquals(setOf("तन्न", "तद्न"), engine.joinAll("तत्", "न").map(engine::render).toSet())
-        assertEquals(setOf("तन्मयम्", "तद्मयम्"), engine.joinAll("तत्", "मयम्").map(engine::render).toSet())
+        assertEquals(setOf("तन्न", "तद्न"), engine.joinAll("तत्", "न").withoutIndependentOptions().map(engine::render).toSet())
+        assertEquals(setOf("तन्मयम्", "तद्मयम्"), engine.joinAll("तत्", "मयम्").withoutIndependentOptions().map(engine::render).toSet())
     }
 
     @Test fun `nasal substitute follows source stop class not follower class`() {
         for ((source, nasal) in listOf("वाक्" to Vyanjana.NGA, "अच्" to Vyanjana.NYA,
             "अट्" to Vyanjana.NNA, "अत्" to Vyanjana.NA, "अप्" to Vyanjana.MA)) {
-            val result = engine.joinAll(source, "नयति").single { r -> r.applications.any { it.sutra == "8.4.45" } }
+            val result = engine.joinAll(source, "नयति").withoutIndependentOptions().single { r -> r.applications.any { it.sutra == "8.4.45" } }
             assertEquals(nasal, result.final.terms.first().varnas.last())
             assertTrue(result.applications.map { it.sutra }.indexOf("8.2.39") < result.applications.map { it.sutra }.indexOf("8.4.45"))
         }
@@ -29,7 +29,7 @@ class YaroAnunasikeSandhiTest {
 
     @Test fun `non-nasal follower and ra without nasal counterpart do not trigger`() {
         for ((left, right) in listOf("तत्" to "गच्छति", "अग्निर्" to "नयति", "तान्" to "नयति")) {
-            assertTrue(engine.joinAll(left, right).none { r -> r.applications.any { it.sutra == "8.4.45" } })
+            assertTrue(engine.joinAll(left, right).withoutIndependentOptions().none { r -> r.applications.any { it.sutra == "8.4.45" } })
         }
     }
 

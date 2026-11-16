@@ -10,7 +10,7 @@ class KupuVisargaSandhiTest {
     @Test fun `four voiceless kupu followers have allophone and visarga outcomes only`() {
         for ((right, allophone) in listOf("करोति" to Ayogavaha.JIHVAMULIYA, "खनति" to Ayogavaha.JIHVAMULIYA,
             "पचति" to Ayogavaha.UPADHMANIYA, "फलति" to Ayogavaha.UPADHMANIYA)) {
-            val results = engine.joinAll("वृक्षः", right)
+            val results = engine.joinAll("वृक्षः", right).withoutIndependentOptions()
             assertEquals(setOf("वृक्ष${allophone.devanagari}$right", "वृक्षः$right"), results.map(engine::render).toSet())
             assertEquals(setOf(allophone, Ayogavaha.VISARGA), results.map { it.final.terms.first().varnas.last() }.toSet())
             assertTrue(results.all { r -> r.applications.any { it.sutra == "8.3.37" } })
@@ -30,7 +30,7 @@ class KupuVisargaSandhiTest {
 
     @Test fun `sharpare exception excludes both allophones`() {
         for ((left, right) in listOf("वासः" to "क्षौमम्", "अद्भिः" to "प्सातम्")) {
-            val results = engine.joinAll(left, right)
+            val results = engine.joinAll(left, right).withoutIndependentOptions()
             assertEquals(setOf(left + right), results.map(engine::render).toSet())
             assertTrue(results.all { r -> r.applications.any { it.sutra == "8.3.35" } })
             assertTrue(results.all { r -> r.applications.none { it.sutra == "8.3.37" } })

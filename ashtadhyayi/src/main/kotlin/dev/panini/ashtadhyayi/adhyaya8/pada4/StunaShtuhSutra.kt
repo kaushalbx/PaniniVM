@@ -64,7 +64,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
         for (i in 0 until positions.lastIndex) {
             val curr = positions[i]
             val next = positions[i + 1]
-            if (curr.varna in stu && next.varna in shtu) {
+            if (curr.varna in stu && next.varna in shtu && !ToShiSutra.protects(curr.varna, next.varna)) {
                 return Match(curr.termIndex, curr.varnaIndex, next.varna)
             }
             if (curr.varna in shtu && next.varna in stu) {

@@ -8,7 +8,7 @@ class PratyaharaEngine(
     sutras: List<MaheshvaraSutra> = MaheshvaraSutras.all,
 ) {
     private val tokens = sutras.flatMap { it.tokens() }
-    private val cache = mutableMapOf<Pratyahara, Set<Varna>>()
+    private val cache = java.util.concurrent.ConcurrentHashMap<Pratyahara, Set<Varna>>()
 
     fun derive(pratyahara: Pratyahara): Set<Varna> {
         return cache.getOrPut(pratyahara) {
@@ -29,6 +29,17 @@ class PratyaharaEngine(
                 .toSet()
         }
     }
+
+    /**
+     * 1.1.71 आदिरन्त्येन सहेता: a pratyāhāra is named by its first sound and its closing it-letter,
+     * as varṇas: the sound, अ to pronounce a consonant (ह + अ + ल् = हल्), then the it-letter. Each
+     * must denote a range here; a name reached by two markers (अण्, इण्) is one name.
+     */
+    fun names(pratyaharas: List<Pratyahara> = Pratyahara.ATTESTED): List<List<Varna>> = pratyaharas.map { pratyahara ->
+        require(derive(pratyahara).isNotEmpty()) { "No range closes ${pratyahara.start} on ${pratyahara.end}." }
+        val sound = pratyahara.start
+        (if (sound is Svara) listOf(sound) else listOf(sound, Svara.A)) + pratyahara.end.varna
+    }.distinct()
 
     fun contains(pratyahara: Pratyahara, char: Char): Boolean {
         val normalizedChar = Varnamala.normalize(char)

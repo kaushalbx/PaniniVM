@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya6.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.LocatedVarna
+import dev.panini.derivation.isPadaFinalVarna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.isHrasva
@@ -12,10 +14,21 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/**
- * 6.1.73: छे च. Inserts तुक् after a short vowel before छ्.
- * The executable environment currently covers छ् introduced by 7.3.77.
- */
+/** A vowel directly before छ, within a term or across a boundary in saṃhitā (6.1.72). */
+internal data class CheTukSite(val vowel: LocatedVarna, val cha: LocatedVarna, val padaFinal: Boolean)
+
+internal fun DerivationState.cheTukSites(): List<CheTukSite> {
+    if (terms.any { it.itProcessingPending || it.itDesignations.isNotEmpty() || it.deferredItDesignations.isNotEmpty() }) return emptyList()
+    val sounds = terms.flatMap { term -> term.varnas.mapIndexed { index, varna -> LocatedVarna(term.id, index, varna) } }
+    return sounds.zipWithNext().filter { (vowel, cha) -> vowel.varna is Svara && cha.varna == Vyanjana.CHA }.map { (vowel, cha) ->
+        CheTukSite(vowel, cha, isPadaFinalVarna(terms.single { it.id == vowel.termId }, vowel.index))
+    }
+}
+
+internal fun DerivationState.insertTuk(site: CheTukSite, sutra: String): DerivationState =
+    insertTermVarnas(site.cha.termId, site.cha.index, listOf(Vyanjana.TA), sutra)
+
+/** 6.1.73: छे च. तुक् after a short vowel before छ् (तव + छाया → तवच्छाया by 8.4.40). */
 object CheCaSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.1.73",
     text = "छे च",
@@ -28,29 +41,15 @@ object CheCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.VOWEL_SANDHI,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    private fun site(context: DerivationState) =
+        context.cheTukSites().firstOrNull { (it.vowel.varna as Svara).isHrasva }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val (termIndex, varnaIndex) = findMatch(context)!!
-        val term = context.terms[termIndex]
-        return DerivationChange(
-            state = context.insertTermVarnas(term.id, varnaIndex, listOf(Vyanjana.TA), sutra),
-            explanation = "6.1.73 inserts तुक् after a short vowel before छ्.",
-        )
-    }
+    override fun matches(context: DerivationState): Boolean = site(context) != null
 
-    private fun findMatch(context: DerivationState): Pair<Int, Int>? {
-        if (context.substitutions.none { it.sutra == "7.3.77" }) return null
-        context.terms.forEachIndexed { termIndex, term ->
-            term.varnas.forEachIndexed { varnaIndex, varna ->
-                if (varna == Vyanjana.CHA && varnaIndex > 0 &&
-                    (term.varnas[varnaIndex - 1] as? Svara)?.isHrasva == true
-                ) {
-                    return termIndex to varnaIndex
-                }
-            }
-        }
-        return null
-    }
+    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
+        state = context.insertTuk(requireNotNull(site(context)), sutra),
+        explanation = "6.1.73 inserts तुक् after a short vowel before छ्.",
+    )
 }

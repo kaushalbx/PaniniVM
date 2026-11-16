@@ -84,6 +84,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (affix.matchesUpadesha("क्त") || affix.matchesUpadesha("क्तवतुँ") ||
             affix.matchesUpadesha("क्त्वा") || affix.matchesUpadesha("ल्यप्")) return false
         if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
+        // 1.1.5 क्ङिति च: no guṇa before an affix whose own it-letter is क् or ङ् (इक्, कि).
+        // The ङ् of a tiṅ upadeśa (महिङ्) only closes the pratyāhāra तिङ्, so tiṅ affixes are not covered here.
+        if (affix.sourceTingAffix == null && (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT))) return false
         // In LIṬ, tip is first replaced by fresh ṇal (3.4.82); its ṇ-it
         // designation must govern the stronger 7.2.115 vṛddhi before guṇa is considered.
         if (context.effectiveContext.rupa.lakara == Lakara.LIT &&

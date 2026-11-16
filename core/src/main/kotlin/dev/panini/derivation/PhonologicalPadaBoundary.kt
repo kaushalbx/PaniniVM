@@ -27,3 +27,21 @@ fun DerivationState.hasCompletedPadaBoundaryBetweenTerms(leftId: String, rightId
         term.formedPadaRupa != null && samjnas.any { it.targetId == term.id && it.samjna == Samjna.PADA }
     }
 }
+
+/**
+ * A join of completed padas (two or more पद, no dhātu or pratyaya still being formed). Inside each
+ * pada its own options (8.4.46/8.4.47 doubling) were settled when that pada was formed; at such a join
+ * they are offered only where the conditioning sounds span the junction.
+ */
+fun DerivationState.isJoinOfCompletedPadas(): Boolean =
+    samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
+        allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA } &&
+        terms.none { it.kind == TermKind.ADESHA }
+
+/**
+ * At a join of completed padas, whether a site at [window] (term id, varṇa index) is the join's own: its
+ * sounds span two padas, or one of them was changed in this join (the य of yaṇ in दधि + अत्र).
+ */
+fun DerivationState.isJoinSite(window: List<Pair<String, Int>>): Boolean =
+    window.map { it.first }.distinct().size > 1 ||
+        window.any { (id, index) -> substitutions.any { it.targetId == id && it.sourceVarnaIndex == index } }

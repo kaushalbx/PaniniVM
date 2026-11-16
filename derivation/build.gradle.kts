@@ -29,5 +29,7 @@ tasks.register<JavaExec>("sandhiKoshEvaluation") {
     dependsOn(tasks.named("testClasses"))
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("dev.panini.derivation.SandhiKoshEvaluationRunner")
+    // The declared lexicon derives every paradigm of ~6,900 names; the default heap (a quarter of RAM) is not enough.
+    maxHeapSize = providers.gradleProperty("sandhikoshHeap").getOrElse("16g")
     workingDir = rootDir
 }

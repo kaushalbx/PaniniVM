@@ -8,6 +8,7 @@ import dev.panini.derivation.hasSarvanamasthanaSupIdentity
 import dev.panini.derivation.matchesAffix
 import dev.panini.core.SupAffix
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDirgha
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
@@ -42,7 +43,10 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        // 6.4.10 continues असम्बुद्धौ from 6.4.8.
+        if (context.samjnas.any { it.targetId == affix.id && it.samjna == dev.panini.shiksha.Samjna.SAMBUDDHI }) return false
 
+        if (numSantaVowel(context, stem) != null) return affix.hasSarvanamasthanaSupIdentity()
         val isEligibleStem = stem.upadesha in setOf("महत्", "विद्वस्") ||
             stem.compoundHeadUpadesha in setOf("महत्", "विद्वस्") ||
             eligibleCurrentForms.any { stem.varnas.takeLast(it.size) == it }
@@ -54,6 +58,11 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
+        numSantaVowel(context, stem)?.let { vowel ->
+            val long = (stem.varnas[vowel] as Svara).toDirgha()
+            return DerivationChange(context.replaceTermVarna(stem.id, vowel, listOf(long), sutra).copy(stage = DerivationStage.ANGAKARYA),
+                "6.4.10 lengthens the upadhā of the सान्त संयोग न्स् formed by नुम्.")
+        }
         val affix = context.terms.last()
 
         val isSu = affix.sourceSupAffix == SupAffix.SU || affix.matchesAffix(SupAffix.SU)
@@ -77,6 +86,16 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
             state = state.copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.10: Lengthened the penultimate vowel before sarvanāmasthāna."
         )
+    }
+
+    /** A सान्त संयोग whose न् is a नुम् (7.1.70): the short vowel before it is the upadhā to lengthen. */
+    private fun numSantaVowel(context: DerivationState, stem: dev.panini.derivation.DerivationTerm): Int? {
+        val n = stem.varnas.size
+        if (n < 3 || stem.varnas[n - 1] != Vyanjana.SA || stem.varnas[n - 2] != Vyanjana.NA) return null
+        val vowel = stem.varnas[n - 3] as? Svara ?: return null
+        if (vowel.toDirgha() == vowel) return null
+        val isNum = context.substitutions.any { it.targetId == stem.id && it.sutra == "7.1.70" && it.sourceVarnaIndex == null }
+        return if (isNum) n - 3 else null
     }
 
     private val mahat: List<Varna> = listOf(Vyanjana.MA, Svara.A, Vyanjana.HA, Svara.A, Vyanjana.TA)

@@ -9,7 +9,7 @@ class DhutSandhiTest {
     private val engine = SandhiEngine()
 
     @Test fun `nas ca supplies both source-backed outcomes`() {
-        val results = engine.joinAll("भवान्", "साये")
+        val results = engine.joinAll("भवान्", "साये").withoutIndependentOptions()
         assertEquals(setOf("भवान्त्साये", "भवान्साये"), results.map { engine.render(it) }.toSet())
         val applied = results.single { it.applications.any { step -> step.sutra == "8.3.30" } }
         assertEquals("भवान्", applied.final.terms.first().surface)
@@ -23,7 +23,7 @@ class DhutSandhiTest {
 
     @Test fun `other source nasals and other followers do not license dhut`() {
         for ((left, right) in listOf("कम्" to "साये", "प्राङ्" to "साये", "भवान्" to "हसति")) {
-            assertTrue(engine.joinAll(left, right).all { result -> result.applications.none { it.sutra == "8.3.30" } })
+            assertTrue(engine.joinAll(left, right).withoutIndependentOptions().all { result -> result.applications.none { it.sutra == "8.3.30" } })
         }
     }
 

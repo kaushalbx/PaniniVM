@@ -9,7 +9,7 @@ class VisargaRetentionSandhiTest {
 
     @Test fun `shar admits visarga retention and s substitution alternatives`() {
         for ((right, substituted) in listOf("शेते" to "वृक्षश्शेते", "षण्डे" to "वृक्षष्षण्डे", "साये" to "वृक्षस्साये")) {
-            val results = engine.joinAll("वृक्षः", right)
+            val results = engine.joinAll("वृक्षः", right).withoutIndependentOptions()
             assertEquals(setOf("वृक्षः$right", substituted), results.map(engine::render).toSet())
             val retention = results.single { r -> r.applications.any { it.sutra == "8.3.36" } }
             assertTrue(retention.applications.none { it.sutra == "8.3.34" })
@@ -19,7 +19,7 @@ class VisargaRetentionSandhiTest {
 
     @Test fun `khar followed immediately by shar requires retention`() {
         for ((left, right) in listOf("शशः" to "क्षुरम्", "वासः" to "क्षौमम्", "पुरुषः" to "त्सरुः", "अद्भिः" to "प्सातम्")) {
-            val results = engine.joinAll(left, right)
+            val results = engine.joinAll(left, right).withoutIndependentOptions()
             assertEquals(setOf(left + right), results.map(engine::render).toSet())
             assertTrue(results.all { r -> r.applications.any { it.sutra == "8.3.35" } })
             assertTrue(results.all { r -> r.applications.none { it.sutra in setOf("8.3.34", "8.3.36") } })
@@ -42,7 +42,7 @@ class VisargaRetentionSandhiTest {
     }
 
     @Test fun `explicit underlying s proceeds through ru and visarga before retention`() {
-        val results = engine.joinAll("वृक्षस्", "शेते")
+        val results = engine.joinAll("वृक्षस्", "शेते").withoutIndependentOptions()
         assertEquals(setOf("वृक्षःशेते", "वृक्षश्शेते"), results.map(engine::render).toSet())
         for (result in results) assertTrue(result.applications.map { it.sutra }.containsAll(listOf("8.2.66", "8.3.15")))
     }

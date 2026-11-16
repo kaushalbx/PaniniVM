@@ -44,6 +44,8 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        // असम्बुद्धौ: never before a सम्बुद्धि (2.3.49).
+        if (context.samjnas.any { it.targetId == affix.id && it.samjna == dev.panini.shiksha.Samjna.SAMBUDDHI }) return false
 
         // The neuter dual has already received śī by 7.1.19.  It yields forms
         // such as karman + auṭ -> karmaṇī, not *karmāṇī.  The plural śi

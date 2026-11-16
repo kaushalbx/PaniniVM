@@ -34,6 +34,8 @@ object RdusanasPurudamsoAnehasamCaSutra : Sutra<DerivationState, DerivationChang
             stem.kind == TermKind.PRATIPADIKA &&
                 (stem.upadeshaVarnas.lastOrNull() == Svara.R || stem.upadesha in namedStems) &&
                 context.terms.lastOrNull()?.sourceSupAffix == SupAffix.SU &&
+                // असम्बुद्धौ (from 7.1.92).
+                context.samjnas.none { it.targetId == context.terms.last().id && it.samjna == dev.panini.shiksha.Samjna.SAMBUDDHI } &&
                 sutra !in stem.establishedBySutras &&
                 context.terms.none { it.adeshaTarget?.termId == stem.id }
         }

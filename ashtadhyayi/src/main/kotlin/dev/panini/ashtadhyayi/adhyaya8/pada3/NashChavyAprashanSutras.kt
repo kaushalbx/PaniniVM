@@ -36,7 +36,7 @@ object AtranunasikahPurvasyaTuVaSutra : Sutra<DerivationState, DerivationChange>
 ), DerivationSutra {
     private data class Target(val term: DerivationTerm, val varna: Varna, val nasalized: Boolean)
     private fun target(context: DerivationState): Target? {
-        val term = chaviRutvaTarget(context) ?: return null
+        val term = chaviRutvaTarget(context) ?: otherRutvaTarget(context) ?: return null
         val previous = term.phonologicalText.effectiveVarnas.getOrNull(term.varnas.lastIndex - 1) ?: return null
         if (previous.isAnunasika()) return null
         if (previous.varna is Svara) return Target(term, previous.varna, true)
@@ -60,7 +60,7 @@ object AnunasikatParoAnusvarahSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.SANDHI,
 ), DerivationSutra {
     private fun target(context: DerivationState): DerivationTerm? {
-        val term = chaviRutvaTarget(context) ?: return null
+        val term = chaviRutvaTarget(context) ?: otherRutvaTarget(context) ?: return null
         val previous = term.phonologicalText.effectiveVarnas.getOrNull(term.varnas.lastIndex - 1) ?: return null
         return term.takeIf { !previous.isAnunasika() && previous.varna != Ayogavaha.ANUSVARA }
     }

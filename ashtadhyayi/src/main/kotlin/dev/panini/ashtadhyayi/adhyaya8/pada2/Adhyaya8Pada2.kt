@@ -4,7 +4,7 @@ import dev.panini.sutra.Sutra
 
 object Adhyaya8Pada2 {
     val sutras: List<Sutra<*, *>> = listOf(
-        NaloPratipadikantasyaSutra,
+        NaloPratipadikantasyaSutra, NaNgiSambuddhyohSutra,
         MatorVahSutra,
         SasajusoRuhSutra,
         DhiCaSutra,

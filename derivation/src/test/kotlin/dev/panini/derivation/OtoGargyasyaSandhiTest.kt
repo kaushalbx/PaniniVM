@@ -16,7 +16,7 @@ class OtoGargyasyaSandhiTest {
                 assertTrue(result.applications.any { it.sutra == "8.3.17" })
                 assertTrue(result.applications.any { it.sutra == "8.3.20" })
                 assertTrue(result.applications.none { it.sutra == "6.1.109" || it.sutra == "8.3.19" })
-                assertEquals(setOf("$base $right"), engine.joinAll(input, next).map(engine::render).toSet())
+                assertEquals(setOf("$base $right"), engine.joinAll(input, next).withoutIndependentOptions().map(engine::render).toSet())
             }
         }
     }

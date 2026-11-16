@@ -373,7 +373,10 @@ class SamasaEngine(
             // Preserve vowel/s-final processing; expand consonant boundaries
             // only where the member's grammatical numeral designation licenses it.
             if (nextVarnas.firstOrNull() is Svara || resultVarnas.lastOrNull() == Vyanjana.SA) {
-                val joined = sandhiEngine.join(result, next)
+                // After the first boundary the left member is the uttarapada of the members before it.
+                val joined = if (resultVarnas.lastOrNull() == Vyanjana.SA)
+                    sandhiEngine.joinSamasaMembers(result, next, leftIsUttarapada = index > 0)
+                else sandhiEngine.join(result, next)
                 result = joined.final.surface
                 resultVarnas = joined.final.terms.flatMap { it.varnas }
                 applications.addAll(joined.applications)

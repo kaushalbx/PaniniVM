@@ -13,6 +13,7 @@ object Adhyaya1Pada4 {
         ViramoAvasanamSutra,
         SuptingantamPadamSutra,
         GhiSutra,
+        PatihSamasaEvaSutra,
         NadiSutra,
         NgitiHrasvashCaSutra,
         ChadayoAsattveSutra,

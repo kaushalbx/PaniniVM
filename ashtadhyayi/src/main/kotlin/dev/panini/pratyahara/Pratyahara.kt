@@ -36,5 +36,21 @@ data class Pratyahara(
         val SHAR = Pratyahara(Vyanjana.SHA, ItMarker.R)
         val JAS = Pratyahara(Vyanjana.JA, ItMarker.SHA)
         val CAR = Pratyahara(Vyanjana.CA, ItMarker.R)
+
+        /**
+         * The pratyāhāras the Aṣṭādhyāyī uses (the traditional forty-odd, as listed in the
+         * Siddhāntakaumudī on 1.1.71). Each is a start varṇa and an it-marker; its name and its range
+         * both come from the engine. अण् and इण् close on ण् of either sūtra; the name is the same.
+         */
+        val ATTESTED: List<Pratyahara> = listOf(
+            AK, AC, AT, Pratyahara(Svara.A, ItMarker.N), AM, ASH, Pratyahara(Svara.A, ItMarker.L),
+            IK, IC, IN, Pratyahara(Svara.U, ItMarker.K), EN, EC, Pratyahara(Svara.AI, ItMarker.C),
+            Pratyahara(Vyanjana.HA, ItMarker.SHA), HAL, YAN, YAM, YANN, YAY, YAR,
+            Pratyahara(Vyanjana.VA, ItMarker.SHA), VAL, Pratyahara(Vyanjana.RA, ItMarker.L),
+            Pratyahara(Vyanjana.NYA, ItMarker.M), Pratyahara(Vyanjana.MA, ItMarker.Y), Pratyahara(Vyanjana.NGA, ItMarker.M),
+            Pratyahara(Vyanjana.JHA, ItMarker.SH), JHASH, JHAY, JHAR, JHAL, Pratyahara(Vyanjana.BHA, ItMarker.SH),
+            JAS, Pratyahara(Vyanjana.BA, ItMarker.SHA), CHAV, Pratyahara(Vyanjana.KHA, ItMarker.Y), KHAR,
+            Pratyahara(Vyanjana.CA, ItMarker.Y), CAR, SHAR, Pratyahara(Vyanjana.SHA, ItMarker.L),
+        )
     }
 }

@@ -41,6 +41,14 @@ class DerivedVisargaLexicon private constructor(
         nominalCandidates(surface).map { PadaCandidate(it.derivation, it.pada) } +
             avyayaCandidates(surface).map { PadaCandidate(it.derivation, it.pada) }
 
+    /** The same lexicon without these stems' proofs and failures, so one build serves a probe too. */
+    fun excluding(stems: Set<String>): DerivedVisargaLexicon = if (stems.isEmpty()) this else DerivedVisargaLexicon(
+        bySurface.mapValues { (_, list) -> list.filter { it.request.pratipadika !in stems } }.filterValues { it.isNotEmpty() },
+        nominalBySurface.mapValues { (_, list) -> list.filter { it.request.pratipadika !in stems } }.filterValues { it.isNotEmpty() },
+        avyayaBySurface, failures.filter { it.request.pratipadika !in stems }, avyayaFailures,
+        entriesWithoutGender.filter { it.text !in stems },
+        unresolvedSources.filter { it.request.pratipadika !in stems })
+
     companion object {
         private fun normalized(text: String) = Normalizer.normalize(text, Normalizer.Form.NFC)
 
@@ -48,20 +56,31 @@ class DerivedVisargaLexicon private constructor(
             nominalEngine: SubantaEngine = SubantaEngine(), sandhiEngine: SandhiEngine = SandhiEngine(),
             avyayaRequests: Collection<TaddhitaDerivationRequest> = emptyList(),
             ganaAvyayaUpadeshas: Collection<String> = emptyList(),
-            taddhitaEngine: TaddhitaEngine = TaddhitaEngine()): DerivedVisargaLexicon {
+            taddhitaEngine: TaddhitaEngine = TaddhitaEngine(),
+            parallel: Boolean = false): DerivedVisargaLexicon {
             val index = mutableMapOf<String, MutableList<Candidate>>()
             val nominalIndex = mutableMapOf<String, MutableList<NominalCandidate>>()
             val avyayaIndex = mutableMapOf<String, MutableList<AvyayaCandidate>>()
             val failures = mutableListOf<Failure>()
             val avyayaFailures = mutableListOf<AvyayaFailure>()
             val unresolved = mutableListOf<UnresolvedSource>()
-            for (entry in entries.distinct()) {
-                for (linga in entry.linga) for (affix in SupAffix.entries) {
-                    val request = SubantaDerivationRequest(entry.text, affix.vibhakti, affix.vacana, linga,
-                        stemFormation = entry.stemFormation, pratipadikaUpadesha = entry.upadesha)
+            val requests = entries.distinct().flatMap { entry ->
+                entry.linga.flatMap { linga -> SupAffix.entries.map { affix -> entry to SubantaDerivationRequest(entry.text, affix.vibhakti,
+                    affix.vacana, linga, stemFormation = entry.stemFormation, pratipadikaUpadesha = entry.upadesha) } }
+            }
+            // Each request derives independently. In parallel every thread has its own engines; results are
+            // merged in request order, so the lexicon is identical to a serial build.
+            val engines = ThreadLocal.withInitial { SubantaEngine() to SandhiEngine() }
+            fun derive(request: SubantaDerivationRequest): Result<List<Pair<DerivationResult, SandhiEngine.Pada>>> = runCatching {
+                val (nominal, sandhi) = if (parallel) engines.get() else nominalEngine to sandhiEngine
+                nominal.deriveAll(request).map { it to sandhi.padaFromDerivation(it, "lexical-candidate") }
+            }
+            val derived = if (parallel) requests.parallelStream().map { derive(it.second) }.toList() else requests.map { derive(it.second) }
+            for ((position, pair) in requests.withIndex()) {
+                val (entry, request) = pair
+                run {
                     try {
-                        for (result in nominalEngine.deriveAll(request)) {
-                            val word = sandhiEngine.padaFromDerivation(result, "lexical-candidate")
+                        for ((result, word) in derived[position].getOrElse { error -> throw (error as? RuntimeException ?: throw error) }) {
                             if (word.term.varnas.lastOrNull() != Ayogavaha.VISARGA) {
                                 nominalIndex.getOrPut(normalized(word.term.surface)) { mutableListOf() } +=
                                     NominalCandidate(entry, request, result, word)

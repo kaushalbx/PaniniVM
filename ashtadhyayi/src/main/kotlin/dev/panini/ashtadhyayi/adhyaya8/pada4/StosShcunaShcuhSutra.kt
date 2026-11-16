@@ -55,7 +55,7 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
             if (isStu(curr.varna) && isShcu(next.varna)) {
                 return Match(curr.termIndex, curr.varnaIndex, next.varna)
             }
-            if (isShcu(curr.varna) && isStu(next.varna)) {
+            if (isShcu(curr.varna) && isStu(next.varna) && !ShatSutra.protects(curr.varna, next.varna)) {
                 return Match(next.termIndex, next.varnaIndex, curr.varna)
             }
         }

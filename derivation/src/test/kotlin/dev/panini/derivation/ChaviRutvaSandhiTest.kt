@@ -24,7 +24,7 @@ class ChaviRutvaSandhiTest {
             Triple("हनुमान्", "च", setOf("हनुमाँश्च", "हनुमांश्च")),
             Triple("विद्वान्", "तु", setOf("विद्वाँस्तु", "विद्वांस्तु")),
             Triple("भवान्", "छादयति", setOf("भवाँश्छादयति", "भवांश्छादयति")))) {
-            val results = engine.joinAll(left, right)
+            val results = engine.joinAll(left, right).withoutIndependentOptions()
             assertEquals(expected, results.map(engine::render).toSet(), results.joinToString("; ") { r ->
                 r.applications.joinToString(" -> ") { "${it.sutra}:${engine.render(it.after)}" }
             })

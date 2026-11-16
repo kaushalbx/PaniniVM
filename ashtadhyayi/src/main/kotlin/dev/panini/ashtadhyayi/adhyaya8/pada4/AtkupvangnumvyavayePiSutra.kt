@@ -19,6 +19,7 @@ import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,7 +46,51 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.SANDHI,
     dependencies = setOf("8.4.1")
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
+    override fun matches(context: DerivationState): Boolean =
+        eligible(context) && krtVibhasha(context) == null && !isRootNasalAfterUpasarga(context)
+
+    /**
+     * An upasarga is a pada of its own: its र्/ष् reaches a root's own न only by 8.4.14 (णोपदेश roots),
+     * never by 8.4.2 (प्रनन्दनम्, not *प्रणन्दनम्).
+     */
+    private fun isRootNasalAfterUpasarga(context: DerivationState): Boolean {
+        val target = findTarget(context) ?: return false
+        val trigger = phonologicalPositions(context)[target.triggerPosition].term
+        if (context.samjnas.none { it.targetId == trigger.id && it.samjna == dev.panini.shiksha.Samjna.UPASARGA }) return false
+        if (target.term.kind != TermKind.DHATU) return false
+        val root = target.term.sourceDhatuId?.let { dev.panini.dhatupatha.DhatuPatha.find(it) } ?: return false
+        return target.varnaIndex < root.derivationalSurface.toVarnas().size
+    }
+
+    /**
+     * A kṛt न after an upasarga's र्/ष् that 8.4.30 (after णि) or 8.4.31 (a consonant-initial root with
+     * an इच् penultimate) makes optional; those sūtras then offer the ṇatva.
+     */
+    internal fun krtVibhasha(context: DerivationState): String? {
+        val target = findTarget(context) ?: return null
+        val trigger = phonologicalPositions(context)[target.triggerPosition].term
+        if (context.samjnas.none { it.targetId == trigger.id && it.samjna == dev.panini.shiksha.Samjna.UPASARGA }) return null
+        val dhatu = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU } ?: return null
+        val root = dhatu.sourceDhatuId?.let { dev.panini.dhatupatha.DhatuPatha.find(it) } ?: return null
+        val rootVarnas = root.derivationalSurface.toVarnas()
+        val inAffix = target.term.kind == TermKind.PRATYAYA ||
+            (target.term.id == dhatu.id && target.varnaIndex >= rootVarnas.size)
+        if (!inAffix) return null
+        if (context.samjnas.any { it.targetId == dhatu.id && it.samjna == dev.panini.shiksha.Samjna.NIC } ||
+            context.allEffectiveTerms.any { it.upadesha == "णिच्" }) return "8.4.30"
+        val engine = Ashtadhyayi.pratyaharaEngine
+        if (rootVarnas.size >= 3 && rootVarnas.first() is Vyanjana && rootVarnas.last() is Vyanjana &&
+            engine.contains(Pratyahara.IC, rootVarnas[rootVarnas.lastIndex - 1])) return "8.4.31"
+        return null
+    }
+
+    internal fun retroflex(context: DerivationState, by: String): DerivationChange {
+        val target = requireNotNull(findTarget(context))
+        return DerivationChange(context.replaceTermVarna(target.term.id, target.varnaIndex, listOf(Vyanjana.NNA), by)
+            .copy(stage = DerivationStage.FINAL), "$by: optional ṇatva of a kṛt न after an upasarga.")
+    }
+
+    internal fun eligible(context: DerivationState): Boolean {
         val target = findTarget(context) ?: return false
         val positions = phonologicalPositions(context)
 
@@ -56,6 +101,14 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         // 8.4.39: kṣubhnādiṣu ca blocks ṇatva for kṣubhnādi gaṇa words (e.g. bhuvana, kṣubdha)
         val allVarnas = positions.map { it.varna }
         if (allVarnas.containsSubsequence(bhuvana) || allVarnas.containsSubsequence(kshubdha)) return false
+
+        // 8.4.34 न भाभूपूकमिगमिप्यायीवेपाम्: after an upasarga, the न of a kṛt affix of these roots stays
+        // (प्रभानम्, प्रभवनम्, प्रपवनम्, प्रकमनम्, प्रगमनम्, प्रप्यायनम्, प्रवेपनम्).
+        // None of these roots has a न of its own, so any न reached is the affix's, even after the affix merges into the root term.
+        if (context.terms.any { term ->
+                context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.UPASARGA } } &&
+            context.allEffectiveTerms.any { it.kind == TermKind.DHATU && (it.upadesha in naBhaBhuRoots ||
+                it.sourceDhatuId?.let { id -> dev.panini.dhatupatha.DhatuPatha.find(id)?.upadesha } in naBhaBhuRoots) }) return false
 
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == DhatuGana.RUDHADI }
@@ -156,3 +209,6 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val targetPosition: Int,
     )
 }
+
+/** The roots of 8.4.34 by Dhātupāṭha upadeśa: भा, भू, पू (पूङ्, पूञ्), कमि, गमि, प्यायी, वेपृ. */
+private val naBhaBhuRoots = setOf("भा", "भू", "पूङ्", "पूञ्", "कमुँ", "गमॢँ", "ओँप्यायीँ", "टुवेपृँ")

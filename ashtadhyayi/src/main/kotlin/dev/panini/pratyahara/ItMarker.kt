@@ -1,20 +1,23 @@
 package dev.panini.pratyahara
 
+import dev.panini.shiksha.Vyanjana
+
 enum class ItMarker(
-    val devanagari: String,
+    /** The consonant that closes a Māheśvara sūtra and is an it by 1.3.3 हलन्त्यम्. */
+    val varna: Vyanjana,
 ) {
-    N("ण्"),
-    K("क्"),
-    NG("ङ्"),
-    C("च्"),
-    TT("ट्"),
-    NN("ण्"),
-    M("म्"),
-    NY("ञ्"),
-    SH("ष्"),
-    SHA("श्"),
-    V("व्"),
-    Y("य्"),
-    R("र्"),
-    L("ल्"),
+    N(Vyanjana.NNA),
+    K(Vyanjana.KA),
+    NG(Vyanjana.NGA),
+    C(Vyanjana.CA),
+    TT(Vyanjana.TTA),
+    NN(Vyanjana.NNA),
+    M(Vyanjana.MA),
+    NY(Vyanjana.NYA),
+    SH(Vyanjana.SSA),
+    SHA(Vyanjana.SHA),
+    V(Vyanjana.VA),
+    Y(Vyanjana.YA),
+    R(Vyanjana.RA),
+    L(Vyanjana.LA),
 }

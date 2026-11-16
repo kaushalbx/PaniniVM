@@ -10,7 +10,7 @@ class RetroflexDhutSandhiTest {
     private val engine = SandhiEngine()
 
     @Test fun `retroflex dhut augments following word and retains dental stop`() {
-        val results = engine.joinAll("षट्", "सन्तः")
+        val results = engine.joinAll("षट्", "सन्तः").withoutIndependentOptions()
         assertEquals(setOf("षट्त्सन्तः", "षट्सन्तः"), results.map { engine.render(it) }.toSet())
         val applied = results.single { it.applications.any { step -> step.sutra == "8.3.29" } }
         assertEquals(Vyanjana.TTA, applied.final.terms.first().varnas.last())

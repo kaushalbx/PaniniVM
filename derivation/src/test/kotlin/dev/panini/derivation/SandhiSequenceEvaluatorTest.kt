@@ -14,7 +14,7 @@ import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 class SandhiSequenceEvaluatorTest {
     companion object {
         private val declaredLexicon by lazy {
-            DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+            DeclaredLexiconFixture.declared
         }
     }
 
@@ -278,9 +278,12 @@ class SandhiSequenceEvaluatorTest {
         assertTrue(candidates.any { it.request.vacana == dev.panini.core.Vacana.BAHUVACANA })
         assertTrue(candidates.all { it.pada.visargaSource == null && it.pada.sourceDerivation === it.derivation })
         val outcomes = SandhiSequenceEvaluator(lexicon = index).evaluate(listOf("इमे", "अत्र", "च"))
-        assertEquals(candidates.size, outcomes.size)
+        // Each proven analysis, plus the plain word: it ends in a vowel, so it infers nothing.
+        assertEquals(candidates.size + 1, outcomes.size)
         assertEquals(setOf("इमे अत्रच", "इमेऽत्रच"), outcomes.map { it.surface }.toSet())
-        for (outcome in outcomes) {
+        val plain = outcomes.single { it.inputs.first().sourceDerivation == null }
+        assertTrue(Samjna.PRAGRHYA !in plain.inputs.first().samjnas)
+        for (outcome in outcomes - plain) {
             val pada = outcome.inputs.first()
             assertNotNull(pada.sourceDerivation)
             assertNull(pada.visargaSource)

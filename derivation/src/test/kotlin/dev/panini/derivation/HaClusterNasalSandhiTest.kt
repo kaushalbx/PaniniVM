@@ -10,7 +10,7 @@ class HaClusterNasalSandhiTest {
     private val engine = SandhiEngine()
 
     @Test fun `hm allows retained m and anusvara with distinct traces`() {
-        val results = engine.joinAll("किम्", "ह्मलयति")
+        val results = engine.joinAll("किम्", "ह्मलयति").withoutIndependentOptions()
         assertEquals(setOf("किम्ह्मलयति", "किंह्मलयति"), results.map { engine.render(it) }.toSet())
         val retained = results.single { it.applications.any { step -> step.sutra == "8.3.26" } }
         assertFalse(retained.applications.any { it.sutra == "8.3.23" })
@@ -19,7 +19,7 @@ class HaClusterNasalSandhiTest {
     }
 
     @Test fun `hn allows n and anusvara but not retained m`() {
-        val results = engine.joinAll("किम्", "ह्नुते")
+        val results = engine.joinAll("किम्", "ह्नुते").withoutIndependentOptions()
         assertEquals(setOf("किन्ह्नुते", "किंह्नुते"), results.map { engine.render(it) }.toSet())
         val nasal = results.single { it.applications.any { step -> step.sutra == "8.3.27" } }
         assertFalse(nasal.applications.any { it.sutra == "8.3.23" })
@@ -28,7 +28,7 @@ class HaClusterNasalSandhiTest {
 
     @Test fun `intervening vowels and direct nasal followers do not satisfy h cluster`() {
         for (right in listOf("हनुते", "हमलयति", "मलयति", "नयति", "हसति")) {
-            assertTrue(engine.joinAll("किम्", right).all { result ->
+            assertTrue(engine.joinAll("किम्", right).withoutIndependentOptions().all { result ->
                 result.applications.none { it.sutra in setOf("8.3.26", "8.3.27") }
             })
         }

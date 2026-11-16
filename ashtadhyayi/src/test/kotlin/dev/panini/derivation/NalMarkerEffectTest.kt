@@ -48,7 +48,7 @@ class NalMarkerEffectTest {
             DerivationEngine(Ashtadhyayi.executableSutras).derive(it.state)
         }
         assertEquals(setOf("निनय", "निनाय"), results.map { it.final.surface }.toSet())
-        val enumerated = DerivationEngine(Ashtadhyayi.executableSutras).deriveAll(before)
+        val enumerated = DerivationEngine(Ashtadhyayi.executableSutras).deriveAll(before).withoutIndependentOptions()
         assertEquals(setOf("निनय", "निनाय"), enumerated.map { it.final.surface }.toSet())
         assertTrue(enumerated.all { it.applications.any { application -> application.sutra == "7.1.91" } })
         assertTrue(results.all { it.final.stage == DerivationStage.FINAL })
@@ -68,7 +68,7 @@ class NalMarkerEffectTest {
     @Test fun `kri first singular matches both independently attested kasika examples`() {
         val dhatu = dev.panini.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुकृञ्" }
         val initial = TingantaDerivationRequest("कृ", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LIT).initialState(dhatu)
-        val results = DerivationEngine(Ashtadhyayi.executableSutras).deriveAll(initial)
+        val results = DerivationEngine(Ashtadhyayi.executableSutras).deriveAll(initial).withoutIndependentOptions()
         assertEquals(setOf("चकर", "चकार"), results.map { it.final.surface }.toSet())
         assertTrue(results.all { it.applications.any { application -> application.sutra == "7.1.91" } })
     }

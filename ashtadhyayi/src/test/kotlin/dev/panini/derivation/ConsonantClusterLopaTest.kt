@@ -56,9 +56,9 @@ class ConsonantClusterLopaTest {
 
     @Test fun `both optional internal branches are retained without cycles`() {
         val engine = SandhiEngine()
-        assertEquals(setOf("आदित्यःअत्र", "आदित्य्यःअत्र"), engine.joinAll("आदित्य्यः", "अत्र").map(engine::render).toSet())
-        assertEquals(setOf("कृष्णर्धिःअत्र", "कृष्णर्द्धिःअत्र"), engine.joinAll("कृष्णर्द्धिः", "अत्र").map(engine::render).toSet())
-        for (result in engine.joinAll("कृष्णर्द्धिः", "अत्र")) {
+        assertEquals(setOf("आदित्यःअत्र", "आदित्य्यःअत्र"), engine.joinAll("आदित्य्यः", "अत्र").withoutIndependentOptions().map(engine::render).toSet())
+        assertEquals(setOf("कृष्णर्धिःअत्र", "कृष्णर्द्धिःअत्र"), engine.joinAll("कृष्णर्द्धिः", "अत्र").withoutIndependentOptions().map(engine::render).toSet())
+        for (result in engine.joinAll("कृष्णर्द्धिः", "अत्र").withoutIndependentOptions()) {
             assertEquals(DerivationStage.FINAL, result.final.stage)
             assertTrue(result.applications.count { it.sutra == "8.4.65" } <= 1)
         }
@@ -81,12 +81,12 @@ class ConsonantClusterLopaTest {
 
     @Test fun `separate clusters can independently retain the earlier and delete the later`() {
         val engine = SandhiEngine()
-        val results = engine.joinAll("सार्द्धम्", "अर्ज्जनम्")
+        val results = engine.joinAll("सार्द्धम्", "अर्ज्जनम्").withoutIndependentOptions()
         assertEquals(setOf("सार्धमर्जनम्", "सार्धमर्ज्जनम्", "सार्द्धमर्जनम्", "सार्द्धमर्ज्जनम्"),
             results.map(engine::render).toSet())
         assertTrue(results.all { it.final.stage == DerivationStage.FINAL })
         assertTrue(results.all { result -> result.applications.count { it.sutra == "8.4.65" } <= 2 })
         assertEquals(setOf("कार्यमार्यम्", "कार्यमार्य्यम्", "कार्य्यमार्यम्", "कार्य्यमार्य्यम्"),
-            engine.joinAll("कार्य्यम्", "आर्य्यम्").map(engine::render).toSet())
+            engine.joinAll("कार्य्यम्", "आर्य्यम्").withoutIndependentOptions().map(engine::render).toSet())
     }
 }

@@ -21,7 +21,8 @@ class PrefixBoundarySandhiTest {
         assertEquals("प्रेच्छ", engine.joinPrefix("प्र", "इच्छ"))
         assertEquals("उपैक्षत", engine.joinPrefix("उप", "ऐक्षत"))
         assertEquals("उपेजते", engine.joinPrefix("उप", "एजते"))
-        assertEquals("प्रार्च्छति", engine.joinPrefix("प्र", "ऋच्छति"))
+        // 6.1.91 gives आर्; the optional 8.4.65 then drops च् before छ by default (प्रार्च्छति is the other form).
+        assertEquals("प्रार्छति", engine.joinPrefix("प्र", "ऋच्छति"))
     }
 
     @Test

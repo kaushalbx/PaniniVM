@@ -21,6 +21,7 @@ import dev.panini.derivation.StriPratyayaRequest
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.derivation.TaddhitaEngine
+import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.analysis.SamasaPada
 import dev.panini.execution.binding.NumeralAstNormalizer
@@ -744,7 +745,7 @@ class PvmUktiSadhaka(
             else -> null
         }
         if (specialSurface != null) {
-            return joinUpasargas(tinganta.upasargas, specialSurface)
+            return joinUpasargas(tinganta.upasargas, specialSurface, derivationEntry)
         }
         return try {
             val req = TingantaDerivationRequest(
@@ -757,7 +758,7 @@ class PvmUktiSadhaka(
                 gana = derivationEntry?.gana,
             )
             val engineSurface = tingantaEngine.derive(req).final.surface
-            joinUpasargas(tinganta.upasargas, engineSurface)
+            joinUpasargas(tinganta.upasargas, engineSurface, derivationEntry)
         } catch (e: Exception) {
             tinganta.sourceText
         }
@@ -769,16 +770,12 @@ class PvmUktiSadhaka(
      * (Aṣṭādhyāyī 8.3.23 and 8.4.58). Thus सम् + योजय becomes संयोजय and
      * सम् + गणय becomes सङ्गणय rather than mechanical concatenations.
      */
-    private fun joinUpasargas(upasargas: List<String>, verbalSurface: String): String {
+    private fun joinUpasargas(upasargas: List<String>, verbalSurface: String, dhatu: Dhatu? = null): String {
         if (upasargas.isEmpty()) return verbalSurface
-
-        return upasargas.foldRight(verbalSurface) { prefix, following ->
-            joinUpasarga(prefix, following)
+        // Only the innermost upasarga stands directly before the dhātu's form (6.1.89 needs the root).
+        return upasargas.foldRightIndexed(verbalSurface) { index, prefix, following ->
+            sandhiEngine.joinPrefix(prefix, following, dhatu.takeIf { index == upasargas.lastIndex })
         }
-    }
-
-    private fun joinUpasarga(finalUpasarga: String, verbalSurface: String): String {
-        return sandhiEngine.joinPrefix(finalUpasarga, verbalSurface)
     }
 
     /** Source spelling may retain the final virāma that a lexicon stem omits. */

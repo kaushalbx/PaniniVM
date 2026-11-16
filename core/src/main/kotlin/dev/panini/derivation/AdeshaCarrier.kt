@@ -4,6 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 
 /** Explicit producer-selected targeting; ṅit alone is not a universal final-only rule. */
 enum class AdeshaPlacement { NGIT_FINAL, SHIT_WHOLE }
@@ -44,7 +45,8 @@ fun DerivationState.introduceRawAdesha(targetId: String, rawVarnas: List<Varna>,
             "Whole-term śit targeting requires a raw ś-marker, not inferred marker metadata."
         }
     }
-    val rawSurface = rawVarnas.toDevanagari()
+    // Keep the upadeśa spelling (its anunāsika marks, 1.3.2) when it spells exactly these varṇas.
+    val rawSurface = upadesha.takeIf { it.toVarnas() == rawVarnas } ?: rawVarnas.toDevanagari()
     val carrier = DerivationTerm(carrierId, rawSurface, TermKind.ADESHA, upadesha = upadesha,
         createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
         adeshaTarget = AdeshaTarget(targetId, target.varnas.toList(), placement))

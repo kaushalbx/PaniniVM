@@ -57,6 +57,7 @@ object GhiSutra : Sutra<DerivationState, DerivationChange>(
     private fun isEligibleGhiTerm(context: DerivationState, term: DerivationTerm): Boolean =
         term.kind == TermKind.PRATIPADIKA &&
             term.varnas != listOf(Vyanjana.SA, Svara.A, Vyanjana.KHA, Svara.I) &&
+            !PatihSamasaEvaSutra.excludes(term) &&
             term.varnas.lastOrNull() in setOf(Svara.I, Svara.U) &&
             context.samjnas.none { it.targetId == term.id && it.samjna in setOf(Samjna.NADI, Samjna.GHI) }
 }

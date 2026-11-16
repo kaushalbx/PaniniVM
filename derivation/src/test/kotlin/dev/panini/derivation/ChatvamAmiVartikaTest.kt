@@ -31,7 +31,7 @@ class ChatvamAmiVartikaTest {
     @Test fun `attested l and m cases retain both optional outputs and owned traces`() {
         val engine = SandhiEngine()
         for (right in listOf("श्लोकेन", "श्मश्रुणा")) {
-            val results = engine.joinAll("तत्", right)
+            val results = engine.joinAll("तत्", right).withoutIndependentOptions()
             val transformed = if (right == "श्लोकेन") "तच्छ्लोकेन" else "तच्छ्मश्रुणा"
             val retained = if (right == "श्लोकेन") "तच्श्लोकेन" else "तच्श्मश्रुणा"
             assertEquals(setOf(transformed, retained), results.map(engine::render).toSet())

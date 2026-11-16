@@ -11,7 +11,7 @@ class PauseSandhiTest {
         for ((word, outcomes) in listOf("वाक्" to setOf("अत्रवाक्", "अत्रवाग्"),
             "त्वक्" to setOf("अत्रत्वक्", "अत्रत्वग्"), "श्वलिड्" to setOf("अत्रश्वलिट्", "अत्रश्वलिड्"),
             "त्रिष्टुभ्" to setOf("अत्रत्रिष्टुप्", "अत्रत्रिष्टुब्"))) {
-            val results = engine.joinAll("अत्र", word, SpeechBoundary.AVASANA)
+            val results = engine.joinAll("अत्र", word, SpeechBoundary.AVASANA).withoutIndependentOptions()
             assertEquals(outcomes, results.map(engine::render).toSet())
             assertTrue(results.any { r -> r.applications.any { it.sutra == "8.4.56" } })
             assertTrue(results.any { r -> r.applications.none { it.sutra == "8.4.56" } })
@@ -19,7 +19,7 @@ class PauseSandhiTest {
     }
 
     @Test fun `continuation default does not infer a pause from end of input`() {
-        val results = engine.joinAll("अत्र", "तत्")
+        val results = engine.joinAll("अत्र", "तत्").withoutIndependentOptions()
         assertEquals(setOf("अत्रतद्"), results.map(engine::render).toSet())
         assertTrue(results.all { it.final.context.finalBoundary == SpeechBoundary.CONTINUATION })
         assertTrue(results.all { r -> r.applications.none { it.sutra == "8.4.56" } })

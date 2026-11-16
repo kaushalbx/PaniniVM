@@ -348,10 +348,10 @@ class DerivationEngine(
                 branchedSutras[decision.key.sutra] = maxOf(branchedSutras[decision.key.sutra] ?: 0, decision.count)
                 // Changing an earlier choice invalidates later context-dependent
                 // decisions. Replay only the established prefix, never stale indices.
-                val prefix = decisions.take(index).filter { it.selected != 0 }.associate { it.key to it.selected }
+                val prefix = decisions.take(index).filter { it.selected != it.defaultChoice }.associate { it.key to it.selected }
                 for (choice in 0 until decision.count) {
                     if (choice == decision.selected) continue
-                    pending += if (choice == 0) prefix else prefix + (decision.key to choice)
+                    pending += if (choice == decision.defaultChoice) prefix else prefix + (decision.key to choice)
                 }
             }
         }
@@ -363,7 +363,9 @@ class DerivationEngine(
     }
 
     private data class RuleAlternativeKey(val sutra: String, val occurrence: Int)
-    private data class RuleAlternativeDecision(val key: RuleAlternativeKey, val count: Int, val selected: Int)
+    private data class RuleAlternativeDecision(val key: RuleAlternativeKey, val count: Int, val selected: Int,
+        /** The choice an empty plan makes: 0, or the decline for a rule that does not apply by default. */
+        val defaultChoice: Int = 0)
 
     private fun deriveInternal(
         initial: DerivationState,
@@ -418,13 +420,14 @@ class DerivationEngine(
                 occurrences[candidate.sutra.sutra] = occurrence + 1
                 val key = RuleAlternativeKey(candidate.sutra.sutra, occurrence)
                 val policyChoice = if (!candidate.sutra.optional) 0 else when (config.optionalRulePolicy) {
-                    OptionalRulePolicy.APPLY_ALL -> 0
+                    OptionalRulePolicy.APPLY_ALL -> if (candidate.sutra.appliesByDefault) 0 else alternatives.lastIndex
                     OptionalRulePolicy.SKIP_ALL -> alternatives.lastIndex
-                    OptionalRulePolicy.CUSTOM -> if (config.optionalRuleSelector(candidate.sutra.sutra)) 0 else alternatives.lastIndex
+                    OptionalRulePolicy.CUSTOM -> if (candidate.sutra.appliesByDefault && config.optionalRuleSelector(candidate.sutra.sutra)) 0 else alternatives.lastIndex
                 }
                 val selected = alternativePlan[key] ?: config.alternativeChoices[key.sutra] ?: policyChoice
                 require(selected in alternatives.indices) { "Invalid alternative $selected for ${key.sutra}." }
-                encounteredChoices?.add(RuleAlternativeDecision(key, alternatives.size, selected))
+                encounteredChoices?.add(RuleAlternativeDecision(key, alternatives.size, selected,
+                    if (candidate.sutra.appliesByDefault) 0 else alternatives.lastIndex))
                 alternatives[selected]
             } else preselectedChange ?: candidate.change
             preselectedChange = null

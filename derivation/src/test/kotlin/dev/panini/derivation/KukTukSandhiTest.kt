@@ -12,7 +12,7 @@ class KukTukSandhiTest {
         for ((right, augmented, plain) in listOf(
             Triple("साये", "प्राङ्क्साये", "प्राङ्साये"),
             Triple("षष्ठः", "प्राङ्क्षष्ठः", "प्राङ्षष्ठः"))) {
-            val results = engine.joinAll("प्राङ्", right)
+            val results = engine.joinAll("प्राङ्", right).withoutIndependentOptions()
             assertEquals(setOf(augmented, plain), results.map { engine.render(it) }.toSet())
             val applied = results.single { it.applications.any { step -> step.sutra == "8.3.28" } }
             assertEquals(Vyanjana.KA, applied.final.terms.first().varnas.last())
@@ -23,7 +23,7 @@ class KukTukSandhiTest {
     }
 
     @Test fun `tuk remains preceding final and does not retroflex following s`() {
-        val results = engine.joinAll("वण्", "साये")
+        val results = engine.joinAll("वण्", "साये").withoutIndependentOptions()
         assertEquals(setOf("वण्ट्साये", "वण्साये"), results.map { engine.render(it) }.toSet())
         val applied = results.single { it.applications.any { step -> step.sutra == "8.3.28" } }
         assertEquals(Vyanjana.TTA, applied.final.terms.first().varnas.last())
@@ -32,7 +32,7 @@ class KukTukSandhiTest {
     }
 
     @Test fun `final kuk licenses optional following cha while unaugmented nasal does not`() {
-        val results = engine.joinAll("प्राङ्", "शेते")
+        val results = engine.joinAll("प्राङ्", "शेते").withoutIndependentOptions()
         assertEquals(setOf("प्राङ्क्शेते", "प्राङ्क्छेते", "प्राङ्शेते"), results.map { engine.render(it) }.toSet())
         for (result in results.filter { it.applications.any { step -> step.sutra == "8.4.63" } }) {
             assertTrue(result.applications.any { it.sutra == "8.3.28" })
@@ -49,7 +49,7 @@ class KukTukSandhiTest {
 
     @Test fun `other nasals and non sibilant followers are excluded`() {
         for ((left, right) in listOf("सन्" to "साये", "कम्" to "षष्ठः", "प्राङ्" to "गच्छति")) {
-            assertTrue(engine.joinAll(left, right).all { result -> result.applications.none { it.sutra == "8.3.28" } })
+            assertTrue(engine.joinAll(left, right).withoutIndependentOptions().all { result -> result.applications.none { it.sutra == "8.3.28" } })
         }
     }
 

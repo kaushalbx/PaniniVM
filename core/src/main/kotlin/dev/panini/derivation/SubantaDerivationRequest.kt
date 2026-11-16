@@ -27,10 +27,13 @@ data class SubantaDerivationRequest(
     val sourceSuffixUpadeshas: Set<String> = emptySet(),
     /** Explicit lexical identity of a supplied formed stem; never guessed from its spelling. */
     val pratipadikaUpadesha: String = pratipadika,
+    /** प्रथमा in address (2.3.47 सम्बोधने च); its singular is सम्बुद्धि (2.3.49). */
+    val sambodhana: Boolean = false,
 ) {
     init {
         require(pratipadika.isNotBlank()) { "A prātipadika is required." }
         require(pratipadikaUpadesha.isNotBlank()) { "A lexical prātipadika identity is required." }
+        require(!sambodhana || vibhakti == Vibhakti.PRATHAMA) { "Address takes प्रथमा (2.3.47)." }
     }
 
     fun initialState(): DerivationState = DerivationState(
@@ -47,7 +50,7 @@ data class SubantaDerivationRequest(
             ),
         ),
         context = DerivationalContext(
-            rupa = Rupa(linga = linga, vibhakti = vibhakti, vacana = vacana),
+            rupa = Rupa(linga = linga, vibhakti = vibhakti, vacana = vacana, isVocative = sambodhana),
             samasaType = samasaType,
         ),
     )

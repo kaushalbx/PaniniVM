@@ -30,7 +30,8 @@ class TripadiAnnotationPreservationTest {
             Triple(VisarjaniyasyaSahSutra, state("अँःऽ", "त"), listOf(Svara.A, Vyanjana.SA)),
             Triple(BhoBhagoAghoApurvasyaYoshiSutra, state("अँर्ऽ", "इ", rutva = true).addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66"), listOf(Svara.A, Vyanjana.YA)),
             Triple(StosShcunaShcuhSutra, state("अँत्श्ऽ"), listOf(Svara.A, Vyanjana.CA, Vyanjana.SHA)),
-            Triple(StunaShtuhSutra, state("अँत्ष्ऽ"), listOf(Svara.A, Vyanjana.TTA, Vyanjana.SSA)),
+            // 8.4.43 तोः षि forbids tu before ष, so the fixture uses ष् before त.
+            Triple(StunaShtuhSutra, state("अँष्त्ऽ"), listOf(Svara.A, Vyanjana.SSA, Vyanjana.TTA)),
             Triple(DhoDheLopaSutra, state("अँढ्ऽ", "ढ"), listOf(Svara.A)),
             Triple(MonusvarahSutra, state("अँम्ऽ", "क"), listOf(Svara.A, Ayogavaha.ANUSVARA)),
             Triple(NashcapadantasyaSutra, state("अँन्त्ऽ"), listOf(Svara.A, Ayogavaha.ANUSVARA, Vyanjana.TA)),

@@ -59,8 +59,9 @@ class SandhiEngine(
     }
 
     fun join(left: Pada, right: Pada, config: DerivationConfig = DerivationConfig(),
-        finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION): DerivationResult =
-        engine.derive(padaBoundaryState(left, right, finalBoundary), config)
+        finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION,
+        environments: Set<DerivationalEnvironment> = emptySet()): DerivationResult =
+        engine.derive(padaBoundaryState(left, right, finalBoundary, environments), config)
 
     fun joinAll(left: Pada, right: Pada, finalBoundary: SpeechBoundary = SpeechBoundary.CONTINUATION): List<DerivationResult> =
         engine.deriveAll(padaBoundaryState(left, right, finalBoundary))
@@ -79,11 +80,14 @@ class SandhiEngine(
 
     /** The same orthographic rendering applies to a completed step and the final result. */
     fun render(state: DerivationState): String =
-        if (state.boundaryRuleBlocks.values.any { it in setOf("6.1.125", "8.3.19", "8.3.20") })
+        if (state.boundaryRuleBlocks.values.any { it in setOf("6.1.125", "6.1.127", "6.1.128", "8.3.19", "8.3.20") })
             state.terms.filter { it.surface.isNotEmpty() }.joinToString(" ") { it.surface }
         else state.surface
 
-    private fun padaBoundaryState(left: Pada, right: Pada, finalBoundary: SpeechBoundary): DerivationState {
+    private fun padaBoundaryState(
+        left: Pada, right: Pada, finalBoundary: SpeechBoundary,
+        environments: Set<DerivationalEnvironment> = emptySet(),
+    ): DerivationState {
         require(left.term.id != right.term.id) { "External padas must have distinct term identities." }
         require(left.term.surface.isNotBlank() && right.term.surface.isNotBlank())
         val padas = listOf(left, right)
@@ -94,7 +98,7 @@ class SandhiEngine(
                 (pada.samjnas + Samjna.PADA).map { SamjnaAssignment(pada.term.id, it) }
             }.toSet(),
             stage = DerivationStage.PADA_FORMED,
-            context = DerivationalContext(finalBoundary = finalBoundary),
+            context = DerivationalContext(finalBoundary = finalBoundary, environments = environments),
         )
         // The left environment is known. Decode the right word only at an
         // explicit pause; continuation supplies no following sound for it.
@@ -107,11 +111,13 @@ class SandhiEngine(
             source?.let { prepared.withCompletedPadaVisargaSource(pada.term.id, it) } ?: prepared
         }
     }
-    /** Apply savarṇa vowel and consonant prefix-boundary sandhi.
-     * Completed verbal forms must not undergo a new full derivation. This
-     * boundary helper does not yet implement the full vowel-sandhi inventory.
+    /**
+     * Joins an upasarga to the completed verbal form it is joined to (क्रियायोग); the form is
+     * not derived again. Dissimilar vowels go through the sūtras with the prefix as उपसर्ग, so
+     * 6.1.94 and 6.1.91 apply. 6.1.89 needs the root: pass [dhatu] (the dhātu the form was
+     * derived from), otherwise उप + एति stays उपेति. "आ" is taken as the upasarga आङ्.
      */
-    fun joinPrefix(left: String, right: String): String {
+    fun joinPrefix(left: String, right: String, dhatu: dev.panini.dhatupatha.Dhatu? = null): String {
         // निस् and दुस् take र् before a voiced sound (8.2.66, 8.3.15 does not apply): निर्हर, दुर्गम.
         // निस्, दुस्: the upasarga's final स् goes through the sūtras as any pada-final स् does
         // (8.2.66 रु; then र्, visarga, स्, or ष् by 8.3.41), so निर्गच्छ, निष्क्राम, नीरस, दुराचार.
@@ -121,18 +127,21 @@ class SandhiEngine(
         var state = padaBoundaryState(left, right)
         val initialRight = state.terms.last().varnas.firstOrNull()
         val finalLeft = state.terms.first().varnas.lastOrNull()
-        if (finalLeft is dev.panini.shiksha.Svara && initialRight is dev.panini.shiksha.Svara && !SavarnaDirghaSutra.matches(state)) {
-            val stem = left.dropLast(if (finalLeft == dev.panini.shiksha.Svara.A) 0 else 1)
-            val aFinal = finalLeft == dev.panini.shiksha.Svara.A || finalLeft == dev.panini.shiksha.Svara.AA
-            return when {
-                // 6.1.94 एङि पररूपम्: उप + एजते = उपेजते.
-                aFinal && initialRight in setOf(dev.panini.shiksha.Svara.E, dev.panini.shiksha.Svara.O) ->
-                    stem + (if (initialRight == dev.panini.shiksha.Svara.E) "े" else "ो") + right.drop(1)
-                // 6.1.91 उपसर्गादृति धातौ: प्र + ऋच्छति = प्रार्छति.
-                aFinal && initialRight == dev.panini.shiksha.Svara.R -> stem + "ार्" + right.drop(1)
-                // इको यणचि, आद्गुणः, वृद्धिरेचि hold across the prefix as across any words.
-                else -> join(left, right).final.surface
-            }
+        // With the root known, the whole join goes through the sūtras, so upasarga ṇatva (8.4.14) applies.
+        // Only a vowel-final upasarga: सम्'s म् keeps the anusvāra handling below (संयोजय).
+        // अन्तर् before हन् (8.4.24) also needs the sūtras.
+        val antarHan = left == "अन्तर्" && dhatu?.upadesha == "हनँ"
+        if (antarHan || (dhatu != null && finalLeft is dev.panini.shiksha.Svara && Upasarga.fromUpadesha(if (left == "आ") "आङ्" else left) != null) ||
+            (finalLeft is dev.panini.shiksha.Svara && initialRight is dev.panini.shiksha.Svara && !SavarnaDirghaSutra.matches(state))) {
+            // The sūtras decide: 6.1.94 (उप + एजते → उपेजते), 6.1.91 (प्र + ऋच्छति → प्रार्च्छति),
+            // 6.1.89 when the root is known (उप + एति → उपैति), else yaṇ, guṇa, vṛddhi as across any words.
+            val upadesha = if (left == "आ") "आङ्" else left
+            val prefix = Pada(DerivationTerm("sandhi_left", left, TermKind.PRATIPADIKA, upadesha = upadesha),
+                samjnas = if (Upasarga.fromUpadesha(upadesha) != null) setOf(Samjna.UPASARGA) else emptySet())
+            val verb = Pada(DerivationTerm("sandhi_right", right.trim(), TermKind.PRATIPADIKA,
+                upadesha = right.trim(), sourceDhatuId = dhatu?.id))
+            return engine.derive(padaBoundaryState(prefix, verb, SpeechBoundary.CONTINUATION,
+                setOf(DerivationalEnvironment.KRIYAYOGA)), DerivationConfig()).final.surface
         }
         if (SavarnaDirghaSutra.matches(state)) {
             state = SavarnaDirghaSutra.apply(state).state
@@ -150,6 +159,16 @@ class SandhiEngine(
         }
         return state.terms.joinToString("") { it.surface }
     }
+
+    /**
+     * Joins two compound members. Unless [leftIsUttarapada], the left word is a pūrvapada not in an
+     * uttarapada, which 8.3.45–8.3.47 need (सर्पिष्कुण्डिका, अयस्कुम्भः, अधस्पदम्).
+     */
+    fun joinSamasaMembers(left: String, right: String, leftIsUttarapada: Boolean = false,
+        environments: Set<DerivationalEnvironment> = emptySet()): DerivationResult =
+        engine.derive(padaBoundaryState(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right),
+            SpeechBoundary.CONTINUATION,
+            environments + (if (leftIsUttarapada) emptySet() else setOf(DerivationalEnvironment.SAMASA_PURVAPADA))), DerivationConfig())
 
     fun join(
         left: String,

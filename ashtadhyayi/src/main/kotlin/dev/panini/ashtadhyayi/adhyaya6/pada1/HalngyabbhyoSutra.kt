@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
+import dev.panini.derivation.TermKind
 import dev.panini.core.Lakara
 import dev.panini.core.SamasaType
 import dev.panini.core.SupAffix
@@ -58,7 +59,8 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
 
         val final = stem.varnas.lastOrNull() ?: return false
         val endsInHal = final is Vyanjana
-        val endsInDirghaFeminine = final in setOf(Svara.II, Svara.AA)
+        // ङी and आप् are feminine affixes: a root-final ई or आ (अयात्, अदात्) is neither.
+        val endsInDirghaFeminine = final in setOf(Svara.II, Svara.AA) && stem.kind != TermKind.DHATU
 
         return endsInHal || endsInDirghaFeminine
     }

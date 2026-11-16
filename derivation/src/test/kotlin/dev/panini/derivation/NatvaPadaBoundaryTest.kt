@@ -107,7 +107,8 @@ class NatvaPadaBoundaryTest {
         val engine = SandhiEngine()
         val left = SandhiEngine.Pada(DerivationTerm("left", "अ", TermKind.PRATIPADIKA))
         val right = SandhiEngine.Pada(DerivationTerm("right", "ओम्", TermKind.PRATIPADIKA,
-            itMarkers = setOf(ItMarker.KIT)))
+            itMarkers = setOf(ItMarker.KIT), upadesha = "ओम्क"))
+        // Not the indeclinable ओम् (6.1.95 पररूप): its upadeśa is another word, so 6.1.88 vṛddhi applies.
         val result = engine.join(left, right)
         assertEquals("औम्", engine.render(result))
         assertEquals(Vyanjana.MA, result.final.terms.single().varnas.last())

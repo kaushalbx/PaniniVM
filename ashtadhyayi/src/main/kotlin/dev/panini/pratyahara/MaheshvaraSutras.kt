@@ -74,8 +74,8 @@ object MaheshvaraSutras {
             .add(Vyanjana.SA)
             .marker(ItMarker.R),
         MaheshvaraSutra()
+            // हल्: ह is the sound and ल् the it-letter (1.3.3); ल itself is sounded only in लण्.
             .add(Vyanjana.HA)
-            .add(Vyanjana.LA)
             .marker(ItMarker.L),
     )
 }

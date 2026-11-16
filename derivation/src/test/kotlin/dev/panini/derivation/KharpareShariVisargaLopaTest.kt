@@ -15,7 +15,7 @@ class KharpareShariVisargaLopaTest {
 
     @Test fun `kashika example has deletion retention and s substitution alternatives`() {
         val engine = SandhiEngine()
-        val results = engine.joinAll("वृक्षाः", "स्थातारः")
+        val results = engine.joinAll("वृक्षाः", "स्थातारः").withoutIndependentOptions()
         assertEquals(setOf("वृक्षास्थातारः", "वृक्षाःस्थातारः", "वृक्षास्स्थातारः"), results.map(engine::render).toSet())
         val deleted = results.single { rule.sutra in it.applications.map { step -> step.sutra } }
         assertEquals(rule.source, deleted.applications.single { it.sutra == rule.sutra }.source)
@@ -51,8 +51,7 @@ class KharpareShariVisargaLopaTest {
         assertTrue(rule in Ashtadhyayi.vartikas)
         assertTrue(Ashtadhyayi.cataloguedSutras.none { it.number == rule.sutra })
         assertEquals("8.3.36", assertIs<SutraSource.Vartika>(rule.source).parentSutra)
-        val outcomes = SandhiSequenceEvaluator(lexicon = DerivedVisargaLexicon.build(
-            PaninianPratipadikaLexicon.declaredPratipadikas()))
+        val outcomes = SandhiSequenceEvaluator(lexicon = DeclaredLexiconFixture.declared)
             .evaluate(listOf("सः", "शक्रः", "शक्रः", "इति"), alternatives = true)
         assertTrue(outcomes.none { it.surface.filterNot(Char::isWhitespace) == "सशक्रशक्रइति" })
         assertTrue(outcomes.all { it.steps.flatMap { step -> step.applications }.none { application -> application.sutra == rule.sutra } })

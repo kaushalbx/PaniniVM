@@ -55,10 +55,13 @@ subprojects {
         }
     }
     tasks.withType<Test> {
+        maxHeapSize = "1g"
         systemProperties(
             "junit.jupiter.execution.parallel.enabled" to "true",
             "junit.jupiter.execution.parallel.mode.default" to "concurrent",
-            "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent"
+            "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent",
+            "junit.jupiter.execution.parallel.config.strategy" to "fixed",
+            "junit.jupiter.execution.parallel.config.fixed.parallelism" to "2"
         )
     }
 }

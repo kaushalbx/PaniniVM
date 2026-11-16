@@ -15,7 +15,7 @@ class AdasPragrhyaSandhiTest {
         for ((word, vacana, next) in listOf(Triple("अमी", Vacana.BAHUVACANA, "अत्र"),
             Triple("अमी", Vacana.BAHUVACANA, "ईशाः"), Triple("अमू", Vacana.DVIVACANA, "अत्र"),
             Triple("अमू", Vacana.DVIVACANA, "आसाते"))) {
-            val results = engine.joinAll(adas(word, vacana), following(next))
+            val results = engine.joinAll(adas(word, vacana), following(next)).withoutIndependentOptions()
             assertEquals(setOf("$word $next"), results.map(engine::render).toSet())
             assertTrue(results.all { r -> r.applications.any { it.sutra == "1.1.12" } })
             assertTrue(results.all { r -> r.applications.any { it.sutra == "6.1.125" } })

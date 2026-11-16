@@ -15,7 +15,7 @@ class UnspecifiedPadaSandhiTest {
             Triple("विष्णो", "इह", setOf("विष्णविह", "विष्ण इह")),
             Triple("माले", "इति", setOf("मालयिति", "माल इति")),
         )) {
-            val results = engine.joinAll(left, right)
+            val results = engine.joinAll(left, right).withoutIndependentOptions()
             assertEquals(outputs, results.map(engine::render).toSet())
             assertTrue(results.all { it.initial.terms.all { term -> term.formedPadaRupa == Rupa() } })
             assertTrue(results.all { it.applications.any { a -> a.sutra == "6.1.78" } })

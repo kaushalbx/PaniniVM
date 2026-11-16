@@ -21,6 +21,10 @@ enum class DerivationalMeaning {
 enum class DerivationalEnvironment {
     ARDHADHATUKA, PRAGDIVYATIYA, UDICYA, ASATTVA, KRIYAYOGA, SVANGA,
     KALAVRTTI, CHATURARTHIKA, UNADI_LICENSED, DHATU_LOPA,
+    /** The left word of a pada boundary is a non-final compound member, not itself an uttarapada. */
+    SAMASA_PURVAPADA,
+    /** Vedic usage (छन्दसि): licenses rules restricted to the Veda. */
+    CHANDAS,
 }
 
 enum class PhonologicalRequest { GUNA, VRDDHI }

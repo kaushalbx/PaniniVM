@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 /** Source: https://sanskritdocuments.org/doc_z_misc_major_works/lingAnushAsanam.html (143, 181). */
 class LinganushasanaCommonGenderProvenanceTest {
     @Test fun `common gender stems retain linga rule and forward nominal traces`() {
-        val index = DerivedVisargaLexicon.build(PaninianPratipadikaLexicon.declaredPratipadikas())
+        val index = DeclaredLexiconFixture.declared
         assertTrue(index.failures.isEmpty(), index.failures.joinToString())
         for ((stem, rule, masculine, neuter) in listOf(
             listOf("मूल", "143", "मूलः", "मूलम्"),

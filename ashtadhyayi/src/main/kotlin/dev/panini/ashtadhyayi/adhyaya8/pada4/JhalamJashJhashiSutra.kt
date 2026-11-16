@@ -30,31 +30,26 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        // Matches adjacent consonants within a word or at word boundaries.
-        // For simplicity, we check across term boundaries.
-        if (context.terms.size < 2) return false
-
-        val left = context.terms[context.terms.size - 2].varnas.lastOrNull() ?: return false
-        val right = context.terms.last().varnas.firstOrNull() ?: return false
-
+    // Every jhal directly before a jhaś, within a term or across a boundary (दध्ध्यत्र → दद्ध्यत्र).
+    private fun target(context: DerivationState): dev.panini.derivation.LocatedVarna? {
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, left) &&
-            engine.contains(Pratyahara.JHASH, right) &&
-            substituteFor(left) != left
+        val sounds = context.terms.flatMap { term -> term.varnas.mapIndexed { index, varna -> dev.panini.derivation.LocatedVarna(term.id, index, varna) } }
+        return sounds.zipWithNext().firstOrNull { (left, right) ->
+            engine.contains(Pratyahara.JHAL, left.varna) && engine.contains(Pratyahara.JHASH, right.varna) &&
+                substituteFor(left.varna) != left.varna
+        }?.first
     }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val terms = context.terms
-        val leftTerm = terms[terms.size - 2]
-        val rightTerm = terms.last()
-        val source = leftTerm.varnas.last()
-        val substitute = substituteFor(source)
+    override fun matches(context: DerivationState): Boolean = target(context) != null
 
+    override fun apply(context: DerivationState): DerivationChange {
+        val at = requireNotNull(target(context))
+        val substitute = substituteFor(at.varna)
         return DerivationChange(
-            state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, listOf(substitute), sutra),
-            explanation = "8.4.53: Substituted voiced ${substitute.devanagari} before ${rightTerm.varnas.first().devanagari}."
+            state = context.replaceTermVarna(at.termId, at.index, listOf(substitute), sutra),
+            explanation = "8.4.53: Substituted voiced ${substitute.devanagari} for ${at.varna.devanagari} before a jhaś."
         )
     }
 

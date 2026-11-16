@@ -55,7 +55,7 @@ object Ashtadhyayi {
 
     /** Attested extensions have their own source and never inflate canonical pāṭha counts. */
     val vartikas: List<Sutra<*, *>> = listOf(dev.panini.ashtadhyayi.vartika.ChatvamAmiVartika,
-        dev.panini.ashtadhyayi.vartika.KharpareShariVisargaLopaVartika)
+        dev.panini.ashtadhyayi.vartika.KharpareShariVisargaLopaVartika, dev.panini.ashtadhyayi.vartika.IkShtipauDhatuNirdesheVartika)
     val yogavibhagas: List<Sutra<*, *>> = listOf(dev.panini.ashtadhyayi.yogavibhaga.EkaDasaAtvaYogavibhaga)
     val registry = SutraRegistry(cataloguedSutras + vartikas + yogavibhagas)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()

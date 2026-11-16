@@ -20,9 +20,10 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    // Gradle already runs other modules' tests alongside; a few forks with a fixed JUnit pool keep cores busy without thrashing.
+    maxParallelForks = 3
     forkEvery = 0
-    maxHeapSize = "512m"
+    maxHeapSize = "1g"
     systemProperties(
         "junit.jupiter.execution.parallel.enabled" to "true",
         "junit.jupiter.execution.parallel.mode.default" to "concurrent",

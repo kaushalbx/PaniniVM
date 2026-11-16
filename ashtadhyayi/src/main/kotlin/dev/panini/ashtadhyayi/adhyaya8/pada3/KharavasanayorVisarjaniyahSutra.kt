@@ -51,7 +51,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
 
     private fun targetTerm(context: DerivationState): DerivationTerm? = context.terms.firstOrNull { term ->
         val isRutva = term.varnas.lastOrNull() == Vyanjana.RA && context.substitutions.any { substitution ->
-            substitution.targetId == term.id && substitution.sutra in setOf("8.2.66", "8.3.7") &&
+            substitution.targetId == term.id && substitution.sutra in setOf("8.2.66", "8.3.6", "8.3.7", "8.3.10", "8.3.12") &&
                 (substitution.sourceVarnaIndex == null || substitution.sourceVarnaIndex == term.varnas.lastIndex)
         }
         val isSuffixalSha = term.varnas.lastOrNull() == Vyanjana.SSA && term.kind == TermKind.PRATYAYA &&
@@ -65,6 +65,9 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         val next = context.firstVarnaAfterTerm(term.id)
         val environment = if (next == null) context.effectiveContext.finalBoundary == SpeechBoundary.AVASANA
             else Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
-        (isRutva || isCompletedPadaRepha || isSuffixalSha) && environment
+        // 8.3.16 रोः सुपि restricts the lexical repha before सुप् (चतुर्षु), recorded as a boundary block.
+        val nextTerm = context.terms.dropWhile { it.id != term.id }.drop(1).firstOrNull { it.varnas.isNotEmpty() }
+        val restricted = nextTerm != null && context.isBlockedAtBoundary(number, term.id, nextTerm.id)
+        (isRutva || isCompletedPadaRepha || isSuffixalSha) && environment && !restricted
     }
 }

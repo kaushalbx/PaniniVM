@@ -35,9 +35,17 @@ object SvaujasamauTchastaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix =
             requireNotNull(selectionFor(context)) { "4.1.2 applied without a supported sup slot." }
+        val term = affix.term()
+        val rupa = context.effectiveContext.rupa
+        // 2.3.49 एकवचनं सम्बुद्धिः: the singular of address is सम्बुद्धि.
+        val sambuddhi = rupa.isVocative && rupa.vacana == dev.panini.core.Vacana.EKAVACANA
+        val added = context.addTerm(term).let { state ->
+            if (sambuddhi) state.withSamjnas(setOf(dev.panini.derivation.SamjnaAssignment(term.id, dev.panini.shiksha.Samjna.SAMBUDDHI))) else state
+        }
         return DerivationChange(
-            state = context.addTerm(affix.term()).copy(stage = DerivationStage.PRATYAYA_SELECTED),
-            explanation = "4.1.2 selects ${affix.upadesha} for the requested case and number.",
+            state = added.copy(stage = DerivationStage.PRATYAYA_SELECTED),
+            explanation = "4.1.2 selects ${affix.upadesha} for the requested case and number" +
+                (if (sambuddhi) "; 2.3.49 designates it सम्बुद्धि." else "."),
         )
     }
 

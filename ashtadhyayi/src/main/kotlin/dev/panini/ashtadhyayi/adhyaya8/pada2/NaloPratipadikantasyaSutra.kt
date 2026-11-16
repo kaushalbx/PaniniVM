@@ -35,6 +35,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun findTarget(context: DerivationState): DerivationTerm? {
         if (context.terms.isEmpty()) return null
+        if (NaNgiSambuddhyohSutra.protects(context) && context.terms.size == 1) return null
         return context.terms.withIndex().firstNotNullOfOrNull { (index, stem) ->
             val affix = context.terms.getOrNull(index + 1)
 

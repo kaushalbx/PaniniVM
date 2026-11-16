@@ -6,6 +6,6 @@ gradle.projectsEvaluated {
         systemProperty 'sandhikosh.evaluation.dir', gradle.startParameter.projectProperties.get('sandhikoshEvaluationDir') ?: 'build/sandhikosh-evaluation'
         systemProperty 'sandhikosh.alternatives', gradle.startParameter.projectProperties.get('sandhikoshAlternatives') ?: 'false'
         systemProperty 'sandhikosh.lexical.analysis', gradle.startParameter.projectProperties.get('sandhikoshLexicalAnalysis') ?: 'none'
-        systemProperty 'sandhikosh.final.boundary', gradle.startParameter.projectProperties.get('sandhikoshFinalBoundary') ?: 'CONTINUATION'
+        systemProperty 'sandhikosh.final.boundary', gradle.startParameter.projectProperties.get('sandhikoshFinalBoundary') ?: 'AVASANA'
     }
 }

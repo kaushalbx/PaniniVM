@@ -39,6 +39,7 @@ object Adhyaya3Pada4 {
         ItoAtSutra,
         JherJusSutra,
         SijabhyastavidibhyashCaSutra,
+        AtahSutra,
         LanSakatayanasyaIvaSutra,
         TinsitSarvadhatukamSutra,
         ArdhadhatukamSheshahSutra,

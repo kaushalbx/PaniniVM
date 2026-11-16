@@ -25,6 +25,10 @@ interface DerivationSutra {
     val optional: Boolean
     /** Includes prescribed alternatives where neither outcome declines the rule. */
     val hasAlternatives: Boolean get() = optional
+    /** An optional rule the default derivation leaves unapplied (its last alternative declines it).
+     * Doubling (8.4.46, 8.4.47) and final nasalisation (8.4.57) are options a speaker may take;
+     * without them the stated forms stay unchanged. */
+    val appliesByDefault: Boolean get() = true
     val blocks: Set<String>
     /** An identity-retention guard protects its own boundary but creates no
      * later phonological state to hide still-pending work on other boundaries. */
