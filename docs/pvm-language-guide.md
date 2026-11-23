@@ -740,6 +740,18 @@ and coordinated grammatical groups, reject a lone scalar, and report the
 one-based member at which a callback fails. Callback-local `loop_element`,
 `loop_index`, and map's `loop_result` do not overwrite outer bindings.
 
+The callback may also be a procedure the program declares, named in the
+instrumental just as a dhātu is (`सूची + अम् लघु + टा वि + वृजीँ + लोट् + सिप्`). Each
+visited member is its one parameter, and each call is an ordinary call (§11.5):
+it reads its caller's values, so a bound such as `सीमा` set before the partition
+is visible to it, and what it assigns stays its own. A Dhātupāṭha operation of
+the same name is chosen before a procedure. Interpreter and compiled execution
+call the same procedure.
+
+Reading a field from the resulting record (`विभाग + मतुप् + ङस् सत्यसूची + अम्
+ग्रहँ + श्ना + लोट् + सिप्`) is itself a ग्रहण, so a following `ग्रहँ + ल्युट् + ङस्
+फल` refers to that field's value.
+
 Choose map to transform every value, filter to keep one side of a truth test,
 partition to retain both sides, and group-by when the key can have more than two
 values. See `examples/collections/sort_and_partition.pvm`.
@@ -2069,6 +2081,14 @@ and otherwise the smaller first member is inserted before the merge of what rema
 with `नि + क्षिप्` at `प्रथम + ङि`. Every value a call sets belongs to that
 call (§11.5), so no level overwrites another. See
 [`merge_sort.pvm`](../examples/algorithms/merge_sort.pvm).
+
+Quick Sort takes a list's first member as `आधार` and removes it, then divides the
+rest with partition (`प्रति + वि + भजँ`), passing its own procedure `लघु` as the
+callback: `लघु` answers whether a member is less than `आधार`, which it reads from
+the call doing the dividing (§7.6). Each part is read from the `द्विविभाग` record,
+sorted by a recursive call, and the two are joined with `सम् + युज् + णिच्` after
+`आधार` is placed at the front of the second part. See
+[`quick_sort.pvm`](../examples/algorithms/quick_sort.pvm).
 
 Binary Search narrows the places of a sorted, non-empty list between `आदि` and
 `अन्त`. Each step adds them and divides by two with `वि + भज्`, which keeps the

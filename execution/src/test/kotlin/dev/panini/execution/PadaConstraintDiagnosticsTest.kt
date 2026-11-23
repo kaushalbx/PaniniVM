@@ -43,4 +43,13 @@ class PadaConstraintDiagnosticsTest {
         val shown = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(corrected).last())
         assertEquals("[एक, त्रि]", shown.value)
     }
+
+    @Test fun `a second comparison standard is marked as ambiguous on that standard`() {
+        assertEquals(PadaConstraintCode.AMBIGUOUS_COMPARISON_STANDARD to "दक्षिण + ङसिँ", located(
+            "एक + अम् वाम + ङि स्था + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् दक्षिण + ङि स्था + णिच् + लोट् + सिप् ।\n" +
+            "यदि एक + सुँ वाम + ङसिँ दक्षिण + ङसिँ अधिक + सुँ असँ + लट् + तिप् तर्हि सत्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"))
+        assertEquals(PadaConstraintCode.AMBIGUOUS_COMPARISON_STANDARD to "त्रि + भ्यस्", located(
+            "यदि एक + सुँ द्वि + भ्याम् त्रि + भ्यस् अधिक + सुँ असँ + लट् + तिप् तर्हि सत्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"))
+    }
 }

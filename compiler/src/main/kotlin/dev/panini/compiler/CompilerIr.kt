@@ -301,6 +301,10 @@ internal sealed interface CompilerInstruction {
 
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
+    /** Makes procedure [name] callable from collection actions; [className] is null for this program. */
+    data class RegisterProcedureCallback(val name: String, val className: String?, val methodName: String,
+        val parameterNames: List<String>) : CompilerInstruction
+
     data class Call(
         val dhatuUpadesha: String,
         val operationName: String,

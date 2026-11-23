@@ -26,7 +26,9 @@ class PadaConstraintException(
 
 /** Codes for operand requirements that fail on one pada. */
 internal object PadaConstraintCode {
+    /** Guard: the parser admits only known sup upadeśas, so source cannot reach this. */
     const val UNKNOWN_SUP_ENDING = "UNKNOWN_SUP_ENDING"
+    /** Guard: one sup upadeśa has at most one vibhakti per case or kāraka, so source cannot reach this. */
     const val AMBIGUOUS_SUP_SLOT = "AMBIGUOUS_SUP_SLOT"
     const val MISSING_NIRDHARANA_GROUP = "MISSING_NIRDHARANA_GROUP"
     const val AMBIGUOUS_COMPARISON_STANDARD = "AMBIGUOUS_COMPARISON_STANDARD"

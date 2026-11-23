@@ -142,7 +142,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     semantics.access, structStore,
                 ) { name -> vm.runtimeValue(effectiveSessionKey, name) }.let {
                     if (it is ExecutionResult.Success) it.typedValue?.let { value ->
-                        vm.retainStructuredResult(effectiveSessionKey, value, speaker, listener, persistSession)
+                        if (program != null) vm.retainActionResult(effectiveSessionKey,
+                            dev.panini.vyakaranam.ast.Ukti(statement.text, body = program), value, speaker, listener, persistSession)
+                        else vm.retainStructuredResult(effectiveSessionKey, value, speaker, listener, persistSession)
                     }
                     results += it
                     context.publish(it)
@@ -201,9 +203,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     /** The single recursive execution boundary for every parsed executable node. */
     private fun executeProgramNode(
         node: ProgramNode,
-        context: ExecutionContext,
+        nodeContext: ExecutionContext,
     ): List<ExecutionResult> {
         vm.executionMetrics.recordAstNode()
+        val context = withProcedureCallbacks(nodeContext)
         return when (node) {
         is Invocation -> {
             if (NaturalScriptStop.matches(node)) {
@@ -263,8 +266,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
                 }
                 if (result is ExecutionResult.Success) result.typedValue?.let { value ->
-                    vm.retainStructuredResult(context.sessionKey, value, context.speaker,
-                        context.listener, context.persistSession)
+                    vm.retainActionResult(context.sessionKey, dev.panini.vyakaranam.ast.Ukti(node.sourceText, body = node),
+                        value, context.speaker, context.listener, context.persistSession)
                 }
                 context.publish(result)
                 return listOf(result)
@@ -838,6 +841,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val conditionEvaluation: Boolean = false,
         val injectedKarman: InjectedKarmanBinding? = null,
         val loopDepth: Int = 0,
+        /** The catalog before this executor added its declared procedures, so they are added once. */
+        val dhatuCatalog: OperationCatalog? = null,
     ) {
         fun publish(result: ExecutionResult) {
             onResult?.invoke(result)
@@ -987,6 +992,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executePrakriyaInvocation(
         invocation: PrakriyaInvocation,
         context: ExecutionContext,
+        retainResult: Boolean = true,
     ): List<ExecutionResult> {
         vm.executionMetrics.recordPrakriyaCall()
         val localStructStore = context.structStore.toMutableMap()
@@ -1027,13 +1033,58 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             vm.discardSession(callKey)
             programNames.remove(callKey)
         }
-        (results.lastOrNull() as? ExecutionResult.Success)?.let { result ->
+        if (retainResult) (results.lastOrNull() as? ExecutionResult.Success)?.let { result ->
             vm.retainStructuredResult(context.sessionKey, result.typedValue ?: SanskritValue.of(result.value),
                 context.speaker, context.listener, context.persistSession)
         }
         return results
     }
 
+
+    /**
+     * लघु + टा प्रति + वि + भजँ: a declared procedure is an operation like a dhātu's, so a collection action
+     * may take it as its instrumental callback. Each one takes the visited member as its one कर्मन् and runs
+     * in the caller's session as an ordinary call, so it reads the caller's values and keeps its own.
+     */
+    private fun withProcedureCallbacks(context: ExecutionContext): ExecutionContext {
+        val procedures = context.registry.all()
+        if (procedures.isEmpty()) return context
+        val dhatus = context.dhatuCatalog ?: context.scope.operationCatalog
+        val callbacks = OperationCatalog(
+            operationsForUpadesha = { name ->
+                dhatus.resolveAll(name).ifEmpty {
+                    listOfNotNull(context.registry.resolve(name, context.sourceFile)?.let { kriya ->
+                        DhatuOperation(
+                            signature = OperationSignature(listOf(KarakaRequirement(dev.panini.core.Karaka.KARMAN,
+                                maximumMembers = 1))),
+                            action = ProcedureCallback(kriya, context),
+                        )
+                    })
+                }
+            },
+            dhatus = { dhatus.entries.map { it.dhatu }.distinct() },
+        )
+        return context.copy(scope = context.scope.copy(operationCatalog = callbacks), dhatuCatalog = dhatus)
+    }
+
+    /** A declared procedure called once per visited member, its result returned as the callback's. */
+    private inner class ProcedureCallback(
+        private val kriya: dev.panini.execution.Prakriya,
+        private val caller: ExecutionContext,
+    ) : DhatuAction(kriya.nameStem, "प्रक्रिया ${kriya.nameStem}") {
+        override fun execute(context: dev.panini.execution.ExecutionContext, operation: DhatuOperation): ExecutionResult {
+            val member = context.bindings[dev.panini.core.Karaka.KARMAN]?.let(context::resolveValues)?.singleOrNull()
+                ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "प्रक्रिया ${kriya.nameStem} takes the visited member as its one कर्मन्.")
+            val invocation = PrakriyaInvocation(kriya, karmaText = member.toDisplayText(), fullText = kriya.nameSegmented,
+                argumentValues = listOf(member),
+                arguments = listOf(PrakriyaArgument(member.toDisplayText(), value = member,
+                    origin = PrakriyaArgumentOrigin.PIPE)))
+            val results = executePrakriyaInvocation(invocation, caller.copy(onResult = null), retainResult = false)
+            return results.firstOrNull { it !is ExecutionResult.Success } ?: results.lastOrNull()
+                ?: ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "प्रक्रिया ${kriya.nameStem} produced no result.")
+        }
+    }
     private val callCounter = java.util.concurrent.atomic.AtomicLong()
     private val programNames = java.util.concurrent.ConcurrentHashMap<String, Set<String>>()
 
@@ -1056,6 +1107,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             )
         },
         onResult = context.onResult,
+        onSource = { value ->
+            pipeline.source?.let { source -> vm.retainActionResult(context.sessionKey,
+                dev.panini.vyakaranam.ast.Ukti(source.sourceText, body = source), value, context.speaker,
+                context.listener, context.persistSession) }
+        },
     )
 
     private fun List<PvmScriptStatement>.sentenceCount(): Int = sumOf { statement ->

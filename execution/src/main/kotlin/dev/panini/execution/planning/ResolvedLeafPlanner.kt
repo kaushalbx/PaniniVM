@@ -165,6 +165,19 @@ object ResolvedLeafPlanner {
         ukti: Ukti,
         environment: ValueEnvironment,
         injectedBindings: Map<Karaka, ExecutionExpression>,
+    ): List<ExecutionPlan>? = typedCandidatePlans(ukti, environment, injectedBindings) ?: run {
+        // A name known only to exist (a procedure's local) has no type yet: when no plan fits it as it is,
+        // it is typed by each candidate reading like any unknown name, so पूर्व-भाग may be a collection.
+        val untyped = environment.constraints.filter { (name, constraint) -> name !in environment.values &&
+            constraint.valueType == null && constraint.samjnas.isEmpty() }.keys
+        if (untyped.isEmpty()) null else typedCandidatePlans(ukti,
+            ValueEnvironment(environment.values, environment.constraints - untyped), injectedBindings)
+    }
+
+    private fun typedCandidatePlans(
+        ukti: Ukti,
+        environment: ValueEnvironment,
+        injectedBindings: Map<Karaka, ExecutionExpression>,
     ): List<ExecutionPlan>? = listOf<(String) -> dev.panini.execution.SemanticValueConstraint>(
         { dev.panini.execution.SemanticValueConstraint(
             dev.panini.execution.OperationValueType.INTEGER,
@@ -216,11 +229,13 @@ object ResolvedLeafPlanner {
                     reference in environment.values || reference in environment.constraints
             }
             .flatMap { pada ->
+                // पूर्व-भाग: a compound name is bound under its reference key, so it is a symbolic operand too.
                 sequenceOf(
                     pada.pratipadika.sourceText.trim(),
                     if (isCopularReferenceParticipant(parsedUkti, pada)) pada.pratipadika.referenceKey()
                     else pada.pratipadika.semanticKey(),
-                ).distinct()
+                ).plus(listOfNotNull(pada.pratipadika.referenceKey()
+                    .takeIf { pada.pratipadika is dev.panini.vyakaranam.ast.SamasaPratipadika })).distinct()
             }
             .filterNot { candidate ->
                 candidate in environment.values || candidate in environment.constraints ||

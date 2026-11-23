@@ -169,6 +169,13 @@ internal object KarakaExtractor {
             val comparison = owner.nominalCaseLinks?.established?.singleOrNull {
                 it.dependent == nominalIndex && it.sutra in setOf("2.3.72", "2.3.42")
             }
+            // वामात् दक्षिणात् अधिकः: a comparison takes one standard, so a second qualifying word is ambiguous.
+            owner.nominalCaseLinks?.competingComparisonStandards?.takeIf { it.drop(1).contains(nominalIndex) }?.let {
+                throw dev.panini.execution.PadaConstraintException(pada,
+                    "The comparison has more than one standard: ${it.joinToString { index ->
+                        owner.nominalRelations?.nominalPadas?.getOrNull(index)?.pada?.sourceText.orEmpty() }}.",
+                    dev.panini.execution.PadaConstraintCode.AMBIGUOUS_COMPARISON_STANDARD)
+            }
             val relation = ctx.relationFor(pada)
             if (comparison != null && relation?.evidence?.lastOrNull()?.sutra == comparison.sutra &&
                 relation.resolvedVibhakti != null) {

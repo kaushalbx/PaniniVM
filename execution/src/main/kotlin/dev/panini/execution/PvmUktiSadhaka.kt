@@ -375,6 +375,9 @@ class PvmUktiSadhaka(
                 MulaPratipadikaIdentity.ADHIKA,
                 MulaPratipadikaIdentity.SAMAPTA,
                 MulaPratipadikaIdentity.GUPTA,
+                // फलम् असत्यम्: a truth predicate qualifies its subject and takes its gender.
+                MulaPratipadikaIdentity.SATYA,
+                MulaPratipadikaIdentity.ASATYA,
             )
         ) return null
         val predicateSup = SupAffix.fromUpadesha(predicate.sup.text) ?: return null

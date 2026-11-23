@@ -173,6 +173,7 @@ object PaniniRuntime {
         variables: Map<String, SanskritValue>,
         nominalBindings: Map<dev.panini.execution.NominalOperandRole, ExecutionExpression>,
         copularPredicate: dev.panini.execution.CopularPredicate?,
+        operationCatalog: dev.panini.execution.OperationCatalog = dev.panini.execution.OperationCatalog.default,
     ): SanskritValue {
         dev.panini.sankhya.SankhyaCountingFormRenderer.init()
         val operation = resolveOperation(dhatuUpadesha, operationName, requiredSanadi)
@@ -183,6 +184,7 @@ object PaniniRuntime {
             externalDispatcher = defaultDispatcher,
             nominalBindings = nominalBindings,
             copularPredicate = copularPredicate,
+            operationCatalog = operationCatalog,
         )
         return when (val result = action.execute(context, operation)) {
             is ExecutionResult.Success -> {

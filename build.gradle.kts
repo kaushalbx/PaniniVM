@@ -61,7 +61,11 @@ subprojects {
             "junit.jupiter.execution.parallel.mode.default" to "concurrent",
             "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent",
             "junit.jupiter.execution.parallel.config.strategy" to "fixed",
-            "junit.jupiter.execution.parallel.config.fixed.parallelism" to "2"
+            "junit.jupiter.execution.parallel.config.fixed.parallelism" to "2",
+            // A test that loops forever fails after five minutes instead of stalling the build;
+            // a separate thread lets the timeout fire even when the loop never checks for interruption.
+            "junit.jupiter.execution.timeout.default" to "5 m",
+            "junit.jupiter.execution.timeout.thread.mode.default" to "SEPARATE_THREAD"
         )
     }
 }

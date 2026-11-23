@@ -227,6 +227,10 @@ class PaniniVM(
     internal fun <T> withRestoredBinding(sessionKey: String, name: String, persistSession: Boolean, body: () -> T): T =
         sessionRuntime.withRestoredBinding(sessionKey, name, persistSession, body)
 
+    internal fun retainActionResult(sessionKey: String, ukti: dev.panini.vyakaranam.ast.Ukti, value: SanskritValue,
+        speaker: String, listener: String, persistSession: Boolean) =
+        sessionRuntime.retainActionResult(sessionKey, ukti, value, speaker, listener, persistSession)
+
     internal fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String,
         listener: String, persistSession: Boolean) =
         sessionRuntime.retainStructuredResult(sessionKey, value, speaker, listener, persistSession)

@@ -193,6 +193,16 @@ internal class CompilerIrJvmEmitter(
                         "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
+                is CompilerInstruction.RegisterProcedureCallback -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.name)
+                    mv.visitLdcInsn(org.objectweb.asm.Type.getObjectType(
+                        (instruction.className ?: className).replace('.', '/')))
+                    mv.visitLdcInsn(instruction.methodName)
+                    emitStringArray(instruction.parameterNames)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "registerProcedureCallback",
+                        "(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/String;)V", false)
+                }
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
                 is CompilerInstruction.NumericUnary -> emitNumericUnary(instruction.operator)

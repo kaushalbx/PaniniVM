@@ -9,7 +9,9 @@ sealed interface PvmSentenceSemantics {
     data class SchemaDeclaration(val schema: TaddhitaStructSchema) : PvmSentenceSemantics
     data class StructFieldAssertion(val assertion: TaddhitaFieldAssertion) : PvmSentenceSemantics
     data class AttributeAccess(val access: TaddhitaAttributeAccess) : PvmSentenceSemantics
-    data class AttributePipeline(val access: TaddhitaAttributeAccess, val targets: List<Invocation>) :
+    /** [source] is the access clause itself, remembered as the ग्रहण it is. */
+    data class AttributePipeline(val access: TaddhitaAttributeAccess, val targets: List<Invocation>,
+        val source: Invocation? = null) :
         PvmSentenceSemantics
     data class StructuredConditional(val conditional: Conditional) : PvmSentenceSemantics
     data object Executable : PvmSentenceSemantics
@@ -52,6 +54,6 @@ internal object PvmSentenceClassifier {
         val source = sequence.statements.first() as? Invocation ?: return null
         val targets = sequence.statements.drop(1).map { it as? Invocation ?: return null }
         val access = TaddhitaStructEngine.detectAttributeAccess(source.vakya) ?: return null
-        return PvmSentenceSemantics.AttributePipeline(access, targets)
+        return PvmSentenceSemantics.AttributePipeline(access, targets, source)
     }
 }

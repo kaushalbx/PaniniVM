@@ -185,6 +185,56 @@ class CompiledProgramRuntime private constructor(
         parameterFrames.addLast(frame.copy(savedBindings = names.associateWith { values[it] }))
     }
 
+    private class ProcedureCallbackTarget(val owner: Class<*>, val methodName: String,
+        val parameterNames: Array<String>)
+    private val procedureCallbacks = LinkedHashMap<String, ProcedureCallbackTarget>()
+
+    /** लघु + टा प्रति + वि + भजँ: procedure [name] becomes an operation collection actions may call back. */
+    fun registerProcedureCallback(name: String, owner: Class<*>, methodName: String, parameterNames: Array<String>) {
+        procedureCallbacks[name] = ProcedureCallbackTarget(owner, methodName, parameterNames)
+    }
+
+    /** The Dhātupāṭha's operations, then the program's procedures under their own names. */
+    private val callbackCatalog: dev.panini.execution.OperationCatalog by lazy {
+        val dhatus = dev.panini.execution.OperationCatalog.default
+        dev.panini.execution.OperationCatalog(
+            operationsForUpadesha = { name ->
+                dhatus.resolveAll(name).ifEmpty {
+                    listOfNotNull(procedureCallbacks[name]?.let { target ->
+                        dev.panini.execution.DhatuOperation(
+                            signature = dev.panini.execution.OperationSignature(listOf(
+                                dev.panini.execution.KarakaRequirement(Karaka.KARMAN, maximumMembers = 1))),
+                            action = CompiledProcedureCallback(name, target),
+                        )
+                    })
+                }
+            },
+            dhatus = { dhatus.entries.map { it.dhatu }.distinct() },
+        )
+    }
+
+    /** Calls a compiled procedure as an ordinary call, the visited member as its one argument. */
+    private inner class CompiledProcedureCallback(name: String, private val target: ProcedureCallbackTarget) :
+        dev.panini.execution.DhatuAction(name, "प्रक्रिया $name") {
+        override fun execute(context: dev.panini.execution.ExecutionContext,
+            operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
+            val member = context.bindings[Karaka.KARMAN]?.let(context::resolveValues)?.singleOrNull()
+            if (member == null || target.parameterNames.size != 1) return dev.panini.execution.ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE, "प्रक्रिया $name takes the visited member as its one कर्मन्.")
+            enterFrame(target.parameterNames, arrayOf(member))
+            return try {
+                target.owner.getMethod(target.methodName, CompiledProgramRuntime::class.java).invoke(null, this@CompiledProgramRuntime)
+                val result = loadValue("LastResult")
+                dev.panini.execution.ExecutionResult.Success(result.toDisplayText(), name, typedValue = result)
+            } catch (failure: java.lang.reflect.InvocationTargetException) {
+                val cause = failure.targetException as? CompiledPaniniExecutionException ?: throw failure.targetException
+                dev.panini.execution.ExecutionResult.Failure(cause.error, cause.message, diagnostic = cause.diagnostic)
+            } finally {
+                exitFrame()
+            }
+        }
+    }
+
     fun executeDirectValue(
         dhatuUpadesha: String,
         operationName: String,
@@ -204,6 +254,8 @@ class CompiledProgramRuntime private constructor(
             values,
             nominalBindings.mapValues { (_, expression) -> expression.resolveCompiledReferences() },
             copularPredicate,
+            operationCatalog = if (procedureCallbacks.isEmpty()) dev.panini.execution.OperationCatalog.default
+                else callbackCatalog,
         )
         return value
     }

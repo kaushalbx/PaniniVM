@@ -151,7 +151,15 @@ internal object CompilerFrontend {
         val lowering = Lowering(registry, methodsByProcedure)
         val resultSchemas = descriptor.dependencies.flatMap { it.schemas.entries }
             .associate { it.key to it.value } + analyzed.schemas
-        val entryPoint = analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).flatMap { (source, statements) ->
+        // लघु + टा प्रति + वि + भजँ: every procedure is offered to collection actions as a callback.
+        val callbacks = analyzed.procedures.map { procedure ->
+            CompilerInstruction.RegisterProcedureCallback(procedure.symbol, null, procedure.methodName,
+                procedure.signature.parameters.map { it.nameStem })
+        } + descriptor.dependencies.flatMap { dependency -> dependency.procedures.map { procedure ->
+            CompilerInstruction.RegisterProcedureCallback(procedure.symbol, dependency.className, procedure.methodName,
+                procedure.parameters.map(PrakriyaParameter::nameStem))
+        } }
+        val entryPoint = callbacks + analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).flatMap { (source, statements) ->
             lowering.callerSourceFile = source.name
             statements.flatMap { statement ->
                 when (statement) {
@@ -422,7 +430,12 @@ internal object CompilerFrontend {
                 }
             }
             TaddhitaStructEngine.detectAttributeAccess(node.vakya)?.let { access ->
-                return lowerFieldAccess(access) + CompilerInstruction.Store("LastResult")
+                // गुणवतः मूल्यं गृहाण is a ग्रहण like any other: a later ग्रहणस्य फलम् refers to it.
+                val dhatu = node.vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()
+                    ?.let { resultLexicon.findDhatu(it.dhatu.mulaDhatu) }
+                return lowerFieldAccess(access) + CompilerInstruction.Store("LastResult") +
+                    listOfNotNull(dhatu?.let { CompilerInstruction.LoadLastResult },
+                        dhatu?.let { CompilerInstruction.RecordActionResult(it.upadesha) })
             }
             val attributeProjection = dev.panini.execution.AttributeOperandProjection.project(
                 node, "__pvm_attribute_${nextLabel++}_", registry.all().mapTo(mutableSetOf()) { it.nameStem })

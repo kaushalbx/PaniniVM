@@ -45,6 +45,8 @@ data class JointNominalCaseAlternative(
 data class NominalCaseLinkAnalysis(
     val candidates: List<NominalCaseLinkCandidate>,
     val jointAlternatives: List<JointNominalCaseAlternative> = emptyList(),
+    /** Indices of participants that each qualify as the one standard of a comparison (2.3.42, 2.3.72). */
+    val competingComparisonStandards: List<Int> = emptyList(),
 ) {
     /** Mere uniqueness of a case-compatible word is insufficient evidence. */
     val established: List<NominalCaseLinkCandidate> = candidates.groupBy { it.dependent }.values
@@ -188,13 +190,15 @@ object NominalCaseLinkAnalyzer {
             Vibhakti.SASTHI in participants[it].possibleVibhaktis &&
                 (nominals[it].pada as? SubantaPada)?.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika
         }.singleOrNull()
-        val comparisonStandard = if (comparisonSubject == null) null else participants.indices.filter {
+        val standardCandidates = if (comparisonSubject == null) emptyList() else participants.indices.filter {
             it != comparisonHead && it != comparisonSubject && it != resultAction && it !in comparisonModifiers &&
                 participants[it].possibleVibhaktis.any(standardCases::contains) &&
                 listOf(SemanticRelation.INDEPENDENT_AGENT, SemanticRelation.DESIRED_OBJECT,
                     SemanticRelation.INSTRUMENT, SemanticRelation.SOURCE, SemanticRelation.RECIPIENT,
                     SemanticRelation.LOCATION).none(participants[it]::hasEstablishedMeaning)
-        }.singleOrNull()
+        }
+        // A comparison has one standard: two qualifying words are ambiguous, not a standard.
+        val comparisonStandard = standardCandidates.singleOrNull()
         return NominalCaseLinkAnalysis(buildList {
             participants.forEachIndexed { dependent, participant ->
                 if (SemanticRelation.DIRECT_ADDRESS in participant.semanticRelations || participant.governingAvyaya != null || participant.purposeGovernor != null) return@forEachIndexed
@@ -227,6 +231,6 @@ object NominalCaseLinkAnalyzer {
                     }
                 }
             }
-        })
+        }, competingComparisonStandards = standardCandidates.takeIf { it.size > 1 }.orEmpty())
     }
 }

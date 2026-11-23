@@ -82,10 +82,12 @@ internal class StructuredValueExecutor {
         resolveRuntimeValue: (String) -> SanskritValue? = { null },
         executeTarget: (Invocation, ExecutionScope, SanskritValue) -> List<ExecutionResult>,
         onResult: ((ExecutionResult) -> Unit)?,
+        onSource: (SanskritValue) -> Unit = {},
     ): List<ExecutionResult> {
         val source = resolve(pipeline.access, structStore, resolveRuntimeValue)
         if (source !is ExecutionResult.Success) return listOf(source)
         var pipedValue = source.typedValue ?: return listOf(source)
+        onSource(pipedValue)
         val results = mutableListOf<ExecutionResult>(source)
         for (target in pipeline.targets) {
             val targetScope = scope.copy(

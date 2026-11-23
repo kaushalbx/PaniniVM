@@ -251,6 +251,26 @@ internal class SessionRuntime(
     }
 
     /** Retains a typed result produced by a structured AST operation outside the action pipeline. */
+    /**
+     * गुणवतः मूल्यं गृहाण: a sentence completed without the planner (field access) is still an action.
+     * Its value becomes the result, and its kriyā is remembered as one turn, so a later ग्रहणस्य फलम्
+     * refers to it rather than to an earlier ग्रहण.
+     */
+    fun retainActionResult(sessionKey: String, ukti: Ukti, value: SanskritValue, speaker: String,
+        listener: String, persistSession: Boolean) {
+        retainStructuredResult(sessionKey, value, speaker, listener, persistSession)
+        val frames = VyakaranamExecutionAdapter.analyzeForMemory(ukti)?.frames
+        val frame = frames?.singleOrNull() ?: return
+        val context = sessions.getValue(sessionKey)
+        // Past every remembered turn too: memory keeps one entry per id, so a reused turn would be dropped.
+        val turn = maxOf(context.turnNumber, kriyaMemory(sessionKey).entries.maxOfOrNull { it.turn } ?: 0) + 1
+        recordSuccessfulTurn(sessionKey, context.copy(turnNumber = turn), persistSession)
+        val memory = kriyaMemory(sessionKey).remember(listOf(RememberedKriya(turn,
+            frame.withMemoryId(KriyaId("turn-$turn-kriya-1")), value)))
+        kriyaMemories[sessionKey] = memory
+        if (persistSession) kriyaMemoryStore.save(sessionKey, memory)
+    }
+
     fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String, listener: String,
         persistSession: Boolean) {
         val context = sessions[sessionKey] ?: SambhashanaContext(speaker, listener)
