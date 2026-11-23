@@ -39,8 +39,8 @@ class HistoricalParticipantSnapshotTest {
     @Test fun `participant values survive reassignment and session restart`() {
         val vm = PaniniVM(directory.toFile())
         val source = "एक + अम् मान + ङे दा + लोट् + सिप् ।\n" +
-            "मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।\n" +
-            "नवन् + अम् मान + ङे दा + लोट् + सिप् ।"
+            "मान + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मान + ङे दा + लोट् + सिप् ।"
         assertTrue(vm.evalScript(source, sessionKey = "history").all { it is ExecutionResult.Success })
         val query = "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         assertEquals("एक द्वि", assertIs<ExecutionResult.Success>(vm.eval(query, sessionKey = "history")).value)
@@ -61,12 +61,12 @@ class HistoricalParticipantSnapshotTest {
         assertIs<ExecutionResult.Success>(vm.eval("एक + अम् मान + ङे दा + लोट् + सिप् ।", sessionKey = "paused"))
         val scope = vm.defaultScope.copy(capabilities = setOf(ExecutionEffect.PURE))
         val paused = assertIs<ExecutionResult.NeedsApproval>(vm.eval(
-            "मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।",
+            "मान + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।",
             sessionKey = "paused", scope = scope))
         val again = assertIs<ExecutionResult.NeedsApproval>(vm.resume(paused.continuation, sessionKey = "paused", scope = scope))
         assertIs<ExecutionResult.Success>(vm.resume(again.continuation, sessionKey = "paused",
             scope = scope.copy(capabilities = scope.capabilities + paused.requiredEffects)))
-        assertIs<ExecutionResult.Success>(vm.eval("नवन् + अम् मान + ङे दा + लोट् + सिप् ।", sessionKey = "paused"))
+        assertIs<ExecutionResult.Success>(vm.eval("नवन् + शस् मान + ङे दा + लोट् + सिप् ।", sessionKey = "paused"))
         assertEquals("एक द्वि", assertIs<ExecutionResult.Success>(vm.eval(
             "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।", sessionKey = "paused")).value)
     }

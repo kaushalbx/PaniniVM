@@ -42,7 +42,7 @@ class StaticProcedureTypeEvidenceTest {
         val referenceCall = "सञ्चित + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         assertTrue(PrakriyaScriptValidator.validate("$numericProcedure\n$referenceCall").isEmpty())
         val textProcedure = numericProcedure.replace("मान + सुँ सङ्ख्या + सुँ", "मान + सुँ शब्द + सुँ")
-        val literalCall = "द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
+        val literalCall = "द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
         val diagnostics = PrakriyaScriptValidator.validate("$textProcedure\n$literalCall")
         assertTrue(diagnostics.any { it.message.contains("मानप्रकारदोष") }, diagnostics.toString())
     }
@@ -59,7 +59,7 @@ class StaticProcedureTypeEvidenceTest {
             वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
-            सञ्चित + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            सञ्चित + अम् त्रि + शस् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
         """.trimIndent()
         val diagnostics = PrakriyaScriptValidator.validate(source)
         assertTrue(diagnostics.isEmpty(), diagnostics.toString())

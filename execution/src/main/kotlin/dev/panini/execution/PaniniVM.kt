@@ -215,6 +215,15 @@ class PaniniVM(
     internal fun runtimeValue(sessionKey: String, name: String): SanskritValue? =
         sessionRuntime.value(sessionKey, name)
 
+    internal fun forkSession(parentKey: String, childKey: String) = sessionRuntime.fork(parentKey, childKey)
+
+    internal fun discardSession(sessionKey: String) = sessionRuntime.discard(sessionKey)
+
+    internal fun returnFromCall(childKey: String, parentKey: String, program: Set<String>) =
+        sessionRuntime.returnFromCall(childKey, parentKey, program)
+
+    internal fun sessionNames(sessionKey: String): Set<String> = sessionRuntime.names(sessionKey)
+
     internal fun <T> withRestoredBinding(sessionKey: String, name: String, persistSession: Boolean, body: () -> T): T =
         sessionRuntime.withRestoredBinding(sessionKey, name, persistSession, body)
 

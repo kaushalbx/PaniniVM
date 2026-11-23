@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 class CopularEqualityTest {
     @Test
     fun `adhikam asti orders the subject above its ablative standard`() {
-        val result = PaniniVM().evalCondition("द्वि + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।")
+        val result = PaniniVM().evalCondition("द्वि + औ एक + ङसिँ अधिक + औ असँ + लट् + तस् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertTrue(assertIs<SanskritValue.Satya>(success.typedValue).boolean)
     }

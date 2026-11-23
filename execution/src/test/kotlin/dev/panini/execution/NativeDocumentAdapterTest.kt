@@ -87,7 +87,7 @@ class NativeDocumentAdapterTest {
             प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            पञ्चन् + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
+            पञ्चन् + शस् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         val statements = PvmScript.fromDocument(document)
@@ -101,7 +101,7 @@ class NativeDocumentAdapterTest {
         assertEquals("प्रयत्न", definition.prakriya.nameIdentity)
         assertEquals("प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप्", definition.headerSource)
         assertEquals(PrakriyaValueType.SANKHYA, PrakriyaSignatureDeclarationParser.parameter(definition.body.first())?.type)
-        assertEquals("पञ्चन् + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।",
+        assertEquals("पञ्चन् + शस् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।",
             assertIs<PvmScriptStatement.Sentence>(statements[3]).text)
     }
 
@@ -109,7 +109,7 @@ class NativeDocumentAdapterTest {
     fun `native parsing handles comments and rejects descending range`() {
         assertEquals(1, PvmScript.parse("# comment\nएक + अम्\nमुद्र् + णिच् + लोट् + सिप् । // comment").size)
         assertFailsWith<IllegalArgumentException> {
-            PvmScript.parse("दशन् + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।")
+            PvmScript.parse("दशन् + भ्यस् एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।")
         }
     }
 }

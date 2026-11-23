@@ -62,6 +62,10 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
                 PhonologicalIdentity.JI, PhonologicalIdentity.CI, PhonologicalIdentity.NI,
             ) == true || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.matchesAffix(KrtAffix.LYAP) || ending.id == "lyap_pratyaya")
         if (isAniKtvaKtaLyap) return false
+        // A ṇyanta niṣṭhā takes iṭ after णि and 6.4.52 निष्ठायां सेटि deletes णि, leaving one इ. The engine keeps णि's इ
+        // for that इ (शोधित), so the root's own seṭ status adds none: गणित, not गणिइत.
+        if (context.allEffectiveTerms.any { it.matchesAffix(SanadiAffix.NIC) } &&
+            ending.matchesAnyAffix(KrtAffix.KTA, KrtAffix.KTAVATU)) return false
 
         // LIṬ is ārdhadhātuka by 3.4.114 even after the lakāra term has been
         // replaced by a freshly processed tiṅ substitution.

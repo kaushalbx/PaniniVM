@@ -540,7 +540,10 @@ class VakyaAnalyzer(
                 it.governor == index && it.sutra in setOf("2.3.26", "2.3.27")
             }
             if (incoming.isEmpty()) participant else {
-                val derived = setOf(SemanticRelation.CAUSE_HETU, SemanticRelation.EXPLICIT_HETU_USE) +
+                // A निमित्त-synonym link names the governor as the same cause, under the same vārttika.
+                val nimitta = incoming.all { SemanticRelation.NIMITTA_SYNONYM_HETU in it.derivedSemanticPremises }
+                val derived = if (nimitta) setOf(SemanticRelation.CAUSE_HETU, SemanticRelation.NIMITTA_SYNONYM_HETU)
+                else setOf(SemanticRelation.CAUSE_HETU, SemanticRelation.EXPLICIT_HETU_USE) +
                     if (incoming.any { it.sutra == "2.3.27" }) setOf(SemanticRelation.PRONOMINAL_HETU) else emptySet()
                 participant.copy(semanticRelations = participant.semanticRelations + derived,
                     semanticEvidence = participant.semanticEvidence + derived.map {

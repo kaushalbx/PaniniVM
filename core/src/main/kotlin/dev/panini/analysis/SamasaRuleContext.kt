@@ -31,6 +31,8 @@ data class SamasaPada(
     val upapadaAffixPrescription: UpapadaAffixPrescription? = null,
     /** Base explicitly qualified by nañ; not inferred from an initial अ/अन or surface spelling. */
     val nanjBase: SamasaPada? = null,
+    /** Declared formation of this member (आप् for a टाप्-formed head), never read from its spelling. */
+    val stemFormation: dev.panini.derivation.NominalStemFormation = dev.panini.derivation.NominalStemFormation.UNSPECIFIED,
 ) {
     val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
 }

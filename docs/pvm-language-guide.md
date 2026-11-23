@@ -257,6 +257,18 @@ Segmented numeral constructions can include the existing ऊन and अधिक
 valid assignment operands. The written construction determines the grammatical
 head; it is not replaced by another expression having the same numeric value.
 
+Compound numbers are written segmented, units before their ten: `एक + दशन् + जस्`
+(11), `षष् + दशन् + शस्` (16), `पञ्चन् + विंशति + अम्` (25). The numeral engine derives the
+compound itself: 6.3.47 gives द्वादश and अष्टादश, 6.3.48 gives त्रयोदश, and the vārttika
+on 6.3.109 (षष उत्वं दतृदशधासूत्तरपदादेः ष्टुत्वं च) gives षोडश. A one-word compound such as
+`त्रयोदशन् + शस्` is refused in both backends; the validator offers the segmented
+spelling (`त्रि + दशन्`) as its fix. A stored number keeps the stem of its written
+construction: `एक + ऊन + विंशति` prints एकोनविंशति, not the same-value नवदशन्.
+
+The number of the ending follows the grammatical head: `एक + दशन्` is a दशन् count
+and takes the plural, while `एक + ऊन + विंशति + अम्` is a singular विंशति although its
+value is nineteen.
+
 ## 5. Actions, results, and output
 
 ### 5.1 Invoke an action
@@ -561,13 +573,20 @@ Later sentences can consume the named value:
 Prefer direct `फल` references and `ततः` pipelines when a value is used only
 once. Introduce a name when the value must survive across several sentences.
 
+Write a compound name with `-` between its members, for example
+`पूर्व-सङ्ख्या + ङि`. The readable text joins the members (पूर्वसङ्ख्यायाम्) and
+gives the compound its final member's gender (2.4.26 परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः),
+which the Liṅgānuśāsana assigns from that member's stated affix. A name written as
+one word is a single undeclared stem: its ending alone never makes it feminine.
+`पूर्व-सङ्ख्या` and `पूर्वसङ्ख्या` are different names.
+
 ### 7.1 Collection membership
 
 Express membership as an ordinary existential clause: the sought member is
 nominative and the collection is locative.
 
 ```pvm
-यदि द्वि + सुँ सूची + ङि असँ + लट् + तिप्
+यदि द्वि + औ सूची + ङि असँ + लट् + तस्
     तर्हि सत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप्
     अन्यथा असत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप् ।
 ```
@@ -587,7 +606,7 @@ expression.
 `कश्चित्` is the natural existential form, equivalent to `any { condition }`:
 
 ```pvm
-सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।
+सूची + ङस् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।
 ```
 
 This reads as “some member of the list is greater than two.” It returns
@@ -782,7 +801,12 @@ an empty or reversed clipped interval returns an empty collection. Bounds
 outside the supported signed 32-bit position range produce a value error.
 The lower and upper bounds may also be named computed numbers. For example,
 `आरम्भ + ङसिँ अन्तक्रम + शस् परि + अन्त + अम्` uses the current values of
-`आरम्भ` and `अन्तक्रम`; it does not require literal ordinals.
+`आरम्भ` and `अन्तक्रम`; it does not require literal ordinals. A compound name
+is a bound too, written with its members joined: `उत्तर-आरम्भ + ङसिँ` renders
+as उत्तरारम्भात्, and as an upper bound it joins the पर्यन्त compound
+(उत्तरारम्भपर्यन्तम्). Stems written apart (`वाम + दक्षिण + ङसिँ`) that are
+not a numeral fail with `UNKNOWN_RANGE_BOUNDARY`, and the fix offered joins
+them into the one compound name.
 
 ### 7.10 One-based indexed retrieval
 
@@ -1080,6 +1104,18 @@ Use `यदि … तर्हि … अन्यथा …`:
 अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।
 ```
 
+The `तर्हि` branch may be a `ततः` result chain when `अन्यथा` follows it, because
+`अन्यथा` closes that branch:
+
+```pvm
+यदि अङ्क + सुँ दशन् + भ्यस् न्यून + सुँ असँ + लट् + तिप्
+तर्हि अङ्क + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः फल + अम् अङ्क + ङि स्था + णिच् + लोट् + सिप्
+अन्यथा शून्य + अम् अङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+```
+
+After the `अन्यथा` branch, or when there is no `अन्यथा`, a `ततः` continues the whole
+conditional with its result, as before.
+
 Nested alternatives are supported:
 
 ```pvm
@@ -1195,7 +1231,7 @@ form neither waits nor repeats. It has no `अन्यथा` branch—use `य
 ```pvm
 यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप्
 तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
-तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+तदा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
 ```
 
 Like the hypothetical form, further danda-ended `तदा` sentences share the one
@@ -1224,6 +1260,32 @@ Explicit incompatible low-cardinal endings are rejected rather than repaired.
 This check does not impose cardinal agreement on ordinal adjectives or restrict
 the nominal quantity constructions of higher cardinals.
 The complete example is [nominal_results.pvm](../examples/control_flow/nominal_results.pvm).
+
+### 9.1 Negated and conjoined conditions
+
+`न` before the verb of a condition denies its predicate, so the condition holds
+when the predicate does not. Both `यदि` and `यावत्` read it this way, in both
+backends:
+
+```pvm
+यावत् परिमाण + सुँ क्रमाङ्क + ङसिँ न्यून + सुँ न असँ + लट् + तिप्
+तावत् वृत् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+```
+
+To require several clauses at once, put `च` right after the finite verb of each
+clause except the last. As with action-level `च`, the coordinator following a
+finite verb joins whole clauses; a `च` before the verb still joins nominal
+operands.
+
+```pvm
+यदि एक + सुँ स्थान + ङसिँ न्यून + सुँ असँ + लट् + तिप् च
+    अङ्क + सुँ पूर्वाङ्क + ङसिँ न्यून + सुँ असँ + लट् + तिप्
+तर्हि स्थान + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+The clauses are read left to right, and the first false clause ends the test,
+so a later clause may rely on an earlier one. Here `पूर्वाङ्क` is only
+meaningful once `स्थान` is past the first position.
 
 ## 10. Repetition and condition-controlled loops
 
@@ -1287,7 +1349,7 @@ require a separate break action.
 The loop automatically publishes a structured `परिणाम` with:
 
 - `अवस्था`: `विजय` or `समाप्ति`;
-- `प्रयत्नसङ्ख्या`: the number of completed iterations.
+- `प्रयत्न-सङ्ख्या`: the number of completed iterations.
 
 ## 11. Reusable Sanskrit kriyās
 
@@ -1391,8 +1453,7 @@ headers are listed only as compatibility syntax in §16.1.
 Parameters are call-owned slots. Assignment to a parameter changes subsequent
 reads in that call without replacing a caller's same-named value. Named and
 positional references share the slot. A distributive member can shadow it for
-one iteration. Ordinary results and effects remain visible; this does not make
-every new assignment name in a procedure local.
+one iteration. Values the body itself introduces are also owned by the call (§11.5).
 
 Using only the second positional reference still requires a first slot;
 productive ordinal positions are not restricted to the first three. An ordinal
@@ -1400,7 +1461,8 @@ identifies a position, not the argument's type. Undeclared positional slots are
 unconstrained, but operations still validate their operands. Calls require the
 exact declared or inferred number of arguments, and one list remains one argument
 regardless of its member count. Collection-member selectors, history selectors,
-and known procedure names do not create parameter slots.
+the locative position of an indexed transformation (`सूचि + ङस् प्रथम + ङि …
+नि + क्षिप्`), and known procedure names do not create parameter slots.
 
 #### 11.2.1 Typed participant phrases
 
@@ -1466,9 +1528,9 @@ Place signature declarations at the beginning of the block:
 
 ```pvm
 योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-सङ्ख्या + सुँ इति परिणाम + सुँ ।
+वाम + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
+परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
 वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 ```
 
@@ -1541,8 +1603,8 @@ produce stable source-located diagnostics. The validator, interpreter, and
 compiler preserve the same code and offending span. See §16 for common fixes.
 
 With exactly one written slot and one accusative value, their attachment does
-not depend on adjacency or order: `मान + ङि पञ्च + अम्` and
-`पञ्च + अम् मान + ङि` bind the same named argument. The procedure noun and
+not depend on adjacency or order: `मान + ङि पञ्च + शस्` and
+`पञ्च + शस् मान + ङि` bind the same named argument. The procedure noun and
 finite कृ verb may occur between them. This does not establish arbitrary
 attachment for several separated slot/value pairs.
 
@@ -1552,9 +1614,20 @@ field phrase; encountering the method does not end argument analysis.
 
 ### 11.5 Scope and nested calls
 
-Each invocation receives an isolated child environment. It can read caller
-values but does not leak temporary body values back into the caller. A body may
-invoke another registered prakriyā.
+Each invocation receives its own environment. It starts from everything its
+caller can see and owns what it assigns:
+
+- **Program state** is a value the program set at top level before the call.
+  A call that assigns it changes it for its caller too, so procedures can act as
+  instructions on shared machine state (see `two_counter_machine.pvm`).
+- **A value first set inside the call** belongs to that call. It is gone when the
+  call returns, and a nested or recursive call cannot overwrite it. A procedure
+  passes such a value back through its result: the caller reads it as `फल`.
+
+So a recursive procedure keeps its own working values at every level. Merge sort
+sorts each half by calling itself, and each level keeps its own `परिमाण` and
+`मध्य` (§17). Output and other effects are not undone. A body may invoke another
+registered prakriyā. The interpreter and the compiler apply the same rule.
 
 Qualify `प्रक्रिया` with the segmented feminine adjective `अन्तरङ्गा`
 to make the definition file-private:
@@ -1618,7 +1691,7 @@ A schema declaration states that coordinated nominative subjects are plural
 ordinary identifier; its spelling has no hidden suffix convention:
 
 ```pvm
-अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
+अवस्था + सुँ प्रयत्न-सङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
 ```
 
 Readable Sanskrit: `अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राणि सन्ति।`
@@ -1627,7 +1700,7 @@ A typed kriyā can declare that schema as its result:
 
 ```pvm
 अनुमान + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।
+परिणाम + सुँ अनुमानपरिणाम + सुँ असँ + लट् + तिप् ।
 ...
 ```
 
@@ -1654,7 +1727,7 @@ contract. Singular `सूची` denotes one collection value, not a one-member
 
 ```pvm
 परिणाम + मतुप् + ङस् अवस्था + अम् ग्रहँ + श्ना + लोट् + सिप् ।
-परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+परिणाम + मतुप् + ङस् प्रयत्न-सङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ।
 ```
 
 These accesses do not require copying the fields into temporary variables.
@@ -1796,7 +1869,7 @@ definition block.
 
 ### Wrong number or type of arguments
 
-Compare the call with the `… इति मान + सुँ` declarations. In a named call, each
+Compare the call with the `… नाम मान + सुँ … असँ + लट् + तिप्` declarations. In a named call, each
 saptamī parameter slot must be immediately followed by one dvitīyā value.
 
 ### A structured result is rejected
@@ -1980,6 +2053,31 @@ two positions with `वि + नि + मेङ्`. It introduces no sorting-sp
 computes the collection length explicitly. See
 [`bubble_sort.pvm`](../examples/algorithms/bubble_sort.pvm).
 
+Insertion Sort takes each member with the same `क्रमशः` traversal and calls a
+procedure that finds the member's place among those before it, then moves it
+there with one `निस् + हृ` and one `नि + क्षिप्`. Its inner loop has two
+clauses joined by च (§9.1). The places and members its procedures share
+(`स्थान`, `पूर्वाङ्क`, …) are set at top level first, which makes them program state
+(§11.5). See
+[`insertion_sort.pvm`](../examples/algorithms/insertion_sort.pvm).
+
+Merge Sort returns a list of fewer than two members as it is. Otherwise it
+divides the list at `मध्य` with `वि + भज्`, takes each half as a portion with
+`परि + अन्त + अम्`, sorts each half by calling itself, and merges the two sorted
+halves. The merge is recursive too: when one list is empty the merge is the other,
+and otherwise the smaller first member is inserted before the merge of what remains,
+with `नि + क्षिप्` at `प्रथम + ङि`. Every value a call sets belongs to that
+call (§11.5), so no level overwrites another. See
+[`merge_sort.pvm`](../examples/algorithms/merge_sort.pvm).
+
+Binary Search narrows the places of a sorted, non-empty list between `आदि` and
+`अन्त`. Each step adds them and divides by two with `वि + भज्`, which keeps the
+whole quotient, and reads the member at that middle place. While `आदि` is less than `अन्त`, the
+member is compared with the sought number: when it is less, `आदि` moves past the
+middle; otherwise `अन्त` comes to it. The member left at `आदि` is the sought
+number when it is present; otherwise the program prints `शून्य`. See
+[`binary_search.pvm`](../examples/algorithms/binary_search.pvm).
+
 ### 17.1 First-member reduction
 
 Use `प्रथमम् आरभ्य` when one result must be accumulated from every member of a
@@ -2035,7 +2133,22 @@ nominal branch results. Foreach scope ends
 with its body. A genitive pronoun may name the foreach collection itself; its
 antecedent is resolved before the new member enters scope. A procedure's pronouns
 do not capture its dynamic caller's
-participants. General top-level discourse references are not yet supported.
+participants.
+
+At top level, `तद्` takes up a participant of the immediately preceding top-level
+sentence (it refers back to what was just introduced). फल and literal numerals
+are not antecedents, and a procedure definition in between leaves none. The same
+number and lexical-gender agreement applies, and the readable text declines the
+pronoun in its antecedent's gender:
+
+```pvm
+पञ्चन् + शस् सङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।
+तद् + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः फल + अम् तद् + ङि स्था + णिच् + लोट् + सिप् ।
+```
+
+Readable Sanskrit: `पञ्च सङ्ख्यायां स्थापय । ताम् एकं च योजय ततः फलं तस्यां स्थापय ।`
+Two agreeing participants, or one whose gender is not lexically established, are
+errors; a name without lexical gender, such as `अङ्क`, must be repeated.
 This is not blanket support for every सर्वनाम: derived forms and other senses
 such as interrogatives, relatives, and quantifiers are not automatic antecedent
 lookups.

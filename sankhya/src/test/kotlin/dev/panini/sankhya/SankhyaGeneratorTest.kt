@@ -149,13 +149,13 @@ class SankhyaGeneratorTest {
 
         assertTrue(sut.ordinal(1L).applications.isEmpty())
         val second = sut.ordinal(2L)
-        assertEquals(listOf("5.2.54"), second.applications.map { it.sutra }.withoutSvara())
+        assertEquals(listOf("5.2.54", "1.4.17"), second.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("द्वि", "तीय"), second.final.terms.map { it.surface })
         assertEquals(TermKind.PRATYAYA, second.final.terms.last().kind)
         assertEquals("5.2.54", second.final.terms.last().createdBySutra)
 
         val third = sut.ordinal(3L)
-        assertEquals(listOf("5.2.55"), third.applications.map { it.sutra }.withoutSvara())
+        assertEquals(listOf("5.2.55", "1.4.17"), third.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("तृ", "तीय"), third.final.terms.map { it.surface })
         assertEquals("5.2.55", third.final.terms.last().createdBySutra)
         val fourth = sut.ordinal(4L)

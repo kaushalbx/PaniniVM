@@ -58,24 +58,26 @@ class NumeralTaddhitaTest {
     }
 
     @Test
-    fun `test DvitrichaturbhyahSucSutra derives sakrt, dvih, trih, catuh`() {
-        val stateDvi = DerivationState(
-            terms = listOf(
-                DerivationTerm(id = "s1", surface = "द्वि", kind = TermKind.PRATIPADIKA, upadesha = "द्वि")
-            ),
-            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
+    fun `5_4_18 replaces krtvasuc with suc after dvi tri catur, and 5_4_19 gives sakrt for eka`() {
+        fun frequency(stem: String) = DerivationState(
+            terms = listOf(DerivationTerm(id = "s1", surface = stem, kind = TermKind.PRATIPADIKA, upadesha = stem)),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.KRTVASUC)),
         )
-        assertTrue(DvitrichaturbhyahSucSutra.matches(stateDvi))
-        val changeDvi = DvitrichaturbhyahSucSutra.apply(stateDvi)
-        assertEquals("द्विः", changeDvi.state.terms.single().surface)
+        for (stem in listOf("द्वि", "त्रि", "चतुर्")) {
+            val state = frequency(stem)
+            assertTrue(DvitrichaturbhyahSucSutra.matches(state), stem)
+            val result = DvitrichaturbhyahSucSutra.apply(state).state
+            assertEquals(listOf(stem, "सुच्"), result.terms.map { it.upadesha }, stem)
+            assertTrue(!DvitrichaturbhyahSucSutra.matches(result), "सुच् is added once")
+        }
+        // 5.4.18 is an apavāda of 5.4.17 only for these three; पञ्चन् keeps कृत्वसुच्.
+        assertTrue(!DvitrichaturbhyahSucSutra.matches(frequency("पञ्चन्")))
+        assertTrue(!DvitrichaturbhyahSucSutra.matches(frequency("एक")))
 
-        val stateEka = DerivationState(
-            terms = listOf(
-                DerivationTerm(id = "s1", surface = "एक", kind = TermKind.PRATIPADIKA, upadesha = "एक")
-            ),
-            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
-        )
-        val changeEka = DvitrichaturbhyahSucSutra.apply(stateEka)
-        assertEquals("सकृत्", changeEka.state.terms.single().surface)
+        val eka = frequency("एक")
+        assertTrue(dev.panini.ashtadhyayi.adhyaya5.pada4.EkasyaSakrcCaSutra.matches(eka))
+        val sakrt = dev.panini.ashtadhyayi.adhyaya5.pada4.EkasyaSakrcCaSutra.apply(eka).state
+        assertEquals("सकृत्", sakrt.terms.first().surface)
+        assertEquals("सुच्", sakrt.terms.last().upadesha)
     }
 }

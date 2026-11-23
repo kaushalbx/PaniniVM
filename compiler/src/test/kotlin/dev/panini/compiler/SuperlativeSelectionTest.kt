@@ -58,7 +58,7 @@ class SuperlativeSelectionTest {
 
     @Test fun `a result named by its action is that action's, not the latest`() {
         // योजनस्य फलम् after an absolutive chain is the sum, though नव was stored after it.
-        val source = "द्वि + अम् त्रि + अम् च युज् + णिच् + क्त्वा नवन् + अम् फल + ङि स्था + णिच् + क्त्वा " +
+        val source = "द्वि + औट् त्रि + शस् च युज् + णिच् + क्त्वा नवन् + शस् फल + ङि स्था + णिच् + क्त्वा " +
             "युज् + णिच् + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         assertEquals("पञ्च", assertIs<ExecutionResult.Success>(interpreted(source).last()).value)
         assertEquals("पञ्च", compiled(source, "NamedAbsolutiveResult")["LastResult"]?.toDisplayText())

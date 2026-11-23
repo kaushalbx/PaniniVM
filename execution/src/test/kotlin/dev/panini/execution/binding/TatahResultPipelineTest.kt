@@ -19,7 +19,7 @@ class TatahResultPipelineTest {
     @Test
     fun `tatah supplies the preceding result as a missing karman`() {
         val bound = bind(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
                 "ततः मुद्र् + णिच् + लोट् + सिप् ।",
         )
 
@@ -33,7 +33,7 @@ class TatahResultPipelineTest {
     @Test
     fun `an explicit karman takes precedence over tatah piping`() {
         val bound = bind(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
                 "ततः संदेश + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )
 
@@ -43,7 +43,7 @@ class TatahResultPipelineTest {
     @Test
     fun `tatah preserves the typed result through execution`() {
         val result = PaniniVM().eval(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
                 "ततः मुद्र् + णिच् + लोट् + सिप् ।",
         )
 
@@ -53,7 +53,7 @@ class TatahResultPipelineTest {
     @Test
     fun `tatah joins the result of either conditional branch`() {
         val result = PaniniVM().eval(
-            "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+            "यदि द्वि + औट् एक + अम् च विद् + लोट् + सिप् " +
                 "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् " +
                 "ततः मुद्र् + णिच् + लोट् + सिप् ।",
         )

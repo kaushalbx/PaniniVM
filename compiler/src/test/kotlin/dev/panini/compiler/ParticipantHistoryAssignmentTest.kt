@@ -93,7 +93,7 @@ class ParticipantHistoryAssignmentTest {
 
     @Test fun `unselected remembered arithmetic branch does not require an action frame`() {
         val source = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
-            "नव + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा " +
+            "नव + शस् मुद्र् + णिच् + लोट् + सिप् अन्यथा " +
             "युज् + ल्युट् + ङस् कर्मन् + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"
         assertEquals("नव", assertIs<SanskritValue>(parity(source, "LazyRememberedArithmetic")["LastResult"]).toDisplayText())
     }

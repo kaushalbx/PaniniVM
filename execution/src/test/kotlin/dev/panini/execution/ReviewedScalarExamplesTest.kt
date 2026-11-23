@@ -45,7 +45,7 @@ class ReviewedScalarExamplesTest {
             assertTrue(results.all { it is ExecutionResult.Success }, "$name: $results")
             val successes = results.filterIsInstance<ExecutionResult.Success>()
             val printed = successes.single { it.outputKind == OutputKind.CONSOLE }
-            val outputState = mapOf("power_demo" to "घात", "geometric_progression" to "पदसङ्ख्या",
+            val outputState = mapOf("power_demo" to "घात", "geometric_progression" to "पद-सङ्ख्या",
                 "factorial" to "सङ्ख्या", "sum_iterative" to "योग")[name]
             val computed = if (outputState == null)
                 successes.mapNotNull { it.typedValue as? SanskritValue.Sankhya }.last()

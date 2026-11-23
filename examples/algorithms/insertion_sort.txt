@@ -1,0 +1,40 @@
+# Insertion Sort: take each member in turn and find its place among the members
+# before it, then take it out and insert it there. स्थान moves back while a member
+# before it exists and the member is less than it (अङ्कं पूर्वाङ्काद् न्यूनम्).
+# च joins the two clauses and reads them left to right, so the second is read
+# only when a member before स्थान exists. क्रमशः reads each member from the
+# list as the earlier steps left it.
+पञ्च एकं चत्वारि द्वे अष्टौ त्रीणि इति दत्तसूची नाम सङ्ख्यानां सूची अस्ति ।
+
+# Read the member before स्थान.
+ज्ञानं नाम प्रक्रिया अस्ति ।
+स्थानम् एकं च वियोजय ततः वियोजनस्य फलं पूर्वस्थाने स्थापय ।
+दत्तसूच्याः पूर्वस्थाने मूल्यं गृहाण ततः ग्रहणस्य फलं पूर्वाङ्के स्थापय ॥
+
+# Look at the member before स्थान when there is one; at the first place there is none.
+दर्शनं नाम प्रक्रिया अस्ति ।
+यदि एकं स्थानाद् न्यूनम् अस्ति तर्हि ज्ञानेन कुरु ॥
+
+# Move स्थान one place back.
+सरणं नाम प्रक्रिया अस्ति ।
+स्थानम् एकं च वियोजय ततः वियोजनस्य फलं स्थाने स्थापय ।
+दर्शनेन कुरु ॥
+
+# Place the member at क्रम among the members before it.
+वर्तनं नाम प्रक्रिया अस्ति ।
+सदस्यम् अङ्के स्थापय ।
+क्रमं स्थाने स्थापय ।
+दर्शनेन कुरु ।
+यावद् एकं स्थानाद् न्यूनम् अस्ति च अङ्कं पूर्वाङ्काद् न्यूनम् अस्ति तावत् सरणेन कुरु ।
+दत्तसूच्याः क्रमे सदस्यं निर्हर ततः निर्हरणस्य फलं दत्तसूच्यां स्थापय ।
+दत्तसूच्याः स्थाने अङ्कं निक्षिप ततः निक्षेपणस्य फलं दत्तसूच्यां स्थापय ॥
+
+# The places and members the procedures share are program state, set here.
+एकं स्थाने स्थापय ।
+एकं पूर्वस्थाने स्थापय ।
+शून्यम् अङ्के स्थापय ।
+शून्यं पूर्वाङ्के स्थापय ।
+
+दत्तसूच्याः एकैकं सदस्यं तस्य क्रमं च गृहीत्वा क्रमशः वर्तनेन कुरु ।
+
+दत्तसूचीं मुद्रय ।

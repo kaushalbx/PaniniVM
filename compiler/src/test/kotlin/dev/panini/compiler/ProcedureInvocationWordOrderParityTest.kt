@@ -5,8 +5,8 @@ import kotlin.test.*
 
 class ProcedureInvocationWordOrderParityTest {
     @Test fun `unique locative parameter can follow its value and finite verb`() {
-        for ((index, phrase) in listOf("पञ्च + अम् मान + ङि परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
-            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + अम् मान + ङि").withIndex()) {
+        for ((index, phrase) in listOf("पञ्च + शस् मान + ङि परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
+            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + शस् मान + ङि").withIndex()) {
             val source = """
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
@@ -22,8 +22,8 @@ class ProcedureInvocationWordOrderParityTest {
     }
 
     @Test fun `scoped procedure domain can follow the procedure noun and finite verb`() {
-        for ((index, phrase) in listOf("पञ्च + अम् परीक्षण + टा गणित + ङस् डुकृञ् + उ + लोट् + सिप्",
-            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + अम् गणित + ङस्").withIndex()) {
+        for ((index, phrase) in listOf("पञ्च + शस् परीक्षण + टा गणित + ङस् डुकृञ् + उ + लोट् + सिप्",
+            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + शस् गणित + ङस्").withIndex()) {
             val source = """
                 गणित + ङस् परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
@@ -40,8 +40,8 @@ class ProcedureInvocationWordOrderParityTest {
     }
 
     @Test fun `procedure noun and finite verb do not truncate written operands`() {
-        for ((index, phrase) in listOf("परीक्षण + टा पञ्च + अम् डुकृञ् + उ + लोट् + सिप्",
-            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + अम्").withIndex()) {
+        for ((index, phrase) in listOf("परीक्षण + टा पञ्च + शस् डुकृञ् + उ + लोट् + सिप्",
+            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + शस्").withIndex()) {
             val source = """
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।

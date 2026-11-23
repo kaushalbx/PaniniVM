@@ -53,11 +53,11 @@ For example, this segmented sentence adds two numbers and sends its result
 directly to `योग`:
 
 ```pvm
-द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः योग + ङे दा + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ततः योग + ङे दा + लोट् + सिप् ।
 ```
 
 The source is Sanskrit, while its execution model remains statically
-inspectable: `द्वि + अम्` and `त्रि + अम्` are operands, `युज्` supplies
+inspectable: `द्वि + औट्` and `त्रि + शस्` are operands, `युज्` supplies
 the operation identity, and `योग + ङे` is the result destination.
 
 ---
@@ -200,20 +200,20 @@ the block and are not executed as body actions.
 The operation accepts the original positional call form:
 
 ```pvm
-द्वि + अम् त्रि + अम् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 It also accepts named arguments. A parameter slot uses saptamī and its value
 immediately follows in dvitīyā; named arguments may appear in any order.
 
 ```pvm
-दक्षिण + ङि त्रि + अम् वाम + ङि द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+दक्षिण + ङि त्रि + शस् वाम + ङि द्वि + औट् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 Supported signature types are `सङ्ख्या`, `शब्द`, and `सूची`. A result may also
 name a declared structured schema. Schemas use an ordinary genitive relation:
 coordinated nominative subjects “are fields of” the schema, for example
-`अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि`.
+`अवस्था + सुँ प्रयत्न-सङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि`.
 Typed values retain their semantic
 type when one prakriyā feeds another pipeline stage. The runtime and IDEA
 plugin diagnose duplicate declarations, missing or unknown named arguments,
@@ -298,7 +298,7 @@ println(derivationResult.final.surface) // Output: कारु
 
 // Single utterance evaluation via VM
 val vm = PaniniVM()
-val result = vm.eval("दशन् + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
+val result = vm.eval("दशन् + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }

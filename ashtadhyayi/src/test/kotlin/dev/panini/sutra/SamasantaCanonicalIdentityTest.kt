@@ -56,6 +56,7 @@ class SamasantaCanonicalIdentityTest {
             "5.4.158" to "ऋतश्छन्दसि", "5.4.159" to "नाडीतन्त्र्योः स्वाङ्गे", "5.4.160" to "निष्प्रवाणिश्च",
             "5.4.17" to "संख्यायाः क्रियाअभ्यावृत्तिगणने कृत्वसुच्",
             "5.4.18" to "द्वित्रिचतुर्भ्यः सुच्",
+            "5.4.19" to "एकस्य सकृच्च",
         )
         val actual = Adhyaya5Pada4.sutras.filter { it.number.startsWith("5.4.") }.associate { it.number to it.text }
         assertEquals(expected, actual)

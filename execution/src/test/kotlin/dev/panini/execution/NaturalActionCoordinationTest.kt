@@ -17,7 +17,7 @@ class NaturalActionCoordinationTest {
         val source = """
             यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप्
             तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप्
-            च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            च द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
 
         assertEquals(listOf("एक", "द्वि"), console(source))
@@ -28,7 +28,7 @@ class NaturalActionCoordinationTest {
         val source = """
             यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप्
             तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप्
-            अथ द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            अथ द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
 
         assertEquals(listOf("एक", "द्वि"), console(source))
@@ -38,7 +38,7 @@ class NaturalActionCoordinationTest {
     fun `unprefixed imperative stha stops the nearest loop`() {
         val source = """
             त्रि + कृत्वसुच् एक + अम् मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।
-            द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)
 
@@ -54,7 +54,7 @@ class NaturalActionCoordinationTest {
             एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + ङस् सदस्य + अम् प्रति
             त्रि + कृत्वसुच् सदस्य + अम् मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।
-            नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
 
         assertEquals(listOf("एक", "द्वि", "त्रि", "नवन्"), console(source))
@@ -64,7 +64,7 @@ class NaturalActionCoordinationTest {
     fun `control signal prevents later cha coordinated action`() {
         val source = """
             त्रि + कृत्वसुच् स्था + लोट् + सिप्
-            च नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            च नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
 

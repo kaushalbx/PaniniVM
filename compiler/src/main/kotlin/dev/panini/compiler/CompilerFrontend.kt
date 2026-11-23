@@ -83,7 +83,7 @@ internal object CompilerFrontend {
             lowerModuleUnchecked(descriptor, className, parseSource)
         } catch (error: dev.panini.execution.PvmSemanticException) {
             throw CompilerUnsupportedException(
-                CompilerUnsupportedKind.REPETITION,
+                CompilerUnsupportedKind.INVALID_SOURCE,
                 error.diagnostic.offendingText,
                 "${error.diagnostic.code}: ${error.diagnostic.message}",
                 error.diagnostic,
@@ -91,7 +91,7 @@ internal object CompilerFrontend {
         } catch (error: dev.panini.vyakaranam.parser.PaniniSemanticException) {
             val diagnostic = dev.panini.execution.ExecutionDiagnostic.from(error.diagnostic)
             throw CompilerUnsupportedException(
-                CompilerUnsupportedKind.REPETITION,
+                CompilerUnsupportedKind.INVALID_SOURCE,
                 diagnostic.offendingText,
                 "${diagnostic.code}: ${diagnostic.message}",
                 diagnostic,
@@ -1057,13 +1057,15 @@ internal object CompilerFrontend {
         private fun lowerConditionalIr(node: Conditional): List<CompilerInstruction>? {
             val truthTest = (node.condition as? Invocation)?.let(NaturalSemanticNormalizer::normalize)
                 as? NaturalSemanticNormalizer.Operation.TruthTest
-            val condition = if (truthTest != null) {
+            val condition = if (node.conjuncts.isNotEmpty()) {
+                lowerConjoinedCondition(listOf(node.condition as Invocation) + node.conjuncts)
+            } else if (truthTest != null) {
                 listOf(
                     CompilerInstruction.Load(truthTest.stateName),
                     CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!truthTest.negated)),
                     CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                 )
-            } else (node.condition as? Invocation)?.let(::lowerResolvedCondition)
+            } else (node.condition as? Invocation)?.let(::lowerNegatableCondition)
                 ?: (lower(node.condition) + CompilerInstruction.LoadLastResult + CompilerInstruction.Booleanize)
             val consequent = lowerPrimitiveBranchIr(node.consequent) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL,
@@ -1083,6 +1085,45 @@ internal object CompilerFrontend {
                 alternate = alternate,
                 labelPrefix = "conditional_${nextLabel++}",
             )
+        }
+
+        /**
+         * च-conjoined clauses, read left to right: a false clause skips the rest, as in the interpreter, so a later
+         * clause may rely on an earlier one (a member before स्थान is read only once स्थान is past the first).
+         */
+        private fun lowerConjoinedCondition(clauses: List<Invocation>): List<CompilerInstruction> {
+            val falseLabel = "conjoined_false_${nextLabel++}"
+            val endLabel = "conjoined_end_${nextLabel++}"
+            val lowered = clauses.map { clause ->
+                lowerNegatableCondition(clause) ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.CONDITIONAL, render(clause), "Cannot lower a च-conjoined condition clause.")
+            }
+            return buildList {
+                lowered.dropLast(1).forEach { addAll(it); add(CompilerInstruction.Branch(falseLabel)) }
+                addAll(lowered.last())
+                add(CompilerInstruction.Jump(endLabel))
+                add(CompilerInstruction.Label(falseLabel))
+                add(CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(false)))
+                add(CompilerInstruction.Booleanize)
+                add(CompilerInstruction.Label(endLabel))
+            }
+        }
+
+        /**
+         * As in PvmLoopExecutor and PvmConditionalExecutor, न scopes over the predicate's truth: lower the affirmative
+         * predicate and invert it. A truth-state test carries its own negation and is left to [lowerResolvedCondition].
+         */
+        private fun lowerNegatableCondition(node: Invocation): List<CompilerInstruction>? {
+            val isNishedha = { pada: dev.panini.vyakaranam.ast.Pada -> pada is AvyayaPada && pada.function == AvyayaFunction.NISHEDHA }
+            val original = node.vakya
+            if (NaturalSemanticNormalizer.normalize(node) is NaturalSemanticNormalizer.Operation.TruthTest ||
+                original.padas.none(isNishedha)) return lowerResolvedCondition(node)
+            val padas = original.padas.filterNot(isNishedha)
+            val affirmative = node.copy(vakya = when (original) {
+                is dev.panini.vyakaranam.ast.AkhyataVakya -> original.copy(padas = padas)
+                is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(padas = padas)
+            })
+            return lowerResolvedCondition(affirmative)?.plus(CompilerInstruction.Not)
         }
 
         private fun lowerResolvedCondition(node: Invocation): List<CompilerInstruction>? {
@@ -1143,13 +1184,18 @@ internal object CompilerFrontend {
                     val nominal = resolveAnaphors(node).vakya.padas.singleOrNull() as? SubantaPada ?: return null
                     lowerNominalResult(nominal)
                 } else {
-                    runCatching { lowerInvocation(node, exactSource = null) }.getOrNull()
-                        ?: throw CompilerUnsupportedException(
-                        CompilerUnsupportedKind.INVOCATION,
-                        normalized(render(node)),
-                        "Cannot lower conditional invocation with padas " +
-                            node.vakya.padas.joinToString { it::class.simpleName.orEmpty() },
-                    )
+                    val lowered = runCatching { lowerInvocation(node, exactSource = null) }
+                    lowered.getOrNull() ?: run {
+                        val cause = lowered.exceptionOrNull()
+                        if (cause is CompilerUnsupportedException && cause.diagnostic != null) throw cause
+                        throw CompilerUnsupportedException(
+                            CompilerUnsupportedKind.INVOCATION,
+                            normalized(render(node)),
+                            "Cannot lower conditional invocation with padas " +
+                                node.vakya.padas.joinToString { it::class.simpleName.orEmpty() } +
+                                (cause?.message?.let { " ($it)" } ?: ""),
+                        )
+                    }
                 }
             }
             is Conditional -> lowerConditionalIr(node)
@@ -1258,8 +1304,10 @@ internal object CompilerFrontend {
                         ),
                         CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                     )
+                } else if (node.conjuncts.isNotEmpty()) {
+                    lowerConjoinedCondition(listOf(node.condition) + node.conjuncts)
                 } else {
-                    lowerResolvedCondition(node.condition)
+                    lowerNegatableCondition(node.condition)
                         ?: normalizedTruth?.let { truth ->
                             listOf(
                                 CompilerInstruction.Load(truth.stateName),

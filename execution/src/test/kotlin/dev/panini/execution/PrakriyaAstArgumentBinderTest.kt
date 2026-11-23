@@ -294,7 +294,7 @@ class PrakriyaAstArgumentBinderTest {
         val argument = SanskritValue.Sankhya(2, "द्वि")
         val invocation = PrakriyaInvocation(
             kriya = kriya,
-            karmaText = "द्वि + अम्",
+            karmaText = "द्वि + औट्",
             fullText = "",
             arguments = listOf(
                 PrakriyaArgument("द्वि", value = argument, origin = PrakriyaArgumentOrigin.PIPE),

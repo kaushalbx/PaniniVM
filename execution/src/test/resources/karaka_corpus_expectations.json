@@ -857,14 +857,14 @@
             "2.3.36"
           ],
           "additionalDesignations": [],
-          "source": "पदसङ्ख्या+ङि",
+          "source": "पद-सङ्ख्या+ङि",
           "candidates": [],
           "alternatives": [],
           "case": "SAPTAMI",
           "karaka": "ADHIKARANA"
         }
       ],
-      "clause": "द्वि + औट् पदसङ्ख्या + ङि स्था + णिच् + लोट् + सिप्",
+      "clause": "द्वि + औट् पद-सङ्ख्या + ङि स्था + णिच् + लोट् + सिप्",
       "path": "examples/arithmetic/geometric_progression.pvm",
       "wordOrders": [
         [
@@ -1011,14 +1011,14 @@
             "2.3.36"
           ],
           "additionalDesignations": [],
-          "source": "पदसङ्ख्या+ङि",
+          "source": "पद-सङ्ख्या+ङि",
           "candidates": [],
           "alternatives": [],
           "case": "SAPTAMI",
           "karaka": "ADHIKARANA"
         }
       ],
-      "clause": "फल + अम् पदसङ्ख्या + ङि स्था + णिच् + लोट् + सिप्",
+      "clause": "फल + अम् पद-सङ्ख्या + ङि स्था + णिच् + लोट् + सिप्",
       "path": "examples/arithmetic/geometric_progression.pvm",
       "wordOrders": [
         [
@@ -1040,14 +1040,14 @@
             "2.3.2"
           ],
           "additionalDesignations": [],
-          "source": "पदसङ्ख्या+अम्",
+          "source": "पद-सङ्ख्या+अम्",
           "candidates": [],
           "alternatives": [],
           "case": "DVITIYA",
           "karaka": "KARMAN"
         }
       ],
-      "clause": "पदसङ्ख्या + अम् मुद्र् + णिच् + लोट् + सिप्",
+      "clause": "पद-सङ्ख्या + अम् मुद्र् + णिच् + लोट् + सिप्",
       "path": "examples/arithmetic/geometric_progression.pvm",
       "wordOrders": [
         [
@@ -1535,7 +1535,7 @@
         }
       ],
       "path": "examples/arithmetic/geometric_progression.pvm",
-      "clause": "त्रि + सुच् पदसङ्ख्या + अम् गुणक + अम् च गुण + णिच् + लोट् + सिप्",
+      "clause": "त्रि + सुच् पद-सङ्ख्या + अम् गुणक + अम् च गुण + णिच् + लोट् + सिप्",
       "occurrence": 0,
       "rationale": "The current progression term and common ratio are coordinated multiplication objects. Tri plus suc counts three event occurrences under canonical 5.4.18.",
       "participants": [
@@ -1543,7 +1543,7 @@
           "resolution": "RESOLVED",
           "alternatives": [],
           "additionalDesignations": [],
-          "source": "पदसङ्ख्या+अम्",
+          "source": "पद-सङ्ख्या+अम्",
           "case": "DVITIYA",
           "candidates": [],
           "chain": [
@@ -4652,7 +4652,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_0_clause_0",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "एक+अम्पूर्वसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "एक+अम्पूर्व-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4677,7 +4677,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+ङि",
+          "source": "पूर्व-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -4696,7 +4696,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_1_clause_0",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "एक+अम्वर्तमानसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "एक+अम्वर्तमान-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4721,7 +4721,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "वर्तमानसङ्ख्या+ङि",
+          "source": "वर्तमान-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -4740,13 +4740,13 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_2_clause_0",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "षष्+कृत्वसुच्वर्तमानसङ्ख्या+अम्पूर्वसङ्ख्या+अम्चयुज्+णिच्+लोट्+सिप्",
+      "clause": "षष्+कृत्वसुच्वर्तमान-सङ्ख्या+अम्पूर्व-सङ्ख्या+अम्चयुज्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -4759,7 +4759,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+अम्",
+          "source": "पूर्व-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -4794,7 +4794,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_2_clause_1",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "फल+अम्उत्तरसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "फल+अम्उत्तर-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4819,7 +4819,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "उत्तरसङ्ख्या+ङि",
+          "source": "उत्तर-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -4838,7 +4838,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_2_clause_2",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "वर्तमानसङ्ख्या+अम्पूर्वसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "वर्तमान-सङ्ख्या+अम्पूर्व-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4850,7 +4850,7 @@
       ],
       "participants": [
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -4863,7 +4863,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+ङि",
+          "source": "पूर्व-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -4882,7 +4882,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_2_clause_3",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "उत्तरसङ्ख्या+अम्वर्तमानसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "उत्तर-सङ्ख्या+अम्वर्तमान-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4894,7 +4894,7 @@
       ],
       "participants": [
         {
-          "source": "उत्तरसङ्ख्या+अम्",
+          "source": "उत्तर-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -4907,7 +4907,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "वर्तमानसङ्ख्या+ङि",
+          "source": "वर्तमान-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -4926,7 +4926,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_pvm_item_3_clause_0",
       "path": "examples/algorithms/fibonacci.pvm",
-      "clause": "वर्तमानसङ्ख्या+अम्मुद्र्+णिच्+लोट्+सिप्",
+      "clause": "वर्तमान-सङ्ख्या+अम्मुद्र्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4937,7 +4937,7 @@
       ],
       "participants": [
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -4956,7 +4956,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_0_clause_0",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "एक+अम्पूर्वसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "एक+अम्पूर्व-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -4981,7 +4981,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+ङि",
+          "source": "पूर्व-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -5000,7 +5000,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_1_clause_0",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "एक+अम्वर्तमानसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "एक+अम्वर्तमान-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -5025,7 +5025,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "वर्तमानसङ्ख्या+ङि",
+          "source": "वर्तमान-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -5044,13 +5044,13 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_2_clause_0",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "पूर्वसङ्ख्या+अम्वर्तमानसङ्ख्या+अम्चसम्+ग्रहँ+श्ना+लोट्+सिप्",
+      "clause": "पूर्व-सङ्ख्या+अम्वर्तमान-सङ्ख्या+अम्चसम्+ग्रहँ+श्ना+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "पूर्वसङ्ख्या+अम्",
+          "source": "पूर्व-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5063,7 +5063,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5134,13 +5134,13 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_3_clause_0",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "षष्+कृत्वसुच्वर्तमानसङ्ख्या+अम्पूर्वसङ्ख्या+अम्चयुज्+णिच्+लोट्+सिप्",
+      "clause": "षष्+कृत्वसुच्वर्तमान-सङ्ख्या+अम्पूर्व-सङ्ख्या+अम्चयुज्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5153,7 +5153,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+अम्",
+          "source": "पूर्व-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5188,7 +5188,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_3_clause_1",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "फल+अम्उत्तरसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "फल+अम्उत्तर-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -5213,7 +5213,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "उत्तरसङ्ख्या+ङि",
+          "source": "उत्तर-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -5232,7 +5232,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_3_clause_2",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "उत्तरसङ्ख्या+अम्क्रम+ङिनि+क्षिप्+लोट्+सिप्",
+      "clause": "उत्तर-सङ्ख्या+अम्क्रम+ङिनि+क्षिप्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -5244,7 +5244,7 @@
       ],
       "participants": [
         {
-          "source": "उत्तरसङ्ख्या+अम्",
+          "source": "उत्तर-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5320,7 +5320,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_3_clause_4",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "वर्तमानसङ्ख्या+अम्पूर्वसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "वर्तमान-सङ्ख्या+अम्पूर्व-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -5332,7 +5332,7 @@
       ],
       "participants": [
         {
-          "source": "वर्तमानसङ्ख्या+अम्",
+          "source": "वर्तमान-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5345,7 +5345,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "पूर्वसङ्ख्या+ङि",
+          "source": "पूर्व-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -5364,7 +5364,7 @@
     {
       "id": "judged_examples_algorithms_fibonacci_array_pvm_item_3_clause_5",
       "path": "examples/algorithms/fibonacci_array.pvm",
-      "clause": "उत्तरसङ्ख्या+अम्वर्तमानसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "उत्तर-सङ्ख्या+अम्वर्तमान-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -5376,7 +5376,7 @@
       ],
       "participants": [
         {
-          "source": "उत्तरसङ्ख्या+अम्",
+          "source": "उत्तर-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -5389,7 +5389,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "वर्तमानसङ्ख्या+ङि",
+          "source": "वर्तमान-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -12852,7 +12852,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_0_clause_2",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "पेटिकाक्रमाङ्क+सुँबन्दिसङ्ख्या+टासम+सुँअसँ+लट्+तिप्",
+      "clause": "पेटिकाक्रमाङ्क+सुँबन्दि-सङ्ख्या+टासम+सुँअसँ+लट्+तिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -12878,7 +12878,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "बन्दिसङ्ख्या+टा",
+          "source": "बन्दि-सङ्ख्या+टा",
           "resolution": "RESOLVED",
           "karaka": "SAMBANDHA",
           "case": "TRTIYA",
@@ -13005,7 +13005,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_0",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "बन्दिसङ्ख्या+अम्पेटिकाक्रमाङ्क+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "बन्दि-सङ्ख्या+अम्पेटिकाक्रमाङ्क+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -13017,7 +13017,7 @@
       ],
       "participants": [
         {
-          "source": "बन्दिसङ्ख्या+अम्",
+          "source": "बन्दि-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -13240,13 +13240,13 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_7",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "बन्दिसङ्ख्या+अम्एक+अम्चयुज्+णिच्+लोट्+सिप्",
+      "clause": "बन्दि-सङ्ख्या+अम्एक+अम्चयुज्+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked. Coordination records are written structure taken from the corpus report, not role judgments.",
       "wordOrders": [],
       "participants": [
         {
-          "source": "बन्दिसङ्ख्या+अम्",
+          "source": "बन्दि-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -13286,7 +13286,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_1_clause_8",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "युज्+णिच्+ल्युट्+ङस्फल+अम्बन्दिसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "युज्+णिच्+ल्युट्+ङस्फल+अम्बन्दि-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
       "wordOrders": [],
@@ -13317,7 +13317,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "बन्दिसङ्ख्या+ङि",
+          "source": "बन्दि-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -13347,7 +13347,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_1",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "चि+ल्युट्+ङस्फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "चि+ल्युट्+ङस्फल+अम्चित-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
       "wordOrders": [],
@@ -13378,7 +13378,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "चितसङ्ख्या+ङि",
+          "source": "चित-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -13397,7 +13397,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_2",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "चितसङ्ख्या+अम्सम्+ग्रहँ+श्ना+लोट्+सिप्",
+      "clause": "चित-सङ्ख्या+अम्सम्+ग्रहँ+श्ना+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -13408,7 +13408,7 @@
       ],
       "participants": [
         {
-          "source": "चितसङ्ख्या+अम्",
+          "source": "चित-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -13521,7 +13521,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_5",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "चि+ल्युट्+ङस्फल+अम्चितसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "चि+ल्युट्+ङस्फल+अम्चित-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 1,
       "rationale": "Re-reviewed after each result was named by its action: the genitive action noun relates to फल (2.3.50). Judged from endings and clause type by the audit table, then read by hand; the same author wrote the sentence and this review.",
       "wordOrders": [],
@@ -13552,7 +13552,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "चितसङ्ख्या+ङि",
+          "source": "चित-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -13571,7 +13571,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_3_clause_6",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "चितसङ्ख्या+अम्पेटिकाक्रम+ङिनि+क्षिप्+लोट्+सिप्",
+      "clause": "चित-सङ्ख्या+अम्पेटिकाक्रम+ङिनि+क्षिप्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -13583,7 +13583,7 @@
       ],
       "participants": [
         {
-          "source": "चितसङ्ख्या+अम्",
+          "source": "चित-सङ्ख्या+अम्",
           "resolution": "RESOLVED",
           "karaka": "KARMAN",
           "case": "DVITIYA",
@@ -13695,7 +13695,7 @@
     {
       "id": "judged_projects_hundred_prisoners_hundred_prisoners_pvm_item_5_clause_0",
       "path": "projects/hundred-prisoners/hundred_prisoners.pvm",
-      "clause": "एक+अम्बन्दिसङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
+      "clause": "एक+अम्बन्दि-सङ्ख्या+ङिस्था+णिच्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Judged from endings and clause type by the audit table, independently of analyzer roles, cases and chains; the agreement was then checked.",
       "wordOrders": [
@@ -13720,7 +13720,7 @@
           "additionalDesignations": []
         },
         {
-          "source": "बन्दिसङ्ख्या+ङि",
+          "source": "बन्दि-सङ्ख्या+ङि",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",
@@ -17252,7 +17252,7 @@
     {
       "id": "rereview_examples_arithmetic_random_demo_pvm_item_0_clause_0",
       "path": "examples/arithmetic/random_demo.pvm",
-      "clause": "एक+ङसिँषष्+ङिदिव्+श्यन्+लोट्+सिप्",
+      "clause": "एक+ङसिँषष्+सुप्दिव्+श्यन्+लोट्+सिप्",
       "occurrence": 0,
       "rationale": "Sentence rewritten with its verb. Each word was judged from its ending and clause type against the audit table, then read by hand; the same author wrote the sentence and this review.",
       "participants": [
@@ -17270,7 +17270,7 @@
           "alternatives": []
         },
         {
-          "source": "षष्+ङि",
+          "source": "षष्+सुप्",
           "resolution": "RESOLVED",
           "karaka": "ADHIKARANA",
           "case": "SAPTAMI",

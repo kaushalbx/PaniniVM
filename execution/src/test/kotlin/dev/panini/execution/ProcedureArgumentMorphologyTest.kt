@@ -44,7 +44,7 @@ class ProcedureArgumentMorphologyTest {
             PrakriyaParameter("वाम", PrakriyaValueType.SANKHYA),
             PrakriyaParameter("दक्षिण", PrakriyaValueType.SANKHYA),
         ))
-        val padas = PaniniParser().parse("वाम + ङि द्वि + अम् ।")
+        val padas = PaniniParser().parse("वाम + ङि द्वि + औट् ।")
             .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>()
         val failure = assertIs<PrakriyaArgumentResolution.Failure>(
             NamedPrakriyaArgumentResolver.resolve(padas, signature),

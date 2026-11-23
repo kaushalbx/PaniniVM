@@ -5,6 +5,8 @@ data class PaniniSyntaxError(
     val column: Int,
     val offendingText: String?,
     val message: String,
+    /** Absolute half-open offsets of the offending token in the submitted source, when the lexer knows them. */
+    val span: dev.panini.vyakaranam.ast.DocumentSourceSpan? = null,
 )
 
 class PaniniParseException(

@@ -178,13 +178,55 @@ object KarakaDhatuDomains {
                 SemanticRelation.FASTING_SENSE in context.baseDhatu?.semanticRelations.orEmpty())
     }
 
-    /** Kāśikā/Kaumudī's attested classes plus independently established meaning equivalents. */
+    /**
+     * The 1.4.51 roots by Dhātupāṭha entry, so the sense is part of the identity (Siddhāntakaumudī:
+     * दुह्याच्पच्दण्ड्रुधिप्रच्छिचिब्रूशासुजिमथ्मुषाम् … नीहृकृष्वहाम्; भिक्ष् from Kāśikā). नी, हृ, कृष्, वह् express the primary
+     * object in the passive; the rest express the akathita one.
+     */
+    val dvikarmakaPrimaryExpressing: Set<String> = setOf(
+        "01.1049", "01.9902", // णीञ् प्रापणे
+        "01.1046", // हृञ् हरणे
+        "01.1145", "06.0006", // कृषँ विलेखने
+        "01.1159", // वहँ प्रापणे
+    )
+    val dvikarmakaSecondaryExpressing: Set<String> = setOf(
+        "02.0004", // दुहँ प्रपूरणे
+        "01.0954", "01.1001", // डुयाचृँ, टुयाचृँ याच्ञायाम्
+        "01.1151", // डुपचँष् पाके
+        "10.0472", // दन्ड दण्डनिपाते
+        "07.0001", // रुधिँर् आवरणे
+        "06.0149", // प्रछँ ज्ञीप्सायाम्
+        "01.0690", // भिक्षँ
+        "05.0005", "10.0124", // चिञ् चयने
+        "02.0039", // ब्रूञ् व्यक्तायां वाचि
+        "02.0070", // शासुँ अनुशिष्टौ
+        "01.0642", "01.1096", // जि जये, अभिभवे
+        "01.0983", "01.0048", "09.0047", // मथेँ, मन्थँ विलोडने
+        "09.0066", // मुषँ स्तेये
+    )
+
+    /**
+     * The Dhātupāṭha entries a written root can be: those with that upadeśa (णीञ्) and those with that root form (नी),
+     * which leaves every sense open. चि and हृ are both: the upadeśa of चि भाषायाम्, हृ प्रसह्यकरणे and the form of चिञ्, हृञ्.
+     */
+    fun dhatuEntryIds(dhatu: DhatuIdentity): Set<String> =
+        dev.panini.dhatupatha.DhatuPatha.all.filter { it.upadesha == dhatu.surface || it.sourceSurface == dhatu.surface ||
+            // दण्ड्: an अदन्त curādi root (दण्ड) written after 6.4.48 has deleted its अ.
+            it.gana == dev.panini.core.DhatuGana.CURADI && dhatu.surface.endsWith("्") && it.sourceSurface == dhatu.surface.dropLast(1)
+        }.map { it.id }.toSet()
+
+    private fun entrySurfaces(dhatu: DhatuIdentity): Set<String> {
+        val ids = dhatuEntryIds(dhatu)
+        return dev.panini.dhatupatha.DhatuPatha.all.filter { it.id in ids }.map { it.sourceSurface }.toSet() + dhatu.surface
+    }
+
+    /** Kāśikā/Kaumudī's attested classes plus meaning equivalents the Kaumudī admits (भाष्, वच्, अभि + वद्), since the designation is अर्थनिबन्धन. */
     fun isDvikarmaka(dhatu: DhatuIdentity, prefixes: List<dev.panini.core.Upasarga?> = emptyList(),
         hasEstablishedSense: Boolean = false): Boolean = prefixes.none { it == null } &&
-        (hasEstablishedSense || dhatu.exact(
-            "दुह्", "याच्", "रुध्", "प्रच्छ्", "भिक्ष्", "चि", "ब्रू", "शास्", "जि", "मन्थ्", "मथ्", "मुष्", "नी", "हृ", "कृष्", "वह्", "पच्", "दण्ड्",
-            "भाष्", "वच्",
-        ) || dhatu.exact("वद्") && prefixes.lastOrNull() == dev.panini.core.Upasarga.ABHI)
+        (hasEstablishedSense ||
+            dhatuEntryIds(dhatu).any { it in dvikarmakaPrimaryExpressing || it in dvikarmakaSecondaryExpressing } ||
+            entrySurfaces(dhatu).any { it == "भाष्" || it == "वच्" } ||
+            "वद्" in entrySurfaces(dhatu) && prefixes.lastOrNull() == dev.panini.core.Upasarga.ABHI)
 
     fun isDvikarmaka(context: KarakaRuleContext): Boolean {
         val root = actionRoot(context)?.let(::DhatuIdentity) ?: context.dhatu
@@ -210,7 +252,7 @@ object KarakaDhatuDomains {
         if (prefixes.any { it == null }) return null
         if (hasEstablishedActionMeaning(context, SemanticRelation.PRIMARY_OBJECT_PROMOTING_SENSE)) return false
         if (hasEstablishedActionMeaning(context, SemanticRelation.SECONDARY_OBJECT_PROMOTING_SENSE)) return true
-        if (root.exact("नी", "हृ", "कृष्", "वह्")) return false
+        if (dhatuEntryIds(root).let { ids -> ids.any { it in dvikarmakaPrimaryExpressing } && ids.none { it in dvikarmakaSecondaryExpressing } }) return false
         return true.takeIf { isDvikarmaka(root, prefixes) }
     }
 

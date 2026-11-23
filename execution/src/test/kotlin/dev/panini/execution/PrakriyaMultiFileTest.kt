@@ -18,7 +18,7 @@ class PrakriyaMultiFileTest {
         val script = """
             वृध् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             योग + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् योग + ङे ।
-            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ॥
+            द्वि + औट् अवस्था + ङे दा + लोट् + सिप् ॥
 
             हृ + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् सङ्ख्या + ङे ।
@@ -33,8 +33,8 @@ class PrakriyaMultiFileTest {
             दिश् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि अवस्था + अम् एक + अम् च विद् + लोट् + सिप् तर्हि चर् + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वृध् + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            त्रि + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+            द्वि + औट् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + शस् सङ्ख्या + ङे दा + लोट् + सिप् ।
             शून्य + अम् योग + ङे दा + लोट् + सिप् ।
             यावत् अवस्था + सुँ शून्य + टा सम + सुँ न असँ + लट् + तिप् तावत् दिश् + ल्युट् + टा कृ + लोट् + सिप् ।
             मुद्र् + णिच् + लोट् + सिप् योग + अम् ।
@@ -116,7 +116,7 @@ class PrakriyaMultiFileTest {
     fun `test multi-sentence samjna definition block parsing`() {
         val script = """
             युज् + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
             युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
@@ -125,7 +125,7 @@ class PrakriyaMultiFileTest {
         val samjna = parsed.first() as PvmScriptStatement.PrakriyaDefinition
         assertEquals("युज् + ल्युट् + सुँ", samjna.nameSegmented)
         assertEquals(2, samjna.body.size)
-        assertEquals("एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।", samjna.body[0].text)
+        assertEquals("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", samjna.body[0].text)
         assertEquals("युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥", samjna.body[1].text)
     }
 
@@ -170,10 +170,10 @@ class PrakriyaMultiFileTest {
         )
 
         val invocation = registry.detectInvocation(
-            PaniniParser().parse("एक + अम् द्वि + अम् च युज् + ल्युट् + टा कृ + लोट् + सिप् ।"),
+            PaniniParser().parse("एक + अम् द्वि + औट् च युज् + ल्युट् + टा कृ + लोट् + सिप् ।"),
         )
         assertNotNull(invocation, "Instrumental case with कृ must be detected as saṃjñā invocation.")
-        assertEquals("एक + अम् द्वि + अम् च", invocation.karmaText)
+        assertEquals("एक + अम् द्वि + औट् च", invocation.karmaText)
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
         assertEquals(listOf("एक", "द्वि"), invocation.arguments.map { it.term })
         assertTrue(invocation.arguments.all { it.pada != null })
@@ -241,7 +241,7 @@ class PrakriyaMultiFileTest {
                 body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
             ),
         )
-        val ukti = PaniniParser().parse("द्वि + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
+        val ukti = PaniniParser().parse("द्वि + औट् युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
 
         val preDetected = registry.detectInvocation(ukti, injectedKarman = InjectedKarmanBinding("विशेषणफल", null))
         assertNotNull(preDetected)
@@ -250,7 +250,7 @@ class PrakriyaMultiFileTest {
         val operand = SanskritValue.Sankhya(3, "त्रि")
         val detected = registry.detectInvocation(ukti, injectedKarman = InjectedKarmanBinding("विशेषणफल", operand))
         assertNotNull(detected)
-        assertEquals("विशेषणफल + अम् द्वि + अम्", detected.karmaText)
+        assertEquals("विशेषणफल + अम् द्वि + औट्", detected.karmaText)
         assertEquals(listOf(operand, SanskritValue.Sankhya(2, "द्वि")), detected.argumentValues)
         assertEquals(listOf(PrakriyaArgumentOrigin.PIPE, PrakriyaArgumentOrigin.WRITTEN), detected.arguments.map { it.origin })
         assertEquals(operand, detected.arguments.first().value)
@@ -259,16 +259,16 @@ class PrakriyaMultiFileTest {
 
     @Test
     fun `AST invocation matcher extracts operation domain and karma roles`() {
-        val source = "पञ्च + अम् गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"
+        val source = "पञ्च + शस् गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"
         val shape = PrakriyaInvocationMatcher.match(PaniniParser().parse(source), setOf("युज् + ल्युट्"))
 
         assertNotNull(shape)
         assertEquals("युज् + ल्युट्", shape.operationStem)
         assertEquals("गणित", shape.domainStem)
-        assertEquals("पञ्च + अम्", shape.karmaText)
+        assertEquals("पञ्च + शस्", shape.karmaText)
 
         val taddhita = PrakriyaInvocationMatcher.match(
-            PaniniParser().parse("पञ्च + अम् गुण + वत् + ङस् वर्द्धन + टा कृ + लोट् + सिप् ।"),
+            PaniniParser().parse("पञ्च + शस् गुण + वत् + ङस् वर्द्धन + टा कृ + लोट् + सिप् ।"),
             setOf("वर्द्धन"),
         )
         assertNotNull(taddhita)
@@ -373,8 +373,8 @@ class PrakriyaMultiFileTest {
         val vm = PaniniVM()
         val registry = PrakriyaRegistry()
         val script = """
-            गुणप्रक्रिया + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
+            गुण-प्रक्रिया + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
         val parsed = PvmScript.parse(script).first() as PvmScriptStatement.PrakriyaDefinition
@@ -387,7 +387,7 @@ class PrakriyaMultiFileTest {
         )
 
         val callerScope = ExecutionScope(environment = ValueEnvironment(mapOf("मुख्यस्थ" to dev.panini.execution.SanskritValue.of("सौम्य"))))
-        val results = vm.evalScript("गुणप्रक्रिया + टा कृ + लोट् + सिप् ।", scope = callerScope, prakriyaRegistry = registry)
+        val results = vm.evalScript("गुण-प्रक्रिया + टा कृ + लोट् + सिप् ।", scope = callerScope, prakriyaRegistry = registry)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.isNotEmpty())
         assertEquals("पञ्च", successful.last().value)
@@ -415,7 +415,7 @@ class PrakriyaMultiFileTest {
         )
         val script = """
             $header
-            प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
+            प्रथम + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ॥
 
             जटिलगणित + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ॥
@@ -445,7 +445,7 @@ class PrakriyaMultiFileTest {
             Prakriya(
                 nameSegmented = "गण + ल्युट् + सुँ",
                 nameStem = "गण + ल्युट्",
-                body = listOf(sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
+                body = listOf(sentence("द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥")),
                 sourceFile = "library.pvm",
                 visibility = PrakriyaVisibility.INTERNAL,
             ),
@@ -502,7 +502,7 @@ class PrakriyaMultiFileTest {
             गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
 
             सिध् + क्त + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
+            द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
         val parsed = PvmScript.parse(script)
@@ -536,8 +536,8 @@ class PrakriyaMultiFileTest {
     fun `test taddhita struct matup creation and genitive attribute access`() {
         val vm = PaniniVM()
         val script = """
-            गुण + वत् + ङस् मूल्य + सुँ दश + सुँ असँ + लट् + तिप् ।
-            गुण + वत् + ङस् परिमाण + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            गुण + वत् + ङस् मूल्य + सुँ दश + जस् असँ + लट् + तिप् ।
+            गुण + वत् + ङस् परिमाण + सुँ पञ्च + जस् असँ + लट् + तिप् ।
             गुण + वत् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
 
@@ -554,7 +554,7 @@ class PrakriyaMultiFileTest {
             गुण + वत् + ङस् वर्द्धन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            पञ्च + अम् द्वि + अम् गुण + वत् + ङस् वर्द्धन + टा कृ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् गुण + वत् + ङस् वर्द्धन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)

@@ -39,7 +39,7 @@ class CompiledOverloadIdentityTest {
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-            मान + सुप् द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            मान + सुप् द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val failure = assertFailsWith<IllegalArgumentException> {
             BytecodeCompiler.compileAndLoad(source, "PluralParameterSlot")
@@ -52,7 +52,7 @@ class CompiledOverloadIdentityTest {
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + सुँ सङ्ख्या + त्व + सुँ न भू + लिङ् + तिप् ।
             प्रथम + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-            द्वि + अम् सञ्चित + ङे दा + लोट् + सिप् ।
+            द्वि + औट् सञ्चित + ङे दा + लोट् + सिप् ।
             सञ्चित + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
@@ -61,7 +61,7 @@ class CompiledOverloadIdentityTest {
         val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
         assertEquals(3L, assertIs<SanskritValue.Sankhya>(values["LastResult"]).value)
         assertEquals(interpreted.typedValue, values["LastResult"])
-        val invalid = source.replace("द्वि + अम् सञ्चित", "राम + अम् सञ्चित")
+        val invalid = source.replace("द्वि + औट् सञ्चित", "राम + अम् सञ्चित")
         assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(invalid).last())
         val invalidGenerated = BytecodeCompiler.compileAndLoad(invalid, "NamedTextNumericGuard")
         assertFailsWith<java.lang.reflect.InvocationTargetException> {
@@ -89,7 +89,7 @@ class CompiledOverloadIdentityTest {
             मान + सुँ सूची + सुँ असँ + लट् + तिप् ।
             मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
-        for ((index, operands) in listOf("", "एक + अम् द्वि + अम् च").withIndex()) {
+        for ((index, operands) in listOf("", "एक + अम् द्वि + औट् च").withIndex()) {
             val source = "$declaration\n$operands योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertIs<ExecutionResult.Failure>(results.last(), results.toString())
@@ -104,7 +104,7 @@ class CompiledOverloadIdentityTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            मान + ङि द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            मान + ङि द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val failure = assertFailsWith<IllegalArgumentException> {
             BytecodeCompiler.compileAndLoad(source, "UndeclaredNamedSlot")
@@ -144,7 +144,7 @@ class CompiledOverloadIdentityTest {
             वाम + सुँ नाम मान + सुँ शब्द + सुँ असँ + लट् + तिप् ।
             दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
         """.trimIndent()
         val failure = assertFailsWith<CompilerUnsupportedException> {
             BytecodeCompiler.compileAndLoad(source, "AmbiguousPipelineOverload")
@@ -171,7 +171,7 @@ class CompiledOverloadIdentityTest {
             वाम + सुँ नाम मान + सुँ शब्द + सुँ असँ + लट् + तिप् ।
             दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         val generated = BytecodeCompiler.compileAndLoad(source, "PipelineOverloadIdentity")
@@ -189,7 +189,7 @@ class CompiledOverloadIdentityTest {
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ शब्द + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())
         assertEquals(3L, assertIs<SanskritValue.Sankhya>(interpreted.typedValue).value)
@@ -198,7 +198,7 @@ class CompiledOverloadIdentityTest {
         val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
         assertEquals(interpreted.typedValue, values["LastResult"])
         val unknownReference = source.replace(
-            "द्वि + अम् परीक्षण + टा", "सञ्चित + अम् परीक्षण + टा",
+            "द्वि + औट् परीक्षण + टा", "सञ्चित + अम् परीक्षण + टा",
         )
         val failure = assertFailsWith<IllegalArgumentException> {
             BytecodeCompiler.compileAndLoad(unknownReference, "UnknownReferenceOverload")

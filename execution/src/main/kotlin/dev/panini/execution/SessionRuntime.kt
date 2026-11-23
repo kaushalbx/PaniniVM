@@ -50,7 +50,7 @@ internal class SessionRuntime(
     ): ExecutionResult {
         if (utterance.isBlank()) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
             "The Sanskrit utterance is empty.")
-        val parsed = try { parser.parse(utterance).also(parser::requireWrittenVerbs) }
+        val parsed = try { parser.parse(utterance).also { parser.requireWrittenVerbs(it, utterance) } }
         catch (failure: dev.panini.vyakaranam.parser.PaniniParseException) {
             return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
                 failure.message ?: "Invalid annotated Sanskrit morphology.")
@@ -260,6 +260,48 @@ internal class SessionRuntime(
             previousResultSamjnas = context.previousResultSamjnas + values.mapValues { it.value.samjnas },
             previousTypedResults = context.previousTypedResults + values,
         ), persistSession)
+    }
+
+    /**
+     * A procedure call's own session: it starts from everything its caller can see, and what it assigns
+     * stays in it. Only the call's result returns to the caller ([retainStructuredResult]).
+     */
+    fun fork(parentKey: String, childKey: String) {
+        sessions[parentKey]?.let { sessions[childKey] = it } ?: sessions.remove(childKey)
+        kriyaMemories[parentKey]?.let { kriyaMemories[childKey] = it } ?: kriyaMemories.remove(childKey)
+    }
+
+    /**
+     * Program state ([program]: what the program had before its outermost call) changed by a call is changed
+     * for its caller too; values first set within the call stay with it. Result roles (फल) are not copied:
+     * the caller receives the call's result separately. Action history is discourse, not a value, so what the
+     * call did stays known to its caller.
+     */
+    fun returnFromCall(childKey: String, parentKey: String, program: Set<String>) {
+        kriyaMemories[childKey]?.let { kriyaMemories[parentKey] = it }
+        val child = sessions[childKey] ?: return
+        // The call's discourse (its turns and the results they produced) continues the caller's, so the
+        // caller's next turn is numbered after the call's and is never mistaken for one already remembered.
+        val parent = (sessions[parentKey] ?: child.copy(previousResults = emptyMap(),
+            previousResultSamjnas = emptyMap(), previousTypedResults = emptyMap()))
+            .copy(resultHistory = child.resultHistory, turnNumber = child.turnNumber)
+        val resultRoles = setOf(dev.panini.execution.binding.PhalaReference.RUNTIME_KEY,
+            dev.panini.execution.binding.PhalaReference.KEY, "पूर्वफल")
+        val changed = child.previousTypedResults.filter { (name, value) ->
+            name in program && name !in resultRoles && parent.previousTypedResults[name] != value
+        }
+        sessions[parentKey] = parent.copy(
+            previousResults = parent.previousResults + changed.mapValues { it.value.toDisplayText() },
+            previousResultSamjnas = parent.previousResultSamjnas + changed.mapValues { it.value.samjnas },
+            previousTypedResults = parent.previousTypedResults + changed,
+        )
+    }
+
+    fun names(sessionKey: String): Set<String> = sessions[sessionKey]?.previousTypedResults?.keys.orEmpty()
+
+    fun discard(sessionKey: String) {
+        sessions.remove(sessionKey)
+        kriyaMemories.remove(sessionKey)
     }
 
     fun listKeys(): List<String> = store.listKeys()

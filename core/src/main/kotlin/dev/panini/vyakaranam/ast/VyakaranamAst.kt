@@ -128,8 +128,8 @@ enum class SequenceConnector(
     val resultFlow: SequenceResultFlow = SequenceResultFlow.NONE,
 ) {
     SAMUCCAYA("च"),
-    /** यद्यपि ... तथापि: the second clause holds against the expectation raised by the first. */
-    VYABHICARA("तथापि"),
+    /** यद्यपि ... तथापि: the second clause holds against the expectation raised by the first. Written तथा + अपि. */
+    VYABHICARA("तथा+अपि"),
     /** A following independent sentence in the same selected branch. */
     VAKYANTARA("अथ"),
     /** A new sentence guarded by the nearest preceding conditional. */
@@ -141,7 +141,7 @@ enum class SequenceConnector(
 
     companion object {
         fun fromSurface(surface: String): SequenceConnector = entries.singleOrNull {
-            it.surface == surface.trim()
+            it.surface == surface.trim().replace(" ", "")
         } ?: error("Unsupported executable sequence connector: '$surface'.")
     }
 }
@@ -154,6 +154,8 @@ data class Conditional(
     /** One source-written pipeline target lowered into both branches for execution. */
     val surfacePipelineTarget: ProgramNode? = null,
     val relation: ConditionalRelation = ConditionalRelation.HYPOTHETICAL,
+    /** Further clauses joined to [condition] by च after its finite verb; all must hold, read left to right. */
+    val conjuncts: List<Invocation> = emptyList(),
 ) : ProgramNode
 
 enum class ConditionalRelation {
@@ -196,6 +198,8 @@ data class WhileLoop(
     val maximumFrequency: Pada? = null,
     val exhausted: ProgramNode? = null,
     val resultTarget: ProgramNode? = null,
+    /** Further clauses joined to [condition] by च after its finite verb; all must hold, read left to right. */
+    val conjuncts: List<Invocation> = emptyList(),
 ) : ProgramNode
 
 /** A distributive प्रति clause; the member referent is scoped to its body. */
@@ -700,7 +704,13 @@ data class SankhyaPada(
     override val stems: List<String>,
     override val value: Long? = null,
     override val sup: SupPratyaya,
-) : SankhyaBoundaryPada
+) : SankhyaBoundaryPada, SourceLocatedNode {
+    /** Provenance is deliberately excluded from grammatical equality. */
+    override var sourceSpan: DocumentSourceSpan? = null
+        private set
+
+    fun locatedAt(span: DocumentSourceSpan?): SankhyaPada = apply { sourceSpan = span }
+}
 
 data class SankhyaPuranaPada(
     override val sourceText: String,
@@ -834,6 +844,11 @@ data class AvyayaKridantaDerivation(
     val krtAffix: KrtAffix? get() = KrtAffix.fromUpadesha(pratyaya)
     val upasargaIdentities: List<Upasarga?> get() = upasargas.map(Upasarga::fromUpadesha)
 }
+
+/** Nipātas written together, each keeping its own identity: यदि + अपि, joined by sandhi only when spoken. */
+data class NipataSamuccayaDerivation(
+    val members: List<String>,
+) : AvyayaDerivation
 
 data class AvyayaTaddhitaDerivation(
     val pratipadika: String,

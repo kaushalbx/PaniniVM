@@ -29,7 +29,7 @@ The example demonstrates:
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
 - a structured `परिणाम` produced automatically by the loop, containing `अवस्था`
-  (`विजय` or `समाप्ति`) and `प्रयत्नसङ्ख्या`;
+  (`विजय` or `समाप्ति`) and `प्रयत्न-सङ्ख्या`;
 - normal ṣaṣṭhī access through `परिणाम + मतुप् + ङस् अवस्था + अम्`;
 - no explicit variable assignment for the loop outcome.
 

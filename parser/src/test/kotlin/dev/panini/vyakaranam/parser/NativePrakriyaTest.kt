@@ -170,7 +170,7 @@ class NativePrakriyaTest {
         assertEquals(listOf("एक"), node.boundary.lowerLimit.stems)
         assertEquals(listOf("दशन्"), node.boundary.upperLimit.stems)
         assertEquals(MulaPratipadikaIdentity.SIMA, (node.marker.pratipadika as MulaPratipadika).lexicalIdentity)
-        for (source in listOf("एक + ङसिँ दशन् + ङि इति सीमा + सुँ असँ + लट् + तिप् ।",
+        for (source in listOf("एक + ङसिँ दशन् + सुप् इति सीमा + सुँ असँ + लट् + तिप् ।",
             "एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + अम् ।",
             "एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सूची + सुँ ।")) {
             assertFailsWith<IllegalArgumentException> { parser.parseRangeDeclaration(source) }

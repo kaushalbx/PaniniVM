@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.execution.languageDiagnostic
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 import dev.panini.core.SupAffix
@@ -388,7 +389,7 @@ object VyakaranamExecutionAdapter {
             dev.panini.execution.validateAcyclicValues(environment.values.values +
                 injectedBindings.values.flatMap(context::resolveValues))
         } catch (failure: IllegalArgumentException) {
-            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(failure.message ?: "Invalid structured value."))
+            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(failure.message ?: "Invalid structured value.", failure.languageDiagnostic("Invalid structured value.", input.text)))
         }
         if (input.text.isBlank()) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
@@ -470,7 +471,7 @@ object VyakaranamExecutionAdapter {
             }
             ukti.copy(body = priorActions)
         } catch (error: IllegalArgumentException) {
-            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction."))
+            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction.", error.languageDiagnostic("Invalid prior-action construction.", input.text)))
         }
         val executableUkti = when (val frequency = analyzeFrequencyAst(loweredUkti)) {
             is FrequencyAnalysis.Resolved -> frequency.ukti
@@ -581,7 +582,7 @@ object VyakaranamExecutionAdapter {
                 quotedVakya = quotations[vakya],
                 injectedBindings = injectedBindings,
             ) } catch (error: IllegalArgumentException) {
-                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid grammatical operand."), utteranceAnalysis)
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid grammatical operand.", error.languageDiagnostic("Invalid grammatical operand.", failingText(error, padas, vakya.sourceText))), utteranceAnalysis)
             }
             invocations += invocation
             previousActionIdentities += frame.kriya?.actionIdentity
@@ -634,7 +635,9 @@ object VyakaranamExecutionAdapter {
             override fun visitSequence(node: Sequence): ExecutionNode =
                 ExecuteSequence(node.statements.map(::build))
             override fun visitConditional(node: Conditional): ExecutionNode = ExecuteConditional(
-                condition = build(node.condition),
+                // च-conjoined clauses keep their written order, so their invocation ids follow the first clause.
+                condition = if (node.conjuncts.isEmpty()) build(node.condition)
+                    else ExecuteSequence((listOf(node.condition) + node.conjuncts).map(::build)),
                 consequent = build(node.consequent),
                 alternate = node.alternate?.let(::build),
             )
@@ -814,6 +817,7 @@ object VyakaranamExecutionAdapter {
             }
             is Conditional -> {
                 val condition = visit(node.condition)
+                node.conjuncts.forEach(::visit)
                 val consequent = visit(node.consequent)
                 val alternate = node.alternate?.let(::visit)
                 Shape(condition.entries, consequent.exits + (alternate?.exits ?: emptySet()))
@@ -873,5 +877,16 @@ object VyakaranamExecutionAdapter {
             }
         }
         return transformer.transform(root)
+    }
+
+    /**
+     * The narrowest source an operand failure belongs to: the pada its message names, else its own clause,
+     * so a diagnostic in a multi-clause sentence does not point at the whole sentence.
+     */
+    private fun failingText(error: IllegalArgumentException, padas: List<dev.panini.vyakaranam.ast.Pada>,
+        clause: String): String {
+        val message = error.message.orEmpty()
+        return padas.map { it.sourceText }.filter { it.isNotBlank() && it in message }
+            .maxByOrNull(String::length) ?: clause
     }
 }

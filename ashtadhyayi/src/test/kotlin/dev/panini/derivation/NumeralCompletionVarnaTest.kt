@@ -10,12 +10,11 @@ import kotlin.test.*
 
 class NumeralCompletionVarnaTest {
     @Test fun `frequency completion guards inspect exact varna inventories`() {
-        for (form in listOf("द्विः", "त्रिः", "चतुः", "सकृत्")) {
-            for (surface in listOf(form, form + "ऽ"))
-                assertFalse(DvitrichaturbhyahSucSutra.matches(state("द्वि", "द्वि", Samjna.SUC, surface)))
-        }
-        assertFalse(DvitrichaturbhyahSucSutra.matches(state("द्वि", "द्वि", Samjna.SUC, "द्विँः")))
-        assertTrue(DvitrichaturbhyahSucSutra.matches(state("द्वि", "द्वि", Samjna.SUC, "द्वीः")))
+        // 5.4.18 adds सुच् once, judged by the affix's identity rather than any finished spelling.
+        assertTrue(DvitrichaturbhyahSucSutra.matches(state("द्वि", "द्वि", Samjna.SUC)))
+        assertTrue(DvitrichaturbhyahSucSutra.matches(state("द्वि", "द्वि", Samjna.KRTVASUC)))
+        val withSuc = DvitrichaturbhyahSucSutra.apply(state("द्वि", "द्वि", Samjna.SUC)).state
+        assertFalse(DvitrichaturbhyahSucSutra.matches(withSuc))
         for (surface in listOf("कृत्वः", "कृत्वँः", "कृत्वःऽ"))
             assertFalse(SankhyayahKriyaAbhyavrttiKrtvasucSutra.matches(state("पञ्च", "पञ्चन्", Samjna.KRTVASUC, surface)))
         val original = state("पञ्च", "पञ्चन्", Samjna.KRTVASUC, "कृत्वाः")

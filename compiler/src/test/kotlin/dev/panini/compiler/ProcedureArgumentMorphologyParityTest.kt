@@ -12,7 +12,7 @@ class ProcedureArgumentMorphologyParityTest {
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
                 मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-                पञ्च + अम् $call डुकृञ् + उ + लोट् + सिप् ।
+                पञ्च + शस् $call डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
             val results = PaniniVM().evalScript(source)
             val failure = assertIs<ExecutionResult.Failure>(results.last(), "$call: $results")
@@ -32,7 +32,7 @@ class ProcedureArgumentMorphologyParityTest {
                 परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
                 मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-                राम + $ending पञ्च + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+                राम + $ending पञ्च + शस् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent()
             val interpreted = PaniniVM().evalScript(source)
             val interpretedFailure = assertIs<ExecutionResult.Failure>(interpreted.last(), "$ending: $interpreted")

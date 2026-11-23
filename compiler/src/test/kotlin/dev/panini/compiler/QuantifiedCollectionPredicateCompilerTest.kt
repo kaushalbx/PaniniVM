@@ -8,7 +8,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class QuantifiedCollectionPredicateCompilerTest {
-    private val any = "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
+    private val any = "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।"
     private val all = "सूची + ङस् एकैकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
     private val allPartial = "सूची + ङस् एकैकः सदस्य + सुँ एक + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
 

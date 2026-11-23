@@ -98,5 +98,6 @@ object Adhyaya5Pada4 {
         NispravanisCaSutra,
         SankhyayahKriyaAbhyavrttiKrtvasucSutra,
         DvitrichaturbhyahSucSutra,
+        EkasyaSakrcCaSutra,
     )
 }

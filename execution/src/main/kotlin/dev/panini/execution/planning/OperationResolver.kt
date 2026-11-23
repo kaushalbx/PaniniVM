@@ -25,6 +25,7 @@ object OperationResolver {
             return OperationResolution.Invalid(
                 ExecutionError.DHATU_NOT_EXECUTABLE,
                 "अक्रियाधातुः: ${dhatu.upadesha} इत्यस्य निष्पादनीया क्रिया नास्ति।",
+                OperationResolutionCode.DHATU_NOT_EXECUTABLE,
             )
         }
 
@@ -38,6 +39,8 @@ object OperationResolver {
             return OperationResolution.Invalid(
                 ExecutionError.OPERATION_NOT_FOUND,
                 message,
+                if (invocation.selectedOperation != null) OperationResolutionCode.UNKNOWN_OPERATION
+                    else OperationResolutionCode.NO_MATCHING_OPERATION,
             )
         }
 
@@ -65,6 +68,7 @@ object OperationResolver {
                 if (++examined > MAX_ROLE_ASSIGNMENTS) return OperationResolution.Invalid(
                     ExecutionError.INVALID_VALUE,
                     "Grammatical role analysis exceeded its assignment budget; no assignment was selected.",
+                    OperationResolutionCode.ROLE_ASSIGNMENT_LIMIT,
                 )
                 val evaluation = evaluate(operation, context, constraints)
                 evaluations += Triple(operation, context, evaluation)

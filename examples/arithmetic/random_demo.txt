@@ -2,7 +2,7 @@
 # Rolls a die, choosing a face from one through six, with the Divādi root दिव् (दीव्य)
 
 # Step 1: Roll the die over the range one through six
-एकस्मात् षष्+ङि दीव्य ।
+एकस्मात् षट्सु दीव्य ।
 
 # Step 2: Print the face rolled
 मुद्रय फलम् ।

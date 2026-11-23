@@ -37,7 +37,7 @@ class NaturalScriptStopTest {
             """
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
             वि + रमुँ + लोट् + सिप् ।
-            नवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
             """.trimIndent())
 
         assertTrue(results.any { it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.HALT_SCRIPT }, results.toString())
@@ -48,7 +48,7 @@ class NaturalScriptStopTest {
     @Test
     fun `virama inside nested iteration skips all remaining script sentences`() {
         val source = java.io.File("examples/algorithms/two_sum.pvm").readText() +
-            "\nनवन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            "\nनवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
 
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())

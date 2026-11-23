@@ -12,8 +12,8 @@ class NestedGenitiveStructTest {
     @Test
     fun `nested references distinguish derived nominal values from base records`() {
         val source = """
-            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
-            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + सुँ असँ + लट् + तिप् ।
+            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + जस् असँ + लट् + तिप् ।
+            शब्द + त्व + मतुप् + ङस् मूल्य + सुँ नवन् + जस् असँ + लट् + तिप् ।
             गुण + मतुप् + ङस् मान + सुँ शब्द + त्व + सुँ असँ + लट् + तिप् ।
             गुण + मतुप् + ङस् मान + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
@@ -46,7 +46,7 @@ class NestedGenitiveStructTest {
     fun testSingleLevelGenitiveAttributeAccess() {
         val script = """
             # Construct base struct 'गुण' with attribute 'मूल्य' = 10 ('दश')
-            गुण + मतुप् + ङस् मूल्य + सुँ दश + सुँ असँ + लट् + तिप् ।
+            गुण + मतुप् + ङस् मूल्य + सुँ दश + जस् असँ + लट् + तिप् ।
 
             # Single-level genitive query (1.1.49 षष्ठी स्थानेयोगा)
             गुण + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।

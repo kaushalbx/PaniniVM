@@ -346,6 +346,9 @@ internal sealed interface CompilerInstruction {
 
     data object Booleanize : CompilerInstruction
 
+    /** Inverts the boolean on the stack: न over a predicate's truth. */
+    data object Not : CompilerInstruction
+
     data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
     data class Jump(val target: String) : CompilerInstruction
@@ -579,8 +582,8 @@ internal object CompilerIrLowering {
         CompilerInstruction.LoadLocal(counter),
         CompilerInstruction.Cardinalize,
         CompilerInstruction.Duplicate,
-        CompilerInstruction.Store("प्रयत्नसङ्ख्या"),
-        CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+        CompilerInstruction.Store("प्रयत्न-सङ्ख्या"),
+        CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्न-सङ्ख्या")),
         CompilerInstruction.Duplicate,
         CompilerInstruction.Store("परिणाम"),
         CompilerInstruction.Store("LastResult"),
@@ -1467,6 +1470,7 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.NumericUnary -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             CompilerInstruction.Cardinalize -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             CompilerInstruction.Booleanize -> pop().first + ValueKind.BOOLEAN
+            CompilerInstruction.Not -> pop(ValueKind.BOOLEAN).first + ValueKind.BOOLEAN
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
             CompilerInstruction.RequestProcedureReturn -> pop().first
             CompilerInstruction.ConsumeBreak,

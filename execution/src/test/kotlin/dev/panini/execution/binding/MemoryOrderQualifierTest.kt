@@ -67,7 +67,7 @@ class MemoryOrderQualifierTest {
     @Test
     fun `shared resolver discovers original result nodes inside coordination`() {
         val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(
-            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।"
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् च नवन् + शस् च मुद्र् + णिच् + लोट् + सिप् ।"
         ).body as dev.panini.vyakaranam.ast.Invocation
         val group = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
         val reference = NamedActionResultReferenceResolver.resolve(invocation.vakya.padas).single()
@@ -91,8 +91,8 @@ class MemoryOrderQualifierTest {
             assertTrue(reference.hasOrderingQualifier, affix)
             assertFalse(reference.orderingAgrees, affix)
             val results = dev.panini.execution.PaniniVM().evalScript(
-                "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
-                    "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n$source",
+                "एक + अम् द्वि + औट् च युज् + लोट् + सिप् ।\n" +
+                    "त्रि + शस् चतुर् + शस् च युज् + लोट् + सिप् ।\n$source",
             )
             kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Failure>(results.last(), affix)
         }
@@ -106,8 +106,8 @@ class MemoryOrderQualifierTest {
             "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
         )) {
             val results = dev.panini.execution.PaniniVM().evalScript(
-                "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
-                    "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n" +
+                "एक + अम् द्वि + औट् च युज् + लोट् + सिप् ।\n" +
+                    "त्रि + शस् चतुर् + शस् च युज् + लोट् + सिप् ।\n" +
                     "$phrase मुद्र् + णिच् + लोट् + सिप् ।",
             )
             assertTrue(results.all { it is dev.panini.execution.ExecutionResult.Success }, "$phrase: $results")
@@ -132,7 +132,7 @@ class MemoryOrderQualifierTest {
     @Test
     fun `executed result history rejects feminine ordering modifier`() {
         val results = dev.panini.execution.PaniniVM().evalScript(
-            "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+            "एक + अम् द्वि + औट् च युज् + लोट् + सिप् ।\n" +
                 "युज् + ल्युट् + ङस् प्रथमा + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Success>(results.first())
@@ -153,7 +153,7 @@ class MemoryOrderQualifierTest {
     @kotlin.test.Test
     fun `derived ordinal result reference cannot silently select latest history`() {
         val results = dev.panini.execution.PaniniVM().evalScript(
-            "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+            "एक + अम् द्वि + औट् च युज् + लोट् + सिप् ।\n" +
                 "युज् + ल्युट् + ङस् प्रथम + तरप् + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         )
         kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Success>(results.first())

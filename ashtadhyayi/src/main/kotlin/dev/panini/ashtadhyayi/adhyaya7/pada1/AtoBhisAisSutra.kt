@@ -38,7 +38,8 @@ object AtoBhisAisSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAEnding = stem.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
+        // अतः is tapara: by 1.1.70 it denotes short अ alone, so अष्टा (7.2.84) takes भिस् unchanged: अष्टाभिः.
+        val isAEnding = stem.varnas.lastOrNull() == Svara.A
 
         return isAEnding && affix.matchesUpadesha(SupAffix.BHIS.upadesha) &&
                 affix.varnas == SupAffix.BHIS.initialVarnas &&

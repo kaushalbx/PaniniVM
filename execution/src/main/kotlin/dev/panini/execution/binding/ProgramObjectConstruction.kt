@@ -21,7 +21,7 @@ internal object ProgramObjectConstruction {
         if (dhatu.operations.none { operation -> operation.trigger.matches(features) &&
                 (operation.signature.requirements.any { it.karaka == Karaka.KARMAN } ||
                     Karaka.KARMAN in operation.signature.optionalKarakas) }) return emptyMap()
-        return frame.nominalRelations?.nominalPadas.orEmpty().mapIndexedNotNull { index, nominal ->
+        val objects = frame.nominalRelations?.nominalPadas.orEmpty().mapIndexedNotNull { index, nominal ->
             val relation = frame.relations.singleOrNull { it.participant.pada === nominal.pada }
                 ?: return@mapIndexedNotNull null
             val unresolved = relation.resolution as? FrameKarakaResolution.Unassigned
@@ -33,5 +33,16 @@ internal object ProgramObjectConstruction {
             // अक्षान् दीव्यति: the operand of दिव् is the selected means named object by 1.4.43.
             index to setOf(if (head.dhatu.mulaDhatu in setOf("दिव्", "दिवु")) SemanticRelation.INSTRUMENT else SemanticRelation.DESIRED_OBJECT)
         }.toMap()
+        // अजां नयति ग्रामम्: both accusatives of a 1.4.51 root are operands, but one is the akathita object. They stay binding
+        // and keep the commentary order that VoiceRoleConstruction gives non-executable roots, so only the sub-role changes.
+        if (objects.size != 2 || objects.values.any { it != setOf(SemanticRelation.DESIRED_OBJECT) }) return objects
+        val (first, second) = objects.keys.sorted()
+        return when (dhatu.id) {
+            in dev.panini.analysis.KarakaDhatuDomains.dvikarmakaPrimaryExpressing ->
+                mapOf(first to setOf(SemanticRelation.DESIRED_OBJECT), second to setOf(SemanticRelation.SECONDARY_OBJECT))
+            in dev.panini.analysis.KarakaDhatuDomains.dvikarmakaSecondaryExpressing ->
+                mapOf(first to setOf(SemanticRelation.SECONDARY_OBJECT), second to setOf(SemanticRelation.DESIRED_OBJECT))
+            else -> objects
+        }
     }
 }

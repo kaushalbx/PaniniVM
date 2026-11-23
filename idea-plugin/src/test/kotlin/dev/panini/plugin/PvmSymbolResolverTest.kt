@@ -11,8 +11,8 @@ class PvmSymbolResolverTest {
         val source = """
             गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
             गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
-            पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
+            पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         fun rendered(spans: List<dev.panini.vyakaranam.ast.DocumentSourceSpan>) =
@@ -28,8 +28,8 @@ class PvmSymbolResolverTest {
     fun `pipeline operation navigates to matching canonical prakriya declaration`() {
         val source = """
             गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
-            पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
+            पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         val referenceOffset = source.lastIndexOf("गण + ल्युट्")
@@ -45,8 +45,8 @@ class PvmSymbolResolverTest {
             गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             पाठ + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+            द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥
+            पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + टा ततः गणित + ङस् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         val referenceOffset = source.lastIndexOf("गण + ल्युट् + टा")
@@ -77,8 +77,8 @@ class PvmSymbolResolverTest {
     fun `runtime invocation matcher supplies identity for an ordinary prakriya call`() {
         val source = """
             गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            पञ्च + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
-            पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
+            पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
 

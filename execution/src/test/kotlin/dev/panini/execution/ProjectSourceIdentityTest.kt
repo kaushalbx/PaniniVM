@@ -11,18 +11,18 @@ class ProjectSourceIdentityTest {
         val root = directory.toFile()
         val entry = root.resolve("main.pvm").apply { writeText("एक + अम् मुद्र् + णिच् + लोट् + सिप् ।") }
         val library = root.resolve("library.pvm")
-        val original = "गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        val original = "गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥"
         library.writeText(original)
         val timestamp = library.lastModified()
         val length = library.length()
         val loader = PvmProjectLoader()
         val before = loader.loadLibraryRegistry(entry).all().single()
-        library.writeText(original.replace("द्वि + अम्", "त्रि + अम्"))
+        library.writeText(original.replace("द्वि + औट्", "त्रि + शस्"))
         assertEquals(length, library.length())
         assertTrue(library.setLastModified(timestamp))
         val after = loader.loadLibraryRegistry(entry).all().single()
         assertNotEquals(before.body, after.body)
-        assertTrue(after.body.single().text.contains("त्रि + अम्"))
+        assertTrue(after.body.single().text.contains("त्रि + शस्"))
     }
 
     @Test fun `unreadable libraries fail project loading rather than disappearing`() {

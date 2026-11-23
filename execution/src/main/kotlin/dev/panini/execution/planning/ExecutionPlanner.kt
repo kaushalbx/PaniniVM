@@ -33,7 +33,9 @@ object ExecutionPlanner {
                     ExecutionResult.NeedsInput(resolution.karakas, resolution.message),
                 )
                 is OperationResolution.Invalid -> return PlanningResult.Failed(
-                    ExecutionResult.Failure(resolution.error, resolution.message),
+                    ExecutionResult.Failure(resolution.error, resolution.message, diagnostic = ExecutionDiagnostic(
+                        resolution.code, resolution.message,
+                        offendingText = invocation.metadata["sourceClause"].orEmpty())),
                 )
                 is OperationResolution.Ambiguous -> return PlanningResult.Failed(
                     ExecutionResult.Ambiguous(resolution.operations, resolution.message),

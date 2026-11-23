@@ -8,7 +8,7 @@ class ProcedureInvocationWordOrderTest {
         for (ending in listOf("भ्याम्", "भिस्")) {
             val error = assertFailsWith<IllegalArgumentException> {
                 PrakriyaInvocationMatcher.match(PaniniParser().parse(
-                    "पञ्च + अम् परीक्षण + $ending डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
+                    "पञ्च + शस् परीक्षण + $ending डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
             }
             assertTrue(error.message.orEmpty().contains("instrumental singular"))
         }
@@ -18,7 +18,7 @@ class ProcedureInvocationWordOrderTest {
         for (ending in listOf("ओस्", "आम्")) {
             val error = assertFailsWith<IllegalArgumentException> {
                 PrakriyaInvocationMatcher.match(PaniniParser().parse(
-                    "पञ्च + अम् परीक्षण + टा गणित + $ending डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
+                    "पञ्च + शस् परीक्षण + टा गणित + $ending डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
             }
             assertTrue(error.message.orEmpty().contains("genitive singular"))
         }
@@ -27,10 +27,10 @@ class ProcedureInvocationWordOrderTest {
     @Test fun `unrelated printing action never executes a same named procedure body`() {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
-            नव + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            पञ्च + अम् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।
+            नव + शस् मुद्र् + णिच् + लोट् + सिप् ॥
+            पञ्च + शस् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
-        val baseline = PaniniVM().evalScript("पञ्च + अम् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।")
+        val baseline = PaniniVM().evalScript("पञ्च + शस् परीक्षण + टा मुद्र् + णिच् + लोट् + सिप् ।")
         val expected = assertIs<ExecutionResult.Failure>(baseline.last(), baseline.toString())
         val results = PaniniVM().evalScript(source)
         val actual = assertIs<ExecutionResult.Failure>(results.last(), results.toString())
@@ -45,14 +45,14 @@ class ProcedureInvocationWordOrderTest {
         for (head in listOf("मुद्र् + णिच् + लोट् + सिप्", "युज् + णिच् + लोट् + सिप्",
             "कृ + णिच् + लोट् + सिप्", "सम् + कृ + लोट् + सिप्")) {
             assertNull(PrakriyaInvocationMatcher.match(PaniniParser().parse(
-                "पञ्च + अम् परीक्षण + टा $head ।"), setOf("परीक्षण")), head)
+                "पञ्च + शस् परीक्षण + टा $head ।"), setOf("परीक्षण")), head)
         }
     }
 
     @Test fun `domain is not restricted to the prefix of a procedure noun`() {
-        for (phrase in listOf("पञ्च + अम् गणित + ङस् परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
-            "पञ्च + अम् परीक्षण + टा गणित + ङस् डुकृञ् + उ + लोट् + सिप्",
-            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + अम् गणित + ङस्")) {
+        for (phrase in listOf("पञ्च + शस् गणित + ङस् परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
+            "पञ्च + शस् परीक्षण + टा गणित + ङस् डुकृञ् + उ + लोट् + सिप्",
+            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + शस् गणित + ङस्")) {
             val shape = assertNotNull(PrakriyaInvocationMatcher.match(PaniniParser().parse("$phrase ।"), setOf("परीक्षण")))
             assertEquals("गणित", shape.domainStem)
             assertEquals(1, shape.argumentPadas.size)
@@ -62,15 +62,15 @@ class ProcedureInvocationWordOrderTest {
     @Test fun `competing unassigned domains cannot be resolved by nearest position`() {
         for (domains in listOf("गणित + ङस् भाषा + ङस्", "भाषा + ङस् गणित + ङस्")) {
             assertFailsWith<IllegalArgumentException> {
-                PrakriyaInvocationMatcher.match(PaniniParser().parse("पञ्च + अम् $domains परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
+                PrakriyaInvocationMatcher.match(PaniniParser().parse("पञ्च + शस् $domains परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"), setOf("परीक्षण"))
             }
         }
     }
 
     @Test fun `instrumental procedure identity does not impose an operand prefix`() {
-        for (phrase in listOf("पञ्च + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
-            "परीक्षण + टा पञ्च + अम् डुकृञ् + उ + लोट् + सिप्",
-            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + अम्")) {
+        for (phrase in listOf("पञ्च + शस् परीक्षण + टा डुकृञ् + उ + लोट् + सिप्",
+            "परीक्षण + टा पञ्च + शस् डुकृञ् + उ + लोट् + सिप्",
+            "डुकृञ् + उ + लोट् + सिप् परीक्षण + टा पञ्च + शस्")) {
             val shape = assertNotNull(PrakriyaInvocationMatcher.match(PaniniParser().parse("$phrase ।"), setOf("परीक्षण")))
             assertEquals("परीक्षण", shape.operationStem)
             assertEquals(1, shape.argumentPadas.size)
@@ -80,7 +80,7 @@ class ProcedureInvocationWordOrderTest {
     @Test fun `two known instrumental procedures are ambiguous in either order`() {
         for (names in listOf("परीक्षण + टा गणन + टा", "गणन + टा परीक्षण + टा")) {
             assertFailsWith<IllegalArgumentException> {
-                PrakriyaInvocationMatcher.match(PaniniParser().parse("पञ्च + अम् $names डुकृञ् + उ + लोट् + सिप् ।"),
+                PrakriyaInvocationMatcher.match(PaniniParser().parse("पञ्च + शस् $names डुकृञ् + उ + लोट् + सिप् ।"),
                     setOf("परीक्षण", "गणन"))
             }
         }

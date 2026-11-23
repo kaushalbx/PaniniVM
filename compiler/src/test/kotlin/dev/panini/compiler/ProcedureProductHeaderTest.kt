@@ -9,7 +9,7 @@ class ProcedureProductHeaderTest {
     private val call = "परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
 
     @Test fun `first-stage procedure call supplies typed result to following display`() {
-        for ((index, objectText) in listOf("", "नव + अम् ").withIndex()) {
+        for ((index, objectText) in listOf("", "नव + शस् ").withIndex()) {
             val source = "$header\nएक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
                 "परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ततः ${objectText}मुद्र् + णिच् + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
@@ -66,7 +66,7 @@ class ProcedureProductHeaderTest {
 
     @Test fun `failed first procedure stage does not execute following display`() {
         val source = "$header\nराम + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
-            "परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ततः नव + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            "परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ततः नव + शस् मुद्र् + णिच् + लोट् + सिप् ।"
         val published = mutableListOf<ExecutionResult>()
         val results = PaniniVM().evalScript(source, onResult = published::add)
         assertIs<ExecutionResult.Failure>(results.last())

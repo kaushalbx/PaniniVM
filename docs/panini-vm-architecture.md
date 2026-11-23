@@ -75,7 +75,7 @@ In accordance with Pāṇini's definition *सुप्तिङन्तं प
   - `त्रि + शस्` (Numeral stem `त्रि` + 2nd Vibhakti plural `शस्`)
   - `द्वि + तीय + अम्` (Ordinal stem `द्वि + तीय` + 2nd Vibhakti singular `अम्`)
   - `त्रि + तीय + अंश + अम्` (Fraction stem `त्रि + तीय + अंश` + 2nd Vibhakti singular `अम्`)
-  - `सार्ध + द्वि + अम्` (Rational fraction `सार्ध + द्वि` = 2.5 + 2nd Vibhakti singular `अम्`)
+  - `सार्ध + द्वि + औट्` (Rational fraction `सार्ध + द्वि` = 2.5 + 2nd Vibhakti singular `अम्`)
   - `अभि + अधिक + शत + अम्` (Modifier stem `अभि + अधिक + शत` = 100 + 2nd Vibhakti singular `अम्`)
   - `ज्या + नवति + अम्` (Trigonometric stem `ज्या + नवति` = $\sin(90^\circ)$ + 2nd Vibhakti singular `अम्`)
   - `यन्त्र + सुँ` (Nominal stem `यन्त्र` + 1st Vibhakti singular `सुँ`)

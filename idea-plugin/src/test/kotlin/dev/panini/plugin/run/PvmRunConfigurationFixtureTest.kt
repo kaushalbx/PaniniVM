@@ -11,7 +11,7 @@ class PvmRunConfigurationFixtureTest : BasePlatformTestCase() {
     fun testRelativeScriptPathResolvesAgainstProjectAndValidates() {
         val scriptFile = File(requireNotNull(project.basePath), "relative.pvm")
         assertTrue(scriptFile.parentFile.mkdirs() || scriptFile.parentFile.isDirectory)
-        scriptFile.writeText("पञ्चन् + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+        scriptFile.writeText("पञ्चन् + शस् मुद्र् + णिच् + लोट् + सिप् ।")
         val configuration = configuration("relative.pvm")
 
         configuration.checkConfiguration()

@@ -48,6 +48,7 @@ object Adhyaya6Pada3 {
         RatrehKrtiVibhasaSutra,
         DvyashtanahSankhyayamSutra,
         TreStrayahSutra,
+        ShashaUtvaSutra,
         VibhashaChatvarimshatPrabhritauSarveshamSutra,
         NalopoNanjahSutra,
         TasmanNudAciSutra,

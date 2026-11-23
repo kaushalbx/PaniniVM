@@ -18,7 +18,7 @@ class OrdinalValueExtractionTest {
 
     @Test
     fun `does not classify a cardinal as an ordinal`() {
-        assertNull(NumeralPadaBinder.extractOrdinalValue(parsePada("द्वि + अम्")))
+        assertNull(NumeralPadaBinder.extractOrdinalValue(parsePada("द्वि + औट्")))
     }
 
     private fun parsePada(source: String): Pada = parser.parse(source).grammaticalVakyas().flatMap { it.padas }.single()

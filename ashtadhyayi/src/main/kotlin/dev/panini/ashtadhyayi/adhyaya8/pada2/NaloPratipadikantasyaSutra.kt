@@ -52,9 +52,11 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
             val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA || insideSamasa ||
                 stem.adeshaOrigins.any { it.prescribingSutra == "7.1.94" }
 
+            // पदस्य (8.1.16): a stem designated pada, e.g. by 1.4.17 before a taddhita (दशन् + कृत्वसुच् → दशकृत्वः).
+            val isPada = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.PADA }
             stem.takeIf {
                 isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.varnas.lastOrNull() == Vyanjana.NA &&
-                    (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") ||
+                    (affix == null || isPada || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") ||
                         (context.hasNutAugmentedGenitivePlural(affix) &&
                             context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.PADA }) ||
                         insideSankhyaCompound || insideSamasa || hasDroppedSup)

@@ -6,7 +6,7 @@ import kotlin.test.*
 
 class CopularAgreementTest {
     @Test fun `predicate number mismatch exposes a typed agreement diagnostic`() {
-        val source = "एक + सुँ द्वि + ङसिँ न्यून + औ असँ + लट् + तिप् ।"
+        val source = "एक + सुँ द्वि + भ्याम् न्यून + औ असँ + लट् + तिप् ।"
         val invocation = assertIs<Invocation>(PaniniParser().parse(source).body)
         val analysis = assertIs<CopularAgreement.Analysis.Invalid>(CopularAgreement.analyze(invocation))
         assertEquals("COPULAR_PREDICATE_NUMBER_AGREEMENT", analysis.diagnostic.code)
@@ -51,7 +51,7 @@ class CopularAgreementTest {
 
     @Test fun `plural or dual predicate cannot lose its number before singular copula binding`() {
         for (ending in listOf("औ", "जस्")) {
-            val clause = "एक + सुँ द्वि + ङसिँ न्यून + $ending असँ + लट् + तिप् ।"
+            val clause = "एक + सुँ द्वि + भ्याम् न्यून + $ending असँ + लट् + तिप् ।"
             val node = PaniniParser().parse(clause).body as Invocation
             assertFailsWith<IllegalArgumentException>(ending) { CopularAgreement.validate(node) }
             val results = PaniniVM().evalScript("यदि ${clause.removeSuffix("।")} तर्हि " +
@@ -62,7 +62,7 @@ class CopularAgreementTest {
     }
 
     @Test fun `written singular agreement does not depend on numeric payload magnitude`() {
-        val node = PaniniParser().parse("द्वि + सुँ त्रि + ङसिँ न्यून + सुँ असँ + लट् + तिप् ।").body as Invocation
+        val node = PaniniParser().parse("द्वि + औ त्रि + भ्यस् न्यून + औ असँ + लट् + तस् ।").body as Invocation
         CopularAgreement.validate(node)
     }
 

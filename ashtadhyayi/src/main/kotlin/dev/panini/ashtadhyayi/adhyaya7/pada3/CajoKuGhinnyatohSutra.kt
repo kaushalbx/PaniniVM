@@ -32,6 +32,8 @@ object CajoKuGhinnyatohSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val affix = context.terms.firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
+        // 1.1.57: णि deleted by 6.4.51 stands between the root and घञ्/ण्यत्, so रचि + घञ् is रच, not रक.
+        if ("6.4.51" in context.appliedSutras) return false
         return dhatu.varnas.lastOrNull() in setOf(Vyanjana.CA, Vyanjana.JA) &&
             affix.matchesAnyAffix(KrtAffix.GHAN, KrtAffix.NYAT)
     }

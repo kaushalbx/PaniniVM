@@ -38,7 +38,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.FINAL_CONSONANT_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (externalPadaTarget(context) != null) return true
+        if (externalPadaTarget(context) != null || svadiPadaTarget(context) != null) return true
         // Must be a Pada (per 1.4.14)
         val internal = internalSankhyaTerm(context)
         if (isSankhyaCompound(context) && internal == null) return false
@@ -51,7 +51,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val lastTerm = externalPadaTarget(context) ?: internalSankhyaTerm(context) ?: context.terms.last()
+        val lastTerm = externalPadaTarget(context) ?: svadiPadaTarget(context) ?: internalSankhyaTerm(context) ?: context.terms.last()
         val finalConsonant = requireNotNull(getFinalConsonant(lastTerm))
 
         // Use 1.1.50 logic to pick the best voiced substitute
@@ -95,6 +95,17 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
             right.varnas.isNotEmpty()
     }?.first
 
+
+    /** 1.4.17 स्वादिष्वसर्वनामस्थाने makes the stem a pada before a non-sarvanāmasthāna svādi affix, so its final jhal
+     * is padānta too: षष् + सुप् → षड् + सु → (8.4.55) षट्सु, not 8.2.41 षक्षु, which is asiddha to this sūtra. */
+    private fun svadiPadaTarget(context: DerivationState) = context.terms.zipWithNext().firstOrNull { (left, right) ->
+        val final = getFinalConsonant(left)
+        left.kind == TermKind.PRATIPADIKA &&
+            context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA } &&
+            final != null && final != Vyanjana.SA && final !in jash &&
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, final) &&
+            right.varnas.isNotEmpty()
+    }?.first
     private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->
         term != context.terms.last() && context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } &&
             getFinalConsonant(term) != null

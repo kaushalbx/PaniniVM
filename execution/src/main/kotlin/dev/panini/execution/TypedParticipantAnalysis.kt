@@ -71,6 +71,7 @@ object TypedParticipantAnalysis {
             }
             override fun visitWhileLoop(node: WhileLoop): ProgramNode {
                 transform(node.condition)
+                node.conjuncts.forEach(::transform)
                 return super.visitWhileLoop(node)
             }
             override fun visitQuotation(node: Quotation): ProgramNode {

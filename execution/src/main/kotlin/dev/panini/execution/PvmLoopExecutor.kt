@@ -62,7 +62,7 @@ internal class PvmLoopExecutor {
         fun complete(outcome: ExecutionResult.LoopOutcome): List<ExecutionResult> {
             val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
             val attemptWord = dev.panini.sankhya.SankhyaGenerator().cardinal(iterationCount).final.surface
-            val attributes = mapOf("अवस्था" to outcome.sanskritName, "प्रयत्नसङ्ख्या" to attemptWord)
+            val attributes = mapOf("अवस्था" to outcome.sanskritName, "प्रयत्न-सङ्ख्या" to attemptWord)
             val schema = request.structSchemas[LOOP_RESULT_NAME]
             if (schema != null && schema.fields.toSet() != attributes.keys) {
                 return results + ExecutionResult.Failure(
@@ -72,7 +72,7 @@ internal class PvmLoopExecutor {
             }
             val fields = mapOf(
                 "अवस्था" to outcomeValue,
-                "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
+                "प्रयत्न-सङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
             )
             request.structStore[LOOP_RESULT_NAME] = TaddhitaStruct(LOOP_RESULT_NAME, attributes, fields)
             val completion = ExecutionResult.Success(
@@ -91,7 +91,7 @@ internal class PvmLoopExecutor {
                             mapOf(
                                 "फल" to outcomeValue,
                                 "परिणाम" to outcomeValue,
-                                "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, iterationCount.toString()),
+                                "प्रयत्न-सङ्ख्या" to SanskritValue.Sankhya(iterationCount, iterationCount.toString()),
                             ),
                         ),
                     ),
@@ -111,52 +111,16 @@ internal class PvmLoopExecutor {
             val conditionHolds = if (usesLatestResult) {
                 if (isNegated) !latestConditionValue else latestConditionValue
             } else {
-                val truthState = truthStateName
-                    ?.let { request.scope.environment.values[it] ?: request.resolveValue(it) }
-                    as? SanskritValue.Satya
-                if (truthState != null) {
-                    if (hasExplicitNegation) !truthState.boolean else truthState.boolean
-                } else {
-                    val resolved = when (val resolution = request.resolveCondition(loop.condition)) {
-                        is ConditionResolution.Resolved -> resolution.value
-                        is ConditionResolution.Invalid -> return results + resolution.failure
-                    }
-                    val fieldTest = NaturalSemanticNormalizer.normalize(resolved.invocation)
-                        as? NaturalSemanticNormalizer.Operation.TruthTest
-                    if (fieldTest != null && resolved.environment.values.containsKey(fieldTest.stateName)) {
-                        val fieldTruth = resolved.environment.values[fieldTest.stateName] as? SanskritValue.Satya
-                            ?: return results + ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                                "A field truth predicate requires सत्य/असत्य.")
-                        if (fieldTest.negated) !fieldTruth.boolean else fieldTruth.boolean
-                    } else {
-                        // न scopes over the predicate's truth here. Passing it
-                        // as an independent utterance would instead classify
-                        // the predicate as a prohibition speech act.
-                        val predicate = if (!hasExplicitNegation) resolved.invocation else {
-                            val original = resolved.invocation.vakya
-                            val affirmative = original.padas.filterNot {
-                                it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA
-                            }
-                            resolved.invocation.copy(vakya = when (original) {
-                                is dev.panini.vyakaranam.ast.AkhyataVakya -> original.copy(padas = affirmative)
-                                is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(padas = affirmative)
-                            })
-                        }
-                        val conditionResult = request.evaluateCondition(
-                            predicate,
-                            request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
-                        )
-                        val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
-                        if (success.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE)
-                            return results + success
-                        val truth = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
-                            ?: return results + ExecutionResult.Failure(
-                                ExecutionError.INVALID_VALUE,
-                                "A loop condition must produce a truth value.",
-                            )
-                        if (hasExplicitNegation) !truth else truth
+                // च conjoins clauses left to right, and a false clause ends the test: in स्थानम् एकाद् अधिकम् अस्ति च
+                // पूर्वाङ्कः अङ्काद् अधिकः अस्ति the second clause is read only when a member before स्थान exists.
+                var holds = true
+                for (clause in listOf(loop.condition) + loop.conjuncts) {
+                    when (val truth = clauseTruth(clause, request)) {
+                        is ClauseTruth.Value -> if (!truth.holds) { holds = false; break }
+                        is ClauseTruth.Stop -> return results + truth.result
                     }
                 }
+                holds
             }
             if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)
 
@@ -188,6 +152,59 @@ internal class PvmLoopExecutor {
                     result.controlSignal != null }) return results
         }
         return complete(ExecutionResult.LoopOutcome.SAMAPTI)
+    }
+
+    private sealed interface ClauseTruth {
+        data class Value(val holds: Boolean) : ClauseTruth
+        /** Evaluation produced a failure or a procedure return that ends the loop. */
+        data class Stop(val result: ExecutionResult) : ClauseTruth
+    }
+
+    /** The truth of one condition clause that is not tested against the latest result. */
+    private fun clauseTruth(condition: dev.panini.vyakaranam.ast.Invocation, request: Request): ClauseTruth {
+        val hasExplicitNegation = condition.vakya.padas.any { it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA }
+        val truthStateName = (NaturalSemanticNormalizer.normalize(condition) as? NaturalSemanticNormalizer.Operation.TruthTest)?.stateName
+        val truthState = truthStateName
+            ?.let { request.scope.environment.values[it] ?: request.resolveValue(it) }
+            as? SanskritValue.Satya
+        if (truthState != null) return ClauseTruth.Value(if (hasExplicitNegation) !truthState.boolean else truthState.boolean)
+        val resolved = when (val resolution = request.resolveCondition(condition)) {
+            is ConditionResolution.Resolved -> resolution.value
+            is ConditionResolution.Invalid -> return ClauseTruth.Stop(resolution.failure)
+        }
+        val fieldTest = NaturalSemanticNormalizer.normalize(resolved.invocation)
+            as? NaturalSemanticNormalizer.Operation.TruthTest
+        if (fieldTest != null && resolved.environment.values.containsKey(fieldTest.stateName)) {
+            val fieldTruth = resolved.environment.values[fieldTest.stateName] as? SanskritValue.Satya
+                ?: return ClauseTruth.Stop(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "A field truth predicate requires सत्य/असत्य."))
+            return ClauseTruth.Value(if (fieldTest.negated) !fieldTruth.boolean else fieldTruth.boolean)
+        }
+        // न scopes over the predicate's truth here. Passing it
+        // as an independent utterance would instead classify
+        // the predicate as a prohibition speech act.
+        val predicate = if (!hasExplicitNegation) resolved.invocation else {
+            val original = resolved.invocation.vakya
+            val affirmative = original.padas.filterNot {
+                it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA
+            }
+            resolved.invocation.copy(vakya = when (original) {
+                is dev.panini.vyakaranam.ast.AkhyataVakya -> original.copy(padas = affirmative)
+                is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(padas = affirmative)
+            })
+        }
+        val conditionResult = request.evaluateCondition(
+            predicate,
+            request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
+        )
+        val success = conditionResult as? ExecutionResult.Success ?: return ClauseTruth.Stop(conditionResult)
+        if (success.controlSignal == ExecutionControlSignal.RETURN_PROCEDURE) return ClauseTruth.Stop(success)
+        val truth = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
+            ?: return ClauseTruth.Stop(ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "A loop condition must produce a truth value.",
+            ))
+        return ClauseTruth.Value(if (hasExplicitNegation) !truth else truth)
     }
 
     private companion object {

@@ -6,7 +6,7 @@ import kotlin.test.*
 class MethodFieldArgumentParityTest {
     @Test fun `record method can receive a field argument after its method name`() {
         val source = """
-            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            शब्द + मतुप् + ङस् मूल्य + सुँ पञ्च + जस् असँ + लट् + तिप् ।
             गुण + मतुप् + ङस् परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥

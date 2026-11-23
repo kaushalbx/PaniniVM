@@ -25,7 +25,7 @@ class MainTest {
                 SanskritUktiInput(
                     conversation.speaker,
                     conversation.listener,
-                    "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                    "दश + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
                 ),
                 conversation,
             ),
@@ -70,7 +70,7 @@ class MainTest {
         try {
             Files.writeString(
                 input,
-                "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                "दश + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
             )
 
             val emitted = runCli(
@@ -113,7 +113,7 @@ class MainTest {
             Files.writeString(
                 input,
                 """
-                दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+                दश + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
                 युज् + ल्युट् + ङस् फल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
                 """.trimIndent(),
             )

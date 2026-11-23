@@ -35,7 +35,7 @@ class CollectionReductionTest {
     }
 
     @Test fun `one member reduction returns that member without invoking its body`() {
-        val source = "नवन् + सुँ इति सूची + सुँ असँ + लट् + तिप् ।\n" +
+        val source = "नवन् + जस् इति सूची + सुँ असँ + लट् + तिप् ।\n" +
             "सूची + ङस् प्रथम + अम् आरभ्य सञ्चित + अम् सदस्य + अम् प्रति " +
             "सञ्चित + अम् सदस्य + अम् च युज् + णिच् + लोट् + सिप् ।"
         assertEquals(9L, assertIs<SanskritValue.Sankhya>(

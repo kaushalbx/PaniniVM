@@ -23,7 +23,7 @@ class NaturalOperationResolverTest {
     fun `locative collection search returns the first one based item position`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङि द्वि + ओस् स्थान + अम् अनु + इष् + लोट् + सिप् ।
             """.trimIndent(),
@@ -39,7 +39,7 @@ class NaturalOperationResolverTest {
     fun `collection position search fails when the sought item is absent`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङि त्रि + आम् स्थान + अम् अनु + इष् + लोट् + सिप् ।
             """.trimIndent(),
@@ -52,7 +52,7 @@ class NaturalOperationResolverTest {
     fun `locative ordinal selects the second member as a one based position`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् त्रि + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),
@@ -65,7 +65,7 @@ class NaturalOperationResolverTest {
     fun `ordinal extraction selects the requested member rather than returning the last value`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
             """.trimIndent(),
@@ -77,7 +77,7 @@ class NaturalOperationResolverTest {
     fun `genitive collection supplies the final extracted member`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ।
             """.trimIndent(),
@@ -160,7 +160,7 @@ class NaturalOperationResolverTest {
     @Test
     fun `state placement is derived from karman and adhikarana`() {
         val operation = assertIs<NaturalOperation.StatePlacement>(
-            resolve("सप्त + अम् अवस्था + ङि स्था + णिच् + लोट् + सिप्", allowStore = true),
+            resolve("सप्त + शस् अवस्था + ङि स्था + णिच् + लोट् + सिप्", allowStore = true),
         )
 
         assertEquals("सप्त", operation.value.bindingName())
@@ -170,7 +170,7 @@ class NaturalOperationResolverTest {
     @Test
     fun `collection insertion is derived from karman and adhikarana`() {
         val operation = assertIs<NaturalOperation.CollectionInsertion>(
-            resolve("द्वि + अम् क्रम + ङि नि + क्षिप् + लोट् + सिप्"),
+            resolve("द्वि + औट् क्रम + ङि नि + क्षिप् + लोट् + सिप्"),
         )
 
         assertEquals("द्वि", operation.item.bindingName())
@@ -180,7 +180,7 @@ class NaturalOperationResolverTest {
     @Test
     fun `collection formation is derived from coordinated karman`() {
         val operation = assertIs<NaturalOperation.CollectionFormation>(
-            resolve("एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्"),
+            resolve("एक + अम् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्"),
         )
 
         val items = assertIs<ExecutionExpression.Coordination>(operation.items)
@@ -241,9 +241,9 @@ class NaturalOperationResolverTest {
 
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् त्रि + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
-            यदि द्वि + सुँ सूची + ङि असँ + लट् + तिप्
+            यदि द्वि + औ सूची + ङि असँ + लट् + तस्
                 तर्हि सत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप्
                 अन्यथा असत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप् ।
             """.trimIndent(),
@@ -300,9 +300,9 @@ class NaturalOperationResolverTest {
 
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् पूर्वसूची + ङि स्था + णिच् + लोट् + सिप् ।
-            त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            त्रि + शस् चतुर् + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् उत्तरसूची + ङि स्था + णिच् + लोट् + सिप् ।
             पूर्वसूची + अम् उत्तरसूची + अम् च सम् + युज् + णिच् + लोट् + सिप् ।
             """.trimIndent(),
@@ -361,10 +361,10 @@ class NaturalOperationResolverTest {
     fun `collection slice accepts computed numeric boundaries`() {
         val results = PaniniVM().evalScript(
             """
-            एक + अम् द्वि + अम् त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+            एक + अम् द्वि + औट् त्रि + शस् चतुर् + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
                 ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
-            द्वि + अम् आरम्भ + ङि स्था + णिच् + लोट् + सिप् ।
-            त्रि + अम् अन्तक्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            द्वि + औट् आरम्भ + ङि स्था + णिच् + लोट् + सिप् ।
+            त्रि + शस् अन्तक्रम + ङि स्था + णिच् + लोट् + सिप् ।
             सूची + ङस् आरम्भ + ङसिँ अन्तक्रम + शस् परि + अन्त + अम्
                 अंश + अम् ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),

@@ -26,7 +26,7 @@ class FieldAssertionDiagnosticParityTest {
 
     @Test
     fun `result schema frame diagnostic has interpreter compiler parity`() {
-        val source = "मूल्य + सुँ फल + सुँ च अवस्था + ङस् क्षेत्र + जस् द्वि + अम् असँ + लट् + झि ।"
+        val source = "मूल्य + सुँ फल + सुँ च अवस्था + ङस् क्षेत्र + जस् द्वि + औट् असँ + लट् + झि ।"
         val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
         val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)
         assertEquals("RESULT_SCHEMA_FRAME", interpretedDiagnostic.code)
@@ -41,7 +41,7 @@ class FieldAssertionDiagnosticParityTest {
 
     @Test
     fun `field assertion copula diagnostic has interpreter compiler parity`() {
-        val source = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + सुँ असँ + लृट् + तिप् ।"
+        val source = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + औ असँ + लृट् + तिप् ।"
         val interpreted = assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).single())
         val interpretedDiagnostic = assertNotNull(interpreted.diagnostic)
         assertEquals("FIELD_ASSERTION_COPULA_MORPHOLOGY", interpretedDiagnostic.code)

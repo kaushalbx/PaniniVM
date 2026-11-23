@@ -135,6 +135,8 @@ internal object DhatuCache {
         val text = tinganta.dhatu.mulaDhatu
         val requiredGana = tinganta.lexicalGanaConstraint()
         if (requiredGana != null) {
+            // A written vikaraṇa is one the form keeps. शप् deleted by 2.4.72 (adādi) or replaced by ślu by 2.4.75
+            // (juhotyādi) is not written, so a written शप् names bhvādi: सृ + शप् is अनुसरति, not juhotyādi ससर्ति.
             val candidates = DhatuPatha.all.filter { candidate ->
                 candidate.gana == requiredGana &&
                     (candidate.upadesha == text || candidate.sourceSurface == text || candidate.derivationalSurface == text)
@@ -160,6 +162,9 @@ internal object DhatuCache {
             // A curādi root requires ṇic (3.1.25), so a form without it cannot be curādi.
             .filter { it.gana != dev.panini.core.DhatuGana.CURADI || tinganta.dhatu.sanadiAffixes.isNotEmpty() }
             .filter { !active || pada == null || it.pada == dev.panini.core.PadaType.UBHAYAPADA || it.pada == pada }
+        // शास्ति: the written pada leaves one adādi entry (ātmanepada आङः शासुँ इच्छायाम् drops out). 2.4.72 deletes its शप्,
+        // so no vikaraṇa could be written and the form already names its gaṇa.
+        candidates.singleOrNull()?.takeIf { it.gana == dev.panini.core.DhatuGana.ADADI }?.let { return it }
         // Repeated listings of one upadeśa in one gaṇa (जि) are one root for this choice.
         val oneRoot = candidates.all { it.gana == dev.panini.core.DhatuGana.BHVADI } && candidates.map { it.upadesha }.distinct().size == 1
         if (!oneRoot && candidates.map { it.karmatva }.distinct().size != 1) return null

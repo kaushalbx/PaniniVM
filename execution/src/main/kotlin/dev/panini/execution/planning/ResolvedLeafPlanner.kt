@@ -289,7 +289,7 @@ object ResolvedLeafPlanner {
             listener = conversation.listener,
             text = segmentedSource,
         )
-        val bindingResult = runCatching {
+        val bindingResult = try {
             VyakaranamExecutionAdapter.bind(
                 input,
                 parsedUkti,
@@ -297,7 +297,15 @@ object ResolvedLeafPlanner {
                 environment = bindingEnvironment,
                 injectedBindings = injectedBindings,
             )
-        }.getOrNull()
+        } catch (error: dev.panini.execution.PvmSemanticException) {
+            // A typed diagnostic describes the source, not this planner's attempt: report it, don't fall through.
+            throw error
+        } catch (_: IllegalArgumentException) {
+            null
+        }
+        (bindingResult as? ExecutionBindingResult.Invalid)?.diagnostic?.let {
+            throw dev.panini.execution.PvmSemanticException(it)
+        }
         val ukti = (bindingResult as? ExecutionBindingResult.Bound)?.ukti ?: return null
         val program = when (val planned = ProgramBlueprintGranthaPlanner.plan(
             ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),

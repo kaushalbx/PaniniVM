@@ -84,7 +84,7 @@ Parameter declarations use `… इति मान + सुँ`; a primitive re
 uses `… इति परिणाम + सुँ`. Calls may bind parameters positionally or by name:
 
 ```pvm
-दक्षिण + ङस् त्रि + अम् वाम + ङस् द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+दक्षिण + ङस् त्रि + शस् वाम + ङस् द्वि + औट् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 Named binding rejects duplicate, unknown, missing, and mixed positional/named
@@ -94,7 +94,7 @@ the script, allowing IDE diagnostics before a run.
 Structured return signatures name an existing result schema:
 
 ```pvm
-अवस्था + अम् प्रयत्नसङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
+अवस्था + अम् प्रयत्न-सङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
 
 अनुमान + ल्युट् + सुँ ।
 अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।

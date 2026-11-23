@@ -15,7 +15,7 @@ class PvmRangeDefinitionTest {
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ॥
             एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
+            द्वि + भ्याम् द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val results = PaniniVM().evalScript(source)
@@ -52,7 +52,7 @@ class PvmRangeDefinitionTest {
         val results = PaniniVM().evalScript("""
             एक + ङसिँ एक + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
+            द्वि + भ्याम् द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
         """.trimIndent())
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
@@ -62,7 +62,7 @@ class PvmRangeDefinitionTest {
 
     @Test
     fun `locative upper bound is rejected as a range declaration`() {
-        val source = "एक + ङसिँ दश + ङि इति सीमा + सुँ असँ + लट् + तिप् ।"
+        val source = "एक + ङसिँ दश + सुप् इति सीमा + सुँ असँ + लट् + तिप् ।"
 
         assertFailsWith<IllegalArgumentException> { PvmScript.parse(source) }
         assertTrue(PrakriyaScriptValidator.validate(source).any { "पर्यन्त" in it.message })

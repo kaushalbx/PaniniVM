@@ -41,6 +41,7 @@ import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
+import dev.panini.vyakaranam.ast.SamasaAnga
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Pada
@@ -74,6 +75,9 @@ import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.ForEach
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.linganushasanam.PaninianPratipadikaLexicon
+import dev.panini.linganushasanam.LinganushasanamEngine
+import dev.panini.linganushasanam.LingaRuleContext
+import dev.panini.core.LingaSemanticClass
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -89,22 +93,60 @@ class PvmUktiSadhaka(
     private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
     private val striPratyayaEngine: StriPratyayaEngine = StriPratyayaEngine(),
     private val pratipadikaLexicon: PratipadikaLexicon = PaninianPratipadikaLexicon,
+    private val lingaEngine: LinganushasanamEngine = LinganushasanamEngine(),
     private val parser: PaniniParser = PaniniParser(),
 ) {
+
+    /**
+     * A stem's lexical entry. A name written unsegmented (वामसङ्ख्या) that ends in a declared stem after a
+     * vowel-final first member, where no sandhi can have altered the seam, is a tatpuruṣa of that final member:
+     * 2.4.26 परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः gives it the final member's gender, and it keeps that member's
+     * stem formation (सङ्ख्या, टाबन्ता), so it declines and agrees as the final member does.
+     */
+    private fun lexicalEntry(stem: String): dev.panini.vyakaranam.lexicon.PratipadikaEntry? {
+        pratipadikaLexicon.findPratipadika(stem)?.let { return it }
+        fun isConsonant(c: Char) = c in 'क'..'ह' || c in 'क़'..'य़'
+        for (seam in 1 until stem.length - 1) {
+            if (!isConsonant(stem[seam]) || stem[seam - 1] == '्') continue
+            val finalMember = stem.substring(seam)
+            val entry = dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon.findPratipadika(finalMember)
+                ?.takeIf { it.linga.isNotEmpty() } ?: continue
+            return entry.copy(text = stem, upadesha = stem, lingaRuleIds = entry.lingaRuleIds + "2.4.26")
+        }
+        return null
+    }
+
+    /** Gender of the antecedent of the sentence being rendered, for its top-level तद्. */
+    private var anaphorLinga: Linga? = null
 
     fun sadhayaScript(scriptContent: String): String {
         val renderedLines = mutableListOf<String>()
         val pendingCode = mutableListOf<String>()
         val pendingComments = mutableListOf<String>()
 
+        // Top-level तद् agrees in gender with its antecedent in the preceding top-level sentence
+        // (TopLevelAnaphora); a procedure body is its own scope, so it neither supplies nor takes one.
+        var previousTopLevel: dev.panini.vyakaranam.ast.Ukti? = null
+        var insideProcedure = false
+
         fun renderPending() {
             if (pendingCode.isEmpty()) return
             val source = pendingCode.joinToString(" ")
+            val opensProcedure = !insideProcedure && PrakriyaDefinitionMarkerParser.hasExplicitMarker(source)
+            if (opensProcedure) insideProcedure = true
+            val current = if (insideProcedure) null else runCatching { parser.parse(source) }.getOrNull()
+            anaphorLinga = current?.let { TopLevelAnaphora.antecedentLingas(it, previousTopLevel).singleOrNull() }
             val surface = try {
                 sadhayaLine(source)
             } catch (_: Throwable) {
                 source
+            } finally {
+                anaphorLinga = null
             }
+            if (insideProcedure && source.trimEnd().endsWith("॥")) {
+                insideProcedure = false
+                previousTopLevel = null
+            } else if (!insideProcedure) previousTopLevel = current
             renderedLines += if (pendingComments.isEmpty()) {
                 surface
             } else {
@@ -203,7 +245,8 @@ class PvmUktiSadhaka(
                     if (node.connectorKinds.getOrNull(index - 1) == SequenceConnector.TADANIM) {
                         append(" । ${SequenceConnector.TADANIM.surface} ")
                     } else {
-                        append(" $connector ")
+                        // तथा + अपि is two nipātas; spoken, the sandhi engine joins them.
+                        append(" ${connector.split("+").map(String::trim).reduce { a, b -> sandhiEngine.render(sandhiEngine.join(a, b)) }} ")
                     }
                 }
                 append(render(statement))
@@ -216,6 +259,7 @@ class PvmUktiSadhaka(
             val stripLoweredTargets = hasSharedTarget || !includePipelineTarget
             append(if (node.relation == dev.panini.vyakaranam.ast.ConditionalRelation.TEMPORAL) "यदा " else "यदि ")
             append(render(node.condition))
+            node.conjuncts.forEach { append(" च "); append(render(it)) }
             append(if (node.relation == dev.panini.vyakaranam.ast.ConditionalRelation.TEMPORAL) " तदा " else " तर्हि ")
             append(renderBranch(node.consequent, stripPipelineTarget = stripLoweredTargets))
             node.alternate?.let {
@@ -289,6 +333,7 @@ class PvmUktiSadhaka(
             }
             append("यावत् ")
             append(sadhayaPadas(node.condition.vakya.padas))
+            node.conjuncts.forEach { append(" च "); append(sadhayaPadas(it.vakya.padas)) }
             append(" तावत् ")
             if (node.maximumBoundaryPadas.isNotEmpty()) {
                 append(sadhayaPadas(node.maximumBoundaryPadas))
@@ -317,7 +362,8 @@ class PvmUktiSadhaka(
 
     private fun sadhayaPadas(padas: List<Pada>): String =
         padas.mapIndexed { index, pada ->
-            sadhayaPada(pada, numeralAgreementLinga(padas, index) ?: predicateAgreementLinga(padas, index))
+            sadhayaPada(pada, numeralAgreementLinga(padas, index) ?: predicateAgreementLinga(padas, index)
+                ?: anaphorLinga.takeIf { pada is SubantaPada && AnaphoricOperandProjection.agreement(pada) != null })
         }.joinToString(" ")
 
     /** A predicative adjective agrees with the nominative subject of the copular clause. */
@@ -342,11 +388,23 @@ class PvmUktiSadhaka(
                 ?: numeralAgreementLinga(padas, padas.indexOf(subject)) ?: Linga.NAPUMSAKA
         }
         if (subject !is SubantaPada) return null
-        if ((subject.pratipadika as? MulaPratipadika)?.vikaras.orEmpty().any { it is dev.panini.vyakaranam.ast.StriVikara }) return Linga.STRI
-        return pratipadikaLexicon.findPratipadika(subject.pratipadika.baseText())?.linga?.singleOrNull()
-            ?: Linga.NAPUMSAKA.takeIf {
-                (subject.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PHALA
-            }
+        // 2.4.26 परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः: a compound subject has its final member's gender.
+        (subject.pratipadika as? SamasaPratipadika)?.let { samasa ->
+            if (samasa.vikaras.any { it is StriVikara }) return Linga.STRI
+            val last = samasa.angas.lastOrNull()?.pratipadika ?: return null
+            if ((last as? MulaPratipadika)?.vikaras.orEmpty().any { it is StriVikara }) return Linga.STRI
+            return lexicalEntry(last.baseText())?.linga?.singleOrNull()
+        }
+        val mula = subject.pratipadika as? MulaPratipadika
+        if (mula?.vikaras.orEmpty().any { it is dev.panini.vyakaranam.ast.StriVikara }) return Linga.STRI
+        // A bhāva ल्युट् noun is neuter by Liṅgānuśāsana 119 (भावे ल्युडन्तः).
+        if ((subject.pratipadika as? KridantaPratipadika)?.krtPratyaya == "ल्युट्") {
+            return lingaEngine.resolveOrNull(LingaRuleContext(subject.pratipadika.baseText(), pratyaya = "ल्युट्",
+                semanticClasses = setOf(LingaSemanticClass.BHAVA), applicableSutraNumbers = setOf("119")))?.lingas?.singleOrNull()
+        }
+        // The lexicon resolves gender through the Liṅgānuśāsana (गणना: टाप्, sūtra 11 ऊङाबन्तश्च).
+        return lexicalEntry(subject.pratipadika.baseText())?.linga?.singleOrNull()
+            ?: Linga.NAPUMSAKA.takeIf { mula?.lexicalIdentity == MulaPratipadikaIdentity.PHALA }
     }
 
     private fun numeralAgreementLinga(padas: List<Pada>, index: Int): Linga? {
@@ -365,7 +423,7 @@ class PvmUktiSadhaka(
         }
 
         val countedBase = counted.pratipadika.baseText()
-        return pratipadikaLexicon.findPratipadika(countedBase)?.linga?.singleOrNull()
+        return lexicalEntry(countedBase)?.linga?.singleOrNull()
     }
 
     private fun numeralIntrinsicLinga(pada: Pada): Linga? = when (pada) {
@@ -414,6 +472,7 @@ class PvmUktiSadhaka(
     }
 
     private fun sadhayaAvyaya(pada: AvyayaPada): String {
+        (pada.derivation as? dev.panini.vyakaranam.ast.NipataSamuccayaDerivation)?.let { return it.members.reduce { a, b -> sandhiEngine.render(sandhiEngine.join(a, b)) } }
         val derivation = pada.derivation as? AvyayaKridantaDerivation ?: return pada.form
         return runCatching {
             when (val stem = krdantaEngine.deriveSourceStem(
@@ -428,7 +487,18 @@ class PvmUktiSadhaka(
         }.getOrDefault(pada.form)
     }
 
+    /** A range bound that names a computed value (मध्य), not a numeral: its stem, when it is one. */
+    private fun namedBoundaryStem(boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada): String? {
+        val sankhya = boundary as? SankhyaPada ?: return null
+        if (sankhya.value != null) return null
+        val stem = sankhya.stems.singleOrNull() ?: return null
+        return stem.takeIf { runCatching { sankhyaEvaluator.evaluateStems(sankhya.stems) }.isFailure }
+    }
+
     private fun sadhayaParyantaRange(range: ParyantaRangePada): String {
+        val namedLower = namedBoundaryStem(range.lowerLimit)
+        val namedUpper = namedBoundaryStem(range.upperLimit)
+        if (namedLower != null || namedUpper != null) return sadhayaNamedRange(range, namedLower, namedUpper)
         val lower = when (val boundary = range.lowerLimit) {
             is SankhyaPada -> sadhayaSankhya(boundary)
             is SankhyaPuranaPada -> sadhayaSankhyaPurana(boundary)
@@ -447,6 +517,48 @@ class PvmUktiSadhaka(
             padas = listOf(
                 SamasaPada(upper, Vibhakti.PRATHAMA, samjnas = setOf(dev.panini.shiksha.Samjna.SANKHYA)),
                 SamasaPada(boundary, Vibhakti.PRATHAMA, linga = Linga.NAPUMSAKA),
+            ),
+            type = SamasaType.KARMADHARAYA,
+            outputLinga = Linga.NAPUMSAKA,
+        ).final.surface
+        return "$lower $upperBoundary"
+    }
+
+    /**
+     * A range whose bounds include a named value: a named lower bound declines in the ablative like any
+     * noun (उत्तरारम्भात्), and a named upper bound forms the पर्यन्त compound with its stem (मध्यपर्यन्तम्).
+     */
+    private fun sadhayaNamedRange(range: ParyantaRangePada, namedLower: String?, namedUpper: String?): String {
+        fun lingaOf(stem: String): Linga = lexicalEntry(stem)?.linga?.singleOrNull()
+            ?: lingaEngine.resolve(LingaRuleContext(stem)).linga
+        val lower = namedLower?.let { stem ->
+            val affix = SupAffix.fromUpadesha(range.lowerLimit.sup.text) ?: return range.sourceText
+            val members = stem.split('-')
+            // A compound name (उत्तर-आरम्भ) declines as its tatpuruṣa, gender from the final member (2.4.26).
+            if (members.size > 1) sadhayaSubanta(SubantaPada(stem, SamasaPratipadika(stem,
+                members.map { SamasaAnga(it, MulaPratipadika(it, it)) }), range.lowerLimit.sup))
+            else subantaEngine.derive(SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana, lingaOf(stem))).final.surface
+        } ?: when (val boundary = range.lowerLimit) {
+            is SankhyaPada -> sadhayaSankhya(boundary)
+            is SankhyaPuranaPada -> sadhayaSankhyaPurana(boundary)
+        }
+        val upperStem = namedUpper ?: run {
+            val value = range.upperLimit.value ?: when (val boundary = range.upperLimit) {
+                is SankhyaPada -> sankhyaEvaluator.evaluateStems(boundary.stems).value
+                is SankhyaPuranaPada -> requireNotNull(PuranaPratyayaResolver.ordinalValue(boundary))
+            }
+            when (range.upperLimit) {
+                is SankhyaPada -> sankhyaGenerator.cardinal(value).final.surface.let { if (it == "षष्") "षट्" else it }
+                is SankhyaPuranaPada -> sankhyaGenerator.ordinal(value).final.surface
+            }
+        }
+        val upperBoundary = samasaEngine.derive(
+            // A compound name contributes each of its members to the पर्यन्त compound (उत्तरारम्भपर्यन्तम्).
+            padas = upperStem.split('-').map { member ->
+                SamasaPada(member, Vibhakti.PRATHAMA, linga = namedUpper?.let { lingaOf(member) },
+                    samjnas = if (namedUpper == null) setOf(dev.panini.shiksha.Samjna.SANKHYA) else emptySet())
+            } + listOf(
+                SamasaPada(range.marker.pratipadika.baseText(), Vibhakti.PRATHAMA, linga = Linga.NAPUMSAKA),
             ),
             type = SamasaType.KARMADHARAYA,
             outputLinga = Linga.NAPUMSAKA,
@@ -517,6 +629,13 @@ class PvmUktiSadhaka(
                         ?.let { SupAffix.fromUpadesha(it)?.vibhakti }
                         ?: Vibhakti.PRATHAMA
                     anga.pratipadika.toSamasaPada(anga.pratipadika.baseText(), vibhakti)
+                }.let { members ->
+                    // 2.4.26 परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः: the compound takes its final member's gender,
+                    // which the lexicon resolves through the Liṅgānuśāsana.
+                    val last = members.last()
+                    val lastEntry = lexicalEntry(last.upadesha)
+                    members.dropLast(1) + last.copy(linga = lastEntry?.linga?.singleOrNull(),
+                        stemFormation = lastEntry?.stemFormation ?: NominalStemFormation.UNSPECIFIED)
                 }
                 val outerAffix = SupAffix.fromUpadesha(normalized.sup.text)
                     ?: return subanta.sourceText
@@ -551,7 +670,8 @@ class PvmUktiSadhaka(
                         outerAffix.vibhakti,
                         outerAffix.vacana,
                         if (feminine == null) lingaOverride ?: Linga.PUMS else Linga.STRI,
-                        if (feminine != null && declinedBase.endsWith("ा")) NominalStemFormation.AP
+                        // आप् only when the stated feminine affix is टाप्; ङी-formed stems are not आबन्त.
+                        if (feminine?.pratyaya == "टाप्") NominalStemFormation.AP
                         else NominalStemFormation.UNSPECIFIED,
                     )).final.surface
                 }.getOrElse { subanta.sourceText }
@@ -614,11 +734,10 @@ class PvmUktiSadhaka(
                 .getOrNull() ?: return subanta.sourceText
         }
         val lexicalSurface = taddhitaBase ?: (normalized.pratipadika as? MulaPratipadika)?.text ?: baseText
-        val feminineAaBase = when {
-            lexicalSurface.endsWith("ा") || lexicalSurface.endsWith("आ") -> lexicalSurface
-            else -> null
+        // An आप्-formed stem is known from its declared morphology (गणना: टाप्), never from a written आ.
+        val feminineAaBase = lexicalSurface.takeIf {
+            lexicalEntry(it)?.stemFormation == NominalStemFormation.AP
         }
-        val hasFeminineAaSurface = feminineAaBase != null
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
         when (sourceStem) {
             is dev.panini.derivation.KrdantaSourceStem.Productive -> Unit
@@ -628,37 +747,45 @@ class PvmUktiSadhaka(
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
         val intrinsicNumeralLinga = sankhya?.semanticValue?.value
             ?.let { sankhyaGenerator.intrinsicLinga(it) }
-        val lexicalLinga = pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull()
+        val lexicalLinga = lexicalEntry(baseText)?.linga?.singleOrNull()
         val linga = when {
             explicitStri != null -> Linga.STRI
             intrinsicNumeralLinga != null -> intrinsicNumeralLinga
             lingaOverride != null -> lingaOverride
             sankhya != null -> Linga.NAPUMSAKA
-            kridanta?.krtPratyaya == "ल्युट्" -> Linga.NAPUMSAKA
-            else -> lexicalLinga
-                ?: if (hasFeminineAaSurface) Linga.STRI else Linga.PUMS
+            // भावे ल्युडन्तः (Liṅgānuśāsana 119).
+            kridanta?.krtPratyaya == "ल्युट्" -> lingaEngine.resolve(LingaRuleContext(baseText, pratyaya = "ल्युट्",
+                semanticClasses = setOf(LingaSemanticClass.BHAVA), applicableSutraNumbers = setOf("119"))).linga
+            // The lexicon resolves through the Liṅgānuśāsana; the engine's own default is masculine.
+            else -> lexicalLinga ?: lingaEngine.resolve(LingaRuleContext(lexicalSurface)).linga
         }
         return try {
             if (sankhya?.semanticValue != null) {
                 SankhyaVacana.requireCompatible(sankhya.semanticValue.value, supAffix.vacana)
                 return sankhyaGenerator.decline(sankhya.semanticValue.value, supAffix.vibhakti, supAffix.vacana, linga)
             }
+            // त्यदादि pronouns take their feminine paradigm in SubantaEngine (सा, ताम्), never a separate टाप् stem.
+            val derivedFeminineAffix = if (lingaOverride == Linga.STRI && explicitStri == null && lexicalLinga != Linga.STRI && !isTyadadiPronoun) {
+                if (dev.panini.core.ItMarker.U in sourceAffixItMarkers) dev.panini.shiksha.Samjna.NIP
+                else dev.panini.shiksha.Samjna.TAP
+            } else null
             val derivationBase = explicitlyFeminineBase
                 ?: feminineAaBase
-                ?: (if (lingaOverride == Linga.STRI && explicitStri == null && lexicalLinga != Linga.STRI) {
-                    val feminineAffix = if (dev.panini.core.ItMarker.U in sourceAffixItMarkers) {
-                        dev.panini.shiksha.Samjna.NIP
-                    } else dev.panini.shiksha.Samjna.TAP
-                    striPratyayaEngine.derive(StriPratyayaRequest(baseText, feminineAffix, sourceAffixItMarkers)).final.surface
-                } else null)
+                ?: derivedFeminineAffix?.let {
+                    striPratyayaEngine.derive(StriPratyayaRequest(baseText, it, sourceAffixItMarkers)).final.surface
+                }
                 ?: baseText
-            val stemFormation = if (
-                linga == Linga.STRI && (derivationBase.endsWith("ा") || derivationBase.endsWith("आ"))
-            ) {
-                NominalStemFormation.AP
-            } else {
-                NominalStemFormation.UNSPECIFIED
+            // आप् (टाप्, डाप्, चाप्) is known from the affix that formed the stem, never from a written आ:
+            // an explicit vikāra, the lexicon's declared formation, or the टाप् derived just above.
+            val apAffixes = setOf("टाप्", "डाप्", "चाप्")
+            val isApFormed = when {
+                explicitlyFeminineBase != null -> explicitStri?.pratyaya in apAffixes
+                feminineAaBase != null -> true
+                derivedFeminineAffix != null -> derivedFeminineAffix == dev.panini.shiksha.Samjna.TAP
+                else -> lexicalEntry(baseText)?.stemFormation == NominalStemFormation.AP
             }
+            val stemFormation = if (linga == Linga.STRI && isApFormed) NominalStemFormation.AP
+            else NominalStemFormation.UNSPECIFIED
             val req = SubantaDerivationRequest(
                 derivationBase,
                 supAffix.vibhakti,

@@ -51,8 +51,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 reference.select(memory)?.phala
             },
         ) } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Invalid procedure invocation."))
+            return listOf(failure.toFailure("Invalid procedure invocation.", text))
         }
         if (invocation != null) {
             val references = invocation.arguments.mapNotNull { it.actionResult }

@@ -31,8 +31,7 @@ internal class PrakriyaExecutor {
             ))
         }
         val bodyAnalysis = try { invocation.kriya.bodyAnalysis } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Invalid procedure signature."))
+            return listOf(failure.toFailure("Invalid procedure signature.", invocation.fullText))
         }
         val signature = bodyAnalysis.signature
         val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation,
@@ -53,8 +52,7 @@ internal class PrakriyaExecutor {
             request.resolveValue,
             bodyAnalysis,
         ) } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Invalid procedure inputs."))
+            return listOf(failure.toFailure("Invalid procedure inputs.", invocation.fullText))
         }
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }

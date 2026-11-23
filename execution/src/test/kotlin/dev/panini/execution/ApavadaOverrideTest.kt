@@ -28,7 +28,7 @@ class ApavadaOverrideTest {
             प्रथ् + अमच् + अम् द्वि + तीय + अम् च वि + युज् + लोट् + सिप् ॥
 
             # Execute Apavāda method on child instance 'गाणित': 5 - 2 = 3 (त्रीणि) instead of 5 + 2 = 7 (सप्त)
-            पञ्च + अम् द्वि + अम् च गाणित + मतुप् + ङस् गुण् + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् च गाणित + मतुप् + ङस् गुण् + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)

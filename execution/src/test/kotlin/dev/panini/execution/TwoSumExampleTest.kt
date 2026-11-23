@@ -50,7 +50,7 @@ class TwoSumExampleTest {
         val source = File("examples/algorithms/two_sum.pvm").readText()
             .replace(
                 "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति",
-                "त्रि + सुँ त्रि + औ चतुर् + जस् पञ्चन् + जस् इति",
+                "त्रि + जस् त्रि + जस् चतुर् + जस् पञ्चन् + जस् इति",
             )
             .replace(
                 "पञ्चन् + भिस् सम",

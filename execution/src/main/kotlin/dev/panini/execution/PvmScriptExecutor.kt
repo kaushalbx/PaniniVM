@@ -62,6 +62,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 error.diagnostic.message,
                 diagnostic = error.diagnostic,
             )).also { failures -> failures.forEach { onResult?.invoke(it) } }
+        } catch (error: dev.panini.vyakaranam.parser.PaniniParseException) {
+            val first = error.errors.firstOrNull()
+            val diagnostic = ExecutionDiagnostic(
+                code = SYNTAX_ERROR,
+                message = error.message ?: "Invalid Sanskrit syntax.",
+                span = first?.span,
+                offendingText = first?.span?.let { scriptContent.substring(it.start, it.endExclusive) }.orEmpty(),
+            )
+            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, diagnostic.message,
+                diagnostic = diagnostic)).also { failures -> failures.forEach { onResult?.invoke(it) } }
         } catch (error: dev.panini.vyakaranam.parser.PaniniSemanticException) {
             val diagnostic = ExecutionDiagnostic.from(error.diagnostic)
             return listOf(ExecutionResult.Failure(
@@ -81,9 +91,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
         val structSchemas = mutableMapOf<String, TaddhitaStructSchema>()
+        val sourceMap = SourceTextMap(scriptContent)
+        var sourceCursor = 0
+        var currentStart = 0
+        var currentSentence = ""
+        // Listeners see each failure already located in the script, as the returned results do.
+        val locatingListener = onResult?.let { listener ->
+            { result: ExecutionResult -> listener(locateFailure(result, sourceMap, currentStart, currentSentence)) }
+        }
         var context = ExecutionContext(
             effectiveSessionKey, effectiveScope, speaker, listener, registry, sourceFile,
-            structStore, structSchemas, onResult, persistSession,
+            structStore, structSchemas, locatingListener, persistSession,
         )
 
         for (item in parsed) {
@@ -94,6 +112,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
             val statement = item as? PvmScriptStatement.Sentence ?: continue
             val program = statement.program
+            val sentenceStart = sourceCursor
+            currentStart = sentenceStart
+            currentSentence = statement.text
+            sourceMap.locate(statement.text, sourceCursor)?.let { sourceCursor = it.nextCompactOffset }
+            val resultsBefore = results.size
             try {
                 when (val semantics = statement.semantics) {
                 is PvmSentenceSemantics.SchemaDeclaration -> {
@@ -150,11 +173,29 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 results += failure
                 context.publish(failure)
             }
+            for (index in resultsBefore until results.size) {
+                results[index] = locateFailure(results[index], sourceMap, sentenceStart, statement.text)
+            }
             val last = results.lastOrNull()
             if (last != null && (last !is ExecutionResult.Success ||
                     last.controlSignal == ExecutionControlSignal.HALT_SCRIPT)) break
         }
         return results
+    }
+
+    /**
+     * A failure whose diagnostic has no span is located in the script: at its offending text within its
+     * sentence, else at the whole sentence, so every reported failure points into the source.
+     */
+    private fun locateFailure(result: ExecutionResult, sourceMap: SourceTextMap, sentenceStart: Int,
+        sentence: String): ExecutionResult {
+        val failure = result as? ExecutionResult.Failure ?: return result
+        val diagnostic = failure.diagnostic ?: return result
+        if (diagnostic.span != null) return result
+        val located = diagnostic.offendingText.takeIf(String::isNotBlank)?.let { sourceMap.locate(it, sentenceStart) }
+            ?: sourceMap.locate(sentence, sentenceStart) ?: return result
+        val span = dev.panini.vyakaranam.ast.DocumentSourceSpan(located.span.start, located.span.endExclusive)
+        return failure.copy(diagnostic = diagnostic.copy(span = span))
     }
 
     /** The single recursive execution boundary for every parsed executable node. */
@@ -210,8 +251,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     val value = try { NominalResultSemantics.operand(relation.value).resolve { name ->
                         bound.scope.environment.values[name] ?: vm.runtimeValue(context.sessionKey, name)
                     } } catch (failure: IllegalArgumentException) {
-                        return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                            failure.message ?: "Invalid procedure result value.")).also(context::publish)
+                        return listOf(failure.toFailure("Invalid procedure result value.")).also(context::publish)
                     }
                     vm.retainStructuredResult(context.sessionKey, value, context.speaker, context.listener, context.persistSession)
                     return listOf(ExecutionResult.Success(value.toDisplayText(), "pvm.procedure-result",
@@ -950,28 +990,52 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         vm.executionMetrics.recordPrakriyaCall()
         val localStructStore = context.structStore.toMutableMap()
-        return prakriyaExecutor.execute(
-        PrakriyaExecutor.Request(
-            invocation = invocation,
-            scope = context.scope,
-            registry = context.registry,
-            callerSourceFile = context.sourceFile,
-            resolveValue = { vm.runtimeValue(context.sessionKey, it) },
-            executeBody = { program, scope, sourceFile ->
-                executeProgramNode(
-                    program,
-                    context.copy(
-                        scope = scope,
-                        sourceFile = sourceFile,
-                        structStore = localStructStore,
-                        structSchemas = context.structSchemas,
-                        injectedKarman = null,
-                    ),
-                )
-            },
-        ),
-        )
+        // Each call owns what it assigns: it starts from the caller's values in its own session, so a
+        // recursive call cannot overwrite its caller's working values. Only the result returns.
+        val callKey = "${context.sessionKey}#${invocation.kriya.nameStem}-${callCounter.incrementAndGet()}"
+        vm.forkSession(context.sessionKey, callKey)
+        // Program state is fixed when the outermost call begins: what the program had set, and its inputs.
+        val program = programNames[context.sessionKey]
+            ?: (vm.sessionNames(context.sessionKey) + context.scope.environment.values.keys)
+        programNames[callKey] = program
+        val results = try {
+            prakriyaExecutor.execute(
+            PrakriyaExecutor.Request(
+                invocation = invocation,
+                scope = context.scope,
+                registry = context.registry,
+                callerSourceFile = context.sourceFile,
+                resolveValue = { vm.runtimeValue(context.sessionKey, it) },
+                executeBody = { program, scope, sourceFile ->
+                    executeProgramNode(
+                        program,
+                        context.copy(
+                            sessionKey = callKey,
+                            persistSession = false,
+                            scope = scope,
+                            sourceFile = sourceFile,
+                            structStore = localStructStore,
+                            structSchemas = context.structSchemas,
+                            injectedKarman = null,
+                        ),
+                    )
+                },
+            ),
+            )
+        } finally {
+            vm.returnFromCall(callKey, context.sessionKey, program)
+            vm.discardSession(callKey)
+            programNames.remove(callKey)
+        }
+        (results.lastOrNull() as? ExecutionResult.Success)?.let { result ->
+            vm.retainStructuredResult(context.sessionKey, result.typedValue ?: SanskritValue.of(result.value),
+                context.speaker, context.listener, context.persistSession)
+        }
+        return results
     }
+
+    private val callCounter = java.util.concurrent.atomic.AtomicLong()
+    private val programNames = java.util.concurrent.ConcurrentHashMap<String, Set<String>>()
 
     private fun executeStructuredPipeline(
         pipeline: PvmSentenceSemantics.AttributePipeline,

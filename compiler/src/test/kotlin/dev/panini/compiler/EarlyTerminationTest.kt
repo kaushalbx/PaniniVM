@@ -16,7 +16,7 @@ class EarlyTerminationTest {
         val generated = BytecodeCompiler.compileAndLoad(source, "BreakBeforeTruth")
         @Suppress("UNCHECKED_CAST")
         val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
-        assertEquals(1L, assertIs<SanskritValue.Sankhya>(values["प्रयत्नसङ्ख्या"]).value)
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(values["प्रयत्न-सङ्ख्या"]).value)
     }
 
     @Test fun `inner while break does not stop enclosing foreach`() {
@@ -50,7 +50,7 @@ class EarlyTerminationTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वि + स्था + लोट् + सिप् ।
-            नव + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            नव + शस् मुद्र् + णिच् + लोट् + सिप् ॥
             एक + सुँ द्वि + औ त्रि + जस् इति सूची + सुँ असँ + लट् + तिप् ।
             सूची + ङस् सदस्य + अम् प्रति परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
@@ -69,7 +69,7 @@ class EarlyTerminationTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             सूची + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।
-            नव + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            नव + शस् मुद्र् + णिच् + लोट् + सिप् ॥
             राम + सुँ सीता + सुँ इति सूची + सुँ असँ + लट् + तिप् ।
             त्रि + कृत्वसुच् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()

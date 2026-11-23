@@ -37,8 +37,7 @@ internal class PvmSequenceExecutor {
                     SequenceResultFlow.PREVIOUS_RESULT)
                     InjectedKarmanBinding(PIPE_OPERAND, null) else null) != null
         } } catch (failure: IllegalArgumentException) {
-            return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
-                failure.message ?: "Invalid procedure invocation."))
+            return listOf(failure.toFailure("Invalid procedure invocation.", node.sourceText))
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
         // Structured stages (for example a conditional after ततः) must be

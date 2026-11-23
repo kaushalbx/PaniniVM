@@ -20,6 +20,11 @@ enum class PaniniSemanticDiagnosticCode {
     PRAKRIYA_QUALIFIER_AGREEMENT,
     PRAKRIYA_UNSUPPORTED_QUALIFIER,
     PRAKRIYA_MISSING_MARKER,
+    NUMERAL_NUMBER_AGREEMENT,
+    /** A finite verb is required but not written. */
+    VERBLESS_SENTENCE,
+    /** A construction-specific grammatical requirement (case, number, referent) is not met. */
+    GRAMMAR_CONSTRAINT,
 }
 
 data class PaniniSemanticDiagnostic(

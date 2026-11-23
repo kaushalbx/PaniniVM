@@ -15,7 +15,7 @@ class ParsedAnaphorExecutionTest {
             val scope = vm.defaultScope.copy(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
             val parsed = parser.parse(first)
             val program = Scope(first, "क्षेत्र", body = listOf(parsed.body,
-                parser.parse("द्वि + अम् मान + ङे दा + लोट् + सिप् ।").body))
+                parser.parse("द्वि + औट् मान + ङे दा + लोट् + सिप् ।").body))
             val result = vm.evalParsed(parsed.copy(body = program), scope = scope)
             assertTrue(result !is ExecutionResult.Success || result.controlSignal != null, result.toString())
             assertEquals(9L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value, first)
@@ -27,7 +27,7 @@ class ParsedAnaphorExecutionTest {
         val declaration = (parser.parse("मान + सुँ ।").body as Invocation).vakya.padas.single() as SubantaPada
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
         val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
-        val source = "यावत् तद् + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् तावत् द्वि + अम् तद् + ङे दा + लोट् + सिप् ।"
+        val source = "यावत् तद् + सुँ नवन् + भिस् सम + सुँ असँ + लट् + तिप् तावत् द्वि + औट् तद् + ङे दा + लोट् + सिप् ।"
         val result = assertIs<ExecutionResult.Success>(PaniniVM(
             executionLimits = ExecutionLimits(maxConditionIterations = 2L)).evalParsed(parser.parse(source), scope = scope))
         assertEquals(1L, result.iterationCount)
@@ -58,7 +58,7 @@ class ParsedAnaphorExecutionTest {
         val declaration = (parser.parse("मान + सुँ ।").body as Invocation).vakya.padas.single() as SubantaPada
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
         val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
-        val source = "यदि तद् + सुँ नवन् + टा सम + सुँ असँ + लट् + तिप् तर्हि द्वि + अम् तद् + ङे दा + लोट् + सिप् अन्यथा एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "यदि तद् + सुँ नवन् + भिस् सम + सुँ असँ + लट् + तिप् तर्हि द्वि + औट् तद् + ङे दा + लोट् + सिप् अन्यथा एक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         assertIs<ExecutionResult.Success>(PaniniVM().evalParsed(parser.parse(source), scope = scope))
         assertEquals(2L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value)
     }
@@ -70,7 +70,7 @@ class ParsedAnaphorExecutionTest {
         val vm = PaniniVM()
         val scope = vm.defaultScope.copy(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
         val paused = assertIs<ExecutionResult.NeedsApproval>(vm.evalParsed(parser.parse(
-            "द्वि + अम् तद् + ङे दा + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।"), scope = scope))
+            "द्वि + औट् तद् + ङे दा + लोट् + सिप् ततः वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।"), scope = scope))
         val pausedAgain = assertIs<ExecutionResult.NeedsApproval>(vm.resume(paused.continuation, scope = scope))
         assertIs<ExecutionResult.Success>(vm.resume(pausedAgain.continuation,
             scope = scope.copy(capabilities = scope.capabilities + paused.requiredEffects)))
@@ -83,7 +83,7 @@ class ParsedAnaphorExecutionTest {
             val declaration = (parser.parse("मान + सुँ ।").body as Invocation).vakya.padas.single() as SubantaPada
             val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
             val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
-            val source = "द्वि + अम् $target + ङे दा + लोट् + सिप् ततः $objectName + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            val source = "द्वि + औट् $target + ङे दा + लोट् + सिप् ततः $objectName + अम् मुद्र् + णिच् + लोट् + सिप् ।"
             val result = PaniniVM().evalParsed(parser.parse(source), scope = scope)
             assertEquals("द्वि", assertIs<ExecutionResult.Success>(result).value, source)
             assertEquals(2L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value)
@@ -95,7 +95,7 @@ class ParsedAnaphorExecutionTest {
         val declaration = (parser.parse("मान + सुँ ।").body as Invocation).vakya.padas.single() as SubantaPada
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
         val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
-        val source = "द्वि + अम् तद् + ङे दा + लोट् + सिप् ततः तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "द्वि + औट् तद् + ङे दा + लोट् + सिप् ततः तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         val result = PaniniVM().evalParsed(parser.parse(source), scope = scope)
         assertEquals("द्वि", assertIs<ExecutionResult.Success>(result).value)
         assertEquals(2L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value)
@@ -108,7 +108,7 @@ class ParsedAnaphorExecutionTest {
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
         val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
         val vm = PaniniVM()
-        assertIs<ExecutionResult.Success>(vm.eval("द्वि + अम् तद् + ङे दा + लोट् + सिप् ।", scope = scope))
+        assertIs<ExecutionResult.Success>(vm.eval("द्वि + औट् तद् + ङे दा + लोट् + सिप् ।", scope = scope))
         assertEquals(2L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value)
         assertEquals("द्वि", assertIs<ExecutionResult.Success>(
             vm.eval("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।", scope = scope)).value)
@@ -123,7 +123,7 @@ class ParsedAnaphorExecutionTest {
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(9L, "नवन्"), declaration)
         val scope = ExecutionScope(environment = ValueEnvironment.live(locals.values), procedureBindings = locals)
         val vm = PaniniVM()
-        val assigned = vm.evalParsed(parser.parse("द्वि + अम् तद् + ङे दा + लोट् + सिप् ।"), scope = scope)
+        val assigned = vm.evalParsed(parser.parse("द्वि + औट् तद् + ङे दा + लोट् + सिप् ।"), scope = scope)
         assertIs<ExecutionResult.Success>(assigned)
         assertEquals(2L, (locals.values.getValue("मान") as SanskritValue.Sankhya).value)
         val printed = vm.evalParsed(parser.parse("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।"), scope = scope)

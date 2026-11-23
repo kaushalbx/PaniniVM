@@ -9,7 +9,7 @@ class PvmFoldingBuilderFixtureTest : BasePlatformTestCase() {
         val source = """
             गणित + ङस् गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
-            पञ्चन् + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            पञ्चन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val file = myFixture.configureByText(PvmFileType.INSTANCE, source)
         val builder = PvmFoldingBuilder()

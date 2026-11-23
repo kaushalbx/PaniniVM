@@ -35,7 +35,8 @@ object LatahSatrsanacauSutra : Sutra<DerivationState, DerivationChange>(
         val isParticipleRequested = context.samjnas.any { it.samjna == Samjna.SATR || it.samjna == Samjna.SANAC }
         val hasDhatu = context.terms.any { it.kind == TermKind.DHATU }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isParticipleRequested && hasDhatu && !hasPratyaya
+        val lakara = context.effectiveContext.rupa.lakara
+        return isParticipleRequested && hasDhatu && !hasPratyaya && (lakara == null || lakara == dev.panini.core.Lakara.LAT)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -12,7 +12,7 @@ and they need review by a Sanskritist.
 | `त्रीणि द्वौ च गणय` for multiplication | `गुणय` | `गण` is `सङ्ख्याने`, counting. The Līlāvatī's multiplication rule uses `guṇya`, `guṇaka` and `guṇite`, so the family is sourced. The imperative `गुणय` is a regular form from it, not itself confirmed. |
 | One verb meaning multiply or count by data type | `गुण` multiplies, `गण` counts | A verb's meaning should not depend on runtime values. |
 | `धारणाय गुणय` to store a result | `गुणय ।` then `फलं धारणे स्थापय ।` | The plain sentence says what happens. The purpose reading stays valid grammar. |
-| `द्वि + ङसिँ` | `द्वि + भ्याम्` | `द्वि` is dual only. It was the one wrong numeral among 245 scanned. |
+| `द्वि + भ्याम्` | `द्वि + भ्याम्` | `द्वि` is dual only. It was the one wrong numeral among 245 scanned. |
 | A list of subject words for equational clauses | First nominative | That list was a program choice, not grammar. |
 
 ## Changed by grammatical decision

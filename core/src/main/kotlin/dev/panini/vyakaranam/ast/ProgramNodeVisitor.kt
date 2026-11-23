@@ -50,7 +50,7 @@ fun ProgramNode.depthFirst(
 ): kotlin.sequences.Sequence<ProgramNode> = sequence {
     yield(this@depthFirst)
     val structuralChildren = if (includeLoopConditions && this@depthFirst is WhileLoop)
-        listOf(condition) + children() else children()
+        listOf(condition) + conjuncts + children() else children()
     if (expandRepeats && this@depthFirst is Repeat) {
         repeat(count) {
             yieldAll(body.depthFirst(expandRepeats = true, includeLoopConditions = includeLoopConditions))
@@ -66,7 +66,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
     override fun visitInvocation(node: Invocation): List<ProgramNode> = emptyList()
     override fun visitSequence(node: Sequence): List<ProgramNode> = node.statements
     override fun visitConditional(node: Conditional): List<ProgramNode> =
-        listOfNotNull(node.condition, node.consequent, node.alternate)
+        listOf(node.condition) + node.conjuncts + listOfNotNull(node.consequent, node.alternate)
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
     override fun visitRecurrence(node: Recurrence): List<ProgramNode> = listOf(node.body)
@@ -92,6 +92,7 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
 
     override fun visitConditional(node: Conditional): ProgramNode = node.copy(
         condition = transform(node.condition),
+        conjuncts = node.conjuncts.map { transform(it) as Invocation },
         consequent = transform(node.consequent),
         alternate = node.alternate?.let(::transform),
     )

@@ -72,18 +72,18 @@ internal object ExpressionBuilder {
         val isPhalaReference = PhalaReference.isReference(normalized)
         if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
             val candidates = normalized.sup.affixCandidates
-            require(candidates.isNotEmpty()) { "Unknown sup ending: '${normalized.sup.text}'." }
+            dev.panini.execution.requirePada(candidates.isNotEmpty(), pada, dev.panini.execution.PadaConstraintCode.UNKNOWN_SUP_ENDING) { "Unknown sup ending: '${normalized.sup.text}'." }
             val prayoga = (ctx.ownerOf(pada) ?: ctx.frame).prayoga.takeUnless { it == Prayoga.ANIRDHARITA } ?: Prayoga.KARTARI
             val compatible = candidates.filter {
                 KarakaInference.infer(it.vibhakti, prayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA) == resolvedKaraka
             }
             val knownCase = resolvedVibhakti ?: ctx.relationFor(pada)?.resolvedVibhakti
             val sup = if (knownCase != null) {
-                requireNotNull(candidates.singleOrNull { it.vibhakti == knownCase }) {
+                dev.panini.execution.requirePadaNotNull(candidates.singleOrNull { it.vibhakti == knownCase }, pada, dev.panini.execution.PadaConstraintCode.AMBIGUOUS_SUP_SLOT) {
                     "Sup ending '${normalized.sup.text}' does not determine one slot for $knownCase."
                 }
             } else if (resolvedKaraka != null) {
-                requireNotNull(compatible.singleOrNull()) {
+                dev.panini.execution.requirePadaNotNull(compatible.singleOrNull(), pada, dev.panini.execution.PadaConstraintCode.AMBIGUOUS_SUP_SLOT) {
                     "Sup ending '${normalized.sup.text}' does not determine one slot for $resolvedKaraka."
                 }
             } else candidates.singleOrNull() ?: return ExecutionExpression.Reference(text)

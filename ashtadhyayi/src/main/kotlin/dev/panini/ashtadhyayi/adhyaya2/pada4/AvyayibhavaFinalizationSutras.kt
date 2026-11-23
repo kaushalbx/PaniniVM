@@ -41,8 +41,13 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     // incidental neuter gender; do not replace it with nominal singular luk.
     blocks = setOf("7.1.23", "6.1.68", "6.1.107"),
 ), DerivationSutra {
+    // The avyaya is the whole prātipadika; in a compound numeral 1.1.38 marks its head (एका + दश + कृत्वस्).
+    private fun avyayaStem(context: DerivationState) = context.terms.firstOrNull {
+        it.kind == TermKind.PRATIPADIKA && SamjnaAssignment(it.id, Samjna.AVYAYA) in context.samjnas
+    } ?: context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA }
+
     override fun matches(context: DerivationState): Boolean {
-        val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
+        val stem = avyayaStem(context) ?: return false
         val sup = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         if (sup.sourceSupAffix == null) return false
         val isAvyaya = SamjnaAssignment(stem.id, Samjna.AVYAYA) in context.samjnas
@@ -54,11 +59,14 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms.first { it.kind == TermKind.PRATIPADIKA }
+        val stem = requireNotNull(avyayaStem(context))
         val sup = context.terms.last { it.kind == TermKind.PRATYAYA }
         val withoutSup = context.removeTerm(sup.id, sutra)
+        // 1.1.62 प्रत्ययलोपे प्रत्ययलक्षणम्: the elided sup still makes the whole word a subanta pada (1.4.14),
+        // so its final member ends the pada (सकृत् + स्: 8.2.23 then sees the pada-final cluster).
+        val wordFinal = withoutSup.terms.last()
         return DerivationChange(
-            withoutSup.withSamjnas(setOf(SamjnaAssignment(stem.id, Samjna.PADA)))
+            withoutSup.withSamjnas(setOf(SamjnaAssignment(stem.id, Samjna.PADA), SamjnaAssignment(wordFinal.id, Samjna.PADA)))
                 .copy(stage = DerivationStage.FINAL),
             "2.4.82 applies luk to sup after the indeclinable and retains the resulting pada designation on the survivor.",
         )

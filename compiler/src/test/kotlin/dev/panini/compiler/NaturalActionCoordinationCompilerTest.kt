@@ -19,7 +19,7 @@ class NaturalActionCoordinationCompilerTest {
     fun `natural loop stop and prior action have interpreter compiler parity`() {
         val source = """
             त्रि + कृत्वसुच् एक + अम् मुद्र् + णिच् + क्त्वा स्था + लोट् + सिप् ।
-            द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
         assertTrue(interpreted.all { it is ExecutionResult.Success }, interpreted.toString())
@@ -37,7 +37,7 @@ class NaturalActionCoordinationCompilerTest {
         val source = """
             यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप्
             तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप्
-            च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            च द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val generated = BytecodeCompiler.compileAndLoad(source, "FiniteActionCha")
         @Suppress("UNCHECKED_CAST")

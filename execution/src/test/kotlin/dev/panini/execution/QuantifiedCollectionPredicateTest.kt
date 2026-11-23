@@ -12,7 +12,7 @@ class QuantifiedCollectionPredicateTest {
     @Test
     fun `some member predicate returns true and short circuits`() {
         val results = PaniniVM().evalScript(
-            "$declaration\nसूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+            "$declaration\nसूची + ङस् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।",
         )
 
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
@@ -49,7 +49,7 @@ class QuantifiedCollectionPredicateTest {
     @Test
     fun `quantified predicate composes as a conditional condition`() {
         val results = PaniniVM().evalScript(
-            "$declaration\nयदि सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् " +
+            "$declaration\nयदि सूची + ङस् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् " +
                 "तर्हि नव + जस् असँ + लट् + झि अन्यथा शून्य + सुँ असँ + लट् + तिप् ।",
         )
 
@@ -106,18 +106,18 @@ class QuantifiedCollectionPredicateTest {
     fun `quantifier morphology validates collection and member cases`() {
         assertFails {
             dev.panini.vyakaranam.parser.PaniniParser().parse(
-                "सूची + अम् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+                "सूची + अम् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।",
             )
         }
         assertFails {
             dev.panini.vyakaranam.parser.PaniniParser().parse(
-                "सूची + ङस् कश्चित् सदस्य + अम् द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+                "सूची + ङस् कश्चित् सदस्य + अम् द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।",
             )
         }
     }
 
     private val anySource =
-        "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
+        "सूची + ङस् कश्चित् सदस्य + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप् ।"
     private val allSource =
         "सूची + ङस् एकैकः सदस्य + सुँ शून्य + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।"
 

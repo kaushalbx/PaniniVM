@@ -106,7 +106,7 @@ object PvmScript {
 
     /** Native document adapter. No declaration or body is serialized and reparsed. */
     fun fromDocument(document: dev.panini.vyakaranam.ast.ProgramDocument): List<PvmScriptStatement> =
-        document.items.mapIndexed { index, node ->
+        TopLevelAnaphora.resolve(document.items).mapIndexed { index, node ->
             val originalText = document.itemSpans.getOrNull(index)?.let { span ->
                 document.sourceText.substring(span.start, span.endExclusive)
             } ?: node.sourceText

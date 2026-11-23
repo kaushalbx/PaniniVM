@@ -102,13 +102,12 @@ internal object VoiceRoleConstruction {
         // पञ्च मुद्र्यन्ते: with no second object, the nominative of a passive is simply what the passive expresses.
         if (frame.prayoga == Prayoga.KARMANI && nominative != null && accusative == null && !causative) return mapOf(nominative to setOf(SemanticRelation.DESIRED_OBJECT))
         if (frame.prayoga != Prayoga.KARMANI || nominative == null || accusative == null) return emptyMap()
-        val names = setOf(written, dhatu.sourceSurface)
         fun pair(expressed: SemanticRelation, other: SemanticRelation) = mapOf(nominative to setOf(expressed, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
             accusative to setOf(other, SemanticRelation.DVIKARMAKA_ACTION_SENSE))
         return when {
             causative -> if (dhatu.hasArtha(DhatuArthaClass.MOTION)) pair(SemanticRelation.CAUSEE_AGENT, SemanticRelation.DESIRED_OBJECT) else emptyMap()
-            names.any { it in primaryExpressing } -> pair(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SECONDARY_OBJECT)
-            names.any { it in secondaryExpressing } -> pair(SemanticRelation.SECONDARY_OBJECT, SemanticRelation.DESIRED_OBJECT)
+            dhatu.id in primaryExpressing -> pair(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SECONDARY_OBJECT)
+            dhatu.id in secondaryExpressing -> pair(SemanticRelation.SECONDARY_OBJECT, SemanticRelation.DESIRED_OBJECT)
                 .mapValues { it.value + SemanticRelation.SECONDARY_OBJECT_PROMOTING_SENSE }
             else -> emptyMap()
         }
@@ -120,22 +119,22 @@ internal object VoiceRoleConstruction {
      */
     private fun twoObjects(frame: KriyaFrame, dhatu: Dhatu, written: String, causative: Boolean, open: List<Int>): Map<Int, Set<SemanticRelation>> {
         if (open.size != 2) return emptyMap()
-        val names = setOf(written, dhatu.sourceSurface)
         val (first, second) = open
         return when {
             frame.prayoga == Prayoga.CAUSATIVE && causative && dhatu.hasArtha(DhatuArthaClass.MOTION, DhatuArthaClass.COGNITION, DhatuArthaClass.EATING, DhatuArthaClass.SPEECH) ->
                 mapOf(first to setOf(SemanticRelation.CAUSEE_AGENT), second to setOf(SemanticRelation.DESIRED_OBJECT))
             frame.prayoga != Prayoga.KARTARI -> emptyMap()
-            names.any { it in primaryExpressing } -> mapOf(first to setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
+            dhatu.id in primaryExpressing -> mapOf(first to setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
                 second to setOf(SemanticRelation.SECONDARY_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE))
-            names.any { it in secondaryExpressing } -> mapOf(first to setOf(SemanticRelation.SECONDARY_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
+            dhatu.id in secondaryExpressing -> mapOf(first to setOf(SemanticRelation.SECONDARY_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE),
                 second to setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.DVIKARMAKA_ACTION_SENSE))
             else -> emptyMap()
         }
     }
 
-    private val primaryExpressing = setOf("नी", "हृ", "कृष्", "वह्")
-    private val secondaryExpressing = setOf("दुह्", "दुहँ", "याच्", "दण्ड्", "रुध्", "प्रच्छ्", "चि", "ब्रू", "शास्", "जि", "मथ्", "मुष्")
+    /** Which object the passive expresses is fixed per Dhātupāṭha entry in [dev.panini.analysis.KarakaDhatuDomains]. */
+    private val primaryExpressing get() = dev.panini.analysis.KarakaDhatuDomains.dvikarmakaPrimaryExpressing
+    private val secondaryExpressing get() = dev.panini.analysis.KarakaDhatuDomains.dvikarmakaSecondaryExpressing
 
     /** Readings grammar reports but an instruction may not take as operands unless it declares them. */
     fun nonBinding(frame: KriyaFrame, relations: Map<Int, Set<SemanticRelation>>): Set<Int> {
@@ -215,6 +214,9 @@ internal object VoiceRoleConstruction {
         // 3.4.69 गम्यते ग्रामो देवदत्तेन: a passive leaves its kartā unexpressed, so one plain instrumental is by default that kartā.
         // Kartā and karaṇa turn on intention (1.4.42, 1.4.54), so this is a default, not a proof.
         // कारकेण, कर्त्रा: ण्वुल् and तृच् name a doer (3.1.133), so a passive instrumental of one is its kartā.
+        fun isFeminineLyut(index: Int) = ((nominals[index].pada as? SubantaPada)?.pratipadika as? KridantaPratipadika)?.let { krt ->
+            krt.krtPratyaya == "ल्युट्" && krt.vikaras.any { it is dev.panini.vyakaranam.ast.StriVikara }
+        } == true
         fun isDoerNoun(index: Int) = ((nominals[index].pada as? SubantaPada)?.pratipadika as? KridantaPratipadika)?.krtPratyaya in setOf("ण्वुल्", "तृच्")
         val instrumentals = inCase(Vibhakti.TRTIYA) - upapada
         // With a क्त्वा or ल्यप् action in the clause, the instrumental may belong to either action, so it stays open.
@@ -258,6 +260,10 @@ internal object VoiceRoleConstruction {
             // दूरे ग्रामस्य takes saptamī by 2.3.36 as a word of distance, with no kāraka.
             inCase(Vibhakti.SAPTAMI).filterNot { stem(it) in setOf("दूर", "अन्तिक", "अभ्याश", "निकट", "समीप") }.filterNot { ((nominals[it].pada as? SubantaPada)?.pratipadika as? KridantaPratipadika)?.krtPratyaya in setOf("शतृ", "शानच्", "क्त") }
                 .forEach { put(it, SemanticRelation.LOCATION to Karaka.ADHIKARANA) }
+            // 3.3.117 करणाधिकरणयोश्च: a ल्युट् noun with a feminine affix (लिख् + ल्युट् + ङीप्, लेखनी) cannot be the bhāva
+            // ल्युट् of 3.3.115, which 3.3.114 नपुंसके भावे keeps neuter, so it names karaṇa or adhikaraṇa; its instrumental
+            // is the karaṇa in either voice (2.3.18). Neuter पठनेन stays open, since it may be the action itself (2.3.23).
+            instrumentals.filter(::isFeminineLyut).forEach { put(it, SemanticRelation.INSTRUMENT to Karaka.KARANA) }
             if (frame.prayoga == Prayoga.KARMANI || frame.prayoga == Prayoga.BHAVE) passiveAgent?.let { put(it, (if (causative) SemanticRelation.PROMPTER_CAUSE else SemanticRelation.INDEPENDENT_AGENT) to Karaka.KARTR) }
             extents.forEach { put(it, SemanticRelation.CONTINUOUS_TIME_DISTANCE_EXTENT to Karaka.KARMAN) }
             when (frame.prayoga) {

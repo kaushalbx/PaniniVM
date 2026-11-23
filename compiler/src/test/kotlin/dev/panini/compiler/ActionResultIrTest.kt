@@ -125,7 +125,7 @@ class ActionResultIrTest {
     @Test
     fun `source lowered choices retain numeric history after later prints`() {
         val program = CompilerFrontend.lower(
-            "द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + क्त्वा " +
+            "द्वि + भ्याम् द्वि + औट् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + क्त्वा " +
                 "मुद्र् + णिच् + लोट् + सिप् ।\nनवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।",
             "RecordedSourceChoice",
         )

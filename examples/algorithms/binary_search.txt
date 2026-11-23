@@ -1,0 +1,24 @@
+# Binary Search: find the first place in a sorted list whose member is not less
+# than the sought number. आदि and अन्त bound the places still open; each step
+# halves them at मध्य. When the member at मध्य is less than the sought number,
+# the place lies after मध्य, so आदि moves past it; otherwise अन्त comes to मध्य.
+# When आदि meets अन्त, the member there is the sought number if it is present.
+एकं त्रीणि चत्वारि षट् सप्त नव दश इति दत्तसूची नाम सङ्ख्यानां सूची अस्ति ।
+नव लक्ष्ये स्थापय ।
+
+# Move आदि one place past मध्य.
+क्रमणं नाम प्रक्रिया अस्ति ।
+मध्यम् एकं च योजय ततः योजनस्य फलम् आदौ स्थापय ॥
+
+# Halve the open places and read the member at the middle.
+भेदनं नाम प्रक्रिया अस्ति ।
+आदिम् अन्तं च योजय ततः योजनस्य फलं द्वे च विभाजय ततः विभाजनस्य फलं मध्ये स्थापय ।
+दत्तसूच्याः मध्ये मूल्यं गृहाण ततः ग्रहणस्य फलं मध्याङ्के स्थापय ।
+यदि मध्याङ्कः लक्ष्याद् न्यूनः अस्ति तर्हि क्रमणेन कुरु अन्यथा मध्यम् अन्ते स्थापय ॥
+
+एकम् आदौ स्थापय ।
+दत्तसूचीं गणय ततः गणनस्य फलम् अन्ते स्थापय ।
+यावद् आदिः अन्ताद् न्यूनः अस्ति तावद् भेदनेन कुरु ।
+
+दत्तसूच्याः आदौ मूल्यं गृहाण ततः ग्रहणस्य फलं प्राप्ताङ्के स्थापय ।
+यदि प्राप्ताङ्कः लक्ष्येण समः अस्ति तर्हि आदिं मुद्रय अन्यथा शून्यं मुद्रय ।

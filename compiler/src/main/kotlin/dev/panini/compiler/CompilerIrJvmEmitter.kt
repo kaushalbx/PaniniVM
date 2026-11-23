@@ -203,6 +203,7 @@ internal class CompilerIrJvmEmitter(
                     "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
                     false,
                 )
+                CompilerInstruction.Not -> { mv.visitInsn(ICONST_1); mv.visitInsn(IXOR) }
                 CompilerInstruction.Booleanize -> mv.visitMethodInsn(
                     INVOKESTATIC,
                     "dev/panini/compiler/CompilerValueOperations",

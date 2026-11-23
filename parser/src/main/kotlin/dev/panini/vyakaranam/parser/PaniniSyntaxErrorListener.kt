@@ -24,6 +24,8 @@ class PaniniSyntaxErrorListener : BaseErrorListener() {
             column = charPositionInLine,
             offendingText = offendingSymbol?.toString(),
             message = msg,
+            span = (offendingSymbol as? org.antlr.v4.kotlinruntime.Token)?.takeIf { it.startIndex >= 0 && it.stopIndex >= it.startIndex }
+                ?.let { dev.panini.vyakaranam.ast.DocumentSourceSpan(it.startIndex, it.stopIndex + 1) },
         )
     }
 

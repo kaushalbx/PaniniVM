@@ -91,12 +91,24 @@ class PvmUktiSadhakaConnectorTest {
     }
 
     @Test
+    fun `a compound takes the gender and aap formation of its final member by 2_4_26`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("पूर्वसङ्ख्यायाम् ।", renderer.sadhayaLine("पूर्व-सङ्ख्या + ङि ।"))
+        assertEquals("पदसङ्ख्यायाः ।", renderer.sadhayaLine("पद-सङ्ख्या + ङसिँ ।"))
+        assertEquals("बन्दिसङ्ख्यया ।", renderer.sadhayaLine("बन्दि-सङ्ख्या + टा ।"))
+        // The loop outcome attribute is the same kind of compound.
+        assertEquals("प्रयत्नसङ्ख्यायाः ।", renderer.sadhayaLine("प्रयत्न-सङ्ख्या + ङस् ।"))
+        // Written as one word, it ends in the declared stem सङ्ख्या, so it is still that tatpuruṣa (2.4.26).
+        assertEquals("पूर्वसङ्ख्यायाः ।", renderer.sadhayaLine("पूर्वसङ्ख्या + ङस् ।"))
+    }
+
+    @Test
     fun `aa final noun case rendering does not require sankhya spelling repairs`() {
         val renderer = PvmUktiSadhaka()
         for ((stem, genitive, locative) in listOf(
             Triple("सङ्ख्या", "सङ्ख्यायाः", "सङ्ख्यायाम्"),
             Triple("लता", "लतायाः", "लतायाम्"),
-            Triple("बन्दिसङ्ख्या", "बन्दिसङ्ख्यायाः", "बन्दिसङ्ख्यायाम्"),
+            Triple("बन्दि-सङ्ख्या", "बन्दिसङ्ख्यायाः", "बन्दिसङ्ख्यायाम्"),
         )) {
             assertEquals("$genitive ।", renderer.sadhayaLine("$stem + ङस् ।"))
             assertEquals("$locative ।", renderer.sadhayaLine("$stem + ङि ।"))
@@ -306,11 +318,10 @@ class PvmUktiSadhakaConnectorTest {
         }
     }
     @Test
-    fun `failed numeral declension retains the supplied case and number`() {
-        val noun = dev.panini.vyakaranam.parser.PaniniParser()
-            .parse("द्वि + सुँ ।").grammaticalVakyas().single().padas
-            .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
-        assertEquals(noun.sourceText, PvmUktiSadhaka().sadhayaSubanta(noun))
+    fun `a cardinal with a sup of another number is rejected before rendering`() {
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            dev.panini.vyakaranam.parser.PaniniParser().parse("द्वि + सुँ ।")
+        }
     }
 
     @Test
@@ -439,7 +450,7 @@ class PvmUktiSadhakaConnectorTest {
     @Test
     fun `conditional result pipeline does not show a danda before tatah`() {
         val rendered = sadhaka.sadhayaLine(
-            "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+            "यदि द्वि + औट् एक + अम् च विद् + लोट् + सिप् " +
                 "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ततः मुद्र् + लोट् + सिप् ।",
         )
 
@@ -559,7 +570,7 @@ class PvmUktiSadhakaConnectorTest {
         assertEquals(
             "फलं बन्दिसङ्ख्यायां स्थापय ।",
             sadhaka.sadhayaLine(
-                "फल + अम् बन्दिसङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।",
+                "फल + अम् बन्दि-सङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।",
             ),
         )
     }

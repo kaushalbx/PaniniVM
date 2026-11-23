@@ -10,12 +10,12 @@ class ItiQuotationTest {
     @Test
     fun `iti prints a grammatical command without executing its verb`() {
         val result = PaniniVM().eval(
-            "एक + ङसिँ दश + ङि सङ्ख्या + अम् स्था + णिच् + लोट् + सिप् " +
+            "एक + ङसिँ दशन् + सुप् सङ्ख्या + अम् स्था + णिच् + लोट् + सिप् " +
                 "इति मुद्र् + णिच् + लोट् + सिप् ।",
         )
 
         assertEquals(
-            "एकस्मात् दशे सङ्ख्याम् स्थापय",
+            "एकस्मात् दशसु सङ्ख्याम् स्थापय",
             assertIs<ExecutionResult.Success>(result).value,
         )
     }

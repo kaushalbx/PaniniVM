@@ -244,6 +244,7 @@ object PrakriyaAstArgumentBinder {
 
             override fun visitConditional(node: Conditional): ProgramNode = node.copy(
                 condition = transform(node.condition),
+                conjuncts = node.conjuncts.map { transform(it) as Invocation },
                 consequent = transform(node.consequent),
                 alternate = node.alternate?.let(::transform),
                 surfacePipelineTarget = node.surfacePipelineTarget?.let(::transform),
@@ -251,6 +252,7 @@ object PrakriyaAstArgumentBinder {
 
             override fun visitWhileLoop(node: WhileLoop): ProgramNode = node.copy(
                 condition = bindInvocation(node.condition),
+                conjuncts = node.conjuncts.map(::bindInvocation),
                 body = transform(node.body),
                 exhausted = node.exhausted?.let(::transform),
                 resultTarget = node.resultTarget?.let(::transform),

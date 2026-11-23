@@ -32,7 +32,7 @@ class ProgramAstTest {
     @Test fun `hash comments cannot add clauses and do not shift original source locations`() {
         val source = "# राम + अम् मुद्र् + लोट् + सिप् ।\n" +
             "एक + अम् मुद्र् + लोट् + सिप् । # गुरु + सुँ ।\n" +
-            "# द्वि + अम् मुद्र् + लोट् + सिप् ।\n"
+            "# द्वि + औट् मुद्र् + लोट् + सिप् ।\n"
         val document = PaniniParser().parseDocument(source)
         assertEquals(source, document.sourceText)
         val clause = document.items.filterIsInstance<dev.panini.vyakaranam.ast.Ukti>().single()
@@ -46,7 +46,7 @@ class ProgramAstTest {
     }
 
     @Test fun `bare nominal branch retains the written word span through implicit nominative lowering`() {
-        val source = "# परीक्षण\nयदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ।"
+        val source = "# परीक्षण\nयदि एक + अम् द्वि + औट् च विद् + लोट् + सिप् तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ।"
         val document = PaniniParser().parseDocument(source)
         val clauses = document.items.filterIsInstance<dev.panini.vyakaranam.ast.Ukti>().single()
             .grammaticalVakyas().filterIsInstance<NamaVakya>()
@@ -348,7 +348,7 @@ class ProgramAstTest {
     fun `otherwise may contain a nested conditional`() {
         val ukti = parser.parse(
             "यदि एक + अम् एक + अम् च अस् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् " +
-                "अन्यथा यदि एक + अम् द्वि + अम् च नि + विद् + लोट् + सिप् तर्हि लघु + अम् मुद्र् + लोट् + सिप् " +
+                "अन्यथा यदि एक + अम् द्वि + औट् च नि + विद् + लोट् + सिप् तर्हि लघु + अम् मुद्र् + लोट् + सिप् " +
                 "अन्यथा गुरु + अम् मुद्र् + लोट् + सिप् ।",
         )
 
@@ -362,7 +362,7 @@ class ProgramAstTest {
     fun `conditional result may flow to one tatah target`() {
         val conditional = assertIs<Conditional>(
             parser.parse(
-                "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+                "यदि द्वि + औट् एक + अम् च विद् + लोट् + सिप् " +
                     "तर्हि लघु + अम् दा + लोट् + सिप् अन्यथा गुरु + अम् दा + लोट् + सिप् " +
                     "ततः मुद्र् + लोट् + सिप् ।",
             ).body,
@@ -378,7 +378,7 @@ class ProgramAstTest {
     fun `nominal attribute pipeline has two explicit AST stages`() {
         val sequence = assertIs<Sequence>(
             parser.parse(
-                "परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भिस् ततः मुद्र् + लोट् + सिप् ।",
+                "परिणाम + मतुप् + ङस् प्रयत्न-सङ्ख्या + भिस् ततः मुद्र् + लोट् + सिप् ।",
             ).body,
         )
 
@@ -391,8 +391,8 @@ class ProgramAstTest {
     fun `attribute pipeline retains every tatah stage`() {
         val sequence = assertIs<Sequence>(
             parser.parse(
-                "परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् " +
-                    "ततः द्वि + अम् च गण् + णिच् + लोट् + सिप् " +
+                "परिणाम + मतुप् + ङस् प्रयत्न-सङ्ख्या + अम् " +
+                    "ततः द्वि + औट् च गण् + णिच् + लोट् + सिप् " +
                     "ततः मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -405,8 +405,8 @@ class ProgramAstTest {
     fun `an action pipeline may end in conditional control flow`() {
         val sequence = assertIs<Sequence>(
             parser.parse(
-                "त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् " +
-                    "ततः यदि फल + अम् द्वि + अम् च विद् + लोट् + सिप् " +
+                "त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् " +
+                    "ततः यदि फल + अम् द्वि + औट् च विद् + लोट् + सिप् " +
                     "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -420,9 +420,9 @@ class ProgramAstTest {
     fun `conditional consequent may contain an action pipeline ending in a nested conditional`() {
         val outer = assertIs<Conditional>(
             parser.parse(
-                "यदि एक + अम् द्वि + अम् च विद् + लोट् + सिप् " +
-                    "तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् " +
-                    "ततः यदि फल + सुँ पञ्चन् + टा सम + सुँ असँ + लट् + तिप् " +
+                "यदि एक + अम् द्वि + औट् च विद् + लोट् + सिप् " +
+                    "तर्हि द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् " +
+                    "ततः यदि फल + सुँ पञ्चन् + भिस् सम + सुँ असँ + लट् + तिप् " +
                     "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -454,7 +454,7 @@ class ProgramAstTest {
             parser.parse(
                 "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
                     "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
-                    "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "तदा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् । " +
                     "तदा वि + स्था + लोट् + सिप् ।",
             ).body,
         )
@@ -471,8 +471,8 @@ class ProgramAstTest {
             parser.parse(
                 "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
                     "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
-                    "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् । " +
-                    "अन्यथा त्रि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                    "तदा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "अन्यथा त्रि + शस् मुद्र् + णिच् + लोट् + सिप् ।",
             ).body,
         )
 
@@ -485,7 +485,7 @@ class ProgramAstTest {
         val conditional = assertIs<Conditional>(parser.parse(
             "यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
                 "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
-                "तदा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                "तदा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
 
         assertEquals(ConditionalRelation.TEMPORAL, conditional.relation)
@@ -500,7 +500,7 @@ class ProgramAstTest {
         assertFailsWith<PaniniParseException> {
             parser.parse(
                 "यदा एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
-                    "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                    "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
             )
         }
     }
@@ -509,9 +509,9 @@ class ProgramAstTest {
     fun `nested yada attaches to the nearest hypothetical arm`() {
         val outer = assertIs<Conditional>(parser.parse(
             "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
-                "तर्हि यदा द्वि + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् " +
+                "तर्हि यदा द्वि + औ द्वि + भ्याम् सम + औ असँ + लट् + तस् " +
                 "तदा एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
-                "अन्यथा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                "अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
 
         assertEquals(ConditionalRelation.HYPOTHETICAL, outer.relation)
@@ -522,8 +522,8 @@ class ProgramAstTest {
     @Test
     fun `result pipeline may end in a paired temporal condition`() {
         val pipeline = assertIs<Sequence>(parser.parse(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
-                "ततः यदा फल + सुँ त्रि + टा सम + सुँ असँ + लट् + तिप् " +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
+                "ततः यदा फल + सुँ त्रि + भिस् सम + सुँ असँ + लट् + तिप् " +
                 "तदा सत्य + अम् प्राप्त + ङि स्था + णिच् + लोट् + सिप् " +
                 "अथ एक + अम् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
@@ -540,7 +540,7 @@ class ProgramAstTest {
         val conditional = assertIs<Conditional>(parser.parse(
             "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
                 "तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
-                "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                "च द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
 
         val actions = assertIs<Sequence>(conditional.consequent)
@@ -596,7 +596,7 @@ class ProgramAstTest {
     fun `words between a verb and action cha open the next clause`() {
         val sequence = assertIs<Sequence>(parser.parse(
             "एक + अम् मुद्र् + णिच् + लोट् + सिप् राम + सुँ " +
-                "च द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                "च द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
         ).body)
         val (first, second) = sequence.statements.map { assertIs<Invocation>(it).vakya.padas }
         assertEquals(2, first.size)
@@ -802,7 +802,7 @@ class ProgramAstTest {
     fun `conditional arms may be bare nominal values`() {
         val conditional = assertIs<Conditional>(
             parser.parse(
-                "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+                "यदि द्वि + औट् एक + अम् च विद् + लोट् + सिप् " +
                     "तर्हि लघु + सुँ असँ + लट् + तिप् अन्यथा गुरु + सुँ असँ + लट् + तिप् ततः मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -829,7 +829,7 @@ class ProgramAstTest {
 
     @Test
     fun `purvapara syntax builds a pipeline directly`() {
-        val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् " +
+        val source = "पञ्च + शस् द्वि + औट् च गणित + ङस् गुण् + ल्युट् + ङस् " +
             "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
 
         val pipeline = assertIs<Pipeline>(parser.parse(source).body)
@@ -841,7 +841,7 @@ class ProgramAstTest {
     @Test
     fun `instrumental stages joined by tatah build a pipeline directly`() {
         val source =
-            "पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः " +
+            "पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + टा ततः " +
                 "गणित + ङस् वि + युज् + णिच् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।"
 
         val pipeline = assertIs<Pipeline>(parser.parse(source).body)
@@ -858,7 +858,7 @@ class ProgramAstTest {
     fun `sequential pipeline stages require instrumental operations`() {
         assertFailsWith<IllegalArgumentException> {
             parser.parse(
-                "पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + ङस् ततः " +
+                "पञ्च + शस् द्वि + औट् च गणित + ङस् गण + ल्युट् + ङस् ततः " +
                     "गणित + ङस् वि + युज् + णिच् + ल्युट् + ङस् डुकृञ् + उ + लोट् + सिप् ।",
             )
         }

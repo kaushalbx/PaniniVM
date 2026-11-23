@@ -7,6 +7,9 @@ import kotlin.test.*
 class ProcedureReturnIrTest {
     private fun execute(value: SanskritValue): Map<*, *> {
         val program = CompilerProgram("OwnedProcedureReturn", listOf(
+            // inner_result is program state, so outer's assignment to it reaches the program (§11.5).
+            CompilerInstruction.Constant(SanskritValue.Sankhya(0L, "शून्य")),
+            CompilerInstruction.Store("inner_result"),
             CompilerInstruction.EnterFrame(emptyList()),
             CompilerInstruction.InvokeProcedure("outer", 0, CompilerValueKind.NUMBER),
             CompilerInstruction.ExitFrame,

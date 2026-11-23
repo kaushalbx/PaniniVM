@@ -8,6 +8,8 @@ internal enum class CompilerUnsupportedKind {
     PIPELINE,
     PROCEDURE,
     IR_VALIDATION,
+    /** The source itself is ungrammatical or ill-formed: a typed semantic diagnostic, not a missing feature. */
+    INVALID_SOURCE,
     UNKNOWN,
 }
 

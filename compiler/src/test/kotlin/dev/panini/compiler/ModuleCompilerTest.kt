@@ -50,12 +50,12 @@ class ModuleCompilerTest {
 
     @Test fun `compiler rejects nondeclarative field clauses without dropping participants`() {
         val source = "मूल्य + सुँ फल + सुँ च अवस्था + ङस् क्षेत्र + जस् असँ + लट् + झि ।"
-        val assertion = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + सुँ असँ + लट् + तिप् ।"
+        val assertion = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + औ असँ + लट् + तिप् ।"
         for ((invalid, message) in listOf(
             source.replace("लट्", "लृट्") to "present copula",
-            source.replace("असँ", "द्वि + अम् असँ") to "extra participants",
+            source.replace("असँ", "द्वि + औट् असँ") to "extra participants",
             assertion.replace("असँ", "न असँ") to "cannot discard",
-            assertion.replace("असँ", "त्रि + अम् असँ") to "cannot discard",
+            assertion.replace("असँ", "त्रि + शस् असँ") to "cannot discard",
             assertion.replace("लट्", "लृट्") to "present copula",
         )) {
             val failure = assertFailsWith<IllegalArgumentException> {
@@ -148,7 +148,7 @@ class ModuleCompilerTest {
         val text = library("शब्द", "text_library", "TextOverloadLibrary",
             "मान + अम् मुद्र् + णिच् + लोट् + सिप्")
         val application = BytecodeCompiler.compileModule(PaniniModuleDescriptor("overload_application",
-            listOf(PaniniModuleSource("main.pvm", "द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")),
+            listOf(PaniniModuleSource("main.pvm", "द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")),
             dependencies = listOf(numeric.metadata, text.metadata)), "ImportedOverloadApplication")
         val loader = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
         loader.loadFromBytes(numeric.metadata.className, numeric.bytecode)

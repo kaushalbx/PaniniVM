@@ -29,7 +29,7 @@ class ExecutionLifecycleTest {
         for ((index, first) in listOf("तद् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
             "वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।").withIndex()) {
             val vm = PaniniVM(storageDir.resolve("halt-$index").toFile())
-            val results = vm.evalScript(first + "\nद्वि + अम् मान + ङे दा + लोट् + सिप् ।", sessionKey = "halt")
+            val results = vm.evalScript(first + "\nद्वि + औट् मान + ङे दा + लोट् + सिप् ।", sessionKey = "halt")
             assertEquals(1, results.size, results.toString())
             assertTrue(results.single() !is ExecutionResult.Success, results.toString())
             kotlin.test.assertNull(vm.runtimeValue("halt", "मान"))
@@ -38,7 +38,7 @@ class ExecutionLifecycleTest {
 
     @Test fun `resumed pronoun aliases do not overwrite session names or escape publication`() {
         val vm = PaniniVM(storageDir.resolve("pronoun-resume").toFile())
-        assertIs<ExecutionResult.Success>(vm.eval("नव + अम् मान + ङे दा + लोट् + सिप् ।", "pronoun"))
+        assertIs<ExecutionResult.Success>(vm.eval("नव + शस् मान + ङे दा + लोट् + सिप् ।", "pronoun"))
         val declaration = (dev.panini.vyakaranam.parser.PaniniParser().parse("मान + सुँ ।").body
             as dev.panini.vyakaranam.ast.Invocation).vakya.padas.single() as dev.panini.vyakaranam.ast.SubantaPada
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(5L, "पञ्च"), declaration)
@@ -62,7 +62,7 @@ class ExecutionLifecycleTest {
 
     @Test fun `resumed assignments update local slots without replacing caller names`() {
         val vm = PaniniVM(storageDir.resolve("local-resume").toFile())
-        assertIs<ExecutionResult.Success>(vm.eval("नव + अम् मान + ङे दा + लोट् + सिप् ।", "local"))
+        assertIs<ExecutionResult.Success>(vm.eval("नव + शस् मान + ङे दा + लोट् + सिप् ।", "local"))
         val locals = ProcedureLocalBindings.member(null, "मान", SanskritValue.Sankhya(5L, "पञ्च"))
         val scope = vm.defaultScope.copy(procedureBindings = locals,
             environment = vm.defaultScope.environment.mergedWith(ValueEnvironment.live(locals.values)))
@@ -135,9 +135,9 @@ class ExecutionLifecycleTest {
                 SanskritUktiInput(
                     speaker = "प्रयोक्ता",
                     listener = "यन्त्रम्",
-                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
-                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
-                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                    text = "यदि दश + शस् द्वि + औट् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।",
                 ),
                 SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
                 PaniniVM().defaultScope,
@@ -155,9 +155,9 @@ class ExecutionLifecycleTest {
                 SanskritUktiInput(
                     speaker = "प्रयोक्ता",
                     listener = "यन्त्रम्",
-                    text = "यदि एक + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
-                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
-                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                    text = "यदि एक + अम् द्वि + औट् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।",
                 ),
                 SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
                 PaniniVM().defaultScope,
@@ -177,9 +177,9 @@ class ExecutionLifecycleTest {
                 SanskritUktiInput(
                     speaker = "प्रयोक्ता",
                     listener = "यन्त्रम्",
-                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                    text = "यदि दश + शस् द्वि + औट् च विद् + णिच् + लोट् + सिप् " +
                         "तर्हि वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् " +
-                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                        "अन्यथा द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।",
                 ),
                 SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
                 scope,
@@ -458,7 +458,7 @@ class ExecutionLifecycleTest {
             vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "order"),
         )
         assertIs<ExecutionResult.Success>(
-            vm.eval("त्रि + अम् चतुर् + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "order"),
+            vm.eval("त्रि + शस् चतुर् + शस् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "order"),
         )
 
         val memory = vm.kriyaMemory("order")
@@ -522,8 +522,8 @@ class ExecutionLifecycleTest {
         source.writeText(
             """
             एक + अम् पूर्व-पद + ङे दा + लोट् + सिप् ।
-            द्वि + अम् जन् + ल्युट् + ङे दा + लोट् + सिप् ।
-            त्रि + अम् जन् + घञ् + ङे दा + लोट् + सिप् ।
+            द्वि + औट् जन् + ल्युट् + ङे दा + लोट् + सिप् ।
+            त्रि + शस् जन् + घञ् + ङे दा + लोट् + सिप् ।
             मुद्र् + णिच् + लोट् + सिप् पूर्व-पद + अम् ।
             मुद्र् + णिच् + लोट् + सिप् जन् + ल्युट् + अम् ।
             मुद्र् + णिच् + लोट् + सिप् जन् + घञ् + अम् ।

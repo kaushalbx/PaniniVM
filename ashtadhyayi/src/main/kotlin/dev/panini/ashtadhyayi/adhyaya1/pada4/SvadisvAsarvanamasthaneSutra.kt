@@ -12,6 +12,9 @@ object SvadisvAsarvanamasthaneSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "सर्वनामस्थान से भिन्न स्वादि प्रत्यय परे पूर्व अङ्ग की पद संज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140017,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
+    // A pada designation: staged so that pipelines without an unstaged pass (numeral taddhitas: दशन् +
+    // कृत्वसुच्, so that 8.2.7 gives दशकृत्वः) also make it.
+    stage = dev.panini.sutra.SutraStage.PADA_FORMATION,
 ), DerivationSutra {
     private fun target(context: DerivationState) = context.terms.zipWithNext().firstOrNull { (stem, affix) ->
         stem.kind == TermKind.PRATIPADIKA && context.isEligibleNonSarvanamasthanaSvadi(affix) &&

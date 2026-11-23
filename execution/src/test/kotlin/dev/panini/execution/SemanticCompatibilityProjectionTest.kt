@@ -23,7 +23,7 @@ class SemanticCompatibilityProjectionTest {
     fun `legacy semantic projections preserve diagnostic identity and source span`() {
         assertTyped("COPULAR_PREDICATE_NUMBER_AGREEMENT") {
             CopularAgreement.validate(invocation(
-                "एक + सुँ द्वि + ङसिँ न्यून + औ असँ + लट् + तिप् ।"))
+                "एक + सुँ द्वि + भ्याम् न्यून + औ असँ + लट् + तिप् ।"))
         }
         assertTyped("LIST_DECLARATION_COPULA_AGREEMENT") {
             ListDeclarationLowering.expand(invocation(

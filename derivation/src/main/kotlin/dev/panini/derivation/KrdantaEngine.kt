@@ -9,6 +9,7 @@ import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
 import dev.panini.derivation.matchesAffix
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.toVarnas
 
 data class KrdantaDerivationRequest(
     val dhatu: String,
@@ -183,7 +184,10 @@ class KrdantaEngine(
         // The selected lexicon entry supplies the marker-free derivational root;
         // source upadeśas such as चिञ् must not retain their it letters here.
         val lexicalSurface = entry.derivationalSurface
-        val surface = if (lexicalSurface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$lexicalSurface्" else lexicalSurface
+        // An adanta curādi upadeśa (कथ, गण) keeps its final अ, which 6.4.48 deletes before णिच्.
+        val adanta = entry.gana == dev.panini.core.DhatuGana.CURADI &&
+            entry.upadesha.toVarnas().lastOrNull() == dev.panini.shiksha.Svara.A
+        val surface = if (!adanta && lexicalSurface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$lexicalSurface्" else lexicalSurface
         val dhatu = DerivationTerm("dhatu_1", surface, TermKind.DHATU, upadesha = surface, itStatus = entry.itStatus, blocksNicGuna = entry.blocksNicGuna,
             sourceDhatuId = entry.id, sourceDhatuKrama = entry.krama)
         terms += dhatu

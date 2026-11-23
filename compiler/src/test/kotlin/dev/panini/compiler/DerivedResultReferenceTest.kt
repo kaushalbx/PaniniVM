@@ -6,7 +6,7 @@ import kotlin.test.*
 class DerivedResultReferenceTest {
     @Test fun `derived phala does not print the preceding number`() {
         val source = """
-            एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
             फल + त्व + अम् मुद्र् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last())

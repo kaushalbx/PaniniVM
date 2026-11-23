@@ -3,13 +3,13 @@ package dev.panini.execution
 import kotlin.test.*
 
 class CoordinatedHistoryReferenceTest {
-    private val query = "युज् + ल्युट् + ङस् फल + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।"
+    private val query = "युज् + ल्युट् + ङस् फल + अम् च नवन् + शस् च मुद्र् + णिच् + लोट् + सिप् ।"
 
     @Test fun `coordinated history participants retain their grammatical role during parameter binding`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         for (head in listOf("कर्मन्", "फल")) {
             val invocation = assertIs<dev.panini.vyakaranam.ast.Invocation>(parser.parse(
-                "युज् + ल्युट् + ङस् $head + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।").body)
+                "युज् + ल्युट् + ङस् $head + अम् च नवन् + शस् च मुद्र् + णिच् + लोट् + सिप् ।").body)
             val group = invocation.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SamuccitaSubanta>().single()
             val protected = PrakriyaAstArgumentBinder.protectedParameterPadas(invocation.vakya.padas)
             if (head == "कर्मन्") {
@@ -27,7 +27,7 @@ class CoordinatedHistoryReferenceTest {
         assertIs<ExecutionResult.Success>(vm.eval(
             "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "participants"))
         val result = assertIs<ExecutionResult.Success>(vm.eval(
-            "युज् + ल्युट् + ङस् कर्मन् + अम् च नवन् + अम् च मुद्र् + णिच् + लोट् + सिप् ।",
+            "युज् + ल्युट् + ङस् कर्मन् + अम् च नवन् + शस् च मुद्र् + णिच् + लोट् + सिप् ।",
             sessionKey = "participants"))
         assertEquals("एक द्वि नवन्", result.value)
     }

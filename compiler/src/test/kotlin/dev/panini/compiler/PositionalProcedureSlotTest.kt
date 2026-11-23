@@ -20,7 +20,7 @@ class PositionalProcedureSlotTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथम + अम् द्वितीय + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-            द्वि + अम् पञ्च + अम् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            द्वि + औट् पञ्च + शस् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         assertEquals(8L, assertIs<SanskritValue.Sankhya>(assertParity(source, "MixedSlotOperands")).value)
     }
@@ -48,7 +48,7 @@ class PositionalProcedureSlotTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वितीय + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
-            एक + अम् पञ्च + अम् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            एक + अम् पञ्च + शस् च परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         assertEquals(2, CompilerFrontend.lower(source, "SecondSlotSignature").procedures.single().parameterNames.size)
         assertEquals(6L, assertIs<SanskritValue.Sankhya>(assertParity(source, "SecondSlotCall")).value)

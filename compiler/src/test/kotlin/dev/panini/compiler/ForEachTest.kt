@@ -123,18 +123,18 @@ class ForEachTest {
     }
 
     @Test fun `distributive clauses compose with both conditional branches`() {
-        for ((word, expected) in listOf("एक" to "त्रि", "द्वि" to "नव")) {
-            val source = "$declaration\nयदि एक + सुँ $word + टा सम + सुँ असँ + लट् + तिप् तर्हि $loop".removeSuffix(" ।") +
-                " अन्यथा नव + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        for ((word, expected) in listOf("एक + टा" to "त्रि", "द्वि + भ्याम्" to "नव")) {
+            val source = "$declaration\nयदि एक + सुँ $word सम + सुँ असँ + लट् + तिप् तर्हि $loop".removeSuffix(" ।") +
+                " अन्यथा नव + शस् मुद्र् + णिच् + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
             assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
             assertEquals(expected, assertIs<ExecutionResult.Success>(results.last()).value)
             assertEquals(expected, compiled(source, "ConditionalForEach$word").getValue("LastResult").toDisplayText())
         }
-        val alternate = "$declaration\nयदि एक + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् तर्हि नव + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा $loop"
+        val alternate = "$declaration\nयदि एक + सुँ द्वि + भ्याम् सम + सुँ असँ + लट् + तिप् तर्हि नव + शस् मुद्र् + णिच् + लोट् + सिप् अन्यथा $loop"
         assertEquals("त्रि", assertIs<ExecutionResult.Success>(PaniniVM().evalScript(alternate).last()).value)
         assertEquals("त्रि", compiled(alternate, "AlternateForEach").getValue("LastResult").toDisplayText())
-        val unselected = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि नव + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा $loop"
+        val unselected = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि नव + शस् मुद्र् + णिच् + लोट् + सिप् अन्यथा $loop"
         assertTrue(PaniniVM().evalScript(unselected).all { it is ExecutionResult.Success })
         assertEquals("नव", compiled(unselected, "UnselectedForEach").getValue("LastResult").toDisplayText())
     }
@@ -273,7 +273,7 @@ class ForEachTest {
     }
 
     @Test fun `outer member name survives the loop`() {
-        val source = "नव + अम् सदस्य + ङे दा + लोट् + सिप् ।\n$declaration\n$loop\nसदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "नव + शस् सदस्य + ङे दा + लोट् + सिप् ।\n$declaration\n$loop\nसदस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         val values = compiled(source, "ShadowedForEach")
@@ -282,7 +282,7 @@ class ForEachTest {
     }
 
     @Test fun `break is consumed by nearest loop`() {
-        val source = "$declaration\nसूची + ङस् सदस्य + अम् प्रति वि + स्था + लोट् + सिप् ।\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "$declaration\nसूची + ङस् सदस्य + अम् प्रति वि + स्था + लोट् + सिप् ।\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         assertEquals(3, results.size)

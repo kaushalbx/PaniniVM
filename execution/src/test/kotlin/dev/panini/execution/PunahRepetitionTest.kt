@@ -42,16 +42,16 @@ class PunahRepetitionTest {
         fun console(right: String): List<String> = PaniniVM().evalScript(
             """
                 एक + अम् मुद्र् + णिच् + लोट् + सिप् ।
-                यदि एक + सुँ $right + टा सम + सुँ असँ + लट् + तिप्
+                यदि एक + सुँ $right सम + सुँ असँ + लट् + तिप्
                 तर्हि पुनः एक + अम् मुद्र् + णिच् + लोट् + सिप्
-                अन्यथा द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।
+                अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।
             """.trimIndent(),
         ).filterIsInstance<ExecutionResult.Success>()
             .filter { it.outputKind == OutputKind.CONSOLE }
             .map { it.value }
 
-        assertEquals(listOf("एक", "एक"), console("एक"))
-        assertEquals(listOf("एक", "द्वि"), console("द्वि"))
+        assertEquals(listOf("एक", "एक"), console("एक + टा"))
+        assertEquals(listOf("एक", "द्वि"), console("द्वि + भ्याम्"))
     }
 
     @Test

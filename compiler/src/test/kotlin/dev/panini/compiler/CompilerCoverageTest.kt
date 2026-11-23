@@ -14,7 +14,7 @@ class CompilerCoverageTest {
             सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ॥
             एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ततः पूर्व + ङे दा + लोट् + सिप् ।
-            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
+            द्वि + भ्याम् द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ असँ + लट् + तिप् ।
             चयन + टा डुकृञ् + उ + लोट् + सिप् ततः उत्तर + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val generated = BytecodeCompiler.compileAndLoad(source, "SequentialRangeChoice")
@@ -108,7 +108,7 @@ class CompilerCoverageTest {
         val duplicate = ordinary
             .replace(
                 "एक + सुँ द्वि + औ त्रि + जस् चतुर् + जस् इति",
-                "त्रि + सुँ त्रि + औ चतुर् + जस् पञ्चन् + जस् इति",
+                "त्रि + जस् त्रि + जस् चतुर् + जस् पञ्चन् + जस् इति",
             )
             .replace(
                 "पञ्चन् + भिस् सम",
@@ -116,7 +116,7 @@ class CompilerCoverageTest {
             )
         for ((index, source) in listOf(ordinary, duplicate).withIndex()) {
             val withUnreachableTail = source +
-                "\nनवन् + अम् पश्चात् + ङि स्था + णिच् + लोट् + सिप् ।"
+                "\nनवन् + शस् पश्चात् + ङि स्था + णिच् + लोट् + सिप् ।"
             val generated = BytecodeCompiler.compileAndLoad(withUnreachableTail, "CompiledTwoSumPosition$index")
             @Suppress("UNCHECKED_CAST")
             val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>

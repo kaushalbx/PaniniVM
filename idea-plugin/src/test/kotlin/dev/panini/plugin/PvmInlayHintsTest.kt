@@ -15,7 +15,7 @@ class PvmInlayHintsTest {
     fun `hints use canonical ukti spans and skip declarations`() {
         val source = """
             गणित + सुँ इति अधि + कृ + घञ् + सुँ असँ + लट् + तिप् ।
-            पञ्चन् + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
+            पञ्चन् + शस् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
 
@@ -29,7 +29,7 @@ class PvmInlayHintsTest {
 
     @Test
     fun `canceled computation yields no partial hints`() {
-        val source = "पञ्चन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "पञ्चन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
         val document = PaniniParser().parseDocument(source)
 
         assertTrue(PvmInlayHints.compute(source, document, isCanceled = { true }).isEmpty())
@@ -43,21 +43,21 @@ class PvmInlayHintsTest {
             दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् योजन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         val registry = PrakriyaRegistry().apply {
             registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm")
         }
 
-        val callStart = source.lastIndexOf("द्वि + अम्")
+        val callStart = source.lastIndexOf("द्वि + औट्")
         val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")
             .filter { (offset, text) -> offset >= callStart && (text.endsWith(":") || text.endsWith(" =")) }
             .map { it.offset to it.text }
         assertEquals(
             listOf(
                 callStart to "वाम:",
-                source.indexOf("त्रि + अम्", callStart) to "दक्षिण:",
+                source.indexOf("त्रि + शस्", callStart) to "दक्षिण:",
                 source.indexOf("योजन + टा", callStart) to "करण =",
                 source.indexOf("कृ + लोट्", callStart) to "क्रिया =",
             ),
@@ -78,7 +78,7 @@ class PvmInlayHintsTest {
             दक्षिण + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङि त्रि + अम् वाम + ङि द्वि + अम् योजन + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङि त्रि + शस् वाम + ङि द्वि + औट् योजन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val document = PaniniParser().parseDocument(source)
         val registry = PrakriyaRegistry().apply {
@@ -93,9 +93,9 @@ class PvmInlayHintsTest {
         assertEquals(
             listOf(
                 callStart to "अधिकरण =",
-                source.indexOf("त्रि + अम्", callStart) to "कर्मन् =",
+                source.indexOf("त्रि + शस्", callStart) to "कर्मन् =",
                 source.indexOf("वाम + ङि", callStart) to "अधिकरण =",
-                source.indexOf("द्वि + अम्", callStart) to "कर्मन् =",
+                source.indexOf("द्वि + औट्", callStart) to "कर्मन् =",
                 source.indexOf("योजन + टा", callStart) to "करण =",
                 source.indexOf("कृ + लोट्", callStart) to "क्रिया =",
             ),
@@ -195,7 +195,7 @@ class PvmInlayHintsTest {
     @Test
     fun `a named procedure header shows its roles`() {
         val header = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"
-        for (source in listOf(header, "$header\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")) {
+        for (source in listOf(header, "$header\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥")) {
             val document = PaniniParser().parseDocument(source)
             val registry = PrakriyaRegistry().also { it.registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm") }
             val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")
@@ -207,8 +207,8 @@ class PvmInlayHintsTest {
     @Test
     fun `comments get no hints`() {
         val comment = "# गणित + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"
-        val inner = "# द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।"
-        val source = "$comment\nपरीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n$inner\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n$comment\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val inner = "# द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
+        val source = "$comment\nपरीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n$inner\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥\n$comment\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ।"
         val document = PaniniParser().parseDocument(source)
         val registry = PrakriyaRegistry().also { it.registerDeclarations(PvmScript.fromDocument(document), "fixture.pvm") }
         val hints = PvmInlayHints.compute(source, document, registry, "fixture.pvm")

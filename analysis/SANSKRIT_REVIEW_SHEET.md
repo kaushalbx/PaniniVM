@@ -170,7 +170,7 @@ For a Sanskrit reader. Every distinct sentence the PVM examples and projects gen
 
 ### examples/arithmetic/random_demo.txt
 
-- एकस्मात् षष्+ङि दीव्य ।
+- एकस्मात् षष्+सुप् दीव्य ।
 
 ### examples/arithmetic/scaling.txt
 

@@ -44,8 +44,8 @@ class VyakaranamAstBuilder {
             DocumentSourceSpan(requireNotNull(item.start).startIndex, requireNotNull(item.stop).stopIndex + 1)
         }
         val items = context.documentItem().mapTo(mutableListOf<VyakaranamNode>()) { item ->
-            item.prakriyaBlock()?.let(::buildPrakriya)
-                ?: item.prakriyaHeader()?.let { buildPrakriyaHeader(it, item.text, emptyList()) }
+            item.prakriyaBlock()?.let { block -> locatedConstraints(block) { buildPrakriya(block) } }
+                ?: item.prakriyaHeader()?.let { header -> locatedConstraints(header) { buildPrakriyaHeader(header, item.text, emptyList()) } }
                 ?: classifyDocumentUtterance(build(requireNotNull(item.utterance())))
         }
         context.trailing?.let {
@@ -97,16 +97,45 @@ class VyakaranamAstBuilder {
             if (items[index] is Scope) item.utterance()?.let(::scopeSpan)?.let { index to it } else null
         }.toMap().toMutableMap()
         context.trailing?.let { if (items.last() is Scope) scopeSpan(it)?.let { span -> domains[items.lastIndex] = span } }
-        items.forEach(::requireWrittenVerbs)
+        items.forEachIndexed { index, item -> requireWrittenVerbs(item, sourceOf(context), spans.getOrNull(index)?.start ?: 0) }
         return ProgramDocument(context.text, items, spans, headers, bodies, names, domains)
     }
 
+    /** The submitted source with its whitespace, which a rule context's own text omits. */
+    private fun sourceOf(context: ParserRuleContext): String {
+        val stream = requireNotNull(requireNotNull(context.start).inputStream)
+        return stream.getText(org.antlr.v4.kotlinruntime.misc.Interval.of(0, stream.size() - 1))
+    }
+
+    /**
+     * A sentence with no written kriyā, located in [source] at or after [searchFrom] by its whitespace-free
+     * text, so the error names the line and span of that sentence.
+     */
+    private fun verblessSentence(sentence: String, source: String, searchFrom: Int): Nothing {
+        val compactSentence = sentence.filterNot(Char::isWhitespace)
+        val offsets = source.indices.filter { it >= searchFrom && !source[it].isWhitespace() }
+        val compact = offsets.joinToString("") { source[it].toString() }
+        val at = compact.indexOf(compactSentence).takeIf { compactSentence.isNotEmpty() && it >= 0 }
+        val span = if (at != null) DocumentSourceSpan(offsets[at], offsets[at + compactSentence.length - 1] + 1)
+            else DocumentSourceSpan(searchFrom.coerceAtMost(source.length), source.length)
+        val before = source.substring(0, span.start)
+        throw PaniniSemanticException(PaniniSemanticDiagnostic(
+            code = PaniniSemanticDiagnosticCode.VERBLESS_SENTENCE,
+            message = "वाक्ये क्रिया लेखनीया: '$sentence'. " +
+                "(Write the sentence's verb; a nominal statement writes its copula, असँ + लट् + तिप्.)",
+            span = span,
+            line = before.count { it == '\n' } + 1,
+            column = span.start - (before.lastIndexOf('\n') + 1),
+            offendingText = source.substring(span.start, span.endExclusive),
+        ))
+    }
+
     /** Every sentence writes its kriyā. Words quoted before इति belong to the sentence that reports them. */
-    internal fun requireWrittenVerbs(item: VyakaranamNode) {
+    internal fun requireWrittenVerbs(item: VyakaranamNode, source: String = "", searchFrom: Int = 0) {
         fun check(node: ProgramNode?) {
             when (node) {
-                is Invocation -> require(node.vakya !is NamaVakya || node.vakya.padas.any { it is TingantaPada }) {
-                    "VERBLESS_SENTENCE: वाक्ये क्रिया लेखनीया: '${node.sourceText}'"
+                is Invocation -> if (node.vakya is NamaVakya && node.vakya.padas.none { it is TingantaPada }) {
+                    verblessSentence(node.sourceText, source, searchFrom)
                 }
                 is Quotation -> check(node.reporting)
                 is Sequence -> node.statements.forEach(::check)
@@ -159,7 +188,7 @@ class VyakaranamAstBuilder {
                 marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "A सीमा declaration requires ablative and पर्यन्त bounds and nominative सीमा."
             }
-            error("VERBLESS_SENTENCE: सीमा-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
+            throw IllegalArgumentException("VERBLESS_SENTENCE: सीमा-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
         }
         val isScope = identity == MulaPratipadikaIdentity.ADHIKARA ||
             (marker.pratipadika as? KridantaPratipadika)?.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
@@ -170,7 +199,7 @@ class VyakaranamAstBuilder {
                 marker.sup.supports(Vibhakti.PRATHAMA)) {
                 "An अधिकार declaration requires a nominative domain and marker."
             }
-            error("VERBLESS_SENTENCE: अधिकार-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
+            throw IllegalArgumentException("VERBLESS_SENTENCE: अधिकार-वाक्ये अस्ति लेखनीयम्: '${ukti.sourceText}'")
         }
         return ukti
     }
@@ -287,7 +316,28 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti = build(context.utterance())
 
+    /** Builds one utterance; a failed grammatical constraint becomes a diagnostic located at that utterance. */
     fun build(
+        context: PaniniyaVyakaranamParser.UtteranceContext,
+    ): Ukti = locatedConstraints(context) { buildUtterance(context) }
+
+    /**
+     * Grammatical constraints written as `require` inside the builder are source errors, not internal faults:
+     * they become a [PaniniSemanticException] whose span is the construct being built. A message that
+     * begins with a known code (VERBLESS_SENTENCE: …) keeps that code. IllegalStateException is left alone.
+     */
+    private fun <T> locatedConstraints(context: ParserRuleContext, build: () -> T): T = try {
+        build()
+    } catch (error: PaniniSemanticException) {
+        throw error
+    } catch (error: IllegalArgumentException) {
+        val message = error.message ?: "Invalid grammatical construction."
+        val prefixed = PaniniSemanticDiagnosticCode.entries.firstOrNull { message.startsWith("${it.name}: ") }
+        semanticError(context, prefixed ?: PaniniSemanticDiagnosticCode.GRAMMAR_CONSTRAINT,
+            prefixed?.let { message.removePrefix("${it.name}: ") } ?: message)
+    }
+
+    private fun buildUtterance(
         context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
         val body = context.reductionClause()?.let(::buildReductionClause)
@@ -327,7 +377,8 @@ class VyakaranamAstBuilder {
             }.orEmpty()
             WhileLoop(
                 sourceText = loop.text,
-                condition = Invocation(buildVakya(loop.condition!!)),
+                condition = loop.conjoined?.let { conjoinedClauses(it).first() } ?: Invocation(buildVakya(loop.condition!!)),
+                conjuncts = loop.conjoined?.let { conjoinedClauses(it).drop(1) }.orEmpty(),
                 body = Invocation(buildVakya(loop.body!!)),
                 maximumFrequency = limit,
                 maximumIterationStems = limit?.stems?.dropLast(1)
@@ -432,7 +483,13 @@ class VyakaranamAstBuilder {
     private fun buildConditional(
         context: PaniniyaVyakaranamParser.ConditionalExpressionContext,
     ): Conditional {
-        val firstConsequent = buildConditionalArm(context.consequent!!)
+        val firstConsequent = context.consequentChain?.let { chain ->
+            Sequence(
+                sourceText = chain.text,
+                statements = chain.stages.map { Invocation(buildAkhyataVakya(it)) },
+                connectors = List(chain.stages.size - 1) { "ततः" },
+            )
+        } ?: buildConditionalArm(context.consequent!!)
         val consequent = if (context.continuations.isEmpty()) firstConsequent else Sequence(
             sourceText = context.text,
             statements = listOf(firstConsequent) + context.continuations.map { build(it).body },
@@ -442,6 +499,7 @@ class VyakaranamAstBuilder {
         return Conditional(
             sourceText = context.text,
             condition = buildConditionClause(requireNotNull(context.condition)),
+            conjuncts = context.condition?.conjoinedCondition()?.let { conjoinedClauses(it).drop(1) }.orEmpty(),
             consequent = consequent,
             alternate = context.nested?.let(::buildConditional)
                 ?: context.alternate?.let(::buildConditionalArm),
@@ -461,6 +519,7 @@ class VyakaranamAstBuilder {
         return Conditional(
             sourceText = context.text,
             condition = buildConditionClause(requireNotNull(context.condition)),
+            conjuncts = context.condition?.conjoinedCondition()?.let { conjoinedClauses(it).drop(1) }.orEmpty(),
             consequent = consequent,
             relation = ConditionalRelation.TEMPORAL,
         )
@@ -469,7 +528,16 @@ class VyakaranamAstBuilder {
     private fun buildConditionClause(
         context: PaniniyaVyakaranamParser.ConditionClauseContext,
     ): ProgramNode = context.quantifiedCollectionClause()?.let(::buildQuantifiedCollectionClause)
+        ?: context.conjoinedCondition()?.let { conjoinedClauses(it).first() }
         ?: Invocation(buildVakya(requireNotNull(context.vakya())))
+
+    /** Each clause of a च-conjoined condition, in written order; [Conditional.conjuncts] holds all after the first. */
+    private fun conjoinedClauses(context: PaniniyaVyakaranamParser.ConjoinedConditionContext): List<Invocation> =
+        context.clauses.map { coordinated ->
+            val padas = coordinated.purvaVakyaPada().flatMap { buildVakyaPada(requireNotNull(it.vakyaPada())) }
+            val tinganta = buildTinganta(requireNotNull(coordinated.tingantaPada()))
+            Invocation(AkhyataVakya(coordinated.text, padas + tinganta, tinganta))
+        } + Invocation(buildVakya(requireNotNull(context.last)))
 
     private fun buildQuantifiedCollectionClause(
         clause: PaniniyaVyakaranamParser.QuantifiedCollectionClauseContext,
@@ -830,17 +898,6 @@ class VyakaranamAstBuilder {
         require(SupAffix.candidates(sup.text).any { it.vibhakti == Vibhakti.PRATHAMA }) {
             "A zero-copula nominal result requires nominative morphology."
         }
-        val cardinal = when (value) {
-            is SubantaPada -> primitiveCardinalValue(value.pratipadika)
-            is SankhyaPada -> value.value ?: value.stems.singleOrNull()?.let {
-                dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(it)?.value
-            }
-            else -> null
-        }
-        cardinal?.let { number ->
-            val ending = SupAffix.candidates(sup.text).first { it.vibhakti == Vibhakti.PRATHAMA }
-            dev.panini.sankhya.SankhyaVacana.requireCompatible(number, ending.vacana)
-        }
         return Invocation(
             NamaVakya(value.sourceText, listOf(value)),
             implicitValue = value.sourceText,
@@ -1015,31 +1072,31 @@ class VyakaranamAstBuilder {
             lower.ablativeNumeral()?.let { numeral ->
                 return SankhyaPada(
                     sourceText = numeral.text,
-                    stems = numeral.sankhyaStem().map { it.text },
+                    stems = numeral.namedBound?.let { listOf(it.text) } ?: numeral.sankhyaStem().map { it.text },
                     sup = SupPratyaya(numeral.ablativeSup().text, numeral.ablativeSup().text),
-                )
+                ).locatedAt(DocumentSourceSpan(requireNotNull(numeral.start).startIndex, requireNotNull(numeral.stop).stopIndex + 1))
             }
             val ordinal = requireNotNull(lower.ablativeOrdinal())
             return SankhyaPuranaPada(
                 sourceText = ordinal.text,
                 stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
                 sup = SupPratyaya(ordinal.ablativeSup().text, ordinal.ablativeSup().text),
-            )
+            ).locatedAt(DocumentSourceSpan(requireNotNull(ordinal.start).startIndex, requireNotNull(ordinal.stop).stopIndex + 1))
         }
         fun upperBoundary(): SankhyaBoundaryPada {
             upper.accusativeNumeral()?.let { numeral ->
                 return SankhyaPada(
                     sourceText = numeral.text,
-                    stems = numeral.sankhyaStem().map { it.text },
+                    stems = numeral.namedBound?.let { listOf(it.text) } ?: numeral.sankhyaStem().map { it.text },
                     sup = SupPratyaya(numeral.accusativeSup().text, numeral.accusativeSup().text),
-                )
+                ).locatedAt(DocumentSourceSpan(requireNotNull(numeral.start).startIndex, requireNotNull(numeral.stop).stopIndex + 1))
             }
             val ordinal = requireNotNull(upper.accusativeOrdinal())
             return SankhyaPuranaPada(
                 sourceText = ordinal.text,
                 stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
                 sup = SupPratyaya(ordinal.accusativeSup().text, ordinal.accusativeSup().text),
-            )
+            ).locatedAt(DocumentSourceSpan(requireNotNull(ordinal.start).startIndex, requireNotNull(ordinal.stop).stopIndex + 1))
         }
         return ParyantaRangePada(
             sourceText = context.text,
@@ -1064,7 +1121,7 @@ class VyakaranamAstBuilder {
                 sourceText = context.supPratyaya()!!.text,
                 text = context.supPratyaya()!!.text,
             ),
-        )
+        ).locatedAt(DocumentSourceSpan(requireNotNull(context.start).startIndex, requireNotNull(context.stop).stopIndex + 1))
     }
 
     private fun buildSankhyaPuranaPada(
@@ -1245,18 +1302,34 @@ class VyakaranamAstBuilder {
 
     private fun buildSubanta(
         context: PaniniyaVyakaranamParser.SubantaPadaContext,
-    ): SubantaPada =
-        SubantaPada(
+    ): SubantaPada {
+        val pratipadika = buildPratipadika(context.pratipadika()!!)
+        val supText = context.supPratyaya()!!.text
+        // A cardinal below विंशति carries its own number (एक singular, द्वि dual, त्रि–नवदशन् plural)
+        // in every case, so a sup of another number is not a form of that numeral (पञ्चभ्यः, never पञ्चन् + ङसिँ).
+        // A branch's value sentence relies on this check; segmented numerals are checked by the execution
+        // binder once evaluated.
+        primitiveCardinalValue(pratipadika)?.let { number ->
+            val candidates = SupAffix.candidates(supText)
+            if (!dev.panini.sankhya.SankhyaVacana.acceptsAny(number, candidates)) {
+                val fix = dev.panini.sankhya.SankhyaVacana.correctedSup(number, candidates.first())
+                semanticError(context, PaniniSemanticDiagnosticCode.NUMERAL_NUMBER_AGREEMENT,
+                    dev.panini.sankhya.SankhyaVacana.mismatchMessage(number, candidates.first().vacana) +
+                        (fix?.let { " Write ${context.pratipadika()?.text} + ${it.upadesha}." } ?: ""))
+            }
+        }
+        return SubantaPada(
             sourceText = context.text,
-            pratipadika = buildPratipadika(context.pratipadika()!!),
+            pratipadika = pratipadika,
             sup = SupPratyaya(
-                sourceText = context.supPratyaya()!!.text,
-                text = context.supPratyaya()!!.text,
+                sourceText = supText,
+                text = supText,
             ),
         ).locatedAt(DocumentSourceSpan(
             requireNotNull(context.start).startIndex,
             requireNotNull(context.stop).stopIndex + 1,
         ))
+    }
 
     private fun buildPratipadika(
         context: PaniniyaVyakaranamParser.PratipadikaContext,
@@ -1443,6 +1516,12 @@ class VyakaranamAstBuilder {
                     "'${mula.text}' is no avyaya of स्वरादि, चादि or 1.1.38, and a nominal needs its sup."
                 }
                 AvyayaPada(sourceText = context.text, form = mula.text)
+            }
+
+            context.nipataSamuccaya() != null -> {
+                val members = context.nipataSamuccaya()!!.let { listOf(it.YADI().text, it.API().text) }
+                AvyayaPada(sourceText = context.text, form = members.joinToString("+"),
+                    derivation = dev.panini.vyakaranam.ast.NipataSamuccayaDerivation(members))
             }
 
             context.avyayaKridanta() != null -> {

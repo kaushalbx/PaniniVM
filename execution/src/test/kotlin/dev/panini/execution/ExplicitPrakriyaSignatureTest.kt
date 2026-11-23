@@ -28,7 +28,7 @@ class ExplicitPrakriyaSignatureTest {
                 .grammaticalVakyas().single().padas.filterIsInstance<SubantaPada>().single()
             assertEquals(PrakriyaValueType.UNCONSTRAINED, PrakriyaValueClassifier.classifyStaticPada(pada), stem)
         }
-        val literal = parser.parse("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+        val literal = parser.parse("द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।")
             .grammaticalVakyas().single().padas.first()
         assertEquals(PrakriyaValueType.SANKHYA, PrakriyaValueClassifier.classifyStaticPada(literal))
     }
@@ -105,7 +105,7 @@ class ExplicitPrakriyaSignatureTest {
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङि द्वि + औट् वाम + ङि पञ्च + शस् व्यवकलन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -123,7 +123,7 @@ class ExplicitPrakriyaSignatureTest {
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङि द्वि + औट् वाम + ङि पञ्च + शस् व्यवकलन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
         val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(parsed[0])
@@ -166,7 +166,7 @@ class ExplicitPrakriyaSignatureTest {
         })
 
         val readable = PvmUktiSadhaka().sadhayaLine(call.text)
-        assertTrue("दक्षिणे द्वि" in readable, readable)
+        assertTrue("दक्षिणे द्वे" in readable, readable)
         assertTrue("वामे पञ्च" in readable, readable)
     }
 
@@ -180,10 +180,10 @@ class ExplicitPrakriyaSignatureTest {
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val unknown = vm.evalScript(
-            definition + "\nअज्ञात + ङस् द्वि + अम् दक्षिण + ङस् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।",
+            definition + "\nअज्ञात + ङस् द्वि + औट् दक्षिण + ङस् त्रि + शस् योजन + टा कृ + लोट् + सिप् ।",
         )
         val duplicate = vm.evalScript(
-            definition + "\nवाम + ङस् द्वि + अम् वाम + ङस् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।",
+            definition + "\nवाम + ङस् द्वि + औट् वाम + ङस् त्रि + शस् योजन + टा कृ + लोट् + सिप् ।",
         )
 
         assertTrue(assertIs<ExecutionResult.Failure>(unknown.last()).message.contains("अज्ञातमानानि"))
@@ -199,7 +199,7 @@ class ExplicitPrakriyaSignatureTest {
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् त्रि + अम् च योजन + टा कृ + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् च योजन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)
@@ -219,7 +219,7 @@ class ExplicitPrakriyaSignatureTest {
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् योजन + टा कृ + लोट् + सिप् ।
+            द्वि + औट् योजन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -234,7 +234,7 @@ class ExplicitPrakriyaSignatureTest {
             गण + ल्युट् + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
-            मान + अम् द्वि + अम् च गुण् + णिच् + लोट् + सिप् ॥
+            मान + अम् द्वि + औट् च गुण् + णिच् + लोट् + सिप् ॥
 
             राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent(),

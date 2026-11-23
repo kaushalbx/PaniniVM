@@ -241,6 +241,7 @@ class SamasaEngine(
                 vibhakti,
                 vacana,
                 linga,
+                stemFormation = padas.last().stemFormation.takeIf { linga == padas.last().linga } ?: NominalStemFormation.UNSPECIFIED,
                 compoundHeadUpadesha = padas.last().upadesha,
                 samasaType = type,
             )
@@ -544,6 +545,7 @@ class SamasaEngine(
                     vibhakti,
                     vacana,
                     linga,
+                    stemFormation = padas.last().stemFormation.takeIf { linga == padas.last().linga } ?: NominalStemFormation.UNSPECIFIED,
                     compoundHeadUpadesha = padas.last().upadesha,
                     samasaType = type,
                 ),

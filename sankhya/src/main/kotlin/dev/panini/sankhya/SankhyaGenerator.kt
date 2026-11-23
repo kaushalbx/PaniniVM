@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
+import dev.panini.derivation.term
 import dev.panini.shiksha.Samjna
 
 /** Public numeral API. Every method returns an auditable grammatical derivation. */
@@ -37,6 +38,28 @@ class SankhyaGenerator(
         linga: Linga = Linga.NAPUMSAKA,
     ): String = decline(expressionBuilder.build(value), vibhakti, vacana, linga)
 
+    /**
+     * The prātipadika of the written construction (एक + ऊन + विंशति → एकोनविंशति, एक + दशन् → एकादशन्),
+     * never a different same-value numeral.
+     */
+    fun pratipadika(expression: SankhyaExpression): String {
+        val head = expression.headPrimitive()
+        return (expression as? SankhyaExpression.Primitive)?.sankhya?.inflectionPratipadika
+            ?: derivationEngine.derive(derivationFactory.create(expression)).final.surface.let { surface ->
+                // Numeral-internal composition uses the surface दश, but sup
+                // derivation must start from the lexical n-final head दशन्.
+                // Retain the supplied expression; an una construction headed
+                // by twenty must not be replaced by a same-value teen numeral.
+                // The head's own surface may have changed (षोडश: ष्टुत्व of 6.3.109-v1), so only the
+                // न् that composition dropped is restored: दश → दशन्, डश → डशन्.
+                if (head == PrimitiveSankhya.DASHAN) {
+                    val dropped = head.inflectionPratipadika.removePrefix(head.uttarapada)
+                    require(dropped.isNotEmpty() && head.inflectionPratipadika.startsWith(head.uttarapada))
+                    surface + dropped
+                } else surface
+            }
+    }
+
     /** Declines the supplied construction without replacing it by a same-value numeral. */
     fun decline(
         expression: SankhyaExpression,
@@ -46,18 +69,7 @@ class SankhyaGenerator(
     ): String {
         val value = expression.value
         val effectiveLinga = expression.headPrimitive().inflectionClass.intrinsicLinga ?: linga
-        val head = expression.headPrimitive()
-        val base = (expression as? SankhyaExpression.Primitive)?.sankhya?.inflectionPratipadika
-            ?: derivationEngine.derive(derivationFactory.create(expression)).final.surface.let { surface ->
-                // Numeral-internal composition uses the surface दश, but sup
-                // derivation must start from the lexical n-final head दशन्.
-                // Retain the supplied expression; an una construction headed
-                // by twenty must not be replaced by a same-value teen numeral.
-                if (head == PrimitiveSankhya.DASHAN) {
-                    require(surface.endsWith(head.uttarapada)) { "Numeral surface lost its declared दशन् head: $surface" }
-                    surface.removeSuffix(head.uttarapada) + head.inflectionPratipadika
-                } else surface
-            }
+        val base = pratipadika(expression)
         val pratipadika = if (value == 1L && effectiveLinga == Linga.STRI) {
             dev.panini.derivation.StriPratyayaEngine().derive(
                 dev.panini.derivation.StriPratyayaRequest(base, dev.panini.shiksha.Samjna.TAP),
@@ -85,6 +97,16 @@ class SankhyaGenerator(
         require(value >= 0L) { "Negative numbers are not supported: $value" }
         val initial = derivationFactory.createTaddhitaBase(expressionBuilder.build(value))
         val target = initial.terms.firstOrNull() ?: error("Numeral derivation requires a term")
-        return derivationEngine.derive(initial.withSamjnas(setOf(SamjnaAssignment(target.id, samjna))))
+        val requested = initial.withSamjnas(setOf(SamjnaAssignment(target.id, samjna)))
+        val stem = derivationEngine.deriveStem(requested)
+        // An asarvavibhakti taddhitānta is an avyaya (1.1.38): it takes सुँ, which 2.4.82 elides, and by 1.1.62
+        // the whole word is then a pada, so the Tripādī completes it (सकृत्, चतुः, द्विः, पञ्चकृत्वः, षड्धा).
+        if (stem.final.samjnas.none { it.samjna == Samjna.AVYAYA }) return derivationEngine.derive(requested)
+        // With a sup appended the word is no longer complete, so the stem pass's FINAL stage does not carry over.
+        val withSup = stem.final.copy(terms = stem.final.terms + dev.panini.core.SupAffix.SU.term(),
+            stage = dev.panini.derivation.DerivationStage.PADA_FORMED)
+        val word = derivationEngine.deriveWord(withSup)
+        return word.copy(initial = requested, applications = stem.applications + word.applications,
+            events = stem.events + word.events)
     }
 }

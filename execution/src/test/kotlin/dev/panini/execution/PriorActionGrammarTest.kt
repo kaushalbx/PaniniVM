@@ -13,7 +13,7 @@ class PriorActionGrammarTest {
     @Test fun `preposed agent ownership also supports bhave and multiple prior actions`() {
         for (source in listOf(
             "राम + टा एक + अम् मुद्र् + णिच् + क्त्वा आसँ + यक् + लट् + त ।",
-            "राम + टा एक + अम् युज् + णिच् + क्त्वा द्वि + अम् मुद्र् + णिच् + क्त्वा फल + सुँ डुकृञ् + यक् + लट् + त ।")) {
+            "राम + टा एक + अम् युज् + णिच् + क्त्वा द्वि + औट् मुद्र् + णिच् + क्त्वा फल + सुँ डुकृञ् + यक् + लट् + त ।")) {
             val analysis = analyzeWithSelectedReadings(source)
             assertTrue(analysis.blockingDiagnostics.isEmpty(), analysis.blockingDiagnostics.toString())
             val main = analysis.frames.last()
@@ -43,7 +43,7 @@ class PriorActionGrammarTest {
         assertTrue(unsupported.blockingDiagnostics.any { it.message.startsWith("PRIOR_ACTION_PASSIVE_PREPOSED_INSTRUMENTAL") })
     }
     @Test fun `multiple prior actions do not resolve an ambiguous passive instrumental agent`() {
-        val analysis = analyze("एक + अम् युज् + णिच् + क्त्वा द्वि + अम् मुद्र् + णिच् + क्त्वा राम + टा फल + सुँ डुकृञ् + यक् + लट् + त ।")
+        val analysis = analyze("एक + अम् युज् + णिच् + क्त्वा द्वि + औट् मुद्र् + णिच् + क्त्वा राम + टा फल + सुँ डुकृञ् + यक् + लट् + त ।")
         assertEquals(3, analysis.frames.size)
         assertTrue(analysis.links.filterIsInstance<KriyaLink.SharedParticipant>().isEmpty())
         val instrumental = analysis.frames.last().relations.single { it.participant.pada.sourceText == "राम+टा" }
@@ -51,7 +51,7 @@ class PriorActionGrammarTest {
             (instrumental.resolution as FrameKarakaResolution.Ambiguous).candidates)
     }
     @Test fun `each prior action shares the established finite controller in a written chain`() {
-        val analysis = analyze("एक + अम् युज् + णिच् + क्त्वा द्वि + अम् मुद्र् + णिच् + क्त्वा राम + सुँ फल + अम् डुकृञ् + उ + लट् + तिप् ।")
+        val analysis = analyze("एक + अम् युज् + णिच् + क्त्वा द्वि + औट् मुद्र् + णिच् + क्त्वा राम + सुँ फल + अम् डुकृञ् + उ + लट् + तिप् ।")
         assertEquals(3, analysis.frames.size)
         val main = analysis.frames.last()
         val shared = analysis.links.filterIsInstance<KriyaLink.SharedParticipant>()

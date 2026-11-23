@@ -48,6 +48,10 @@ internal object NumeralAstNormalizer {
         val expression = runCatching {
             sharedSankhyaEvaluator.evaluateStems(listOf(stem))
         }.getOrElse {
+            // Compound numbers are written segmented; the engine derives the compound itself.
+            dev.panini.sankhya.DerivedCompoundCardinal.segmented(stem)?.let { segmented ->
+                throw dev.panini.execution.NumeralDiagnostics.segmentedNumeral(stem, segmented)
+            }
             rejected += stem
             return null
         }

@@ -42,7 +42,7 @@ class NominalBranchTest {
     }
 
     @Test fun `derived nominal result never aliases an underived base binding`() {
-        val source = "नव + अम् विजय + ङे दा + लोट् + सिप् ।\n$condition विजय + मतुप् + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।"
+        val source = "नव + शस् विजय + ङे दा + लोट् + सिप् ।\n$condition विजय + मतुप् + सुँ असँ + लट् + तिप् अन्यथा पराजय + सुँ असँ + लट् + तिप् ।"
         val results = PaniniVM().evalScript(source)
         assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
         val value = assertIs<ExecutionResult.Success>(results.last()).typedValue

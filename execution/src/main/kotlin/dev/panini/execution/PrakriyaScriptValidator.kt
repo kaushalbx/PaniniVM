@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.grammaticalInvocations
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.CanonicalNumeralStem
@@ -31,6 +32,84 @@ data class PrakriyaDiagnostic(
 
 /** Performs declaration and call checks without executing the script. */
 object PrakriyaScriptValidator {
+    /**
+     * A one-word compound number (एकादशन्) is an error; its fix is the segmented spelling (एक + दशन्).
+     * Candidates are the parsed prātipadikas of the document, located by their AST source spans.
+     */
+    private fun segmentedNumeralSuggestions(source: String): List<PrakriyaDiagnostic> {
+        val document = runCatching { dev.panini.vyakaranam.parser.PaniniParser().parseDocument(source) }
+            .getOrNull() ?: return emptyList()
+        val programs = document.items.flatMap { item ->
+            when (item) {
+                is dev.panini.vyakaranam.ast.Ukti -> listOf(item.body)
+                is dev.panini.vyakaranam.ast.Prakriya -> item.body
+                else -> emptyList()
+            }
+        }
+        val padas = programs.flatMap { it.grammaticalInvocations() }.flatMap { it.vakya.padas }.flatMap { pada ->
+            when (pada) {
+                is dev.panini.vyakaranam.ast.SubantaPada -> listOf(pada)
+                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
+                else -> emptyList()
+            }
+        }
+        return padas.mapNotNull { pada ->
+            val stem = pada.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika ?: return@mapNotNull null
+            if (stem.vikaras.isNotEmpty()) return@mapNotNull null
+            val segmented = dev.panini.sankhya.DerivedCompoundCardinal.segmented(stem.text) ?: return@mapNotNull null
+            val span = pada.sourceSpan ?: return@mapNotNull null
+            PrakriyaDiagnostic(
+                offset = span.start,
+                length = stem.text.length,
+                message = "Write the compound number segmented: '$segmented'.",
+                severity = PrakriyaDiagnosticSeverity.ERROR,
+                replacement = segmented,
+                code = "SEGMENTED_NUMERAL",
+                offendingText = stem.text,
+            )
+        }.distinctBy { it.offset }
+    }
+
+    /**
+     * A compound cardinal's number is known only once it is evaluated, so the interpreter checks it at run
+     * time. The editor evaluates each numeral pada the same way, through the binder, and reports the same
+     * located NUMERAL_NUMBER_AGREEMENT with its fix before the script runs.
+     */
+    private fun numeralAgreementDiagnostics(source: String): List<PrakriyaDiagnostic> {
+        val document = runCatching { dev.panini.vyakaranam.parser.PaniniParser().parseDocument(source) }
+            .getOrNull() ?: return emptyList()
+        val programs = document.items.flatMap { item ->
+            when (item) {
+                is dev.panini.vyakaranam.ast.Ukti -> listOf(item.body)
+                is dev.panini.vyakaranam.ast.Prakriya -> item.body
+                else -> emptyList()
+            }
+        }
+        val padas = programs.flatMap { it.grammaticalInvocations() }.flatMap { it.vakya.padas }.flatMap { pada ->
+            if (pada is dev.panini.vyakaranam.ast.SamuccitaSubanta) pada.members else listOf(pada)
+        }
+        return padas.mapNotNull { pada ->
+            val error = try {
+                dev.panini.execution.binding.NumeralPadaBinder.resolveSemanticValue(pada)
+                null
+            } catch (failure: PvmSemanticException) {
+                failure.diagnostic
+            } ?: return@mapNotNull null
+            if (error.code != dev.panini.sankhya.SankhyaVacana.AGREEMENT_CODE) return@mapNotNull null
+            val span = error.span ?: return@mapNotNull null
+            PrakriyaDiagnostic(
+                offset = span.start,
+                length = span.endExclusive - span.start,
+                message = error.message,
+                severity = PrakriyaDiagnosticSeverity.ERROR,
+                replacement = error.corrections.firstOrNull()?.replacement,
+                code = error.code,
+                offendingText = error.offendingText,
+                corrections = error.corrections,
+            )
+        }.distinctBy { it.offset }
+    }
+
     fun validate(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parse)
 
     /** Validate an already parsed canonical document without reparsing editor text. */
@@ -47,6 +126,8 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.canonical,
             )
         }
+        segmentedNumeralSuggestions(source).forEach { diagnostics += it }
+        numeralAgreementDiagnostics(source).forEach { diagnostics += it }
         DirectResultAssignment.suggestions(source).forEach { suggestion ->
             diagnostics += PrakriyaDiagnostic(
                 offset = suggestion.offset,

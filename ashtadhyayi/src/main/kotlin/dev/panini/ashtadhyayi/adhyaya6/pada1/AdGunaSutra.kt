@@ -45,7 +45,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
-        val rutvaFollowUp = context.substitutions.lastOrNull()?.takeIf { it.sutra in setOf("6.1.113", "6.1.114") }
+        val rutvaFollowUp = context.substitutions.lastOrNull()?.takeIf { it.sutra in utvaSources }
         if (rutvaFollowUp != null && context.terms.any { it.id == rutvaFollowUp.targetId && it.varnas.takeLast(2) == listOf(Svara.A, Svara.U) }) return true
         if (context.terms.size < 2) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().hasCurrentAffix(TingAffix.JHI)) return false
@@ -75,15 +75,18 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         }
     }
 
+    /** Rules that leave an उ right after अ inside one term: रुँ → उ (6.1.113, 6.1.114) and षष् → षउ (6.3.109-v1). */
+    private val utvaSources = setOf("6.1.113", "6.1.114", "6.3.109-v1")
+
     override fun apply(context: DerivationState): DerivationChange {
-        if (context.substitutions.lastOrNull()?.sutra in setOf("6.1.113", "6.1.114")) {
+        if (context.substitutions.lastOrNull()?.sutra in utvaSources) {
             val targetId = context.substitutions.last().targetId
             val target = context.terms.firstOrNull { it.id == targetId && it.varnas.takeLast(2) == listOf(Svara.A, Svara.U) }
             if (target != null) return DerivationChange(
                 state = context.replaceTermVarnaRange(target.id, target.varnas.size - 2, 2,
                     listOf(Svara.O), annotationSources = mapOf(0 to 0), sutra = sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),
-                explanation = "6.1.87: Guṇa substitution ओ for अ + उ from रुँ."
+                explanation = "6.1.87: Guṇa substitution ओ for अ + उ (from रुँ, or the उ of षष् before दश)."
             )
         }
         val terms = context.terms

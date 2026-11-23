@@ -78,7 +78,7 @@ class CopularReferencePlanningTest {
 
     @Test fun `derived ordering predicate is not silently treated as its base adjective`() {
         for (root in listOf("न्यून", "अधिक")) for (affix in listOf("तरप्", "मतुप्")) {
-            val source = "यदि एक + सुँ द्वि + ङसिँ $root + $affix + सुँ असँ + लट् + तिप् तर्हि " +
+            val source = "यदि एक + सुँ द्वि + भ्याम् $root + $affix + सुँ असँ + लट् + तिप् तर्हि " +
                 "एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् अन्यथा " +
                 "शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"
             val results = PaniniVM().evalScript(source)
@@ -90,7 +90,7 @@ class CopularReferencePlanningTest {
     }
 
     @Test fun `copular predicate is grammatical identity not a same named host variable`() {
-        val source = "यदि एक + सुँ द्वि + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि " +
+        val source = "यदि एक + सुँ द्वि + भ्याम् न्यून + सुँ असँ + लट् + तिप् तर्हि " +
             "एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् अन्यथा " +
             "शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"
         val initial = mapOf("न्यून" to SanskritValue.Shabda("अधिक"))

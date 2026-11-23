@@ -48,12 +48,20 @@ data class NominalCaseLinkAnalysis(
 ) {
     /** Mere uniqueness of a case-compatible word is insufficient evidence. */
     val established: List<NominalCaseLinkCandidate> = candidates.groupBy { it.dependent }.values
-        .mapNotNull { readings -> readings.filter { it.missingSemanticPremises.isEmpty() }.singleOrNull() }
+        .mapNotNull { readings -> readings.filter { it.missingSemanticPremises.isEmpty() }.let { ready ->
+            // अन्नेन हेतुना: 2.3.26 also proposes its genitive, which the written case does not have; a single reading
+            // that fits the written case is the attachment, and with none the case-changing readings stay as before.
+            // अन्नयोः हेत्वोः (ओस्): where the sūtra's own case fits, it is preferred to the vārttika's extension.
+            ready.singleOrNull() ?: ready.filter { it.compatibleCases.isNotEmpty() }.let { fitting ->
+                fitting.singleOrNull() ?: fitting.filter { SemanticRelation.NIMITTA_SYNONYM_HETU !in it.derivedSemanticPremises }.singleOrNull()
+            }
+        } }
 }
 
 object NominalCaseLinkAnalyzer {
     fun jointAlternatives(links: NominalCaseLinkAnalysis, relations: List<KarakaRelation>): List<JointNominalCaseAlternative> =
-        links.established.groupBy { it.governor }.mapNotNull { (governor, incoming) ->
+        // Under the निमित्त vārttika the written case stands, so it offers no joint reinflection.
+        links.established.filter { SemanticRelation.NIMITTA_SYNONYM_HETU !in it.derivedSemanticPremises }.groupBy { it.governor }.mapNotNull { (governor, incoming) ->
             // The complete linked group must support the optional rule. A
             // mandatory-genitive member prevents an isolated pair switch.
             if (incoming.any { it.sutra != "2.3.27" }) return@mapNotNull null
@@ -80,11 +88,16 @@ object NominalCaseLinkAnalyzer {
         val requiresCompatibleCase: Boolean = true,
         val candidateCases: ((VibhaktiRuleContext) -> Set<Vibhakti>)? = null,
     )
+    // अन्नस्य हेतोर्वसति: a word in the case of a written हेतु is the cause that हेतु names, so the governor itself
+    // establishes CAUSE_HETU. candidateCases keeps the dependent to the governor's written case.
     private val constructions = listOf(
         Construction(SasthiHetuprayogeSutra, setOf(SemanticRelation.CAUSE_HETU),
-            setOf(SemanticRelation.EXPLICIT_HETU_USE), { isPronominal(it) == false }, false, SasthiHetuprayogeSutra::candidateCases),
+            setOf(SemanticRelation.CAUSE_HETU, SemanticRelation.EXPLICIT_HETU_USE), { isPronominal(it) == false }, false, SasthiHetuprayogeSutra::candidateCases),
         Construction(SarvanamnasTrtiyaCaSutra, setOf(SemanticRelation.CAUSE_HETU),
-            setOf(SemanticRelation.EXPLICIT_HETU_USE, SemanticRelation.PRONOMINAL_HETU), { isPronominal(it) == true }, false, SarvanamnasTrtiyaCaSutra::candidateCases),
+            setOf(SemanticRelation.CAUSE_HETU, SemanticRelation.EXPLICIT_HETU_USE, SemanticRelation.PRONOMINAL_HETU), { isPronominal(it) == true }, false, SarvanamnasTrtiyaCaSutra::candidateCases),
+        // Vārttika निमित्तपर्यायप्रयोगे सर्वासां प्रायदर्शनम्, hosted by 2.3.27: see [nimittaCases].
+        Construction(SarvanamnasTrtiyaCaSutra, setOf(SemanticRelation.NIMITTA_SYNONYM_HETU),
+            setOf(SemanticRelation.NIMITTA_SYNONYM_HETU, SemanticRelation.CAUSE_HETU), { true }, false, ::nimittaCases),
         Construction(NamahSvastiSvahaSutra, setOf(SemanticRelation.SUFFICIENCY)),
         Construction(AnyaraditarartedikshabdaSutra,
             setOf(SemanticRelation.DIRECTIONAL_EXCLUSION)),
@@ -101,6 +114,28 @@ object NominalCaseLinkAnalyzer {
         Construction(SadhuNipunabhyamSutra, setOf(SemanticRelation.ARCHA_RESPECT)),
         Construction(PrasitotsukabhyamTrtiyaCaSutra, setOf(SemanticRelation.ENGROSSED_ATTACHMENT)),
     )
+
+    /** Written synonyms of निमित्त named by the vārttika and its commentaries. */
+    private val nimittaParyayas = setOf("हेतु", "निमित्त", "कारण", "प्रयोजन")
+
+    /**
+     * A word in the case of a written निमित्त synonym is the cause it names, in any case the synonym takes. प्राय excludes
+     * the nominative and accusative of a non-sarvanāma (Siddhāntakaumudī: ज्ञानेन निमित्तेन हरिः सेव्यः, but not ज्ञानं
+     * निमित्तम्). With हेतु itself 2.3.26 and 2.3.27 already decide the genitive, and 2.3.27 the pronoun's instrumental.
+     */
+    private fun nimittaCases(context: VibhaktiRuleContext): Set<Vibhakti> {
+        val participant = context.participant ?: return emptySet()
+        val governor = participant.governingNominal ?: return emptySet()
+        val stem = governor.pratipadika as? MulaPratipadika ?: return emptySet()
+        if (stem.text !in nimittaParyayas || stem.vikaras.isNotEmpty()) return emptySet()
+        val pronominal = isPronominal(participant) ?: return emptySet()
+        val excluded = buildSet {
+            if (!pronominal) { add(Vibhakti.PRATHAMA); add(Vibhakti.DVITIYA) }
+            if (stem.text == "हेतु") { add(Vibhakti.SASTHI); if (pronominal) add(Vibhakti.TRTIYA) }
+        }
+        return governor.sup.affixCandidates.filter { participant.vacana == null || it.vacana == participant.vacana }
+            .map { it.vibhakti }.toSet() - excluded
+    }
 
     private fun isPronominal(participant: ParticipantFacts): Boolean? {
         if (SemanticRelation.PRONOMINAL_HETU in participant.semanticRelations) return true

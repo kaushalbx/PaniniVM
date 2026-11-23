@@ -5,7 +5,7 @@ import kotlin.test.*
 
 class NumeralLiteralIdentityTest {
     @Test fun `copular comparisons keep cardinal subject and standard literal despite host names`() {
-        for ((index, relation) in listOf("ङसिँ न्यून" to 2L, "टा सम" to 1L).withIndex()) {
+        for ((index, relation) in listOf("भ्याम् न्यून" to 2L, "भ्याम् सम" to 1L).withIndex()) {
             val source = "यदि एक + सुँ द्वि + ${relation.first} + सुँ असँ + लट् + तिप् तर्हि " +
                 "एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् अन्यथा " +
                 "शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।"

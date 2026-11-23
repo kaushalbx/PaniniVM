@@ -11,7 +11,7 @@ import kotlin.test.assertNotNull
 class PrakriyaTypeFlowTest {
     @Test
     fun `validator produces identical diagnostics from a canonical document`() {
-        val source = "पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।"
+        val source = "पञ्च + शस् दश + शस् च मुद्र् + लोट् + सिप् ।"
         val document = PaniniParser().parseDocument(source)
 
         assertEquals(
@@ -72,7 +72,7 @@ class PrakriyaTypeFlowTest {
 
     @Test
     fun `validator recommends canonical segmented numeral stems`() {
-        val diagnostics = PrakriyaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
+        val diagnostics = PrakriyaScriptValidator.validate("पञ्च + शस् दश + शस् च मुद्र् + लोट् + सिप् ।")
 
         assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(PrakriyaDiagnostic::replacement))
         assertTrue(diagnostics.all { it.severity == PrakriyaDiagnosticSeverity.WARNING })
@@ -85,14 +85,14 @@ class PrakriyaTypeFlowTest {
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
-            मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
+            मान + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
 
             गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पूर्व + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             उत्तर + सुँ नाम मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             पूर्व + अम् उत्तर + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            त्रि + अम् गणन + टा कृ + लोट् + सिप् ।
+            त्रि + शस् गणन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val messages = PrakriyaScriptValidator.validate(source).map(PrakriyaDiagnostic::message)
@@ -104,7 +104,7 @@ class PrakriyaTypeFlowTest {
     @Test
     fun `custom structured result declaration resolves its schema`() {
         val source = """
-            अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
+            अवस्था + सुँ प्रयत्न-सङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
             अनुमान + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             परिणाम + सुँ अनुमानपरिणाम + सुँ असँ + लट् + तिप् ।
             विजय + अम् दा + लोट् + सिप् ॥
@@ -137,7 +137,7 @@ class PrakriyaTypeFlowTest {
             परिणाम + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             फलमान + अम् दक्षिण + अम् च गुण + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -152,7 +152,7 @@ class PrakriyaTypeFlowTest {
     fun `structured value codec preserves schema and typed fields`() {
         val value = SanskritValue.Rupa(
             "अनुमानपरिणाम",
-            mapOf("प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(3, "त्रि")),
+            mapOf("प्रयत्न-सङ्ख्या" to SanskritValue.Sankhya(3, "त्रि")),
         )
 
         val decoded = dev.panini.execution.sutra.ProgramSutraArthaCodec.decodeValue(

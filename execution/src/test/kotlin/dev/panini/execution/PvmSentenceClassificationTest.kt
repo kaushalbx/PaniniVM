@@ -12,7 +12,7 @@ class PvmSentenceClassificationTest {
     fun `structured sentence semantics are classified once during parsing`() {
         assertIs<PvmSentenceSemantics.SchemaDeclaration>(
             sentence(
-                "अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् " +
+                "अवस्था + सुँ प्रयत्न-सङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् " +
                     "असँ + लट् + झि ।",
             ).semantics,
         )
@@ -36,7 +36,7 @@ class PvmSentenceClassificationTest {
         )
         assertIs<PvmSentenceSemantics.StructuredConditional>(
             sentence(
-                "यदि परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् द्वि + अम् च विद् + लोट् + सिप् " +
+                "यदि परिणाम + मतुप् + ङस् प्रयत्न-सङ्ख्या + अम् द्वि + औट् च विद् + लोट् + सिप् " +
                     "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
             ).semantics,
         )
@@ -45,7 +45,7 @@ class PvmSentenceClassificationTest {
     @Test
     fun `result schema declaration renders as an ordinary possessive sentence`() {
         val source =
-            "अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् " +
+            "अवस्था + सुँ प्रयत्न-सङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् " +
                 "असँ + लट् + झि ।"
 
         assertEquals(

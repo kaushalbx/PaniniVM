@@ -42,6 +42,8 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         
         // 6.4.92 मितां ह्रस्वः: a मित् root stays short before ṇic (गमयति, संक्रमय्य), so the net result is no lengthening.
         if (context.terms.any { it.matchesAffix(SanadiAffix.NIC) } && MitDhatus.isMit(stem.surface)) return false
+        // 1.1.57: an अ deleted by 6.4.48 stands in its place for this rule on the preceding vowel (कथयति, not काथयति).
+        if ("6.4.48" in context.appliedSutras) return false
         val isUpadhaA = penultimateAIndex(stem.varnas) != null
         val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)

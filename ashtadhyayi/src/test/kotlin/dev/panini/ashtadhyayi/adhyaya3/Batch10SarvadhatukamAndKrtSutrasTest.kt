@@ -3,7 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya3
 import dev.panini.ashtadhyayi.adhyaya3.pada1.EtiStuShaasVriDrJuShyahKyapSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.SatsudvisatrusadvisavahaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.AkartariChaKarakeSamyayamSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada3.KrmyoKahSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada3.LrtahSadVaSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.ArdhadhatukamSheshahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.LaKarmaniChaBhaveChakartariChaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.LinAshisiSutra
@@ -21,6 +22,7 @@ import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class Batch10SarvadhatukamAndKrtSutrasTest {
@@ -44,12 +46,31 @@ class Batch10SarvadhatukamAndKrtSutrasTest {
         assertEquals("क्विप्", result.final.allEffectiveTerms.last().upadesha)
     }
 
+    private fun participleState(lakara: dev.panini.core.Lakara, samjna: dev.panini.shiksha.Samjna): DerivationState {
+        val root = DerivationTerm("root", "डुकृञ्", TermKind.DHATU, upadesha = "डुकृञ्")
+        return DerivationState(listOf(root), samjnas = setOf(dev.panini.derivation.SamjnaAssignment(root.id, samjna)),
+            context = dev.panini.derivation.DerivationalContext(rupa = dev.panini.derivation.Rupa(lakara = lakara)))
+    }
+
     @Test
-    fun `derives ka affix via KrmyoKahSutra`() {
-        val state = DerivationState(terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")))
-        val result = DerivationEngine(listOf(KrmyoKahSutra)).derive(state)
-        assertTrue(result.applications.any { it.sutra == "3.3.14" })
-        assertEquals("क", result.final.allEffectiveTerms.last().upadesha)
+    fun `3_3_14 puts a sat affix in place of lrt`() {
+        for ((samjna, affix) in listOf(dev.panini.shiksha.Samjna.SATR to "शतृँ", dev.panini.shiksha.Samjna.SANAC to "शानच्")) {
+            val result = DerivationEngine(listOf(LrtahSadVaSutra)).derive(participleState(dev.panini.core.Lakara.LRT, samjna))
+            assertTrue(result.applications.any { it.sutra == "3.3.14" })
+            assertEquals(affix, result.final.allEffectiveTerms.last().upadesha)
+        }
+    }
+
+    @Test
+    fun `3_3_14 and 3_2_124 keep to their own lakaras`() {
+        val lat = participleState(dev.panini.core.Lakara.LAT, dev.panini.shiksha.Samjna.SATR)
+        val lrt = participleState(dev.panini.core.Lakara.LRT, dev.panini.shiksha.Samjna.SATR)
+        assertFalse(LrtahSadVaSutra.matches(lat))
+        assertFalse(LatahSatrsanacauSutra.matches(lrt))
+        assertTrue(LatahSatrsanacauSutra.matches(lat))
+        val bare = DerivationState(listOf(DerivationTerm("root", "डुकृञ्", TermKind.DHATU, upadesha = "डुकृञ्")),
+            context = dev.panini.derivation.DerivationalContext(rupa = dev.panini.derivation.Rupa(lakara = dev.panini.core.Lakara.LRT)))
+        assertFalse(LrtahSadVaSutra.matches(bare), "No participle asked for: the finite लृट् stays.")
     }
 
     @Test

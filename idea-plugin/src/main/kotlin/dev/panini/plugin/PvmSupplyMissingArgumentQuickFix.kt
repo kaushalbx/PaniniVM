@@ -37,8 +37,17 @@ class PvmSupplyMissingArgumentQuickFix(
         }, file)
     }
 
-    internal fun insertion(valueStem: String): String =
-        " ${parameter.nameStem} + ङि ${valueStem.trim()} + अम्"
+    /** द्वितीया of the supplied value; a cardinal below विंशति takes the द्वितीया of its own number (त्रि + शस्). */
+    internal fun insertion(valueStem: String): String {
+        val stem = valueStem.trim()
+        val number = dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(stem)?.value
+        val sup = when (number?.let(dev.panini.sankhya.SankhyaVacana::requiredFor)) {
+            dev.panini.core.Vacana.DVIVACANA -> "औट्"
+            dev.panini.core.Vacana.BAHUVACANA -> "शस्"
+            else -> "अम्"
+        }
+        return " ${parameter.nameStem} + ङि $stem + $sup"
+    }
 
     override fun startInWriteAction(): Boolean = false
 }

@@ -267,4 +267,35 @@ class KrdantaEngineTest {
             assertEquals(form, engine.derive(KrdantaDerivationRequest(root, Samjna.KTVA, null, listOf("णिच्"))).final.surface, root)
         }
     }
+
+    @Test
+    fun `an adanta curadi root deletes its final a before nic by 6_4_48`() {
+        val expected = mapOf(
+            "गण" to mapOf(Samjna.LYUT to "गणन", Samjna.KTVA to "गणयित्वा", Samjna.KTA to "गणित", Samjna.TUMUN to "गणयितुम्"),
+            "कथ" to mapOf(Samjna.LYUT to "कथन", Samjna.TAVYA to "कथयितव्य", Samjna.KTA to "कथित", Samjna.KTAVATU to "कथितवत्"),
+        )
+        expected.forEach { (dhatu, forms) ->
+            forms.forEach { (samjna, surface) ->
+                val result = engine.derive(KrdantaDerivationRequest(dhatu, samjna, sanadiPratyayas = listOf("णिच्")))
+                assertEquals(surface, result.final.surface, "$dhatu $samjna")
+                // 1.1.57: the deleted अ blocks the upadhā vṛddhi of 7.2.116 and the final-vowel vṛddhi of 7.2.115.
+                assertTrue(result.applications.any { it.sutra == "6.4.48" }, "$dhatu $samjna")
+                assertTrue(result.applications.none { it.sutra == "7.2.116" || it.sutra == "7.2.115" }, "$dhatu $samjna")
+            }
+        }
+    }
+
+    @Test
+    fun `a nyanta nistha takes one i whatever the root's it status`() {
+        // चुर् and भू are seṭ, शुध् is aniṭ: each ṇyanta niṣṭhā has the single इ left by 6.4.52.
+        mapOf("चुर्" to "चोरित", "भू" to "भावित", "शुध्" to "शोधित").forEach { (dhatu, surface) ->
+            assertEquals(surface, engine.derive(KrdantaDerivationRequest(dhatu, Samjna.KTA, sanadiPratyayas = listOf("णिच्"))).final.surface)
+        }
+    }
+
+    @Test
+    fun `nic deleted by 6_4_51 blocks the guttural of 7_3_52`() {
+        assertEquals("रच", engine.derive(KrdantaDerivationRequest("रच", Samjna.GHAN, sanadiPratyayas = listOf("णिच्"))).final.surface)
+        assertEquals("पाक", engine.derive(KrdantaDerivationRequest("पच्", Samjna.GHAN)).final.surface)
+    }
 }

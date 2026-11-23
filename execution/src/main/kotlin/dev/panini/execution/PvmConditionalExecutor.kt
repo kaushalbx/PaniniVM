@@ -66,6 +66,13 @@ internal class PvmConditionalExecutor(
                     ),
                 )
             }
+        } ?: negatedCondition(node.condition)?.let { affirmative ->
+            // As in PvmLoopExecutor, न scopes over the predicate's truth, not a prohibition speech act.
+            request.executeNode(affirmative, true).map { result ->
+                val success = result as? ExecutionResult.Success ?: return@map result
+                val truth = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean ?: return@map result
+                success.copy(value = if (truth) "असत्यम्" else "सत्यम्", typedValue = SanskritValue.Satya(!truth), conditionValue = !truth)
+            }
         } ?: request.executeNode(node.condition, true)
         // Do not select a branch using an earlier successful truth result after
         // a later action has failed, suspended, or requested a control effect.
@@ -79,6 +86,9 @@ internal class PvmConditionalExecutor(
                 "A conditional expression must produce a truth value.",
             )
         }
+        // च conjoins clauses left to right: when this one holds, the next decides; a false one selects the alternate.
+        if (condition && node.conjuncts.isNotEmpty()) return conditionResults + execute(request.copy(conditional =
+            node.copy(condition = node.conjuncts.first(), conjuncts = node.conjuncts.drop(1))))
         val branch = if (condition) node.consequent else node.alternate
         val branchResults = branch?.let { request.executeNode(it, false) }.orEmpty()
         // Preserve the grammatical condition's satya-phala for an enclosing
@@ -86,4 +96,18 @@ internal class PvmConditionalExecutor(
         return conditionResults + branchResults
     }
 
+
+    /** The condition without its न, when न is written over a predicate that is not a truth-state test. */
+    private fun negatedCondition(condition: ProgramNode): dev.panini.vyakaranam.ast.Invocation? {
+        val invocation = condition as? dev.panini.vyakaranam.ast.Invocation ?: return null
+        val isNishedha = { pada: dev.panini.vyakaranam.ast.Pada ->
+            pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
+        val original = invocation.vakya
+        if (original.padas.none(isNishedha)) return null
+        val padas = original.padas.filterNot(isNishedha)
+        return invocation.copy(vakya = when (original) {
+            is dev.panini.vyakaranam.ast.AkhyataVakya -> original.copy(padas = padas)
+            is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(padas = padas)
+        })
+    }
 }

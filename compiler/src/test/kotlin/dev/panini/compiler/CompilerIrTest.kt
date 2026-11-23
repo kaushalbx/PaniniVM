@@ -255,7 +255,7 @@ class CompilerIrTest {
         ))
         assertEquals("न्यूनता", dynamic.resolved.operation.name, dynamic.resolved.toString())
         val greater = requireNotNull(ResolvedLeafPlanner.planAny(
-            "द्वि + सुँ अवस्था + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+            "द्वि + औ अवस्था + ङसिँ अधिक + औ असँ + लट् + तस् ।",
         ))
         assertTrue(CompilerInstruction.Compare(ComparisonOperator.GREATER_THAN) in CompilerIrLowering.lowerCondition(greater))
     }
@@ -282,7 +282,7 @@ class CompilerIrTest {
     fun `phala morphology is canonicalized before runtime load IR`() {
         val program = CompilerFrontend.lower(
             """
-            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+            द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
             फल + अम् अवस्था + ङे दा + लोट् + सिप् ।
             """.trimIndent(),
             "CanonicalPhalaIr",
@@ -472,8 +472,8 @@ class CompilerIrTest {
         val instructions = listOf(
             CompilerInstruction.Constant(SanskritValue.Shabda("विजय")),
             numericConstant(3),
-            CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
-            CompilerInstruction.LoadField("प्रयत्नसङ्ख्या"),
+            CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्न-सङ्ख्या")),
+            CompilerInstruction.LoadField("प्रयत्न-सङ्ख्या"),
             CompilerInstruction.Store("LastResult"),
         )
 
@@ -815,8 +815,8 @@ class CompilerIrTest {
                 CompilerInstruction.LoadLocal("test-while_counter"),
                 CompilerInstruction.Cardinalize,
                 CompilerInstruction.Duplicate,
-                CompilerInstruction.Store("प्रयत्नसङ्ख्या"),
-                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+                CompilerInstruction.Store("प्रयत्न-सङ्ख्या"),
+                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्न-सङ्ख्या")),
                 CompilerInstruction.Duplicate,
                 CompilerInstruction.Store("परिणाम"),
                 CompilerInstruction.Store("LastResult"),
@@ -847,7 +847,7 @@ class CompilerIrTest {
         assertTrue(instructions.contains(CompilerInstruction.Label("bounded_exhausted")))
         assertTrue(
             instructions.contains(
-                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्न-सङ्ख्या")),
             ),
         )
         assertTrue(instructions.contains(CompilerInstruction.Store("परिणाम")))
@@ -988,7 +988,7 @@ class CompilerIrTest {
     @Test
     fun `numeric leaf lowers to a backend neutral call`() {
         val plan = requireNotNull(ResolvedLeafPlanner.planAny(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
         ))
 
         val call = assertIs<CompilerInstruction.Call>(CompilerIrLowering.lowerLeaf(plan))
@@ -1014,7 +1014,7 @@ class CompilerIrTest {
     @Test
     fun `numeric value leaf lowers to arithmetic and stores LastResult`() {
         val plan = requireNotNull(ResolvedLeafPlanner.planAny(
-            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
         ))
 
         val instructions = CompilerIrLowering.lowerLeafValues(plan)
@@ -1053,10 +1053,10 @@ class CompilerIrTest {
     @Test
     fun `numeric condition lowers operands and comparison without a runtime call`() {
         val greater = requireNotNull(ResolvedLeafPlanner.planAny(
-            "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
+            "द्वि + औट् एक + अम् च विद् + लोट् + सिप् ।",
         ))
         val less = requireNotNull(ResolvedLeafPlanner.planAny(
-            "एक + अम् द्वि + अम् च नि + विद् + लोट् + सिप् ।",
+            "एक + अम् द्वि + औट् च नि + विद् + लोट् + सिप् ।",
         ))
 
         val greaterInstructions = CompilerIrLowering.lowerCondition(greater)
@@ -1072,7 +1072,7 @@ class CompilerIrTest {
     fun `locative collection membership lowers from its karaka frame`() {
         val plan = requireNotNull(
             ResolvedLeafPlanner.planAny(
-                "द्वि + सुँ सूची + ङि असँ + लट् + तिप् ।",
+                "द्वि + औ सूची + ङि असँ + लट् + तस् ।",
                 ValueEnvironment(
                     mapOf(
                         "सूची" to SanskritValue.Suchi(
@@ -1095,7 +1095,7 @@ class CompilerIrTest {
     @Test
     fun `boolean and loop target behavior lowers to ordinary value IR`() {
         val condition = requireNotNull(ResolvedLeafPlanner.planAny(
-            "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
+            "द्वि + औट् एक + अम् च विद् + लोट् + सिप् ।",
         ))
         val target = requireNotNull(ResolvedLeafPlanner.planAny(
             "चक्रफल + अम् मुद्र् + लोट् + सिप् ।",

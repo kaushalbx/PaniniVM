@@ -148,7 +148,7 @@ internal object KarakaExtractor {
         val superlative = subantas.singleOrNull { superlativeOrder(it) != null }
         val superlativeGroup = superlative?.let { chosen ->
             // उत्तरेषु, or a collective in the singular as सूच्याम्.
-            requireNotNull(subantas.singleOrNull { it !== chosen && it.sup.affixCandidates.any { a -> a.vibhakti == Vibhakti.SAPTAMI } }) {
+            dev.panini.execution.requirePadaNotNull(subantas.singleOrNull { it !== chosen && it.sup.affixCandidates.any { a -> a.vibhakti == Vibhakti.SAPTAMI } }, chosen, dev.panini.execution.PadaConstraintCode.MISSING_NIRDHARANA_GROUP) {
                 "A superlative names the one group it is chosen from in the locative (2.3.41 यतश्च निर्धारणम्)."
             }
         }
@@ -179,7 +179,7 @@ internal object KarakaExtractor {
                         ?: error("The comparison standard has no supported semantic value.")
                     ExecutionExpression.Pada(pada.sourceText, value.samjnas, value)
                 }
-                require(dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD !in nominalBindings) {
+                dev.panini.execution.requirePada(dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD !in nominalBindings, pada, dev.panini.execution.PadaConstraintCode.AMBIGUOUS_COMPARISON_STANDARD) {
                     "The comparison standard is ambiguous."
                 }
                 nominalBindings[dev.panini.execution.NominalOperandRole.COMPARISON_STANDARD] = expression
@@ -202,9 +202,19 @@ internal object KarakaExtractor {
                     ): ExecutionExpression {
                         val value = dev.panini.execution.NaturalSemanticNormalizer.boundaryValue(boundary)
                         if (value != null) return ExecutionExpression.sankhya(value, boundary.sourceText)
-                        val reference = boundary.stems.singleOrNull()
-                        require(!reference.isNullOrBlank()) {
-                            "क्रमसीमायाः पूरणार्थः न ज्ञातः: ${boundary.sourceText}"
+                        val reference = boundary.stems.singleOrNull()?.takeIf(String::isNotBlank) ?: run {
+                            // वाम + दक्षिण + ङसिँ: stems that are no numeral may be one bound compound name,
+                            // which is written with its members joined (वाम-दक्षिण + ङसिँ).
+                            val compound = boundary.stems.joinToString("-")
+                            val span = (boundary as? dev.panini.vyakaranam.ast.SourceLocatedNode)?.sourceSpan
+                            // A sequence of stems that is no numeral reads only as one compound name.
+                            val corrections = listOfNotNull(span?.let {
+                                dev.panini.vyakaranam.ast.SourceCorrection(it, "$compound + ${boundary.sup.text}",
+                                    "Join the stems as the one compound name $compound.")
+                            })
+                            throw dev.panini.execution.PadaConstraintException(boundary,
+                                "क्रमसीमायाः पूरणार्थः न ज्ञातः: ${boundary.sourceText}",
+                                dev.panini.execution.PadaConstraintCode.UNKNOWN_RANGE_BOUNDARY, corrections)
                         }
                         return ExecutionExpression.Reference(reference)
                     }
@@ -239,12 +249,12 @@ internal object KarakaExtractor {
                         )
                     if (copularPredicate) {
                         val nominal = pada.pratipadika as MulaPratipadika
-                        require(nominal.vikaras.all { it.isRecognizedStriAffix }) {
+                        dev.panini.execution.requirePada(nominal.vikaras.all { it.isRecognizedStriAffix }, pada, dev.panini.execution.PadaConstraintCode.DERIVED_COMPARISON_PREDICATE) {
                             "A derived nominal cannot silently act as a comparison predicate."
                         }
-                        require(parsedCopularPredicate == null) { "Ambiguous copular predicate." }
-                        parsedCopularPredicate = requireNotNull(dev.panini.execution.CopularPredicate.from(
-                            ExecutionExpression.Pada(nominal.text))) { "Unknown comparison predicate." }
+                        dev.panini.execution.requirePada(parsedCopularPredicate == null, pada, dev.panini.execution.PadaConstraintCode.AMBIGUOUS_COPULAR_PREDICATE) { "Ambiguous copular predicate." }
+                        parsedCopularPredicate = dev.panini.execution.requirePadaNotNull(dev.panini.execution.CopularPredicate.from(
+                            ExecutionExpression.Pada(nominal.text)), pada, dev.panini.execution.PadaConstraintCode.AMBIGUOUS_COPULAR_PREDICATE) { "Unknown comparison predicate." }
                         return@forEachIndexed
                     }
                     val rememberedParticipant = karakaReferenceResolution.expressions[pada]

@@ -12,11 +12,11 @@ class ProcedureRegistryIdentityTest {
     }
 
     @Test fun `field assertions cannot turn negated or future clauses into present facts`() {
-        val source = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + सुँ असँ + लट् + तिप् ।"
+        val source = "अवस्था + मतुप् + ङस् मूल्य + सुँ द्वि + औ असँ + लट् + तिप् ।"
         assertNotNull(TaddhitaStructEngine.detectFieldAssertion(source))
         for ((invalid, message) in listOf(
             source.replace("असँ", "न असँ") to "cannot discard",
-            source.replace("असँ", "त्रि + अम् असँ") to "cannot discard",
+            source.replace("असँ", "त्रि + शस् असँ") to "cannot discard",
             source.replace("लट्", "लृट्") to "present copula",
         )) {
             val direct = assertFailsWith<IllegalArgumentException> {
@@ -34,7 +34,7 @@ class ProcedureRegistryIdentityTest {
         val source = "मूल्य + सुँ फल + सुँ च अवस्था + ङस् क्षेत्र + जस् असँ + लट् + झि ।"
         assertNotNull(TaddhitaStructEngine.detectResultSchema(source))
         val future = source.replace("लट्", "लृट्")
-        val extra = source.replace("असँ", "द्वि + अम् असँ")
+        val extra = source.replace("असँ", "द्वि + औट् असँ")
         for ((invalid, message) in listOf(future to "present copula", extra to "extra participants")) {
             assertTrue(assertFailsWith<IllegalArgumentException> {
                 TaddhitaStructEngine.detectResultSchema(invalid)
@@ -83,7 +83,7 @@ class ProcedureRegistryIdentityTest {
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         for (ending in listOf("ओस्", "सुप्", "आम्")) {
-            val source = "$definition\nमान + $ending द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
+            val source = "$definition\nमान + $ending द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।"
             val diagnostics = PrakriyaScriptValidator.validate(source)
             assertTrue(diagnostics.any { it.message.contains("slot") && it.message.contains("singular") }, diagnostics.toString())
             val results = PaniniVM().evalScript(source)
@@ -98,7 +98,7 @@ class ProcedureRegistryIdentityTest {
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
-        val action = "द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।"
+        val action = "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।"
         val nominal = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि नवन् + जस् असँ + लट् + झि अन्यथा त्रि + जस् असँ + लट् + झि ।"
         for ((body, expected) in listOf("$action\n$nominal" to 10L, "$nominal\n$action" to 6L)) {
             val results = PaniniVM().evalScript("$declaration\n$body\nफल + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
@@ -151,7 +151,7 @@ class ProcedureRegistryIdentityTest {
             assertNull(NishedhaGuardEvaluator.numericProhibition(
                 definition.body.single { it.isNishedha }, emptyList(), 1,
             ), guard)
-            val results = PaniniVM().evalScript("$source\nद्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
+            val results = PaniniVM().evalScript("$source\nद्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
             val failure = assertIs<ExecutionResult.Failure>(results.last(), results.toString())
             assertTrue(failure.message.contains("Unsupported procedure prohibition"), failure.message)
         }
@@ -177,7 +177,7 @@ class ProcedureRegistryIdentityTest {
         val source = """
             परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
             राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            मान + ङि द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
+            मान + ङि द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val diagnostics = PrakriyaScriptValidator.validate(source)
         assertTrue(diagnostics.any { it.message.contains("अज्ञातमानानि") }, diagnostics.toString())
@@ -198,7 +198,7 @@ class ProcedureRegistryIdentityTest {
         )
         registry.register(numeric)
         registry.register(differentSlot)
-        val call = PvmScript.parse("मान + ङि द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
+        val call = PvmScript.parse("मान + ङि द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
             .filterIsInstance<PvmScriptStatement.Sentence>().single()
         val invocation = assertNotNull(registry.detectInvocation(assertNotNull(call.ukti)))
         assertEquals(numeric, invocation.kriya)
@@ -230,7 +230,7 @@ class ProcedureRegistryIdentityTest {
         assertEquals(numeric, registry.resolveStructuredInvocation("परीक्षण", null,
             listOf(argument.copy(value = null)), "",
             analyzedArgumentTypes = listOf(PrakriyaValueType.SANKHYA))?.kriya)
-        val call = PvmScript.parse("द्वि + अम् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
+        val call = PvmScript.parse("द्वि + औट् परीक्षण + टा डुकृञ् + उ + लोट् + सिप् ।")
             .filterIsInstance<PvmScriptStatement.Sentence>().single()
         assertEquals(numeric, registry.detectInvocation(assertNotNull(call.ukti))?.kriya)
         val numericException = numeric.copy(precedence = PrakriyaPrecedence.APAVADA)

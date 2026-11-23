@@ -206,6 +206,12 @@ class UktiAnalyzer(
 
         val visitor = object : ProgramNodeVisitor<FrameBoundary> {
             private fun visit(node: ProgramNode): FrameBoundary = node.accept(this)
+            /** च-conjoined clauses: each holding clause leads to the next, and the last one decides. */
+            private fun visitClauses(clauses: List<ProgramNode>): FrameBoundary {
+                val frames = clauses.map(::visit)
+                frames.zipWithNext { before, after -> before.exits.forEach { links += KriyaLink.Condition(it, after.entry) } }
+                return FrameBoundary(frames.first().entry, frames.last().exits)
+            }
 
             override fun visitInvocation(node: Invocation): FrameBoundary =
                 frames[nextFrame++].id.let { FrameBoundary(it, setOf(it)) }
@@ -225,7 +231,7 @@ class UktiAnalyzer(
             }
 
             override fun visitConditional(node: Conditional): FrameBoundary {
-                val condition = visit(node.condition)
+                val condition = visitClauses(listOf(node.condition) + node.conjuncts)
                 val consequent = visit(node.consequent)
                 condition.exits.forEach { links += KriyaLink.Condition(it, consequent.entry) }
                 val alternate = node.alternate?.let(::visit)
@@ -240,7 +246,7 @@ class UktiAnalyzer(
             override fun visitRepeat(node: Repeat): FrameBoundary = visit(node.body)
             override fun visitRecurrence(node: dev.panini.vyakaranam.ast.Recurrence): FrameBoundary = visit(node.body)
             override fun visitWhileLoop(node: WhileLoop): FrameBoundary {
-                val condition = visit(node.condition)
+                val condition = visitClauses(listOf(node.condition) + node.conjuncts)
                 val body = visit(node.body)
                 val exhausted = node.exhausted?.let(::visit)
                 val result = node.resultTarget?.let(::visit)

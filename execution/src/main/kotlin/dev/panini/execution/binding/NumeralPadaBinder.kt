@@ -37,8 +37,9 @@ internal object NumeralPadaBinder {
     internal fun resolveSemanticValue(pada: Pada): SanskritValue.Sankhya? {
         if (dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada) != null) return null
         val value = extractNumeralValue(pada) ?: return null
+        requireIntrinsicVacana(pada, value)
         val word = when (pada) {
-            is SankhyaPada -> pada.stems.joinToString(" ")
+            is SankhyaPada -> writtenCardinalStem(pada) ?: pada.stems.joinToString(" ")
             is KatapayadiPada -> pada.word
             is AryabhatiyaPada -> pada.word
             is BhutasamkhyaPada -> pada.terms.joinToString(" ")
@@ -47,6 +48,32 @@ internal object NumeralPadaBinder {
             else -> return null
         }
         return SanskritValue.Sankhya(value, word)
+    }
+
+    /**
+     * A cardinal below विंशति carries its own number in every case. The parser checks primitive numerals;
+     * compound ones (एकादशन्, एक + दशन्) are known only once evaluated, so they are checked here the same way:
+     * some reading of the written sup must agree with the numeral's number.
+     */
+    private fun requireIntrinsicVacana(pada: Pada, written: Long) {
+        val sup = when (pada) {
+            is SankhyaPada -> pada.sup
+            is SubantaPada -> pada.sup
+            else -> return
+        }
+        // The grammatical head decides the number: एक + ऊन + विंशति is a singular विंशति (19), while
+        // एक + दशन् is a plural दशन् count (11). A segmented construction's head is its final stem.
+        val value = (pada as? SankhyaPada)?.stems?.lastOrNull()
+            ?.let { PrimitiveSankhya.fromAnnotatedPratipadika(it)?.value }
+            ?.takeIf { it >= 20L } ?: written
+        val candidates = dev.panini.core.SupAffix.candidates(sup.text)
+        if (dev.panini.sankhya.SankhyaVacana.acceptsAny(value, candidates)) return
+        val stem = when (pada) {
+            is SankhyaPada -> pada.stems.joinToString(" + ")
+            is SubantaPada -> pada.pratipadika.sourceText
+            else -> null
+        }
+        throw dev.panini.execution.NumeralDiagnostics.numberAgreement(pada, stem, value, candidates.first())
     }
 
     /**
@@ -152,6 +179,23 @@ internal object NumeralPadaBinder {
         inferKarakas: (dev.panini.vyakaranam.ast.SupBearingPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) {
-        addBinding(ExecutionExpression.sankhya(value, pada.sourceText), inferKarakas(pada))
+        addBinding(ExecutionExpression.sankhya(value, (pada as? SankhyaPada)?.let(::writtenCardinalStem)
+            ?: pada.sourceText), inferKarakas(pada))
+    }
+
+    /**
+     * A segmented cardinal carries the prātipadika of its written construction, as a primitive literal carries
+     * its stem (पञ्चन्): एक + ऊन + विंशति is एकोनविंशति, never the same-value नवदशन्. Operator
+     * constructions (वर्ग, गुणित, …) do not name a numeral stem and keep their source text.
+     */
+    internal fun writtenCardinalStem(pada: SankhyaPada): String? {
+        val markers = dev.panini.sankhya.SankhyaOperationMarkers
+        if (pada.stems.any { markers.isMultiplication(it) || markers.isDivision(it) || markers.isSquare(it) ||
+                markers.isCube(it) || markers.isSquareRoot(it) || markers.isConstruction(it) }) return null
+        return runCatching {
+            val expression = sharedSankhyaEvaluator.evaluateStems(pada.stems)
+            if (expression is dev.panini.sankhya.SankhyaExpression.Purana) return null
+            sharedSankhyaGenerator.pratipadika(expression)
+        }.getOrNull()
     }
 }

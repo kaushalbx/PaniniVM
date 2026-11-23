@@ -36,6 +36,13 @@ class KashikaExamplesTest {
         assertEquals(Karaka.KARTR, karaka("देवदत्त + टा आसँ + यक् + लट् + त", "देवदत्त+टा"))
     }
 
+    @Test fun `a feminine lyut noun names the means by 3_3_117 in either voice`() {
+        assertEquals(Karaka.KARANA, karaka("लिखँ + ल्युट् + ङीप् + टा पत्र + अम् लिखँ + लट् + तिप्", "लिखँ+ल्युट्+ङीप्+टा"))
+        assertEquals(Karaka.KARANA, karaka("लिखँ + ल्युट् + ङीप् + टा पत्र + सुँ लिखँ + यक् + लट् + त", "लिखँ+ल्युट्+ङीप्+टा"))
+        // A neuter action noun may be the action itself (2.3.23), so it stays open in the passive.
+        assertEquals(null, karaka("लिखँ + ल्युट् + टा पत्र + सुँ लिखँ + यक् + लट् + त", "लिखँ+ल्युट्+टा"))
+    }
+
     @Test fun `causatives find the causee from the base root`() {
         assertEquals("1.4.52", frame("राम + सुँ लक्ष्मण + अम् शीङ् + णिच् + लट् + तिप्").relations
             .single { it.participant.pada.sourceText == "लक्ष्मण+अम्" }.evidence.first().sutra)
@@ -78,9 +85,16 @@ class KashikaExamplesTest {
     }
 
     @Test fun `concessive clauses parse as two actions linked by तथापि`() {
-        val analysis = VyakaranamExecutionAdapter.analyzeGrammar(parser.parse("यद्यपि वर्षा + सुँ भू + लट् + तिप् तथापि मयूर + सुँ न नृत् + लट् + तिप् ।"))!!
+        val analysis = VyakaranamExecutionAdapter.analyzeGrammar(parser.parse("यदि + अपि वर्षा + सुँ भू + लट् + तिप् तथा + अपि मयूर + सुँ न नृत् + लट् + तिप् ।"))!!
         assertEquals(2, analysis.frames.size)
-        assertTrue(analysis.links.any { it is dev.panini.analysis.KriyaLink.Coordination && it.connector == "तथापि" })
+        assertTrue(analysis.links.any { it is dev.panini.analysis.KriyaLink.Coordination && it.connector == "तथा+अपि" })
+        val yadyapi = analysis.frames.first().vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>().single()
+        assertEquals(dev.panini.analysis.ParticleRole.CONCESSION, analysis.frames.first().particleRoles[yadyapi])
+        // यदि and अपि keep their identities: the joined spelling is not a gaṇa avyaya.
+        kotlin.test.assertFails { parser.parse("यद्यपि वर्षा + सुँ भू + लट् + तिप् तथापि मयूर + सुँ न नृत् + लट् + तिप् ।") }
+        // Spoken, 6.1.77 and 6.1.101 join them.
+        val spoken = dev.panini.execution.PvmUktiSadhaka().sadhayaLine("यदि + अपि वर्षा + सुँ भू + लट् + तिप् तथा + अपि मयूर + सुँ न नृत् + लट् + तिप् ।")
+        assertTrue(spoken.startsWith("यद्यपि ") && " तथापि " in spoken, spoken)
     }
 
     @Test fun `particles are named`() {
@@ -136,6 +150,58 @@ class KashikaExamplesTest {
         assertEquals(listOf(dev.panini.analysis.ParticipialTime.SUBSEQUENT), absolute.participialRelations.filter { it.absolute }.map { it.time })
     }
 
+    private fun evidence(source: String, pada: String) = frame(source).relations.single { it.participant.pada.sourceText == pada }
+        .evidence.filter { it.applied }.map { it.sutra }.first()
+
+    @Test fun `active dvikarmaka roots name the akathita object by 1_4_51`() {
+        // (sentence, akathita, primary): Siddhāntakaumudī on 1.4.51, roots written by their Dhātupāṭha upadeśa.
+        val cases = listOf(
+            Triple("गोप + सुँ गो + अम् पयस् + अम् दुहँ + लट् + तिप्", "गो+अम्", "पयस्+अम्"),
+            Triple("राम + सुँ बलि + अम् वसुधा + अम् टुयाचृँ + लट् + त", "बलि+अम्", "वसुधा+अम्"),
+            Triple("राम + सुँ माणवक + अम् पथिन् + अम् प्रछँ + लट् + तिप्", "माणवक+अम्", "पथिन्+अम्"),
+            Triple("गुरु + सुँ शिष्य + अम् धर्म + अम् शासुँ + लट् + तिप्", "शिष्य+अम्", "धर्म+अम्"),
+            Triple("राम + सुँ तण्डुल + शस् ओदन + अम् डुपचँष् + लट् + तिप्", "तण्डुल+शस्", "ओदन+अम्"),
+            // Executable roots too: the program still binds both, but the second is akathita.
+            Triple("राम + सुँ अजा + अम् ग्राम + अम् णीञ् + लट् + तिप्", "ग्राम+अम्", "अजा+अम्"),
+            Triple("राम + सुँ अजा + अम् ग्राम + अम् नी + लट् + तिप्", "ग्राम+अम्", "अजा+अम्"),
+        )
+        for ((source, akathita, primary) in cases) {
+            assertEquals(Karaka.KARMAN, karaka(source, akathita), source)
+            assertEquals("1.4.51", evidence(source, akathita), source)
+            assertEquals("1.4.49", evidence(source, primary), source)
+            assertTrue(frame(source).diagnostics.none { it.code == FrameDiagnosticCode.MULTIPLE_PRIMARY_OBJECTS }, source)
+        }
+    }
+
+    @Test fun `the passive of a dvikarmaka root expresses the object its class names`() {
+        // गौर्दुह्यते पयः: दुहादि express the akathita; अजा नीयते ग्रामम्: नी-class express the primary.
+        assertEquals("1.4.51", evidence("गोप + टा गो + सुँ पयस् + अम् दुहँ + यक् + लट् + त", "गो+सुँ"))
+        assertEquals("1.4.49", evidence("राम + टा अजा + सुँ ग्राम + अम् णीञ् + यक् + लट् + त", "अजा+सुँ"))
+        assertEquals("1.4.51", evidence("राम + टा अजा + सुँ ग्राम + अम् णीञ् + यक् + लट् + त", "ग्राम+अम्"))
+    }
+
+    @Test fun `a root is a dvikarmaka by its Dhatupatha entry, not its spelling`() {
+        val domains = dev.panini.analysis.KarakaDhatuDomains
+        assertTrue(domains.isDvikarmaka(dev.panini.analysis.DhatuIdentity("णीञ्")))
+        assertTrue(domains.isDvikarmaka(dev.panini.analysis.DhatuIdentity("शासुँ")), "One of its entries is अनुशिष्टौ.")
+        assertTrue(domains.dhatuEntryIds(dev.panini.analysis.DhatuIdentity("दुहिँर्")).none { it in domains.dvikarmakaSecondaryExpressing },
+            "दुहिँर् अर्दने is not the दुह् of milking.")
+        kotlin.test.assertFalse(domains.isDvikarmaka(dev.panini.analysis.DhatuIdentity("गमॢँ")))
+    }
+
+    @Test fun `a future participle governs its object and is said of its bearer`() {
+        for (source in listOf("बालक + सुँ पाठ + अम् पठँ + लृट् + शतृ + सुँ गम् + लट् + तिप्",
+                "बालक + सुँ ओदन + अम् डुपचँष् + लृट् + शानच् + सुँ गम् + लट् + तिप्")) {
+            val future = frame(source)
+            val link = future.nominalKarakas.single()
+            assertEquals(1 to 2, link.dependent to link.governor, source)
+            assertEquals(Karaka.KARMAN, (link.relation.resolution as FrameKarakaResolution.Resolved).karaka, source)
+            assertTrue(link.relation.evidence.any { it.sutra == "2.3.2" }, source)
+            assertEquals(0, future.participialRelations.single().bearer, source)
+            assertEquals(Karaka.KARTR, karaka(source, "बालक+सुँ"), source)
+        }
+    }
+
     @Test fun `the lakara gives a participle its time and only sat affixes take one`() {
         assertEquals(listOf(dev.panini.analysis.ParticipialTime.SIMULTANEOUS),
             frame("बालक + सुँ पठँ + शतृ + सुँ गम् + लट् + तिप्").participialRelations.map { it.time })
@@ -165,6 +231,28 @@ class KashikaExamplesTest {
             kotlin.test.assertFails(source) { parser.parse("$source ।") }
         }
         assertEquals(dev.panini.core.DhatuGana.DIVADI, frame("अस्मद् + सुँ मनँ + श्यन् + लट् + इट्").kriya?.dhatu?.gana)
+    }
+
+    private fun rule(source: String, pada: String) = frame(source).relations.single { it.participant.pada.sourceText == pada }.evidence.map { it.sutra }
+
+    @Test fun `a written hetu names its cause`() {
+        // 2.3.26 अन्नस्य हेतोर्वसति; 2.3.27 कस्य हेतोः, केन हेतुना.
+        for (pada in listOf("अन्न+ङस्", "हेतु+ङस्")) assertEquals(listOf("2.3.26"), rule("अन्न + ङस् हेतु + ङस् वसँ + लट् + तिप्", pada))
+        for (pada in listOf("किम्+ङस्", "हेतु+ङस्")) assertEquals(listOf("2.3.27"), rule("किम् + ङस् हेतु + ङस् वसँ + लट् + तिप्", pada))
+        for (pada in listOf("किम्+टा", "हेतु+टा")) assertEquals(listOf("2.3.27"), rule("किम् + टा हेतु + टा वसँ + लट् + तिप्", pada))
+        // A genitive beside a हेतु in another case is not its cause.
+        assertEquals(listOf("2.3.50"), rule("अन्न + ङस् हेतु + टा वसँ + लट् + तिप्", "अन्न+ङस्"))
+    }
+
+    @Test fun `a synonym of nimitta takes its cause in any case it has`() {
+        // निमित्तपर्यायप्रयोगे सर्वासां प्रायदर्शनम्: ज्ञानेन निमित्तेन, अन्नेन हेतुना, कस्मै निमित्ताय.
+        for ((source, pada) in listOf("ज्ञान + टा निमित्त + टा वसँ + लट् + तिप्" to "ज्ञान+टा",
+            "अन्न + टा हेतु + टा वसँ + लट् + तिप्" to "अन्न+टा", "किम् + ङे निमित्त + ङे वसँ + लट् + तिप्" to "किम्+ङे")) {
+            assertEquals(Karaka.ANIRDHARITA, karaka(source, pada), source)
+            assertEquals(listOf("2.3.27"), rule(source, pada), source)
+        }
+        // प्राय: a non-sarvanāma does not take the accusative this way.
+        assertTrue("2.3.27" !in rule("ज्ञान + अम् निमित्त + अम् वसँ + लट् + तिप्", "ज्ञान+अम्"))
     }
 
     @Test fun `free word order keeps these links`() {
@@ -207,10 +295,10 @@ class KashikaExamplesTest {
     @Test fun `comparison sentences still compute`() {
         fun truth(condition: String) = dev.panini.execution.PaniniVM().evalScript("यदि $condition तर्हि सत्य + सुँ असँ + लट् + तिप् अन्यथा असत्य + सुँ असँ + लट् + तिप् ।")
             .filterIsInstance<dev.panini.execution.ExecutionResult.Success>().last().value
-        assertEquals("सत्यम्", truth("दशन् + सुँ द्वि + भ्याम् अधिक + सुँ असँ + लट् + तिप्"))
-        assertEquals("असत्यम्", truth("द्वि + सुँ दशन् + भ्यस् अधिक + सुँ असँ + लट् + तिप्"))
-        assertEquals("सत्यम्", truth("द्वि + सुँ दशन् + भ्यस् न्यून + सुँ असँ + लट् + तिप्"))
-        assertEquals("सत्यम्", truth("द्वि + सुँ द्वि + भ्याम् सम + सुँ असँ + लट् + तिप्"))
+        assertEquals("सत्यम्", truth("दशन् + जस् द्वि + भ्याम् अधिक + जस् असँ + लट् + झि"))
+        assertEquals("असत्यम्", truth("द्वि + औ दशन् + भ्यस् अधिक + औ असँ + लट् + तस्"))
+        assertEquals("सत्यम्", truth("द्वि + औ दशन् + भ्यस् न्यून + औ असँ + लट् + तस्"))
+        assertEquals("सत्यम्", truth("द्वि + औ द्वि + भ्याम् सम + औ असँ + लट् + तस्"))
     }
 
     @Test fun `no word in any program source lacks a karaka`() {
@@ -258,14 +346,14 @@ class KashikaExamplesTest {
         fun readings(source: String) = VyakaranamExecutionAdapter.nonKriyaWords(parser.parseDocument(source)).associate { it.text to it.reading }
         val list = readings("एक + सुँ द्वि + औ इति दत्तसूची + सुँ नाम सूची + सुँ असँ + लट् + तिप् ।")
         assertEquals("कर्तृ-समानाधिकरण", list["एक+सुँ"]); assertEquals("कर्तृ-समानाधिकरण", list["द्वि+औ"])
-        val declaration = readings("गणित + ङस् गण + ल्युट् + सुँ नाम अपवाद + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+        val declaration = readings("गणित + ङस् गण + ल्युट् + सुँ नाम अपवाद + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥")
         assertEquals("सम्बन्ध", declaration["गणित+ङस्"]); assertEquals("कर्तृ-समानाधिकरण: सञ्ज्ञा", declaration["गण+ल्युट्+सुँ"])
         assertEquals("कर्तृ-विशेषण", declaration["अपवाद+सुँ"]); assertEquals(Karaka.KARTR.sanskritName, declaration["प्रक्रिया+सुँ"])
     }
 
     @Test fun `a named procedure header shows its roles`() {
         val header = "परीक्षण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।"
-        for (source in listOf(header, "$header\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥", "# note\n$header\nद्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")) {
+        for (source in listOf(header, "$header\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥", "# note\n$header\nद्वि + औट् मुद्र् + णिच् + लोट् + सिप् ॥")) {
             val document = parser.parseDocument(source)
             val words = VyakaranamExecutionAdapter.nonKriyaWords(document)
             assertEquals("कर्तृ-समानाधिकरण: सञ्ज्ञा", words.single { it.text == "परीक्षण+सुँ" }.reading)

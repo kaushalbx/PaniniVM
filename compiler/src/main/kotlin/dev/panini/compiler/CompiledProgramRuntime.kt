@@ -91,8 +91,31 @@ class CompiledProgramRuntime private constructor(
         if (limit != null && iteration > limit) throw CompiledExecutionLimitExceededException(limit)
     }
 
-    fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) =
+    fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) {
         enterFrame(names, argumentValues, positionalAliases = true)
+        beginCall()
+    }
+
+    /**
+     * A call owns the values it assigns (as in the interpreter): its caller's values are restored when it
+     * returns, except program state, the values the program had before its outermost call. Action history
+     * is discourse, not a value: what the call did stays known to its caller.
+     */
+    private fun beginCall() {
+        val frame = parameterFrames.removeLast()
+        val programNames = parameterFrames.lastOrNull { it.callerState != null }?.callerState?.programNames
+            ?: values.keys.toSet()
+        parameterFrames.addLast(frame.copy(callerState = CallerState(LinkedHashMap(values), programNames)))
+    }
+
+    private fun endCall(state: CallerState) {
+        val program = values.filterKeys { it in state.programNames && it != "LastResult" }
+        val result = values["LastResult"]
+        values.clear()
+        values.putAll(state.values)
+        values.putAll(program)
+        if (result != null) values["LastResult"] = result
+    }
 
     fun enterTypedFrame(names: Array<String>, argumentValues: Array<SanskritValue>, types: Array<String>) {
         val ordered = try {
@@ -150,6 +173,7 @@ class CompiledProgramRuntime private constructor(
     fun exitFrame() {
         check(parameterFrames.isNotEmpty()) { "No compiled saṃjñā parameter frame is active." }
         val frame = parameterFrames.removeLast()
+        frame.callerState?.let(::endCall)
         frame.savedBindings?.forEach { (name, value) ->
             if (value == null) values.remove(name) else values[name] = value
         }
@@ -224,7 +248,8 @@ class CompiledProgramRuntime private constructor(
             historyParticipants = historyParticipants.map { it.copy(expression = it.expression.resolveCompiledReferences()) })
         val resolved = when (val resolution = dev.panini.execution.OperationResolver.resolve(invocation, emptyMap())) {
             is dev.panini.execution.OperationResolution.Resolved -> resolution.value
-            is dev.panini.execution.OperationResolution.Invalid -> throw CompiledPaniniExecutionException(resolution.error, resolution.message)
+            is dev.panini.execution.OperationResolution.Invalid -> throw CompiledPaniniExecutionException(resolution.error,
+                resolution.message, diagnostic = dev.panini.execution.ExecutionDiagnostic(resolution.code, resolution.message))
             is dev.panini.execution.OperationResolution.MissingInput -> throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, resolution.message)
             is dev.panini.execution.OperationResolution.Ambiguous -> throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
                 "Ambiguous participant-group operation: ${resolution.operations}")
@@ -397,6 +422,13 @@ class CompiledProgramRuntime private constructor(
         val savedBindings: Map<String, SanskritValue?>? = null,
         val aliases: Map<String, Set<String>>,
         var returnRequested: Boolean = false,
+        /** For a procedure call: what its caller could see, restored when the call returns. */
+        val callerState: CallerState? = null,
+    )
+
+    private class CallerState(
+        val values: Map<String, SanskritValue>,
+        val programNames: Set<String>,
     )
 }
 

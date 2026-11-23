@@ -56,17 +56,17 @@ class PunahRepetitionCompilerTest {
         fun execute(right: String, suffix: String): Map<String, SanskritValue> {
             val source = """
                 शून्य + अम् गणना + ङि स्था + णिच् + लोट् + सिप् ।
-                यदि एक + सुँ $right + टा सम + सुँ असँ + लट् + तिप्
+                यदि एक + सुँ $right सम + सुँ असँ + लट् + तिप्
                 तर्हि पुनः एक + अम् गणना + ङि स्था + णिच् + लोट् + सिप्
-                अन्यथा नवन् + अम् गणना + ङि स्था + णिच् + लोट् + सिप् ।
+                अन्यथा नवन् + शस् गणना + ङि स्था + णिच् + लोट् + सिप् ।
             """.trimIndent()
             val generated = BytecodeCompiler.compileAndLoad(source, "CompiledPunahBranch$suffix")
             @Suppress("UNCHECKED_CAST")
             return generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
         }
 
-        assertEquals(1L, (execute("एक", "True").getValue("गणना") as SanskritValue.Sankhya).value)
-        assertEquals(9L, (execute("द्वि", "False").getValue("गणना") as SanskritValue.Sankhya).value)
+        assertEquals(1L, (execute("एक + टा", "True").getValue("गणना") as SanskritValue.Sankhya).value)
+        assertEquals(9L, (execute("द्वि + भ्याम्", "False").getValue("गणना") as SanskritValue.Sankhya).value)
     }
 
     @Test

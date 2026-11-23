@@ -71,6 +71,20 @@ object CollectionMemberMorphology {
             }
         }
         if (nominals.none { hasSlot(it, SupAffix.NGAS) }) return emptyList()
+        // Indexed transformations (replace स्था, insert नि + क्षिप्, remove निस् + हृ, exchange वि + नि + मेङ्)
+        // name the place in the genitive whole with a locative ordinal: a position, not a procedure input.
+        val upasargas = verb.upasargaIdentities
+        val root = verb.canonicalDhatuIdentity()
+        val indexed = root == CanonicalDhatuIdentity.STHA ||
+            (root == CanonicalDhatuIdentity.KSHIP && Upasarga.NI in upasargas) ||
+            (root == CanonicalDhatuIdentity.HR && Upasarga.NIS in upasargas) ||
+            (verb.dhatu.mulaDhatu in setOf("मे", "मेङ्") && Upasarga.VI in upasargas && Upasarga.NI in upasargas)
+        if (indexed) {
+            val positions = padas.filter { pada ->
+                hasSlot(pada, SupAffix.NGI) && PuranaPratyayaResolver.ordinalValue(pada) != null
+            }
+            if (positions.isNotEmpty()) return positions
+        }
         if (verb.canonicalDhatuIdentity() == CanonicalDhatuIdentity.HR && Upasarga.UD in verb.upasargaIdentities) {
             return padas.filter { pada ->
                 !hasSlot(pada, SupAffix.NGAS) && (PuranaPratyayaResolver.ordinalValue(pada) != null ||

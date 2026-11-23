@@ -31,7 +31,7 @@ Enter `:help` at any time to display the command summary.
 Enter one complete PVM utterance, including its `।` terminator:
 
 ```text
-pvm> दश + अम् विंशति + अम् च युज् + णिच् + लोट् + सिप् ।
+pvm> दश + शस् विंशति + अम् च युज् + णिच् + लोट् + सिप् ।
 ⇒ त्रिंशत्
 ```
 
@@ -50,7 +50,7 @@ Toggle trace output before evaluating an utterance:
 ```text
 pvm> :trace
 Derivation trace log: ENABLED
-pvm> दश + अम् विंशति + अम् च युज् + णिच् + लोट् + सिप् ।
+pvm> दश + शस् विंशति + अम् च युज् + णिच् + लोट् + सिप् ।
 ⇒ त्रिंशत्
   ├─► ... derivation steps ...
 pvm> :trace

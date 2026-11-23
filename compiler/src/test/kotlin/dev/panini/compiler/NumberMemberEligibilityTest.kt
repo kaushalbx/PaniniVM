@@ -7,7 +7,9 @@ import kotlin.test.*
 /** Numeric member meaning is independent of the host payload's representation. */
 class NumberMemberEligibilityTest {
     @Test fun `fraction member sum flows through typed procedure and later copular equality`() {
+        // योग is program state (set before the call), so the procedure's gift to it reaches the program.
         val source = """
+            शून्य + अम् योग + ङे दा + लोट् + सिप् ।
             परीक्षण + सुँ नाम प्रक्रिया + सुँ सङ्ख्या + अम् जन् + णिच् + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ असँ + लट् + तिप् ।
             मान + अम् योग + ङे दा + लोट् + सिप् ॥

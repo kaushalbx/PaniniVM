@@ -173,6 +173,23 @@ data class ResolvedOperation(
 sealed interface OperationResolution {
     data class Resolved(val value: ResolvedOperation) : OperationResolution
     data class MissingInput(val karakas: Set<Karaka>, val message: String) : OperationResolution
-    data class Invalid(val error: ExecutionError, val message: String) : OperationResolution
+    /** [code] names the failure for diagnostics: no operation, or no signature, fits the invocation. */
+    data class Invalid(
+        val error: ExecutionError,
+        val message: String,
+        val code: String = OperationResolutionCode.NO_MATCHING_OPERATION,
+    ) : OperationResolution
     data class Ambiguous(val operations: List<String>, val message: String) : OperationResolution
+}
+
+/** Diagnostic codes for a dhātu invocation that no operation of its dhātu can carry out. */
+object OperationResolutionCode {
+    /** The dhātu has no executable operation at all. */
+    const val DHATU_NOT_EXECUTABLE = "DHATU_NOT_EXECUTABLE"
+    /** The invocation names an operation the dhātu does not have. */
+    const val UNKNOWN_OPERATION = "UNKNOWN_OPERATION"
+    /** No operation's trigger or kāraka signature accepts the written participants. */
+    const val NO_MATCHING_OPERATION = "NO_MATCHING_OPERATION"
+    /** Kāraka role assignment was abandoned before any assignment was selected. */
+    const val ROLE_ASSIGNMENT_LIMIT = "ROLE_ASSIGNMENT_LIMIT"
 }

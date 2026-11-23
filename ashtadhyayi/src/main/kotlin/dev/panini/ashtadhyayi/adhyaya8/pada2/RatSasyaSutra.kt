@@ -12,12 +12,14 @@ object RatSasyaSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.APAVADA, chapter = 8, pada = 2, optional = false,
     kramaValue = 820024, role = SutraRole.Apavada, action = SutraAction.LOPA,
     scope = SutraScope.VARNA, dependencies = setOf("1.4.14"),
+    stage = dev.panini.sutra.SutraStage.PADA_FORMATION, // with 8.2.23, which it restricts
     blocks = setOf("8.2.23"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val term = context.terms.lastOrNull() ?: return false
         return context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PADA } &&
-            term.varnas.takeLast(2) == listOf(Vyanjana.RA, Vyanjana.SA)
+            context.padaFinalVarnas().takeLast(2) == listOf(Vyanjana.RA, Vyanjana.SA) &&
+            term.varnas.lastOrNull() == Vyanjana.SA
     }
 
     override fun apply(context: DerivationState): DerivationChange {

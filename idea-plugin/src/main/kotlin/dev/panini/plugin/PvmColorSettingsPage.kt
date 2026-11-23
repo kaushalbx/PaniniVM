@@ -63,8 +63,8 @@ class PvmColorSettingsPage : ColorSettingsPage {
             <nominalStem>राम</nominalStem> + सुँ भू + लट् + तिप् ।
             <prakriyaParameter>वाम</prakriyaParameter> + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             <prakriyaArgument>द्वि</prakriyaArgument> + अम् गण + टा कृ + लोट् + सिप् ।
-            <prakriyaParameterReference>वाम</prakriyaParameterReference> + ङि द्वि + अम् गण + टा कृ + लोट् + सिप् ।
-            पञ्च + अम् द्वि + अम् च <domainReference>गणित</domainReference> + ङस् <prakriyaReference>गण</prakriyaReference> + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+            <prakriyaParameterReference>वाम</prakriyaParameterReference> + ङि द्वि + औट् गण + टा कृ + लोट् + सिप् ।
+            पञ्च + शस् द्वि + औट् च <domainReference>गणित</domainReference> + ङस् <prakriyaReference>गण</prakriyaReference> + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
     }
 

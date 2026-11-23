@@ -54,7 +54,9 @@ internal object CaseFormConstruction {
                 when {
                     // 2.3.23 अध्ययनेन वसति: an action noun is no tool, and a mere copula needs no means, so these name the reason.
                     onlyCase(index, Vibhakti.TRTIYA) && !root.hasArtha(DhatuArthaClass.DOING) && stem(index) !in VoiceRoleConstruction.timeWords && (
-                        (pratipadika(index) as? KridantaPratipadika)?.krtAffix in bhavaAffixes ||
+                        (pratipadika(index) as? KridantaPratipadika)?.let { krt -> krt.krtAffix in bhavaAffixes &&
+                            // 3.3.114–3.3.117: a ल्युट् with a feminine affix is no bhāva noun but a means or locus (लेखनी).
+                            !(krt.krtPratyaya == "ल्युट्" && krt.vikaras.any { it is dev.panini.vyakaranam.ast.StriVikara }) } == true ||
                             (root.hasArtha(DhatuArthaClass.BEING) && !deformed && stem(index) != null && nominals.indices.none { it != index && onlyCase(it, Vibhakti.TRTIYA) })) &&
                         nominals.indices.none { stem(it) in setOf("तुल्य", "सम", "समान", "सदृश", "न्यून", "अधिक") } && frame.prayoga == dev.panini.core.Prayoga.KARTARI ->
                         put(index, setOf(SemanticRelation.CAUSE_HETU))

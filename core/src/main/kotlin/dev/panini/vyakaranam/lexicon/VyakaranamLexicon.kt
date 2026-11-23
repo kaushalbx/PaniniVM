@@ -97,6 +97,25 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         // Amarakośa 2.8.1152 attests विजयः; its vi-√ji-ac formation is in the
         // domain of Liṅgānuśāsana 37. Gender remains assigned by that rule.
         put("विजय", PratipadikaEntry("विजय", emptySet(), lingaPratyaya = "अच्"))
+        // गणना: curādi √गण + णिच्, युच् by 3.3.107 (ण्यासश्रन्थो युच्), then टाप् by 4.1.4.
+        // Gender is assigned by Liṅgānuśāsana 11 (ऊङाबन्तश्च), not stored lexically.
+        put("गणना", PratipadikaEntry("गणना", emptySet(), lingaPratyaya = "टाप्",
+            stemFormation = NominalStemFormation.AP))
+        // प्रक्रिया: प्र + √कृ + श by 3.3.100 (कृञः श च); अवस्था: अव + √स्था + अङ् by 3.3.106
+        // (आतश्चोपसर्गे); both then take टाप् by 4.1.4. सीमा: सीमन् + डाप् by 4.1.13
+        // (डाबुभाभ्यामन्यतरस्याम्). Gender is assigned by Liṅgānuśāsana 11 (ऊङाबन्तश्च).
+        put("प्रक्रिया", PratipadikaEntry("प्रक्रिया", emptySet(), lingaPratyaya = "टाप्",
+            stemFormation = NominalStemFormation.AP))
+        put("अवस्था", PratipadikaEntry("अवस्था", emptySet(), lingaPratyaya = "टाप्",
+            stemFormation = NominalStemFormation.AP))
+        put("सीमा", PratipadikaEntry("सीमा", emptySet(), lingaPratyaya = "डाप्",
+            stemFormation = NominalStemFormation.AP))
+        // लता: लत + अच् + टाप् ("लतति वेष्टयति"), the traditional kośa derivation; Amarakośa
+        // (vanauṣadhivarga: वल्ली तु व्रततिर्लता) attests it. टाप् is by 4.1.4 (अजाद्यतष्टाप्).
+        // √लत is not in this project's Dhātupāṭha, so the अच् stage is lexical, not derived here.
+        // Gender is assigned by Liṅgānuśāsana (11 ऊङाबन्तश्च; 18 also names लता), not stored.
+        put("लता", PratipadikaEntry("लता", emptySet(), lingaPratyaya = "टाप्",
+            stemFormation = NominalStemFormation.AP))
         // Independently selected prātipadika identities from the exact
         // Liṅgānuśāsana 109–117 and 158 enumerations. Gender
         // is intentionally absent here and is supplied only by the registered

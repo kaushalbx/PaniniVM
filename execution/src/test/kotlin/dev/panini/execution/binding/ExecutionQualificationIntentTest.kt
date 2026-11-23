@@ -16,7 +16,7 @@ class ExecutionQualificationIntentTest {
 
     @Test
     fun `derives prayer intent from courtesy qualification`() {
-        val bound = bind("कृपया एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।")
+        val bound = bind("कृपया एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 
         assertEquals(VakyaPrayojana.PRARTHANA, bound.ukti.prayojana)
         assertEquals(Polarity.POSITIVE, bound.ukti.polarity)
@@ -24,7 +24,7 @@ class ExecutionQualificationIntentTest {
 
     @Test
     fun `derives prohibition intent from negation qualification`() {
-        val bound = bind("मा एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।")
+        val bound = bind("मा एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 
         assertEquals(VakyaPrayojana.NISHEDHA, bound.ukti.prayojana)
         assertEquals(Polarity.NEGATIVE, bound.ukti.polarity)
@@ -32,7 +32,7 @@ class ExecutionQualificationIntentTest {
 
     @Test
     fun `does not lower discourse recurrence to a numeric duplicate`() {
-        val bound = bind("पुनः एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।")
+        val bound = bind("पुनः एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 
         assertEquals(1, bound.ukti.invocations.size)
         assertEquals(listOf("योग-1"), bound.ukti.invocations.map { it.id })

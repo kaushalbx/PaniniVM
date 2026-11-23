@@ -25,6 +25,6 @@ class PriorResultInjectionTest {
         assertFalse(PriorResultInjection.hasExplicitDisplayObject(original.copy(vakya =
             sentence.copy(padas = listOf(sentence.tinganta)))))
         assertFalse(PriorResultInjection.hasExplicitDisplayObject(
-            parse("एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।")))
+            parse("एक + अम् द्वि + औट् च युज् + लोट् + सिप् ।")))
     }
 }

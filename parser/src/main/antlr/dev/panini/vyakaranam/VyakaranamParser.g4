@@ -166,9 +166,9 @@ attributePipelineClause
     ;
 
 whileClause
-    : (limit=sankhyaAbhyasaPada YAVAT condition=vakya TAVAT body=vakya
-      | YAVAT condition=vakya TAVAT boundary=ordinalAttemptBoundary body=vakya
-      | YAVAT condition=vakya TAVAT body=vakya)
+    : (limit=sankhyaAbhyasaPada YAVAT (conjoined=conjoinedCondition | condition=vakya) TAVAT body=vakya
+      | YAVAT (conjoined=conjoinedCondition | condition=vakya) TAVAT boundary=ordinalAttemptBoundary body=vakya
+      | YAVAT (conjoined=conjoinedCondition | condition=vakya) TAVAT body=vakya)
       (ANYATHA exhausted=whileExhausted)? (TATAH target=vakya)?
     ;
 
@@ -209,9 +209,19 @@ conditionalClause
     ;
 
 conditionalExpression
-    : (YADI condition=conditionClause TARHI | condition=conditionClause CHET) consequent=conditionalArm
-      (DANDA TADA continuations+=utterance)*
-      ((DANDA)? ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+    : (YADI condition=conditionClause TARHI | condition=conditionClause CHET)
+      ( // अन्यथा closes the consequent, so a ततः chain before it can only belong to that arm.
+        // After the alternate, or with no अन्यथा, ततः continues the whole conditional (conditionalClause).
+        consequentChain=conditionalResultChain (DANDA)? ANYATHA (nested=conditionalExpression | alternate=conditionalArm)
+      | consequent=conditionalArm
+        (DANDA TADA continuations+=utterance)*
+        ((DANDA)? ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+      )
+    ;
+
+// Result flow inside one branch: each stage's फल is the previous stage's result.
+conditionalResultChain
+    : stages+=akhyataVakya (TATAH stages+=akhyataVakya)+
     ;
 
 temporalConditionalExpression
@@ -221,7 +231,14 @@ temporalConditionalExpression
 
 conditionClause
     : quantifiedCollectionClause
+    | conjoinedCondition
     | vakya
+    ;
+
+// Clauses that must all hold. As with action-level च, the coordinator immediately follows a finite head, so it
+// joins whole clauses; च before that head coordinates nominal operands.
+conjoinedCondition
+    : clauses+=coordinatedActionVakya CHA (clauses+=coordinatedActionVakya CHA)* last=vakya
     ;
 
 conditionalArm
@@ -328,10 +345,12 @@ accusativeBoundary
 
 ablativeNumeral
     : (sankhyaStem PLUS)+ ablativeSup
+    | namedBound=samasaPratipadika PLUS ablativeSup
     ;
 
 accusativeNumeral
     : (sankhyaStem PLUS)+ accusativeSup
+    | namedBound=samasaPratipadika PLUS accusativeSup
     ;
 
 ablativeOrdinal
@@ -368,7 +387,8 @@ subantaVakyaPada
 
 vakyaSambandha
     : CHA
-    | TATHAAPI
+    // तथा + अपि: two चादि members; the sandhi engine renders तथापि (6.1.101).
+    | TATHA PLUS API
     | VAA
     | ITI
     | ATHA
@@ -919,10 +939,16 @@ avyayaKridanta
 
 avyayaPada
     : mulaAvyaya
+    | nipataSamuccaya
     | avyayaKridanta
     | avyayaTaddhitanta
     | avyayibhavaPada
     | sankhyaAvyaya
+    ;
+
+// यदि + अपि: nipātas written together keep their own identities (1.4.57); 6.1.77 makes यद्यपि.
+nipataSamuccaya
+    : YADI PLUS API
     ;
 
 sankhyaAvyaya
@@ -956,7 +982,6 @@ mulaAvyaya
     | NA
     | ITI
     | API
-    | YADYAPI
     | NAAMA
     | NI
     | EVA
